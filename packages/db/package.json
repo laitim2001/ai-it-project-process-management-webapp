@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@itpm/tsconfig": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^2.4.3",
     "prisma": "^5.9.1",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"

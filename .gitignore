@@ -47,6 +47,21 @@ dist/
 .turbo-cache/
 
 # ------------------------------------------------------------------------------
+# Index System (DO NOT IGNORE)
+# ------------------------------------------------------------------------------
+# !.ai-context
+# !AI-ASSISTANT-GUIDE.md
+# !PROJECT-INDEX.md
+# !INDEX-MAINTENANCE-GUIDE.md
+# !DEVELOPMENT-LOG.md
+# !FIXLOG.md
+# !scripts/check-index-sync.js
+
+# Index check temporary files
+.index-check-time
+index-sync-report.json
+
+# ------------------------------------------------------------------------------
 # Testing
 # ------------------------------------------------------------------------------
 coverage/

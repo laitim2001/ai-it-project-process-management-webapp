@@ -18,6 +18,7 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String?
+  password  String?  // 加密後的密碼 (bcrypt hash)，Azure AD B2C 用戶此欄位為 null
   roleId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -56,15 +57,17 @@ model BudgetPool {
 }
 
 model Project {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   name         String
   description  String?
-  status       String   @default("Draft") // "Draft", "InProgress", "Completed", "Archived"
+  status       String    @default("Draft") // "Draft", "InProgress", "Completed", "Archived"
   managerId    String
   supervisorId String
   budgetPoolId String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  startDate    DateTime
+  endDate      DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   manager        User             @relation("ProjectManager", fields: [managerId], references: [id])
   supervisor     User             @relation("Supervisor", fields: [supervisorId], references: [id])

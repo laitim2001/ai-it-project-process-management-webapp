@@ -1,0 +1,266 @@
+{
+  "$schema": "./mvp-progress-report.schema.json",
+  "projectName": "IT Project Process Management Platform",
+  "version": "0.1.0",
+  "lastUpdated": "2025-10-02T23:30:00+08:00",
+  "overallProgress": {
+    "percentage": 5,
+    "phase": "MVP Phase 1",
+    "currentSprint": "Sprint 0",
+    "currentWeek": 0,
+    "currentDay": 0,
+    "status": "準備階段"
+  },
+  "phases": [
+    {
+      "phase": "Phase 1",
+      "name": "專案初始化",
+      "status": "completed",
+      "progress": 100,
+      "startDate": "2025-10-01",
+      "completedDate": "2025-10-02",
+      "totalCodeLines": 5300,
+      "modules": [
+        {
+          "name": "Monorepo 架構設置",
+          "progress": 100,
+          "codeLines": 500,
+          "status": "completed"
+        },
+        {
+          "name": "Next.js 14 應用初始化",
+          "progress": 100,
+          "codeLines": 800,
+          "status": "completed"
+        },
+        {
+          "name": "Prisma 資料庫架構",
+          "progress": 100,
+          "codeLines": 400,
+          "status": "completed"
+        },
+        {
+          "name": "tRPC API 層建立",
+          "progress": 100,
+          "codeLines": 600,
+          "status": "completed"
+        },
+        {
+          "name": "Budget Pool CRUD",
+          "progress": 100,
+          "codeLines": 1200,
+          "status": "completed"
+        },
+        {
+          "name": "UI 元件庫（Radix UI）",
+          "progress": 100,
+          "codeLines": 1500,
+          "status": "completed"
+        },
+        {
+          "name": "Docker 開發環境",
+          "progress": 100,
+          "codeLines": 300,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "phase": "Phase 2",
+      "name": "MVP 功能開發",
+      "status": "in_progress",
+      "progress": 5,
+      "startDate": "2025-10-03",
+      "estimatedCompletionDate": "2025-11-28",
+      "estimatedWeeks": 8,
+      "totalCodeLines": 0,
+      "epics": [
+        {
+          "epic": "Epic 1",
+          "name": "Azure AD B2C 認證",
+          "progress": 0,
+          "status": "pending",
+          "estimatedWeeks": 1,
+          "codeLines": 0,
+          "priority": "high",
+          "dependencies": []
+        },
+        {
+          "epic": "Epic 2",
+          "name": "專案管理功能 (Project CRUD)",
+          "progress": 0,
+          "status": "in_progress",
+          "estimatedWeeks": 2,
+          "codeLines": 0,
+          "priority": "high",
+          "dependencies": [],
+          "tasks": [
+            {
+              "name": "Project tRPC API 路由實現",
+              "status": "in_progress",
+              "codeLines": 0
+            },
+            {
+              "name": "Project 列表頁面",
+              "status": "pending",
+              "codeLines": 0
+            },
+            {
+              "name": "Project 詳情頁面",
+              "status": "pending",
+              "codeLines": 0
+            },
+            {
+              "name": "Project 新增頁面",
+              "status": "pending",
+              "codeLines": 0
+            },
+            {
+              "name": "Project 編輯頁面",
+              "status": "pending",
+              "codeLines": 0
+            },
+            {
+              "name": "ProjectForm 業務組件",
+              "status": "pending",
+              "codeLines": 0
+            }
+          ]
+        },
+        {
+          "epic": "Epic 3",
+          "name": "提案審批工作流",
+          "progress": 0,
+          "status": "pending",
+          "estimatedWeeks": 2,
+          "codeLines": 0,
+          "priority": "high",
+          "dependencies": ["Epic 1", "Epic 2"]
+        },
+        {
+          "epic": "Epic 4",
+          "name": "供應商與採購管理",
+          "progress": 0,
+          "status": "pending",
+          "estimatedWeeks": 1.5,
+          "codeLines": 0,
+          "priority": "medium",
+          "dependencies": ["Epic 2", "Epic 3"]
+        },
+        {
+          "epic": "Epic 5",
+          "name": "費用記錄與審批",
+          "progress": 0,
+          "status": "pending",
+          "estimatedWeeks": 1,
+          "codeLines": 0,
+          "priority": "medium",
+          "dependencies": ["Epic 4"]
+        },
+        {
+          "epic": "Epic 6",
+          "name": "角色儀表板",
+          "progress": 0,
+          "status": "pending",
+          "estimatedWeeks": 0.5,
+          "codeLines": 0,
+          "priority": "medium",
+          "dependencies": ["Epic 2", "Epic 3"]
+        },
+        {
+          "epic": "Epic 7",
+          "name": "通知系統",
+          "progress": 0,
+          "status": "pending",
+          "estimatedWeeks": 0.5,
+          "codeLines": 0,
+          "priority": "low",
+          "dependencies": ["Epic 3"]
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "name": "專案架構初始化完成",
+      "date": "2025-10-02",
+      "status": "completed",
+      "description": "Monorepo 架構、資料庫設計、Budget Pool CRUD 完成"
+    },
+    {
+      "name": "認證系統整合完成",
+      "estimatedDate": "2025-10-10",
+      "status": "pending",
+      "description": "Azure AD B2C 整合完成，用戶可登入"
+    },
+    {
+      "name": "核心業務流程完成",
+      "estimatedDate": "2025-11-07",
+      "status": "pending",
+      "description": "Budget Pool → Project → Proposal 完整流程可用"
+    },
+    {
+      "name": "MVP 功能開發完成",
+      "estimatedDate": "2025-11-28",
+      "status": "pending",
+      "description": "所有 7 個 Epic 功能實現完成"
+    }
+  ],
+  "teamMetrics": {
+    "totalCodeLines": 5300,
+    "totalFiles": 86,
+    "testCoverage": 0,
+    "componentsCount": 15,
+    "apiEndpoints": 5,
+    "databaseModels": 11
+  },
+  "recentUpdates": [
+    {
+      "date": "2025-10-02T23:30:00+08:00",
+      "type": "documentation",
+      "description": "AI助手導航系統建立完成",
+      "files": [
+        "AI-ASSISTANT-GUIDE.md",
+        "PROJECT-INDEX.md",
+        "DEVELOPMENT-LOG.md",
+        "FIXLOG.md",
+        "INDEX-MAINTENANCE-GUIDE.md",
+        "scripts/check-index-sync.js"
+      ]
+    },
+    {
+      "date": "2025-10-02T19:00:00+08:00",
+      "type": "feature",
+      "description": "Budget Pool CRUD 完整實現",
+      "codeLines": 1200,
+      "files": [
+        "packages/api/src/routers/budgetPool.ts",
+        "apps/web/src/app/budget-pools/**"
+      ]
+    },
+    {
+      "date": "2025-10-02T09:00:00+08:00",
+      "type": "configuration",
+      "description": "Monorepo 基礎架構設置完成",
+      "codeLines": 500,
+      "files": [
+        "turbo.json",
+        "pnpm-workspace.yaml",
+        "package.json"
+      ]
+    }
+  ],
+  "blockers": [],
+  "risks": [
+    {
+      "description": "Azure AD B2C 整合可能需要額外時間進行測試和配置",
+      "severity": "medium",
+      "mitigation": "提前準備測試環境和文檔"
+    }
+  ],
+  "nextSteps": [
+    "完成 Project 管理 CRUD（Epic 2）",
+    "整合 Azure AD B2C 認證（Epic 1）",
+    "實現提案審批工作流（Epic 3）"
+  ]
+}

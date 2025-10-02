@@ -1,6 +1,9 @@
 import { createTRPCRouter } from './trpc';
 import { healthRouter } from './routers/health';
 import { budgetPoolRouter } from './routers/budgetPool';
+import { projectRouter } from './routers/project';
+import { userRouter } from './routers/user';
+import { budgetProposalRouter } from './routers/budgetProposal';
 
 /**
  * This is the primary router for your server.
@@ -10,9 +13,10 @@ import { budgetPoolRouter } from './routers/budgetPool';
 export const appRouter = createTRPCRouter({
   health: healthRouter,
   budgetPool: budgetPoolRouter,
+  project: projectRouter,
+  user: userRouter,
+  budgetProposal: budgetProposalRouter,
   // Add more routers here as they are created:
-  // project: projectRouter,
-  // proposal: proposalRouter,
   // vendor: vendorRouter,
   // expense: expenseRouter,
 });

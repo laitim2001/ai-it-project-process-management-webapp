@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 索引同步檢查 Git Hook
+echo "🔍 檢查索引同步狀態..."
+
+# 檢查是否有新增重要文件但索引未更新
+NEW_IMPORTANT_FILES=$(git diff --cached --name-only --diff-filter=A | grep -E '\.(md|ts|tsx|js|jsx|prisma)$')
+
+if [ ! -z "$NEW_IMPORTANT_FILES" ]; then
+    echo "⚠️ 檢測到新增重要文件："
+    echo "$NEW_IMPORTANT_FILES"
+
+    # 檢查索引文件是否也在此次提交中
+    INDEX_UPDATED=$(git diff --cached --name-only | grep -E 'PROJECT-INDEX\.md|AI-ASSISTANT-GUIDE\.md')
+
+    if [ -z "$INDEX_UPDATED" ]; then
+        echo ""
+        echo "❌ 錯誤：新增了重要文件但未更新索引！"
+        echo ""
+        echo "請更新以下索引文件之一："
+        echo "  - PROJECT-INDEX.md （完整專案索引）"
+        echo "  - AI-ASSISTANT-GUIDE.md （AI助手快速參考）"
+        echo ""
+        echo "然後重新提交。"
+        echo ""
+        echo "💡 提示：運行 'npm run index:check' 檢查建議"
+        exit 1
+    fi
+fi
+
+echo "✅ 索引同步檢查通過"

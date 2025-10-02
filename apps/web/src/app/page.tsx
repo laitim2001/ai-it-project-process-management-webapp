@@ -1,61 +1,32 @@
 'use client';
 
-import { api } from '@/lib/trpc';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  const { data: ping, isLoading } = api.health.ping.useQuery();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (session) {
+      // 已登入，重定向到 Dashboard
+      router.push('/dashboard');
+    } else {
+      // 未登入，重定向到登入頁面
+      router.push('/login');
+    }
+  }, [session, status, router]);
+
+  // 顯示載入畫面
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold mb-8 text-center">
-          IT Project Management Platform
-        </h1>
-
-        <div className="bg-white/10 p-6 rounded-lg">
-          <h2 className="text-2xl font-semibold mb-4">System Status</h2>
-          {isLoading ? (
-            <p>Loading...</p>
-          ) : ping ? (
-            <div className="space-y-2">
-              <p className="text-success">✓ API: {ping.message}</p>
-              <p className="text-sm text-gray-600">
-                Timestamp: {ping.timestamp}
-              </p>
-            </div>
-          ) : (
-            <p className="text-danger">✗ API connection failed</p>
-          )}
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border border-gray-300 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Tech Stack</h3>
-            <ul className="text-sm space-y-1 text-gray-700">
-              <li>• Next.js 14 (App Router)</li>
-              <li>• tRPC 10</li>
-              <li>• Prisma 5</li>
-              <li>• TypeScript</li>
-              <li>• Tailwind CSS</li>
-            </ul>
-          </div>
-
-          <div className="border border-gray-300 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Quick Links</h3>
-            <ul className="text-sm space-y-1">
-              <li>
-                <a href="/budget-pools" className="text-blue-600 hover:underline">
-                  → Budget Pool Management
-                </a>
-              </li>
-              <li className="text-gray-400">→ Project Tracking (Coming Soon)</li>
-              <li className="text-gray-400">→ Proposal Approval (Coming Soon)</li>
-              <li className="text-gray-400">→ Vendor & Procurement (Coming Soon)</li>
-              <li className="text-gray-400">→ Expense Management (Coming Soon)</li>
-            </ul>
-          </div>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <p className="text-gray-600">載入中...</p>
       </div>
-    </main>
+    </div>
   );
 }

@@ -7,7 +7,9 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 
 import { prisma } from '@itpm/db';
-import { getMockSession, type Session } from '@itpm/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@itpm/auth';
+import type { Session } from 'next-auth';
 
 /**
  * 1. CONTEXT
@@ -47,10 +49,8 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
 
-  // Get the session from the server using the getServerSession wrapper function
-  // TODO: Replace with NextAuth.js session retrieval
-  // For now, use mock session for development
-  const session = getMockSession();
+  // Get the session from NextAuth.js
+  const session = await getServerSession(req, res, authOptions);
 
   return createInnerTRPCContext({
     session,

@@ -1,0 +1,40 @@
+# IT Project Process Management Platform - AI Context
+
+## 🎯 專案身份
+**名稱**: IT Project Process Management Platform
+**類型**: 企業級 IT 專案管理 SaaS
+**技術**: Next.js 14 + Turborepo Monorepo + PostgreSQL + Prisma + tRPC
+**狀態**: MVP Phase 1 開發中
+
+## 📋 核心索引路徑
+- **L1 快速導航**: AI-ASSISTANT-GUIDE.md
+- **L2 完整索引**: PROJECT-INDEX.md
+- **L3 維護指南**: INDEX-MAINTENANCE-GUIDE.md
+- **開發記錄**: DEVELOPMENT-LOG.md
+- **問題記錄**: FIXLOG.md
+
+## 🔴 立即執行（AI助手必讀）
+1. 切換中文對答模式
+2. 讀取 AI-ASSISTANT-GUIDE.md
+3. 制定/更新 todos list
+4. 每個 todo 完成後更新 DEVELOPMENT-LOG.md
+
+## 🏗️ 專案結構概覽
+```
+ai-it-project-process-management-webapp/
+├── apps/web/              # Next.js 14 前端應用
+├── packages/
+│   ├── api/               # tRPC 後端路由
+│   ├── db/                # Prisma 資料庫
+│   └── auth/              # Azure AD B2C 認證
+└── docs/                  # 專案文檔
+```
+
+## 🚫 避免查找目錄
+.bmad-core/, .bmad-infrastructure-devops/, .bmad-creative-writing/, web-bundles/, .claude/, .cursor/, .git/, node_modules/
+
+## 📊 當前進度
+- ✅ Phase 1: 專案初始化完成 (100%)
+- 🔄 MVP Phase 1: 開發中 (5%)
+
+**最後更新**: 2025-10-02 23:30
