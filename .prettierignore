@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Prisma generated client
+**/node_modules/@prisma/client/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+
+# Generated files
+.changelog/
+CHANGELOG.md
+
+# Documentation that shouldn't be formatted
+docs/Sample-Docs/
+Sample-Docs/
+
+# Lock files
+pnpm-lock.yaml
+
+# Git
+.git/
+.gitignore
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Other
+*.min.js
+*.min.css

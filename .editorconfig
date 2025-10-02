@@ -1,0 +1,83 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# TypeScript and JavaScript
+[*.{ts,tsx,js,jsx,mjs,cjs}]
+indent_style = space
+indent_size = 2
+
+# JSON and JSONC
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2
+
+# YAML
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 2
+
+# Prisma Schema
+[*.prisma]
+indent_style = space
+indent_size = 2
+
+# Shell Scripts
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Makefiles
+[Makefile]
+indent_style = tab
+
+# Python (if any scripts)
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Go (if any scripts)
+[*.go]
+indent_style = tab
+indent_size = 4
+
+# Package files
+[{package.json,package-lock.json,pnpm-lock.yaml,yarn.lock}]
+indent_style = space
+indent_size = 2
+
+# Docker
+[{Dockerfile,docker-compose.yml}]
+indent_style = space
+indent_size = 2
+
+# SQL
+[*.sql]
+indent_style = space
+indent_size = 2
+
+# XML, HTML, SVG
+[*.{xml,html,svg}]
+indent_style = space
+indent_size = 2
+
+# CSS, SCSS, LESS
+[*.{css,scss,less}]
+indent_style = space
+indent_size = 2

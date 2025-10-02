@@ -1,0 +1,9 @@
+# pnpm workspace configuration for IT Project Management Platform
+# This file defines the monorepo structure for pnpm workspaces
+
+packages:
+  # Frontend applications
+  - 'apps/*'
+
+  # Shared packages
+  - 'packages/*'

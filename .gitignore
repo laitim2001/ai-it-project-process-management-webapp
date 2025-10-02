@@ -1,0 +1,264 @@
+# ==============================================================================
+# IT Project Process Management Platform - Git Ignore Rules
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# ------------------------------------------------------------------------------
+# Environment Variables
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.staging.local
+
+# ------------------------------------------------------------------------------
+# Next.js
+# ------------------------------------------------------------------------------
+.next/
+out/
+build/
+dist/
+.vercel/
+
+# Next.js build artifacts
+.next/cache/
+.next/server/
+.next/static/
+
+# ------------------------------------------------------------------------------
+# Turborepo
+# ------------------------------------------------------------------------------
+.turbo/
+.turbo-cache/
+
+# ------------------------------------------------------------------------------
+# Testing
+# ------------------------------------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ------------------------------------------------------------------------------
+# Prisma
+# ------------------------------------------------------------------------------
+# Keep schema but ignore generated client and migrations in some cases
+# packages/db/prisma/migrations/  # Uncomment if you want to ignore migrations (NOT recommended)
+
+# Prisma Studio
+.prisma/
+
+# ------------------------------------------------------------------------------
+# TypeScript
+# ------------------------------------------------------------------------------
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# IDE & Editors
+# ------------------------------------------------------------------------------
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# JetBrains IDEs (WebStorm, IntelliJ IDEA, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ------------------------------------------------------------------------------
+# Operating System Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+# ------------------------------------------------------------------------------
+# Logs
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime logs
+logs/
+*.log
+
+# ------------------------------------------------------------------------------
+# Docker
+# ------------------------------------------------------------------------------
+# Docker volumes (managed by docker-compose)
+postgres_data/
+pgadmin_data/
+redis_data/
+
+# Docker override files
+docker-compose.override.yml
+
+# ------------------------------------------------------------------------------
+# Azure
+# ------------------------------------------------------------------------------
+# Azure Functions
+local.settings.json
+
+# Azure CLI
+.azure/
+
+# ------------------------------------------------------------------------------
+# Temporary Files
+# ------------------------------------------------------------------------------
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ------------------------------------------------------------------------------
+# Build Artifacts
+# ------------------------------------------------------------------------------
+dist/
+build/
+out/
+*.tgz
+
+# ------------------------------------------------------------------------------
+# Package Manager Lock Files (choose one strategy)
+# ------------------------------------------------------------------------------
+# Keep pnpm-lock.yaml for reproducible builds
+# Uncomment if you want to ignore it (NOT recommended)
+# pnpm-lock.yaml
+
+# Ignore other package manager locks if using pnpm exclusively
+package-lock.json
+yarn.lock
+
+# ------------------------------------------------------------------------------
+# Storybook
+# ------------------------------------------------------------------------------
+storybook-static/
+
+# ------------------------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------------------------
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# Service Worker
+sw.js
+workbox-*.js
+
+# PWA
+public/sw.js
+public/workbox-*.js
+
+# ------------------------------------------------------------------------------
+# Sensitive Data & Credentials
+# ------------------------------------------------------------------------------
+# Ensure no credentials are committed
+*.pem
+*.key
+*.cert
+*.crt
+credentials.json
+secrets.json
+
+# ------------------------------------------------------------------------------
+# Application Specific
+# ------------------------------------------------------------------------------
+# Uploaded files (should be in Azure Blob Storage, not in repo)
+uploads/
+public/uploads/
+
+# Generated reports
+reports/
+*.pdf
+*.xlsx
+!docs/**/*.pdf  # Allow documentation PDFs
+
+# Database dumps
+*.sql
+*.dump
+!scripts/init-db.sql  # Allow initialization scripts
+
+# ------------------------------------------------------------------------------
+# AI & LLM Tools
+# ------------------------------------------------------------------------------
+# Cursor AI
+.cursor/
+
+# Claude Code
+.claude/settings.local.json
+
+# GitHub Copilot
+.github/copilot/
+
+# ------------------------------------------------------------------------------
+# Keep These Files (whitelist)
+# ------------------------------------------------------------------------------
+# Explicitly keep certain files that might be caught by patterns above
+!.vscode/settings.json
+!.vscode/extensions.json
+!.github/workflows/*.yml
+!scripts/*.sh
+!scripts/*.sql

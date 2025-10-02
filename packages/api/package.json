@@ -1,0 +1,22 @@
+{
+  "name": "@itpm/api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@itpm/db": "workspace:*",
+    "@trpc/server": "^10.45.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@itpm/tsconfig": "workspace:*",
+    "@types/node": "^20.11.19",
+    "typescript": "^5.3.3"
+  }
+}

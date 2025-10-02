@@ -1,0 +1,141 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝您花時間填寫此 Bug 報告! 請盡可能提供詳細資訊以幫助我們重現和修復問題。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Bug 描述
+      description: 清楚且簡潔地描述這個 Bug
+      placeholder: 描述發生了什麼問題...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 🔄 重現步驟
+      description: 提供重現此 Bug 的步驟
+      placeholder: |
+        1. 前往 '...'
+        2. 點擊 '...'
+        3. 滾動到 '...'
+        4. 看到錯誤
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ 預期行為
+      description: 描述你預期應該發生什麼
+      placeholder: 應該發生...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: ❌ 實際行為
+      description: 描述實際發生了什麼
+      placeholder: 實際發生...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 截圖或影片
+      description: 如果適用, 請添加截圖或錄製影片來幫助解釋問題
+      placeholder: 拖放截圖或影片到這裡...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🔥 嚴重程度
+      description: 此 Bug 對您的影響程度
+      options:
+        - Critical - 阻塞性問題, 無法繼續使用
+        - High - 重要功能無法使用
+        - Medium - 功能受限但有替代方案
+        - Low - 小問題或視覺瑕疵
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 📦 版本資訊
+      description: 應用程式版本或 Git commit hash
+      placeholder: v1.0.0 or commit abc123
+    validations:
+      required: false
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 🌍 環境
+      description: 問題發生在哪個環境?
+      options:
+        - Local Development
+        - Staging
+        - Production
+    validations:
+      required: true
+
+  - type: textarea
+    id: browser
+    attributes:
+      label: 🌐 瀏覽器資訊
+      description: 如果是前端問題, 請提供瀏覽器資訊
+      placeholder: |
+        Browser: Chrome
+        Version: 120.0.0
+        OS: Windows 11
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 📋 錯誤日誌
+      description: 如果有相關的錯誤訊息或日誌, 請貼在這裡
+      placeholder: |
+        ```
+        貼上錯誤日誌...
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🔗 其他資訊
+      description: 任何其他有助於理解問題的資訊
+      placeholder: 額外的背景資訊...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Checklist
+      description: 提交前請確認
+      options:
+        - label: 我已搜尋過現有的 Issues, 確認這不是重複的問題
+          required: true
+        - label: 我已閱讀 CONTRIBUTING.md 指南
+          required: true
+        - label: 我已提供足夠的資訊來重現此問題
+          required: true

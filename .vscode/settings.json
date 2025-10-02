@@ -1,0 +1,202 @@
+{
+  // ==============================================================================
+  // VS Code Workspace Settings
+  // IT Project Process Management Platform
+  // ==============================================================================
+
+  // --------------------------------------------------------------------------
+  // Editor Configuration
+  // --------------------------------------------------------------------------
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.tabSize": 2,
+  "editor.rulers": [80, 120],
+  "editor.wordWrap": "off",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+
+  // --------------------------------------------------------------------------
+  // File Formatting
+  // --------------------------------------------------------------------------
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/build": true
+  },
+
+  // --------------------------------------------------------------------------
+  // Language Specific Settings
+  // --------------------------------------------------------------------------
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": true
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+
+  // --------------------------------------------------------------------------
+  // TypeScript Configuration
+  // --------------------------------------------------------------------------
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.autoImports": true,
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+
+  // --------------------------------------------------------------------------
+  // ESLint Configuration
+  // --------------------------------------------------------------------------
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.workingDirectories": [
+    { "mode": "auto" }
+  ],
+
+  // --------------------------------------------------------------------------
+  // Prettier Configuration
+  // --------------------------------------------------------------------------
+  "prettier.enable": true,
+  "prettier.requireConfig": true,
+
+  // --------------------------------------------------------------------------
+  // Tailwind CSS IntelliSense
+  // --------------------------------------------------------------------------
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+
+  // --------------------------------------------------------------------------
+  // Prisma
+  // --------------------------------------------------------------------------
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+
+  // --------------------------------------------------------------------------
+  // Git Configuration
+  // --------------------------------------------------------------------------
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": true,
+
+  // --------------------------------------------------------------------------
+  // Search Configuration
+  // --------------------------------------------------------------------------
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.git": true,
+    "**/pnpm-lock.yaml": true
+  },
+
+  // --------------------------------------------------------------------------
+  // Terminal Configuration
+  // --------------------------------------------------------------------------
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.env.windows": {},
+
+  // --------------------------------------------------------------------------
+  // Path IntelliSense
+  // --------------------------------------------------------------------------
+  "path-intellisense.mappings": {
+    "@": "${workspaceFolder}/apps/web/src",
+    "~": "${workspaceFolder}"
+  },
+
+  // --------------------------------------------------------------------------
+  // TODO Highlights
+  // --------------------------------------------------------------------------
+  "todohighlight.keywords": [
+    {
+      "text": "TODO:",
+      "color": "#ff6b6b",
+      "backgroundColor": "transparent"
+    },
+    {
+      "text": "FIXME:",
+      "color": "#feca57",
+      "backgroundColor": "transparent"
+    },
+    {
+      "text": "NOTE:",
+      "color": "#48dbfb",
+      "backgroundColor": "transparent"
+    }
+  ],
+
+  // --------------------------------------------------------------------------
+  // Testing
+  // --------------------------------------------------------------------------
+  "jest.autoRun": "off",
+  "jest.showCoverageOnLoad": false,
+
+  // --------------------------------------------------------------------------
+  // Monorepo Specific
+  // --------------------------------------------------------------------------
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+
+  // --------------------------------------------------------------------------
+  // Performance
+  // --------------------------------------------------------------------------
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.turbo/**": true
+  }
+}

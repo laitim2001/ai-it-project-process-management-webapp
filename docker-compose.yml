@@ -1,0 +1,82 @@
+services:
+  # PostgreSQL Database for local development
+  postgres:
+    image: postgres:16-alpine
+    container_name: itpm-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localdev123
+      POSTGRES_DB: itpm_dev
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    ports:
+      - '5434:5432'  # Use port 5434 to avoid conflict with other projects
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - itpm-network
+
+  # pgAdmin for database management (optional, comment out if not needed)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: itpm-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@itpm.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '5050:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - itpm-network
+
+  # Redis for caching and session storage (optional, for future use)
+  redis:
+    image: redis:7-alpine
+    container_name: itpm-redis-dev
+    restart: unless-stopped
+    ports:
+      - '6380:6379'  # Use port 6380 to avoid conflict with other projects
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - itpm-network
+
+  # Mailhog for local email testing (captures all outgoing emails)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: itpm-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP server
+      - '8025:8025' # Web UI
+    networks:
+      - itpm-network
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  itpm-network:
+    driver: bridge

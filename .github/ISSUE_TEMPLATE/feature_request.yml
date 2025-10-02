@@ -1,0 +1,145 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝您提出功能建議! 請詳細描述您希望看到的新功能。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🎯 問題描述
+      description: 描述這個功能要解決的問題或痛點
+      placeholder: |
+        作為一個 [角色], 我希望能夠 [做什麼], 以便 [達成什麼目標]。
+
+        目前的困擾是...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 建議的解決方案
+      description: 描述您希望如何實現這個功能
+      placeholder: 我希望系統能夠...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 替代方案
+      description: 您考慮過的其他解決方案或功能
+      placeholder: 我也考慮過...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 📊 優先級
+      description: 這個功能對您有多重要?
+      options:
+        - Critical - 必須有, 否則無法使用系統
+        - High - 非常重要, 會顯著提升工作效率
+        - Medium - 重要但可以暫時使用替代方案
+        - Low - Nice to have, 不影響核心功能
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 🎨 功能範疇
+      description: 這個功能屬於哪個模組?
+      options:
+        - 認證與權限 (Authentication & Authorization)
+        - 預算管理 (Budget Management)
+        - 專案管理 (Project Management)
+        - 提案審批 (Proposal Approval)
+        - 供應商與採購 (Vendor & Procurement)
+        - 費用管理 (Expense Management)
+        - 儀表板 (Dashboard)
+        - 報表與分析 (Reports & Analytics)
+        - 通知系統 (Notifications)
+        - 其他 (Other)
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: 📖 使用者故事 (User Story)
+      description: 以使用者故事的形式描述這個功能
+      placeholder: |
+        作為一個 [專案經理/主管/管理員],
+        我想要 [具體功能],
+        以便我可以 [達成的目標/獲得的價值]。
+
+        驗收標準:
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockup
+    attributes:
+      label: 🖼️ 模擬圖或範例
+      description: 如果有 UI 相關的建議, 請提供模擬圖或參考範例
+      placeholder: 拖放圖片到這裡, 或提供參考連結...
+    validations:
+      required: false
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: 🎁 預期效益
+      description: 實現這個功能後會帶來什麼好處?
+      placeholder: |
+        - 提升 XX% 的工作效率
+        - 減少 XX 小時的手動作業時間
+        - 改善使用者體驗...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: willing-to-contribute
+    attributes:
+      label: 🤝 願意貢獻
+      description: 您是否願意協助實現這個功能?
+      options:
+        - 是, 我可以協助開發
+        - 是, 我可以協助測試
+        - 是, 我可以提供更多需求細節
+        - 否, 僅提供建議
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🔗 其他資訊
+      description: 任何其他相關資訊
+      placeholder: 額外的背景資訊或參考資料...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Checklist
+      description: 提交前請確認
+      options:
+        - label: 我已搜尋過現有的 Issues, 確認這不是重複的建議
+          required: true
+        - label: 我已閱讀專案的 PRD 和 Roadmap
+          required: true
+        - label: 這個功能符合專案的核心目標
+          required: true

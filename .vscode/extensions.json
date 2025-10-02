@@ -1,0 +1,98 @@
+{
+  // ==============================================================================
+  // VS Code Recommended Extensions
+  // IT Project Process Management Platform
+  // ==============================================================================
+
+  "recommendations": [
+    // --------------------------------------------------------------------------
+    // Core Development Tools
+    // --------------------------------------------------------------------------
+    "dbaeumer.vscode-eslint",              // ESLint - Code linting
+    "esbenp.prettier-vscode",              // Prettier - Code formatting
+    "editorconfig.editorconfig",           // EditorConfig support
+
+    // --------------------------------------------------------------------------
+    // TypeScript & JavaScript
+    // --------------------------------------------------------------------------
+    "yoavbls.pretty-ts-errors",            // Better TypeScript error messages
+    "usernamehw.errorlens",                // Inline error highlighting
+    "VisualStudioExptTeam.vscodeintellicode", // AI-assisted code completion
+
+    // --------------------------------------------------------------------------
+    // React & Next.js
+    // --------------------------------------------------------------------------
+    "dsznajder.es7-react-js-snippets",     // React snippets
+    "burkeholland.simple-react-snippets",  // Additional React snippets
+
+    // --------------------------------------------------------------------------
+    // Tailwind CSS
+    // --------------------------------------------------------------------------
+    "bradlc.vscode-tailwindcss",           // Tailwind CSS IntelliSense
+
+    // --------------------------------------------------------------------------
+    // Prisma
+    // --------------------------------------------------------------------------
+    "Prisma.prisma",                       // Prisma schema support
+
+    // --------------------------------------------------------------------------
+    // Database
+    // --------------------------------------------------------------------------
+    "ckolkman.vscode-postgres",            // PostgreSQL support
+    "mtxr.sqltools",                       // SQL tools
+    "mtxr.sqltools-driver-pg",             // PostgreSQL driver for SQL tools
+
+    // --------------------------------------------------------------------------
+    // Git
+    // --------------------------------------------------------------------------
+    "eamodio.gitlens",                     // Enhanced Git capabilities
+    "mhutchie.git-graph",                  // Git graph visualization
+
+    // --------------------------------------------------------------------------
+    // Testing
+    // --------------------------------------------------------------------------
+    "Orta.vscode-jest",                    // Jest test runner
+    "ms-playwright.playwright",            // Playwright test runner
+
+    // --------------------------------------------------------------------------
+    // Utilities
+    // --------------------------------------------------------------------------
+    "christian-kohler.path-intellisense",  // Path autocomplete
+    "christian-kohler.npm-intellisense",   // npm module autocomplete
+    "wayou.vscode-todo-highlight",         // TODO/FIXME highlighter
+    "gruntfuggly.todo-tree",               // TODO tree view
+    "streetsidesoftware.code-spell-checker", // Spell checker
+
+    // --------------------------------------------------------------------------
+    // Docker
+    // --------------------------------------------------------------------------
+    "ms-azuretools.vscode-docker",         // Docker support
+
+    // --------------------------------------------------------------------------
+    // Azure
+    // --------------------------------------------------------------------------
+    "ms-vscode.azure-account",             // Azure account management
+    "ms-azuretools.vscode-azureappservice", // Azure App Service
+    "ms-azuretools.vscode-azurestorage",   // Azure Storage
+
+    // --------------------------------------------------------------------------
+    // Markdown
+    // --------------------------------------------------------------------------
+    "yzhang.markdown-all-in-one",          // Markdown support
+    "DavidAnson.vscode-markdownlint",      // Markdown linting
+
+    // --------------------------------------------------------------------------
+    // Code Quality
+    // --------------------------------------------------------------------------
+    "SonarSource.sonarlint-vscode",        // SonarLint - Code quality
+
+    // --------------------------------------------------------------------------
+    // Productivity
+    // --------------------------------------------------------------------------
+    "GitHub.copilot",                      // GitHub Copilot (optional)
+    "GitHub.copilot-chat",                 // GitHub Copilot Chat (optional)
+    "wix.vscode-import-cost",              // Import cost analyzer
+    "formulahendry.auto-rename-tag",       // Auto rename paired tags
+    "naumovs.color-highlight"              // Color value highlighter
+  ]
+}
