@@ -103,6 +103,39 @@
 
 ### **📅 最近更新** (2025-10-03 16:00)
 
+#### **Sprint 0 Week 1 Day 1.75 - 設計系統遷移完成** ✅
+- ✅ **16+ 頁面完整遷移** (~3,000行重構)
+  - Dashboard、Projects、Proposals、Budget Pools、Users、Login
+  - 所有頁面遷移至新設計系統
+  - 統一命名規範（小寫 kebab-case）
+  - 舊代碼完全清理（-new 後綴文件已刪除）
+
+- ✅ **12 個 UI 組件創建** (~2,500行新代碼)
+  - 基礎組件：Button、Input、Select、Textarea、Label
+  - 進階組件：Card、Dialog、DropdownMenu、Table、Tabs
+  - UI 增強：Badge、Avatar、Progress、Skeleton、Breadcrumb、Pagination
+
+- ✅ **設計系統文檔建立** (~5,000行文檔)
+  - docs/ui-ux-redesign.md（70+ 頁完整規範）
+  - docs/design-system-migration-plan.md（40+ 頁遷移計劃）
+  - DESIGN-SYSTEM-GUIDE.md（快速參考）
+  - .eslintrc.design-system.js（規則配置）
+  - PR 模板更新（設計系統檢查清單）
+
+- ✅ **技術架構建立**
+  - CSS 變數系統（HSL 格式，支援 Light/Dark 主題）
+  - cn() 工具函數（clsx + tailwind-merge）
+  - CVA 組件變體管理
+  - forwardRef + displayName 統一模式
+
+- ✅ **問題解決記錄**
+  - ✅ 問題一：舊頁面處理策略（直接遷移，不保留舊版本）
+  - ✅ 問題二：未來開發一致性機制（ESLint + PR 模板 + 文檔）
+  - ✅ 設計系統遷移已完全完成
+
+**總代碼變更**: ~10,500行（重構 + 新增 + 文檔）
+**累計代碼量**: ~21,300行核心代碼
+
 #### **Sprint 0 Week 1 Day 2 - 性能優化與代碼分割** ✅
 - ✅ **依賴優化** (~50行變更)
   - 移除未使用的 @heroicons/react 依賴（節省 ~500KB）
