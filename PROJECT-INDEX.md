@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-03 16:00
+**最後更新**: 2025-10-03 17:00
 
 ---
 
@@ -60,6 +60,19 @@
 | **環境設置指南** | `SETUP-COMPLETE.md` | 完整的環境設置步驟 | 🟡 高 |
 | **貢獻指南** | `CONTRIBUTING.md` | 如何為項目做貢獻 | 🟡 高 |
 | **Claude Code 指南** | `CLAUDE.md` | Claude Code AI 助手使用規則 | 🟢 中 |
+| **導航系統指南** | `NAVIGATION-SYSTEM-GUIDE.md` | 項目導航系統使用指南 | 🟢 中 |
+| **服務管理指南** | `DEVELOPMENT-SERVICE-MANAGEMENT.md` | 開發服務管理文檔 | 🟢 中 |
+
+### 設計系統文檔
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **設計系統快速指南** | `DESIGN-SYSTEM-GUIDE.md` | 日常開發快速參考，確保一致風格 | 🔴 極高 |
+| **設計系統導航** | `docs/README-DESIGN-SYSTEM.md` | 設計系統文檔導航中心 | 🔴 極高 |
+| **UI/UX 重設計規範** | `docs/ui-ux-redesign.md` | 完整的設計系統規範（顏色、字體、間距等） | 🔴 極高 |
+| **設計系統遷移計劃** | `docs/design-system-migration-plan.md` | 完整的遷移策略和時間表 | 🔴 極高 |
+| **實作進度總結** | `docs/IMPLEMENTATION-SUMMARY.md` | 設計系統實作進度總結 | 🔴 極高 |
+| **原型使用指南** | `docs/prototype-guide.md` | Dashboard 原型使用說明 | 🟡 高 |
 
 ### 產品需求 (PRD)
 
@@ -187,7 +200,9 @@
 |---------|------|------|--------|
 | **根布局** | `apps/web/src/app/layout.tsx` | 應用程式根布局 | 🔴 極高 |
 | **首頁** | `apps/web/src/app/page.tsx` | 應用程式首頁 | 🔴 極高 |
-| **全局樣式** | `apps/web/src/app/globals.css` | 全局 CSS 樣式 | 🟡 高 |
+| **Dashboard 頁面** | `apps/web/src/app/dashboard/page.tsx` | Dashboard 主頁面（使用新設計系統） | 🔴 極高 |
+| **Login 頁面** | `apps/web/src/app/login/page.tsx` | 登入頁面 | 🔴 極高 |
+| **全局樣式** | `apps/web/src/app/globals.css` | 全局 CSS 樣式（含 CSS 變數） | 🟡 高 |
 | **Budget Pool 列表** | `apps/web/src/app/budget-pools/page.tsx` | 預算池列表頁面 | 🔴 極高 |
 | **Budget Pool 詳情** | `apps/web/src/app/budget-pools/[id]/page.tsx` | 預算池詳情頁面 | 🟡 高 |
 | **Budget Pool 編輯** | `apps/web/src/app/budget-pools/[id]/edit/page.tsx` | 預算池編輯頁面 | 🟡 高 |
@@ -211,23 +226,46 @@
 |---------|------|------|--------|
 | **tRPC Route Handler** | `apps/web/src/app/api/trpc/[trpc]/route.ts` | tRPC API 路由處理器 | 🔴 極高 |
 
-#### UI 元件庫
+#### UI 元件庫（shadcn/ui 風格）
+
+**基礎元件:**
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **Button 元件** | `apps/web/src/components/ui/Button.tsx` | 按鈕元件 | 🟡 高 |
-| **Input 元件** | `apps/web/src/components/ui/Input.tsx` | 輸入框元件 | 🟡 高 |
-| **Select 元件** | `apps/web/src/components/ui/Select.tsx` | 下拉選單元件 | 🟡 高 |
+| **Button 元件** | `apps/web/src/components/ui/button.tsx` | 按鈕元件（使用 CVA，6 種變體） | 🟡 高 |
+| **Input 元件** | `apps/web/src/components/ui/input.tsx` | 輸入框元件（新設計系統） | 🟡 高 |
+| **Select 元件** | `apps/web/src/components/ui/select.tsx` | 下拉選單複合元件（新設計系統） | 🟡 高 |
+| **Textarea 元件** | `apps/web/src/components/ui/textarea.tsx` | 多行文本輸入元件 | 🟡 高 |
+| **Label 元件** | `apps/web/src/components/ui/label.tsx` | 表單標籤元件 | 🟡 高 |
+| **Badge 元件** | `apps/web/src/components/ui/badge.tsx` | 徽章元件（8 種狀態變體） | 🟡 高 |
+| **Card 元件** | `apps/web/src/components/ui/card.tsx` | 卡片複合元件 (CardHeader, CardTitle, CardContent, CardFooter) | 🟡 高 |
+| **Avatar 元件** | `apps/web/src/components/ui/avatar.tsx` | 頭像元件 (Avatar, AvatarImage, AvatarFallback) | 🟡 高 |
+| **Dialog 元件** | `apps/web/src/components/ui/dialog.tsx` | 對話框/模態框元件 | 🟡 高 |
+| **DropdownMenu 元件** | `apps/web/src/components/ui/dropdown-menu.tsx` | 下拉選單元件 | 🟡 高 |
+| **Tabs 元件** | `apps/web/src/components/ui/tabs.tsx` | 選項卡元件 (Tabs, TabsList, TabsTrigger, TabsContent) | 🟡 高 |
+| **Table 元件** | `apps/web/src/components/ui/table.tsx` | 表格複合元件 | 🟡 高 |
+| **Progress 元件** | `apps/web/src/components/ui/progress.tsx` | 進度條元件 | 🟡 高 |
+| **Skeleton 元件** | `apps/web/src/components/ui/skeleton.tsx` | 骨架屏載入元件（多種預設樣式） | 🟡 高 |
+| **Breadcrumb 元件** | `apps/web/src/components/ui/breadcrumb.tsx` | 麵包屑導航元件 | 🟡 高 |
+| **Pagination 元件** | `apps/web/src/components/ui/pagination.tsx` | 分頁元件 | 🟡 高 |
 | **Toast 元件** | `apps/web/src/components/ui/Toast.tsx` | 提示訊息元件 | 🟡 高 |
-| **LoadingSkeleton** | `apps/web/src/components/ui/LoadingSkeleton.tsx` | 載入骨架元件 | 🟡 高 |
-| **Pagination** | `apps/web/src/components/ui/Pagination.tsx` | 分頁元件 | 🟡 高 |
+| **LoadingSkeleton** | `apps/web/src/components/ui/LoadingSkeleton.tsx` | 載入骨架元件（舊版） | 🟡 高 |
 | **元件索引** | `apps/web/src/components/ui/index.ts` | 元件統一導出 | 🟡 高 |
 | **UI 元件 README** | `apps/web/src/components/ui/README.md` | UI 元件庫使用說明 | 🟢 中 |
+
+#### 佈局元件
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Dashboard Layout** | `apps/web/src/components/layout/dashboard-layout.tsx` | Dashboard 主佈局元件（響應式設計） | 🔴 極高 |
+| **Sidebar** | `apps/web/src/components/layout/sidebar.tsx` | 側邊欄導航元件（支援摺疊、Mobile 適配） | 🔴 極高 |
+| **TopBar** | `apps/web/src/components/layout/topbar.tsx` | 頂部工具欄元件（用戶信息、搜索、通知） | 🔴 極高 |
 
 #### 業務元件
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
+| **StatsCard** | `apps/web/src/components/dashboard/StatsCard.tsx` | Dashboard 統計卡片元件（支援趨勢指標） | 🟡 高 |
 | **Budget Pool 表單** | `apps/web/src/components/budget-pool/BudgetPoolForm.tsx` | 預算池表單元件 | 🟡 高 |
 | **Budget Pool 過濾器** | `apps/web/src/components/budget-pool/BudgetPoolFilters.tsx` | 預算池篩選器元件 | 🟡 高 |
 | **Project 表單** | `apps/web/src/components/project/ProjectForm.tsx` | 專案表單元件 | 🟡 高 |
@@ -241,9 +279,11 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **useDebounce Hook** | `apps/web/src/hooks/useDebounce.ts` | 防抖 Hook | 🟡 高 |
+| **工具函數** | `apps/web/src/lib/utils.ts` | cn() 函數和其他工具函數（className 合併） | 🔴 極高 |
 | **tRPC Client** | `apps/web/src/lib/trpc.ts` | tRPC 客戶端配置 | 🔴 極高 |
 | **tRPC Provider** | `apps/web/src/lib/trpc-provider.tsx` | tRPC React Provider | 🔴 極高 |
 | **導出工具** | `apps/web/src/lib/exportUtils.ts` | 數據導出工具函數 | 🟢 中 |
+| **Session Provider** | `apps/web/src/components/providers/SessionProvider.tsx` | NextAuth Session Provider | 🟡 高 |
 
 ### API 層 (packages/api)
 
@@ -306,6 +346,7 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **ESLint 配置** | `.eslintrc.json` | ESLint 規則配置 | 🟡 高 |
+| **設計系統 ESLint** | `.eslintrc.design-system.js` | 設計系統專用 ESLint 規則 | 🟢 中 |
 | **Prettier 配置** | `.prettierrc.json` | Prettier 格式化配置 | 🟡 高 |
 | **Prettier Ignore** | `.prettierignore` | Prettier 忽略規則 | 🟢 中 |
 | **EditorConfig** | `.editorconfig` | 編輯器配置 | 🟢 中 |
@@ -351,10 +392,18 @@
 
 ## 📊 索引統計
 
-**文件總數**: 157+ 個重要文件
-**最後更新**: 2025-10-03 14:30
+**文件總數**: 179+ 個重要文件（新增 22 個設計系統相關文件）
+**最後更新**: 2025-10-03 17:00
 **維護者**: AI 助手 + 開發團隊
-**最新變更**: UI 響應式設計組件更新（Sidebar, TopBar, DashboardLayout, StatsCard, Dashboard）
+**最新變更**:
+- 設計系統完整遷移（shadcn/ui 風格）
+- 新增 12 個 UI 元件（avatar, badge, breadcrumb, card, dialog, dropdown-menu, label, progress, skeleton, table, tabs, textarea）
+- 更新 3 個核心元件（button, input, select）為新設計系統
+- 新增 3 個佈局元件（dashboard-layout, sidebar, topbar）
+- 新增 6 個設計系統文檔
+- 新增 cn() 工具函數
+- 新增 Dashboard 和 Login 頁面
+- 新增 StatsCard 業務元件
 
 ---
 
