@@ -29,25 +29,44 @@
 
 ## 📑 目錄
 
-1. [項目文檔](#1-項目文檔)
+1. [索引系統與元文件](#1-索引系統與元文件)
+2. [項目文檔](#2-項目文檔)
    - [總覽文檔](#總覽文檔)
+   - [設計系統文檔](#設計系統文檔)
    - [產品需求 (PRD)](#產品需求-prd)
    - [技術架構](#技術架構)
    - [使用者故事](#使用者故事)
    - [基礎設施](#基礎設施)
-2. [核心代碼](#2-核心代碼)
+   - [研究與發現](#研究與發現)
+3. [核心代碼](#3-核心代碼)
    - [前端應用 (apps/web)](#前端應用-appsweb)
    - [API 層 (packages/api)](#api-層-packagesapi)
    - [資料庫 (packages/db)](#資料庫-packagesdb)
    - [認證 (packages/auth)](#認證-packagesauth)
    - [共享配置 (packages/tsconfig)](#共享配置-packagestsconfig)
-3. [配置文件](#3-配置文件)
-4. [開發工具](#4-開發工具)
-5. [CI/CD](#5-cicd)
+4. [配置文件](#4-配置文件)
+5. [開發工具](#5-開發工具)
+6. [CI/CD](#6-cicd)
 
 ---
 
-## 1. 項目文檔
+## 1. 索引系統與元文件
+
+> **重要**: 這些文件定義和維護索引系統本身，是 AI 助手理解項目結構的核心
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **項目完整索引** | `PROJECT-INDEX.md` | 項目所有重要文件的導航地圖（本文件） | 🔴 極高 |
+| **索引維護指南** | `INDEX-MAINTENANCE-GUIDE.md` | 索引維護策略、分類標準、更新流程 | 🔴 極高 |
+| **AI 助手快速參考** | `AI-ASSISTANT-GUIDE.md` | AI 助手工作流程、快速參考、開發進度 | 🔴 極高 |
+| **開發記錄** | `DEVELOPMENT-LOG.md` | 所有開發決策、里程碑、重要變更記錄 | 🔴 極高 |
+| **問題修復記錄** | `FIXLOG.md` | Bug 修復記錄、問題解決方案 | 🟡 高 |
+| **安裝命令參考** | `INSTALL-COMMANDS.md` | 常用安裝命令快速參考 | 🟡 高 |
+| **認證系統摘要** | `認證系統實現摘要.md` | 認證系統實現總結（中文版） | 🟢 中 |
+
+---
+
+## 2. 項目文檔
 
 ### 總覽文檔
 
@@ -109,57 +128,87 @@
 所有使用者故事按 Epic 組織，位於 `docs/stories/` 目錄下：
 
 #### Epic 1: 平台基礎與用戶認證
-- `story-1.1-project-initialization-and-infrastructure-setup.md` - 🔴 極高
-- `story-1.2-core-authentication-and-user-management-service-database-model.md` - 🔴 極高
-- `story-1.3-core-authentication-and-user-management-service-registration-and-login-functionality.md` - 🔴 極高
-- `story-1.4-core-authentication-and-user-management-service-role-based-access-control.md` - 🔴 極高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 1.1** | `docs/stories/epic-1-platform-foundation-and-user-authentication/story-1.1-project-initialization-and-infrastructure-setup.md` | 專案初始化與基礎設施設置 | 🔴 極高 |
+| **Story 1.2** | `docs/stories/epic-1-platform-foundation-and-user-authentication/story-1.2-core-authentication-and-user-management-service-database-model.md` | 核心認證與用戶管理服務 - 資料庫模型 | 🔴 極高 |
+| **Story 1.3** | `docs/stories/epic-1-platform-foundation-and-user-authentication/story-1.3-core-authentication-and-user-management-service-registration-and-login-functionality.md` | 核心認證與用戶管理服務 - 註冊與登入功能 | 🔴 極高 |
+| **Story 1.4** | `docs/stories/epic-1-platform-foundation-and-user-authentication/story-1.4-core-authentication-and-user-management-service-role-based-access-control.md` | 核心認證與用戶管理服務 - 基於角色的存取控制 | 🔴 極高 |
 
 #### Epic 2: CI/CD 與部署自動化
-- `story-2.1-continuous-integration.md` - 🟡 高
-- `story-2.2-continuous-deployment.md` - 🟡 高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 2.1** | `docs/stories/epic-2-ci-cd-and-deployment-automation/story-2.1-continuous-integration.md` | 持續整合 | 🟡 高 |
+| **Story 2.2** | `docs/stories/epic-2-ci-cd-and-deployment-automation/story-2.2-continuous-deployment.md` | 持續部署 | 🟡 高 |
 
 #### Epic 3: 預算與專案設置
-- `story-3.1-budget-pool-management.md` - 🔴 極高
-- `story-3.2-project-management.md` - 🔴 極高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 3.1** | `docs/stories/epic-3-budget-and-project-setup/story-3.1-budget-pool-management.md` | 預算池管理 | 🔴 極高 |
+| **Story 3.2** | `docs/stories/epic-3-budget-and-project-setup/story-3.2-project-management.md` | 專案管理 | 🔴 極高 |
 
 #### Epic 4: 提案與審批工作流
-- `story-4.1-project-manager-submits-proposal-for-approval.md` - 🔴 極高
-- `story-4.2-supervisor-reviews-and-decides-on-proposal.md` - 🔴 極高
-- `story-4.3-supervisor-requests-more-information.md` - 🟡 高
-- `story-4.4-view-proposal-communication-history.md` - 🟡 高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 4.1** | `docs/stories/epic-4-proposal-and-approval-workflow/story-4.1-project-manager-submits-proposal-for-approval.md` | 專案經理提交提案審批 | 🔴 極高 |
+| **Story 4.2** | `docs/stories/epic-4-proposal-and-approval-workflow/story-4.2-supervisor-reviews-and-decides-on-proposal.md` | 主管審核並決定提案 | 🔴 極高 |
+| **Story 4.3** | `docs/stories/epic-4-proposal-and-approval-workflow/story-4.3-supervisor-requests-more-information.md` | 主管請求更多資訊 | 🟡 高 |
+| **Story 4.4** | `docs/stories/epic-4-proposal-and-approval-workflow/story-4.4-view-proposal-communication-history.md` | 查看提案溝通歷史 | 🟡 高 |
 
 #### Epic 5: 採購與供應商管理
-- `story-5.1-manage-vendor-basic-information.md` - 🟡 高
-- `story-5.2-upload-and-associate-quotes.md` - 🟡 高
-- `story-5.3-select-final-vendor.md` - 🟡 高
-- `story-5.4-generate-purchase-order-record.md` - 🟡 高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 5.1** | `docs/stories/epic-5-procurement-and-vendor-management/story-5.1-manage-vendor-basic-information.md` | 管理供應商基本資訊 | 🟡 高 |
+| **Story 5.2** | `docs/stories/epic-5-procurement-and-vendor-management/story-5.2-upload-and-associate-quotes.md` | 上傳並關聯報價單 | 🟡 高 |
+| **Story 5.3** | `docs/stories/epic-5-procurement-and-vendor-management/story-5.3-select-final-vendor.md` | 選擇最終供應商 | 🟡 高 |
+| **Story 5.4** | `docs/stories/epic-5-procurement-and-vendor-management/story-5.4-generate-purchase-order-record.md` | 生成採購訂單記錄 | 🟡 高 |
 
 #### Epic 6: 費用記錄與財務整合
-- `story-6.1-record-invoice-and-expense-against-po.md` - 🟡 高
-- `story-6.2-manage-expense-approval-status.md` - 🟡 高
-- `story-6.3-associate-expense-to-budget-pool.md` - 🟡 高
-- `story-6.4-perform-charge-out-and-archive-project.md` - 🟡 高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 6.1** | `docs/stories/epic-6-expense-recording-and-financial-integration/story-6.1-record-invoice-and-expense-against-po.md` | 針對採購訂單記錄發票和費用 | 🟡 高 |
+| **Story 6.2** | `docs/stories/epic-6-expense-recording-and-financial-integration/story-6.2-manage-expense-approval-status.md` | 管理費用審批狀態 | 🟡 高 |
+| **Story 6.3** | `docs/stories/epic-6-expense-recording-and-financial-integration/story-6.3-associate-expense-to-budget-pool.md` | 將費用關聯到預算池 | 🟡 高 |
+| **Story 6.4** | `docs/stories/epic-6-expense-recording-and-financial-integration/story-6.4-perform-charge-out-and-archive-project.md` | 執行費用分攤並歸檔專案 | 🟡 高 |
 
 #### Epic 7: 儀表板與基本報表
-- `story-7.1-project-manager-dashboard-core-view.md` - 🟡 高
-- `story-7.2-supervisor-dashboard-project-overview.md` - 🟡 高
-- `story-7.3-dashboard-basic-data-export.md` - 🟢 中
-- `story-7.4-budget-pool-overview-view.md` - 🟢 中
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 7.1** | `docs/stories/epic-7-dashboard-and-basic-reporting/story-7.1-project-manager-dashboard-core-view.md` | 專案經理儀表板核心視圖 | 🟡 高 |
+| **Story 7.2** | `docs/stories/epic-7-dashboard-and-basic-reporting/story-7.2-supervisor-dashboard-project-overview.md` | 主管儀表板專案總覽 | 🟡 高 |
+| **Story 7.3** | `docs/stories/epic-7-dashboard-and-basic-reporting/story-7.3-dashboard-basic-data-export.md` | 儀表板基本數據匯出 | 🟢 中 |
+| **Story 7.4** | `docs/stories/epic-7-dashboard-and-basic-reporting/story-7.4-budget-pool-overview-view.md` | 預算池總覽視圖 | 🟢 中 |
 
 #### Epic 8: 通知系統
-- `story-8.1-set-up-email-notification-service.md` - 🟡 高
-- `story-8.2-implement-automated-notifications-on-status-change.md` - 🟡 高
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 8.1** | `docs/stories/epic-8-notification-system/story-8.1-set-up-email-notification-service.md` | 設置電子郵件通知服務 | 🟡 高 |
+| **Story 8.2** | `docs/stories/epic-8-notification-system/story-8.2-implement-automated-notifications-on-status-change.md` | 實現狀態變更自動通知 | 🟡 高 |
 
 #### Epic 9: AI 助理
-- `story-9.1-provide-intelligent-suggestions-during-proposal-phase.md` - 🟢 中
-- `story-9.2-intelligent-budget-and-expense-categorization.md` - 🟢 中
-- `story-9.3-predictive-budget-risk-alerting.md` - 🟢 中
-- `story-9.4-auto-generate-report-summary.md` - 🟢 中
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 9.1** | `docs/stories/epic-9-ai-assistant/story-9.1-provide-intelligent-suggestions-during-proposal-phase.md` | 在提案階段提供智能建議 | 🟢 中 |
+| **Story 9.2** | `docs/stories/epic-9-ai-assistant/story-9.2-intelligent-budget-and-expense-categorization.md` | 智能預算和費用分類 | 🟢 中 |
+| **Story 9.3** | `docs/stories/epic-9-ai-assistant/story-9.3-predictive-budget-risk-alerting.md` | 預測性預算風險警報 | 🟢 中 |
+| **Story 9.4** | `docs/stories/epic-9-ai-assistant/story-9.4-auto-generate-report-summary.md` | 自動生成報告摘要 | 🟢 中 |
 
 #### Epic 10: 外部系統整合
-- `story-10.1-sync-expense-data-to-erp.md` - 🟢 中
-- `story-10.2-sync-user-data-from-hr-system.md` - 🟢 中
-- `story-10.3-build-data-pipeline-to-data-warehouse.md` - 🟢 中
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Story 10.1** | `docs/stories/epic-10-external-system-integration/story-10.1-sync-expense-data-to-erp.md` | 同步費用數據到 ERP | 🟢 中 |
+| **Story 10.2** | `docs/stories/epic-10-external-system-integration/story-10.2-sync-user-data-from-hr-system.md` | 從 HR 系統同步用戶數據 | 🟢 中 |
+| **Story 10.3** | `docs/stories/epic-10-external-system-integration/story-10.3-build-data-pipeline-to-data-warehouse.md` | 建立數據管道到數據倉庫 | 🟢 中 |
 
 ### 基礎設施
 
@@ -180,7 +229,7 @@
 
 ---
 
-## 2. 核心代碼
+## 3. 核心代碼
 
 ### 前端應用 (apps/web)
 
@@ -225,6 +274,14 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **tRPC Route Handler** | `apps/web/src/app/api/trpc/[trpc]/route.ts` | tRPC API 路由處理器 | 🔴 極高 |
+| **NextAuth API** | `apps/web/src/app/api/auth/[...nextauth]/route.ts` | NextAuth 認證 API 路由處理器 | 🔴 極高 |
+
+#### 中間件
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **認證中間件** | `apps/web/src/middleware.ts` | Next.js 認證中間件，保護所有受保護路由 | 🔴 極高 |
+| **TypeScript 環境** | `apps/web/next-env.d.ts` | Next.js TypeScript 類型定義（自動生成） | 🟡 高 |
 
 #### UI 元件庫（shadcn/ui 風格）
 
@@ -328,7 +385,7 @@
 
 ---
 
-## 3. 配置文件
+## 4. 配置文件
 
 ### 根目錄配置
 
@@ -367,17 +424,26 @@
 
 ---
 
-## 4. 開發工具
+## 5. 開發工具
 
 ### 腳本
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **資料庫初始化** | `scripts/init-db.sql` | PostgreSQL 初始化腳本 | 🟡 高 |
+| **索引同步檢查** | `scripts/check-index-sync.js` | 索引完整性檢查工具 | 🟢 中 |
+| **數據庫種子** | `packages/db/prisma/seed.ts` | 數據庫種子數據腳本 | 🟡 高 |
+
+### 報告與日誌
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **索引同步報告** | `index-sync-report.json` | 索引同步檢查報告（自動生成） | 🟢 中 |
+| **MVP 進度報告** | `mvp-progress-report.json` | MVP 進度跟踪報告（自動生成） | 🟢 中 |
 
 ---
 
-## 5. CI/CD
+## 6. CI/CD
 
 ### GitHub Actions
 
@@ -392,10 +458,18 @@
 
 ## 📊 索引統計
 
-**文件總數**: 179+ 個重要文件（新增 22 個設計系統相關文件）
-**最後更新**: 2025-10-03 17:00
+**文件總數**: 226+ 個重要文件（完整索引更新）
+**最後更新**: 2025-10-03 18:30
 **維護者**: AI 助手 + 開發團隊
-**最新變更**:
+
+**本次更新變更**（2025-10-03 18:30）:
+- ✅ 修復「索引悖論」：新增索引系統與元文件章節（7個核心元文件）
+- ✅ 修復 User Story 索引格式：35個story從簡單列表改為完整表格（含完整路徑）
+- ✅ 新增核心系統文件：middleware.ts、NextAuth API route（2個🔴極高重要性文件）
+- ✅ 新增開發工具：索引檢查工具、種子數據腳本、報告文件（5個文件）
+- ✅ 章節編號調整：配合新增章節調整目錄結構
+
+**累積變更**（設計系統遷移）:
 - 設計系統完整遷移（shadcn/ui 風格）
 - 新增 12 個 UI 元件（avatar, badge, breadcrumb, card, dialog, dropdown-menu, label, progress, skeleton, table, tabs, textarea）
 - 更新 3 個核心元件（button, input, select）為新設計系統
