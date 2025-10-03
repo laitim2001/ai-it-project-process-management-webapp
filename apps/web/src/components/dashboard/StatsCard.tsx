@@ -6,7 +6,7 @@
 
 'use client';
 
-import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatsCardProps {
   title: string;
@@ -30,9 +30,9 @@ export function StatsCard({ title, value, change, icon, bgColor = 'bg-primary-50
           {change && (
             <div className="flex items-center gap-1">
               {change.type === 'increase' ? (
-                <ArrowUpIcon className="h-3 w-3 text-semantic-success flex-shrink-0" />
+                <TrendingUp className="h-3 w-3 text-semantic-success flex-shrink-0" />
               ) : (
-                <ArrowDownIcon className="h-3 w-3 text-semantic-error flex-shrink-0" />
+                <TrendingDown className="h-3 w-3 text-semantic-error flex-shrink-0" />
               )}
               <span
                 className={`text-[12px] font-medium ${

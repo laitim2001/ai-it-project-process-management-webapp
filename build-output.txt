@@ -1,0 +1,57 @@
+
+> it-project-management-platform@0.1.0 build C:\Users\laitim20012\Documents\AI Project\ai-it-project-process-management-webapp
+> turbo run build "--filter=web"
+
+• Packages in scope: @itpm/web
+• Running build in 1 packages
+• Remote caching disabled
+@itpm/web:build: cache miss, executing ed1f04fe0de04b32
+@itpm/web:build: 
+@itpm/web:build: > @itpm/web@0.1.0 build C:\Users\laitim20012\Documents\AI Project\ai-it-project-process-management-webapp\apps\web
+@itpm/web:build: > next build
+@itpm/web:build: 
+@itpm/web:build:    ▲ Next.js 14.1.0
+@itpm/web:build:    - Experiments (use at your own risk):
+@itpm/web:build:      · typedRoutes
+@itpm/web:build: 
+@itpm/web:build:    Creating an optimized production build ...
+@itpm/web:build: Failed to compile.
+@itpm/web:build: 
+@itpm/web:build: ./src/app/budget-pools/page.tsx
+@itpm/web:build: Module not found: Can't resolve '@/components/ui/input'
+@itpm/web:build: 
+@itpm/web:build: https://nextjs.org/docs/messages/module-not-found
+@itpm/web:build: 
+@itpm/web:build: ./src/app/budget-pools/page.tsx
+@itpm/web:build: Module not found: Can't resolve '@/components/ui/select'
+@itpm/web:build: 
+@itpm/web:build: https://nextjs.org/docs/messages/module-not-found
+@itpm/web:build: 
+@itpm/web:build: ./src/app/login/page.tsx
+@itpm/web:build: Module not found: Can't resolve '@/components/ui/input'
+@itpm/web:build: 
+@itpm/web:build: https://nextjs.org/docs/messages/module-not-found
+@itpm/web:build: 
+@itpm/web:build: ./src/app/projects/page.tsx
+@itpm/web:build: Module not found: Can't resolve '@/components/ui/input'
+@itpm/web:build: 
+@itpm/web:build: https://nextjs.org/docs/messages/module-not-found
+@itpm/web:build: 
+@itpm/web:build: ./src/components/layout/dashboard-layout.tsx
+@itpm/web:build: Module not found: Can't resolve './Sidebar-new'
+@itpm/web:build: 
+@itpm/web:build: https://nextjs.org/docs/messages/module-not-found
+@itpm/web:build: 
+@itpm/web:build: 
+@itpm/web:build: > Build failed because of webpack errors
+@itpm/web:build:  ELIFECYCLE  Command failed with exit code 1.
+@itpm/web:build: ERROR: command finished with error: command (C:\Users\laitim20012\Documents\AI Project\ai-it-project-process-management-webapp\apps\web) C:\Users\laitim20012\AppData\Local\pnpm\.tools\pnpm\8.15.3\bin\pnpm.CMD run build exited (1)
+@itpm/web#build: command (C:\Users\laitim20012\Documents\AI Project\ai-it-project-process-management-webapp\apps\web) C:\Users\laitim20012\AppData\Local\pnpm\.tools\pnpm\8.15.3\bin\pnpm.CMD run build exited (1)
+
+ Tasks:    0 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    2m34.548s 
+Failed:    @itpm/web#build
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Command failed with exit code 1.

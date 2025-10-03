@@ -1,18 +1,51 @@
-import { ProjectForm } from '@/components/project/ProjectForm';
+import dynamic from 'next/dynamic';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// 動態導入表單元件以減少初始 bundle size
+const ProjectForm = dynamic(() => import('@/components/project/ProjectForm').then(mod => ({ default: mod.ProjectForm })), {
+  loading: () => <Skeleton className="h-96 w-full" />,
+  ssr: false,
+});
 
 export default function NewProjectPage() {
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create New Project</h1>
-        <p className="mt-2 text-gray-600">
-          Fill in the details below to create a new project.
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="space-y-8">
+        {/* Breadcrumb */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/projects">專案</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>新增專案</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <ProjectForm mode="create" />
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">新增專案</h1>
+          <p className="mt-2 text-gray-600">
+            填寫以下資訊以建立新專案
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <Card>
+          <CardContent className="pt-6">
+            <ProjectForm mode="create" />
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

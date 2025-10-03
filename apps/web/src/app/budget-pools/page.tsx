@@ -3,9 +3,16 @@
 import { useState } from 'react';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { Button, Input, Select, Pagination, BudgetPoolListSkeleton, useToast } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Pagination, BudgetPoolListSkeleton, useToast } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Card } from '@/components/ui/card';
+import { Plus, Download } from 'lucide-react';
 
 export default function BudgetPoolsPage() {
   const [page, setPage] = useState(1);
@@ -63,22 +70,24 @@ export default function BudgetPoolsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Budget Pools</h1>
+      <DashboardLayout>
+        <div className="space-y-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">預算池</h1>
+          </div>
+          <BudgetPoolListSkeleton />
         </div>
-        <BudgetPoolListSkeleton />
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <DashboardLayout>
         <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
           <p className="text-red-600">Error loading budget pools: {error.message}</p>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -86,134 +95,153 @@ export default function BudgetPoolsPage() {
   const pagination = data?.pagination;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Budget Pools</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={handleExport}
-            isLoading={isExporting}
-            disabled={budgetPools.length === 0}
-          >
-            Export CSV
-          </Button>
-          <Link href="/budget-pools/new">
-            <Button variant="primary">
-              Create New Budget Pool
+    <DashboardLayout>
+      <div className="space-y-8">
+        {/* Breadcrumb */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>預算池</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">預算池</h1>
+            <p className="mt-2 text-gray-600">管理財務年度預算池</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isExporting || budgetPools.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {isExporting ? '匯出中...' : '匯出 CSV'}
             </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Search and Filter Bar */}
-      <div className="mb-6 flex flex-wrap gap-4">
-        <div className="flex-1 min-w-[200px]">
-          <Input
-            type="text"
-            placeholder="Search budget pools..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1); // Reset to first page on search
-            }}
-            fullWidth
-          />
+            <Link href="/budget-pools/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                新增預算池
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <Select
-          value={yearFilter ?? ''}
-          onChange={(e) => {
-            setYearFilter(e.target.value ? parseInt(e.target.value) : undefined);
-            setPage(1);
-          }}
-        >
-          <option value="">All Years</option>
-          {years.map((year) => (
-            <option key={year} value={year}>
-              FY {year}
-            </option>
-          ))}
-        </Select>
-
-        <Select
-          value={`${sortBy}-${sortOrder}`}
-          onChange={(e) => {
-            const [newSortBy, newSortOrder] = e.target.value.split('-') as [
-              'name' | 'year' | 'amount',
-              'asc' | 'desc'
-            ];
-            setSortBy(newSortBy);
-            setSortOrder(newSortOrder);
-          }}
-        >
-          <option value="year-desc">Year (Newest First)</option>
-          <option value="year-asc">Year (Oldest First)</option>
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
-          <option value="amount-desc">Amount (High to Low)</option>
-          <option value="amount-asc">Amount (Low to High)</option>
-        </Select>
-      </div>
-
-      {/* Results Count */}
-      {pagination && (
-        <div className="mb-4 text-sm text-gray-600">
-          Showing {((pagination.page - 1) * pagination.limit) + 1} -{' '}
-          {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-          {pagination.total} budget pools
-        </div>
-      )}
-
-      {/* Budget Pools Grid */}
-      {budgetPools.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-          <p className="text-gray-600">
-            {search || yearFilter
-              ? 'No budget pools found matching your criteria.'
-              : 'No budget pools found. Create one to get started.'}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            {budgetPools.map((pool) => (
-              <Link
-                key={pool.id}
-                href={`/budget-pools/${pool.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-6 transition hover:border-blue-500 hover:shadow-md"
-              >
-                <h2 className="mb-2 text-xl font-semibold">{pool.name}</h2>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Financial Year:</span>
-                    <span className="font-medium">{pool.financialYear}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Budget:</span>
-                    <span className="font-medium">
-                      ${pool.totalAmount.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Projects:</span>
-                    <span className="font-medium">{pool._count.projects}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+        {/* Search and Filter Bar */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <Input
+              type="text"
+              placeholder="搜尋預算池..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
           </div>
 
-          {/* Pagination */}
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={setPage}
-            />
-          )}
-        </>
-      )}
-    </div>
+          <Select
+            value={yearFilter ?? ''}
+            onChange={(e) => {
+              setYearFilter(e.target.value ? parseInt(e.target.value) : undefined);
+              setPage(1);
+            }}
+          >
+            <option value="">所有年度</option>
+            {years.map((year) => (
+              <option key={year} value={year}>
+                FY {year}
+              </option>
+            ))}
+          </Select>
+
+          <Select
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => {
+              const [newSortBy, newSortOrder] = e.target.value.split('-') as [
+                'name' | 'year' | 'amount',
+                'asc' | 'desc'
+              ];
+              setSortBy(newSortBy);
+              setSortOrder(newSortOrder);
+            }}
+          >
+            <option value="year-desc">年度 (新到舊)</option>
+            <option value="year-asc">年度 (舊到新)</option>
+            <option value="name-asc">名稱 (A-Z)</option>
+            <option value="name-desc">名稱 (Z-A)</option>
+            <option value="amount-desc">金額 (高到低)</option>
+            <option value="amount-asc">金額 (低到高)</option>
+          </Select>
+        </div>
+
+        {/* Results Count */}
+        {pagination && (
+          <div className="text-sm text-gray-600">
+            顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 個預算池
+          </div>
+        )}
+
+        {/* Budget Pools Grid */}
+        {budgetPools.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-gray-600">
+              {search || yearFilter
+                ? '找不到符合條件的預算池'
+                : '尚未有任何預算池，點擊新增開始建立'}
+            </p>
+          </Card>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {budgetPools.map((pool) => (
+                <Link
+                  key={pool.id}
+                  href={`/budget-pools/${pool.id}`}
+                >
+                  <Card className="p-6 transition hover:border-blue-500 hover:shadow-md h-full">
+                    <h2 className="mb-3 text-xl font-semibold text-gray-900">{pool.name}</h2>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">財務年度</span>
+                        <span className="font-medium text-gray-900">{pool.financialYear}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">總預算</span>
+                        <span className="font-medium text-gray-900">
+                          ${pool.totalAmount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">專案數量</span>
+                        <span className="font-medium text-gray-900">{pool._count.projects}</span>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

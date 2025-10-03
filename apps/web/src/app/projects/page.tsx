@@ -26,7 +26,19 @@
 import { useState } from 'react';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { Button, Input, Select, Pagination, useToast } from '@/components/ui';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Search,
+  Plus,
+  Download,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
 
@@ -37,19 +49,19 @@ import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportU
 const PROJECT_STATUS_CONFIG = {
   Draft: {
     label: '草稿',
-    color: 'bg-gray-100 text-gray-800',
+    variant: 'secondary' as const,
   },
   InProgress: {
     label: '進行中',
-    color: 'bg-blue-100 text-blue-800',
+    variant: 'info' as const,
   },
   Completed: {
     label: '已完成',
-    color: 'bg-green-100 text-green-800',
+    variant: 'success' as const,
   },
   Archived: {
     label: '已歸檔',
-    color: 'bg-gray-100 text-gray-600',
+    variant: 'secondary' as const,
   },
 } as const;
 
@@ -68,7 +80,6 @@ export default function ProjectsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
 
-  const { showToast } = useToast();
   const utils = api.useContext();
 
   // Debounce 搜尋，避免過多 API 請求
@@ -131,9 +142,11 @@ export default function ProjectsPage() {
       const filename = generateExportFilename('projects');
       downloadCSV(csvContent, filename);
 
-      showToast('專案資料導出成功！', 'success');
+      // TODO: Add toast notification
+      alert('專案資料導出成功！');
     } catch (error) {
-      showToast('導出失敗，請重試。', 'error');
+      // TODO: Add toast notification
+      alert('導出失敗，請重試。');
       console.error('Export error:', error);
     } finally {
       setIsExporting(false);
@@ -146,24 +159,29 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">專案管理</h1>
+      <DashboardLayout>
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">專案管理</h1>
+            <p className="mt-1 text-gray-500">載入中...</p>
+          </div>
+          {/* 骨架屏加載動畫 */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-        {/* 骨架屏加載動畫 */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-lg border border-gray-200 bg-white p-6">
-              <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -173,11 +191,18 @@ export default function ProjectsPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-red-600">載入專案時發生錯誤：{error.message}</p>
+      <DashboardLayout>
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">專案管理</h1>
+          </div>
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <p className="text-red-600 text-center">載入專案時發生錯誤：{error.message}</p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -189,191 +214,262 @@ export default function ProjectsPage() {
   // ============================================================
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* 頁面標題和操作按鈕 */}
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">專案管理</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={handleExport}
-            isLoading={isExporting}
-            disabled={projects.length === 0}
-          >
-            導出 CSV
-          </Button>
-          <Link href="/projects/new">
-            <Button variant="primary">創建新專案</Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* 搜尋和篩選欄 */}
-      <div className="mb-6 flex flex-wrap gap-4">
-        {/* 搜尋框 */}
-        <div className="flex-1 min-w-[200px]">
-          <Input
-            type="text"
-            placeholder="搜尋專案名稱..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1); // 搜尋時重置到第一頁
-            }}
-            fullWidth
-          />
-        </div>
-
-        {/* 狀態篩選 */}
-        <Select
-          value={statusFilter ?? ''}
-          onChange={(e) => {
-            setStatusFilter(
-              e.target.value
-                ? (e.target.value as 'Draft' | 'InProgress' | 'Completed' | 'Archived')
-                : undefined
-            );
-            setPage(1);
-          }}
-        >
-          <option value="">所有狀態</option>
-          <option value="Draft">草稿</option>
-          <option value="InProgress">進行中</option>
-          <option value="Completed">已完成</option>
-          <option value="Archived">已歸檔</option>
-        </Select>
-
-        {/* 預算池篩選 */}
-        <Select
-          value={budgetPoolFilter ?? ''}
-          onChange={(e) => {
-            setBudgetPoolFilter(e.target.value || undefined);
-            setPage(1);
-          }}
-        >
-          <option value="">所有預算池</option>
-          {budgetPools.map((pool) => (
-            <option key={pool.id} value={pool.id}>
-              {pool.name} (FY {pool.financialYear})
-            </option>
-          ))}
-        </Select>
-
-        {/* 排序選項 */}
-        <Select
-          value={`${sortBy}-${sortOrder}`}
-          onChange={(e) => {
-            const [newSortBy, newSortOrder] = e.target.value.split('-') as [
-              'name' | 'status' | 'createdAt',
-              'asc' | 'desc'
-            ];
-            setSortBy(newSortBy);
-            setSortOrder(newSortOrder);
-          }}
-        >
-          <option value="createdAt-desc">創建時間（最新優先）</option>
-          <option value="createdAt-asc">創建時間（最舊優先）</option>
-          <option value="name-asc">名稱（A-Z）</option>
-          <option value="name-desc">名稱（Z-A）</option>
-          <option value="status-asc">狀態（升序）</option>
-          <option value="status-desc">狀態（降序）</option>
-        </Select>
-      </div>
-
-      {/* 結果數量統計 */}
-      {pagination && (
-        <div className="mb-4 text-sm text-gray-600">
-          顯示第 {(pagination.page - 1) * pagination.limit + 1} -{' '}
-          {Math.min(pagination.page * pagination.limit, pagination.total)} 項，共{' '}
-          {pagination.total} 個專案
-        </div>
-      )}
-
-      {/* 專案卡片網格 */}
-      {projects.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-          <p className="text-gray-600">
-            {search || statusFilter || budgetPoolFilter
-              ? '沒有找到符合條件的專案。'
-              : '尚未有任何專案。點擊「創建新專案」開始。'}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            {projects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-6 transition hover:border-blue-500 hover:shadow-md"
-              >
-                {/* 專案標題 */}
-                <div className="flex items-start justify-between mb-3">
-                  <h2 className="text-xl font-semibold flex-1">{project.name}</h2>
-                  {/* 狀態標籤 */}
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${
-                      PROJECT_STATUS_CONFIG[
-                        project.status as keyof typeof PROJECT_STATUS_CONFIG
-                      ].color
-                    }`}
-                  >
-                    {
-                      PROJECT_STATUS_CONFIG[
-                        project.status as keyof typeof PROJECT_STATUS_CONFIG
-                      ].label
-                    }
-                  </span>
-                </div>
-
-                {/* 專案詳細資訊 */}
-                <div className="space-y-2 text-sm text-gray-600">
-                  {/* 預算池 */}
-                  <div className="flex justify-between">
-                    <span>預算池：</span>
-                    <span className="font-medium text-right">
-                      {project.budgetPool.name}
-                    </span>
-                  </div>
-
-                  {/* 專案經理 */}
-                  <div className="flex justify-between">
-                    <span>專案經理：</span>
-                    <span className="font-medium">{project.manager.name}</span>
-                  </div>
-
-                  {/* 主管 */}
-                  <div className="flex justify-between">
-                    <span>主管：</span>
-                    <span className="font-medium">{project.supervisor.name}</span>
-                  </div>
-
-                  {/* 提案數量 */}
-                  <div className="flex justify-between">
-                    <span>提案：</span>
-                    <span className="font-medium">{project._count.proposals} 個</span>
-                  </div>
-
-                  {/* 採購單數量 */}
-                  <div className="flex justify-between">
-                    <span>採購單：</span>
-                    <span className="font-medium">{project._count.purchaseOrders} 個</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* 頁面標題和操作按鈕 */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">專案管理</h1>
+            <p className="mt-1 text-gray-500">管理所有 IT 專案</p>
           </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={projects.length === 0 || isExporting}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isExporting ? '導出中...' : '導出 CSV'}
+            </Button>
+            <Link href="/projects/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                創建新專案
+              </Button>
+            </Link>
+          </div>
+        </div>
 
-          {/* 分頁控件 */}
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={setPage}
-            />
-          )}
-        </>
-      )}
-    </div>
+        {/* 搜尋和篩選欄 */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              {/* 搜尋框 */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="搜尋專案名稱..."
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* 篩選選項 */}
+              <div className="flex gap-2">
+                <select
+                  value={statusFilter ?? ''}
+                  onChange={(e) => {
+                    setStatusFilter(
+                      e.target.value
+                        ? (e.target.value as 'Draft' | 'InProgress' | 'Completed' | 'Archived')
+                        : undefined
+                    );
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                >
+                  <option value="">所有狀態</option>
+                  <option value="Draft">草稿</option>
+                  <option value="InProgress">進行中</option>
+                  <option value="Completed">已完成</option>
+                  <option value="Archived">已歸檔</option>
+                </select>
+
+                <select
+                  value={budgetPoolFilter ?? ''}
+                  onChange={(e) => {
+                    setBudgetPoolFilter(e.target.value || undefined);
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                >
+                  <option value="">所有預算池</option>
+                  {budgetPools.map((pool) => (
+                    <option key={pool.id} value={pool.id}>
+                      {pool.name} (FY {pool.financialYear})
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => {
+                    const [newSortBy, newSortOrder] = e.target.value.split('-') as [
+                      'name' | 'status' | 'createdAt',
+                      'asc' | 'desc'
+                    ];
+                    setSortBy(newSortBy);
+                    setSortOrder(newSortOrder);
+                  }}
+                  className="h-10 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                >
+                  <option value="createdAt-desc">創建時間（最新優先）</option>
+                  <option value="createdAt-asc">創建時間（最舊優先）</option>
+                  <option value="name-asc">名稱（A-Z）</option>
+                  <option value="name-desc">名稱（Z-A）</option>
+                  <option value="status-asc">狀態（升序）</option>
+                  <option value="status-desc">狀態（降序）</option>
+                </select>
+
+                <Button variant="outline" size="icon">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 結果數量統計 */}
+        {pagination && (
+          <div className="text-sm text-gray-500">
+            顯示第 {(pagination.page - 1) * pagination.limit + 1} -{' '}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} 項，共{' '}
+            {pagination.total} 個專案
+          </div>
+        )}
+
+        {/* 專案卡片網格 */}
+        {projects.length === 0 ? (
+          <Card className="bg-gray-50">
+            <CardContent className="pt-6">
+              <p className="text-gray-600 text-center">
+                {search || statusFilter || budgetPoolFilter
+                  ? '沒有找到符合條件的專案。'
+                  : '尚未有任何專案。點擊「創建新專案」開始。'}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="block"
+                >
+                  <Card className="h-full transition-all hover:border-blue-500 hover:shadow-md">
+                    <CardHeader>
+                      {/* 專案標題 */}
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-xl flex-1">{project.name}</CardTitle>
+                        {/* 狀態標籤 */}
+                        <Badge
+                          variant={
+                            PROJECT_STATUS_CONFIG[
+                              project.status as keyof typeof PROJECT_STATUS_CONFIG
+                            ].variant
+                          }
+                        >
+                          {
+                            PROJECT_STATUS_CONFIG[
+                              project.status as keyof typeof PROJECT_STATUS_CONFIG
+                            ].label
+                          }
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {/* 專案詳細資訊 */}
+                      <div className="space-y-2 text-sm text-gray-600">
+                        {/* 預算池 */}
+                        <div className="flex justify-between">
+                          <span>預算池：</span>
+                          <span className="font-medium text-right">
+                            {project.budgetPool.name}
+                          </span>
+                        </div>
+
+                        {/* 專案經理 */}
+                        <div className="flex justify-between">
+                          <span>專案經理：</span>
+                          <span className="font-medium">{project.manager.name}</span>
+                        </div>
+
+                        {/* 主管 */}
+                        <div className="flex justify-between">
+                          <span>主管：</span>
+                          <span className="font-medium">{project.supervisor.name}</span>
+                        </div>
+
+                        {/* 提案數量 */}
+                        <div className="flex justify-between">
+                          <span>提案：</span>
+                          <span className="font-medium">{project._count.proposals} 個</span>
+                        </div>
+
+                        {/* 採購單數量 */}
+                        <div className="flex justify-between">
+                          <span>採購單：</span>
+                          <span className="font-medium">{project._count.purchaseOrders} 個</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            {/* 分頁控件 */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">
+                  第 {pagination.page} / {pagination.totalPages} 頁
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page === 1}
+                    onClick={() => setPage(pagination.page - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {/* 頁碼按鈕 */}
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (pagination.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (pagination.page >= pagination.totalPages - 2) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = pagination.page - 2 + i;
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pagination.page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page === pagination.totalPages}
+                    onClick={() => setPage(pagination.page + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

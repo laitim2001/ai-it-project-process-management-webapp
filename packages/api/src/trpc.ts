@@ -3,6 +3,7 @@
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
+import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
 
@@ -41,8 +42,8 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
 };
 
 /**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
+ * This is the actual context you will use in your router for Pages Router API routes.
+ * It will be used to process every request that goes through your tRPC endpoint.
  *
  * @see https://trpc.io/docs/context
  */
@@ -54,6 +55,20 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 
   return createInnerTRPCContext({
     session,
+  });
+};
+
+/**
+ * Context creation for App Router (fetch adapter)
+ * This is used in the App Router API routes
+ */
+export const createTRPCContextFetch = async (opts: FetchCreateContextFnOptions) => {
+  // For now, we don't have session support in App Router without additional setup
+  // You would need to use cookies or headers to get the session
+  // This is a simplified version - you may need to enhance this based on your auth setup
+
+  return createInnerTRPCContext({
+    session: null, // TODO: Implement session retrieval from fetch request
   });
 };
 
