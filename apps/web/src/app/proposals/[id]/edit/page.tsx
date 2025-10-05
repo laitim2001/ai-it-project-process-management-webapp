@@ -1,6 +1,8 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 import { api } from '@/lib/trpc';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, redirect, useParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,14 +16,21 @@ const BudgetProposalForm = dynamic(
   }
 );
 
-interface EditProposalPageProps {
-  params: {
-    id: string;
-  };
-}
+export default function EditProposalPage() {
+  const params = useParams();
+  const id = params.id as string;
 
-export default async function EditProposalPage({ params }: EditProposalPageProps) {
-  const proposal = await api.budgetProposal.getById.query({ id: params.id });
+  const { data: proposal, isLoading } = api.budgetProposal.getById.useQuery({ id });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          <div className="text-center py-12 text-gray-500">載入中...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!proposal) {
     notFound();
@@ -47,7 +56,7 @@ export default async function EditProposalPage({ params }: EditProposalPageProps
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/proposals/${params.id}`}>{proposal.title}</BreadcrumbLink>
+              <BreadcrumbLink href={`/proposals/${id}`}>{proposal.title}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

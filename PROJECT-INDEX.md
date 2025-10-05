@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-03 17:00
+**最後更新**: 2025-10-05 00:15 (Epic 3 提案審批工作流代碼審查與修復完成)
 
 ---
 
@@ -458,26 +458,41 @@
 
 ## 📊 索引統計
 
-**文件總數**: 226+ 個重要文件（完整索引更新）
-**最後更新**: 2025-10-03 18:30
+**文件總數**: 226+ 個重要文件（完整索引，已驗證）
+**專案總文件**: 441 個（md/ts/tsx/json/yml）
+**最後更新**: 2025-10-04 00:30
 **維護者**: AI 助手 + 開發團隊
 
-**本次更新變更**（2025-10-03 18:30）:
+**當前專案狀態**（2025-10-04）:
+- ✅ **Epic 2 完成**: 專案管理 CRUD 功能（100%）
+- 📊 **MVP 進度**: 48% (32/67 任務完成)
+- 📈 **累計代碼**: ~23,150 行核心代碼
+- 🎯 **下一階段**: Epic 3 - 提案審批工作流
+
+**本次更新變更**（2025-10-04 00:30）:
+- ✅ Epic 2 完成驗證：所有 Project CRUD 相關文件已索引
+- ✅ 文檔更新：DEVELOPMENT-LOG.md, mvp-implementation-checklist.md, AI-ASSISTANT-GUIDE.md
+- ✅ 索引健康檢查：核心文件覆蓋率 100%
+- ✅ 統計更新：反映 Epic 2 完成後的最新狀態
+
+**核心文件統計**:
+- Next.js 頁面: 22 個
+- API 路由: 5 個 (budgetPool, budgetProposal, project, user, health)
+- UI 組件: 30 個
+- 文檔文件: 66 個
+
+**Epic 2 相關文件**（已驗證索引）:
+- ✅ packages/api/src/routers/project.ts (~660行)
+- ✅ packages/api/src/trpc.ts (Session 認證修復)
+- ✅ apps/web/src/app/projects/** (4個頁面，~1,146行)
+- ✅ apps/web/src/components/project/ProjectForm.tsx (~283行)
+
+**歷史更新**（2025-10-03 18:30）:
 - ✅ 修復「索引悖論」：新增索引系統與元文件章節（7個核心元文件）
 - ✅ 修復 User Story 索引格式：35個story從簡單列表改為完整表格（含完整路徑）
 - ✅ 新增核心系統文件：middleware.ts、NextAuth API route（2個🔴極高重要性文件）
 - ✅ 新增開發工具：索引檢查工具、種子數據腳本、報告文件（5個文件）
-- ✅ 章節編號調整：配合新增章節調整目錄結構
-
-**累積變更**（設計系統遷移）:
-- 設計系統完整遷移（shadcn/ui 風格）
-- 新增 12 個 UI 元件（avatar, badge, breadcrumb, card, dialog, dropdown-menu, label, progress, skeleton, table, tabs, textarea）
-- 更新 3 個核心元件（button, input, select）為新設計系統
-- 新增 3 個佈局元件（dashboard-layout, sidebar, topbar）
-- 新增 6 個設計系統文檔
-- 新增 cn() 工具函數
-- 新增 Dashboard 和 Login 頁面
-- 新增 StatsCard 業務元件
+- ✅ 設計系統完整遷移：12個UI元件、3個佈局元件、6個設計系統文檔
 
 ---
 

@@ -60,7 +60,7 @@
 
 ---
 
-## 📊 專案當前狀態 (MVP Phase 1 - 5%)
+## 📊 專案當前狀態 (MVP Phase 1 - 52%)
 
 ### **🎯 Phase 1: 專案初始化** - ✅ 100% 完成 (2025-10-02)
 
@@ -81,27 +81,91 @@
 | 功能模組 | 完成度 | 代碼行數 | 狀態 |
 |---------|-------|----------|------|
 | User 管理系統 | 100% | ~1,500行 | ✅ 完成 |
-| Project CRUD | 100% | ~1,200行 | ✅ 完成 |
+| Project CRUD (Epic 2) | 100% | ~1,850行 | ✅ 完成並測試 |
 | BudgetProposal 審批工作流 | 100% | ~2,000行 | ✅ 完成 |
 
-**總代碼量**: ~4,700行核心業務代碼
+**總代碼量**: ~5,350行核心業務代碼 (+650行 Epic 2 修復與完善)
 
-### **🔄 Phase 2: MVP 功能開發** - 🚧 進行中 (40%)
+### **🔄 Phase 2: MVP 功能開發** - 🚧 進行中 (52%)
 
 | Epic | 功能模組 | 完成度 | 狀態 | 預計時間 |
 |------|---------|-------|------|----------|
 | Epic 1 | Azure AD B2C 認證 | 0% | 📋 待開始 | 1 週 |
-| Epic 2 | 專案管理功能 | 100% | ✅ 完成 | 2 週 |
-| Epic 3 | 提案審批工作流 | 100% | ✅ 完成 | 2 週 |
-| Epic 4 | 供應商與採購管理 | 0% | 📋 待開始 | 1.5 週 |
+| **Epic 2** | **專案管理功能** | **100%** | **✅ 完成並測試** | 2 週 |
+| **Epic 3** | **提案審批工作流** | **100%** | **✅ 完成並修復** | 2 週 |
+| Epic 4 | 供應商與採購管理 | 0% | 🔄 準備開始 | 1.5 週 |
 | Epic 5 | 費用記錄與審批 | 0% | 📋 待開始 | 1 週 |
 | Epic 6 | 角色儀表板 | 0% | 📋 待開始 | 0.5 週 |
 | Epic 7 | 通知系統 | 0% | 📋 待開始 | 0.5 週 |
 
 **預計總時程**: 8 週
-**當前進度**: Week 1 Day 1 - User 管理與 BudgetProposal 審批工作流完成
+**當前進度**: Epic 3 完成並修復，準備開始 Epic 4 - 供應商與採購管理
 
-### **📅 最近更新** (2025-10-03 18:30)
+### **📅 最近更新** (2025-10-05 00:15)
+
+#### **Epic 3 - 提案審批工作流代碼審查與修復** ✅ (2025-10-05)
+- ✅ **API 層修復** (~100行修改)
+  - **認證修復**: 所有 budgetProposal 端點從 `publicProcedure` 改為 `protectedProcedure`
+    - getAll, getById, create, update, submit, approve, addComment, delete
+  - **Schema 驗證更新**: 所有 ID 驗證從 `uuid()` 改為 `min(1)`
+    - 支援自定義 ID 格式（如 'bp-2025-it'）
+    - budgetProposalId, userId, projectId 欄位全部更新
+
+- ✅ **前端組件修復** (~80行修改)
+  - **Server Component → Client Component 轉換**:
+    - proposals/page.tsx: 添加 `'use client';`, 使用 useQuery
+    - proposals/[id]/page.tsx: 添加 `'use client';`, 使用 useParams + useQuery
+    - proposals/[id]/edit/page.tsx: 添加 `'use client';`, 使用 useParams + useQuery
+  - **錯誤修復**: 解決 "createContext is not a function" 錯誤
+  - **Loading 狀態**: 所有頁面添加適當的載入中狀態
+
+- ✅ **審批工作流驗證**
+  - ProposalActions 組件功能完整（提交、審批、拒絕、需更多資訊）
+  - CommentSection 組件評論系統完整
+  - 狀態機流程正確（Draft → PendingApproval → Approved/Rejected/MoreInfoRequired）
+
+**Epic 3 代碼修復**: ~180行修改
+**累計代碼量**: ~23,330行
+**Epic 3 狀態**: ✅ 100% 完成（代碼審查與修復完畢）
+
+---
+
+#### **Epic 2 - 專案管理 CRUD 完成與測試** ✅ (2025-10-04)
+- ✅ **Project CRUD 完整實現** (~1,850行)
+  - Project API 路由完整實現（~660行）
+    - getAll, getById, getByBudgetPool, create, update, delete
+    - getStats, export (CSV)
+  - 前端 4 個頁面開發（~1,146行）
+    - 列表頁、詳情頁、新增頁、編輯頁
+  - ProjectForm 業務組件（~283行）
+    - 創建/編輯模式支援
+    - Budget Pool、Manager、Supervisor 下拉選單
+    - 日期選擇器和完整驗證
+
+- ✅ **關鍵問題修復**
+  - **Session 認證**: 修復 App Router tRPC context 返回 null session
+    - 正確實現 `getServerSession(authOptions)`
+    - 解決 401 UNAUTHORIZED 問題
+  - **數據結構處理**: 修復 `budgetPools.map is not a function`
+    - 正確處理分頁響應 `{ items: [], pagination: {} }`
+  - **Schema 驗證**: budgetPoolId 從 uuid() 改為 min(1)
+    - 支援自定義 ID 格式（bp-2025-it）
+  - **Zod Optional 欄位**: 使用 undefined 而非 null
+  - **完整中文化**: 所有 UI 文字、驗證消息、Toast 提示
+
+- ✅ **完整測試通過**
+  - 用戶可正常登入並訪問 /projects
+  - 專案列表正常載入
+  - 創建新專案功能完整可用
+  - 表單驗證正確運作
+  - 所有下拉選單正常
+  - 所有 UI 顯示中文
+
+**Epic 2 總代碼**: ~1,850行核心代碼
+**累計代碼量**: ~23,150行
+**Epic 2 狀態**: ✅ 100% 完成並測試通過
+
+---
 
 #### **Sprint 0 Week 1 Day 2.5 - 索引系統完整修復** ✅
 - ✅ **索引悖論問題解決** (~120行索引更新)
@@ -652,4 +716,4 @@ git push origin feature-branch  # 推送到遠程
 
 **🎯 記住：良好的導航系統是團隊效率的倍增器！**
 
-**最後更新**: 2025-10-03 18:30
+**最後更新**: 2025-10-05 00:15

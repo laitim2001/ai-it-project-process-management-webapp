@@ -6,6 +6,7 @@ import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
+import { cookies } from 'next/headers';
 
 import { prisma } from '@itpm/db';
 import { getServerSession } from 'next-auth/next';
@@ -63,12 +64,12 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
  * This is used in the App Router API routes
  */
 export const createTRPCContextFetch = async (opts: FetchCreateContextFnOptions) => {
-  // For now, we don't have session support in App Router without additional setup
-  // You would need to use cookies or headers to get the session
-  // This is a simplified version - you may need to enhance this based on your auth setup
+  // Get the session from NextAuth.js using cookies
+  // In App Router, we can use the getServerSession with the request headers
+  const session = await getServerSession(authOptions);
 
   return createInnerTRPCContext({
-    session: null, // TODO: Implement session retrieval from fetch request
+    session,
   });
 };
 

@@ -2,14 +2,14 @@
   "$schema": "./mvp-progress-report.schema.json",
   "projectName": "IT Project Process Management Platform",
   "version": "0.1.0",
-  "lastUpdated": "2025-10-02T23:30:00+08:00",
+  "lastUpdated": "2025-10-03T21:00:00+08:00",
   "overallProgress": {
-    "percentage": 5,
-    "phase": "MVP Phase 1",
-    "currentSprint": "Sprint 0",
-    "currentWeek": 0,
-    "currentDay": 0,
-    "status": "準備階段"
+    "percentage": 25,
+    "phase": "MVP Phase 2",
+    "currentSprint": "Sprint 1",
+    "currentWeek": 1,
+    "currentDay": 3,
+    "status": "開發中"
   },
   "phases": [
     {
@@ -78,52 +78,79 @@
         {
           "epic": "Epic 1",
           "name": "Azure AD B2C 認證",
-          "progress": 0,
-          "status": "pending",
+          "progress": 80,
+          "status": "in_progress",
           "estimatedWeeks": 1,
-          "codeLines": 0,
+          "codeLines": 450,
           "priority": "high",
-          "dependencies": []
+          "dependencies": [],
+          "tasks": [
+            {
+              "name": "NextAuth.js Credentials Provider 配置",
+              "status": "completed",
+              "codeLines": 150
+            },
+            {
+              "name": "Session Provider 和受保護路由中間件",
+              "status": "completed",
+              "codeLines": 100
+            },
+            {
+              "name": "TopBar 用戶狀態整合",
+              "status": "completed",
+              "codeLines": 80
+            },
+            {
+              "name": "登入頁面與測試用戶創建",
+              "status": "completed",
+              "codeLines": 120
+            },
+            {
+              "name": "Azure AD B2C 整合（未來）",
+              "status": "pending",
+              "codeLines": 0
+            }
+          ]
         },
         {
           "epic": "Epic 2",
           "name": "專案管理功能 (Project CRUD)",
-          "progress": 0,
-          "status": "in_progress",
+          "progress": 95,
+          "status": "completed",
           "estimatedWeeks": 2,
-          "codeLines": 0,
+          "codeLines": 1850,
           "priority": "high",
           "dependencies": [],
           "tasks": [
             {
               "name": "Project tRPC API 路由實現",
-              "status": "in_progress",
-              "codeLines": 0
+              "status": "completed",
+              "codeLines": 660
             },
             {
               "name": "Project 列表頁面",
-              "status": "pending",
-              "codeLines": 0
+              "status": "completed",
+              "codeLines": 475
             },
             {
               "name": "Project 詳情頁面",
-              "status": "pending",
-              "codeLines": 0
+              "status": "completed",
+              "codeLines": 537
             },
             {
               "name": "Project 新增頁面",
-              "status": "pending",
-              "codeLines": 0
+              "status": "completed",
+              "codeLines": 51
             },
             {
               "name": "Project 編輯頁面",
-              "status": "pending",
-              "codeLines": 0
+              "status": "completed",
+              "codeLines": 83
             },
             {
               "name": "ProjectForm 業務組件",
-              "status": "pending",
-              "codeLines": 0
+              "status": "completed",
+              "codeLines": 283
             }
           ]
         },
@@ -188,10 +215,16 @@
       "description": "Monorepo 架構、資料庫設計、Budget Pool CRUD 完成"
     },
     {
-      "name": "認證系統整合完成",
-      "estimatedDate": "2025-10-10",
+      "name": "Mock 認證系統整合完成",
+      "date": "2025-10-03",
+      "status": "completed",
+      "description": "NextAuth.js Credentials Provider 整合完成，用戶可使用測試帳號登入"
+    },
+    {
+      "name": "Azure AD B2C 認證系統整合",
+      "estimatedDate": "2025-10-17",
       "status": "pending",
-      "description": "Azure AD B2C 整合完成，用戶可登入"
+      "description": "Azure AD B2C 整合完成，實現企業級單一登入（SSO）"
     },
     {
       "name": "核心業務流程完成",
@@ -215,6 +248,33 @@
     "databaseModels": 11
   },
   "recentUpdates": [
+    {
+      "date": "2025-10-03T21:00:00+08:00",
+      "type": "feature",
+      "description": "Epic 2 - 專案管理 CRUD 功能驗證與完善",
+      "codeLines": 1850,
+      "files": [
+        "packages/api/src/routers/project.ts",
+        "apps/web/src/app/projects/page.tsx",
+        "apps/web/src/app/projects/new/page.tsx",
+        "apps/web/src/app/projects/[id]/page.tsx",
+        "apps/web/src/app/projects/[id]/edit/page.tsx",
+        "apps/web/src/components/project/ProjectForm.tsx"
+      ]
+    },
+    {
+      "date": "2025-10-03T20:15:00+08:00",
+      "type": "feature",
+      "description": "Mock 認證系統整合完成",
+      "codeLines": 450,
+      "files": [
+        "packages/auth/src/index.ts",
+        "apps/web/src/app/login/page.tsx",
+        "apps/web/src/middleware.ts",
+        "apps/web/src/components/layout/TopBar.tsx",
+        "packages/db/prisma/seed.ts"
+      ]
+    },
     {
       "date": "2025-10-02T23:30:00+08:00",
       "type": "documentation",

@@ -1,14 +1,52 @@
+/**
+ * TopBar 組件 - 頂部導航欄
+ *
+ * 功能：
+ * - 顯示搜索欄
+ * - 顯示通知
+ * - 顯示當前登入用戶信息
+ * - Mobile 菜單切換按鈕
+ * - 用戶下拉菜單（登出功能）
+ */
+
 "use client"
 
-import { Search, Bell, Menu } from "lucide-react"
+import { Search, Bell, Menu, LogOut, User } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface TopBarProps {
   onMenuClick?: () => void
 }
 
 export function TopBar({ onMenuClick }: TopBarProps) {
+  const { data: session } = useSession()
+
+  // 獲取用戶名稱首字母用於 Avatar
+  const getUserInitials = (name: string | null | undefined) => {
+    if (!name) return "U"
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  // 處理登出
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/login" })
+  }
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-white px-4 lg:px-8">
       {/* Left: Mobile Menu + Search */}
@@ -49,14 +87,47 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </Badge>
         </Button>
 
-        {/* User Menu - Placeholder */}
-        <div className="ml-2 flex items-center gap-2">
-          <div className="hidden md:block text-right">
-            <p className="text-sm font-medium text-gray-900">User Name</p>
-            <p className="text-xs text-gray-500">Project Manager</p>
-          </div>
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500" />
-        </div>
+        {/* User Menu with Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="ml-2 flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-100 transition-colors">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-medium text-gray-900">
+                  {session?.user?.name || "用戶"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {(session?.user as any)?.role?.name || "角色"}
+                </p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium text-sm">
+                {getUserInitials(session?.user?.name)}
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <div>
+                <p className="font-medium">{session?.user?.name || "用戶"}</p>
+                <p className="text-xs text-gray-500 font-normal mt-1">
+                  {session?.user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              個人資料
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer text-red-600 focus:text-red-600"
+              onClick={handleSignOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              登出
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

@@ -8,6 +8,8 @@
  * - 查看詳情
  */
 
+'use client';
+
 import Link from 'next/link';
 import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -17,8 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Plus } from 'lucide-react';
 
-export default async function ProposalsPage() {
-  const proposals = await api.budgetProposal.getAll.query();
+export default function ProposalsPage() {
+  const { data: proposals, isLoading } = api.budgetProposal.getAll.useQuery();
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
@@ -82,7 +84,13 @@ export default async function ProposalsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {proposals.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12 text-gray-500">
+                    載入中...
+                  </TableCell>
+                </TableRow>
+              ) : !proposals || proposals.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12 text-gray-500">
                     尚無提案資料

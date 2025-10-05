@@ -32,15 +32,17 @@ export const projectStatusEnum = z.enum(['Draft', 'InProgress', 'Completed', 'Ar
 
 /**
  * 創建專案的驗證 Schema
- * 必填欄位：name（專案名稱）、budgetPoolId（預算池ID）、managerId（專案經理ID）、supervisorId（主管ID）
- * 可選欄位：description（專案描述）
+ * 必填欄位：name（專案名稱）、budgetPoolId（預算池ID）、managerId（專案經理ID）、supervisorId（主管ID）、startDate（開始日期）
+ * 可選欄位：description（專案描述）、endDate（結束日期）
  */
 export const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(255),
   description: z.string().optional(),
-  budgetPoolId: z.string().uuid('Invalid budget pool ID'),
+  budgetPoolId: z.string().min(1, 'Budget pool ID is required'),
   managerId: z.string().uuid('Invalid manager ID'),
   supervisorId: z.string().uuid('Invalid supervisor ID'),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
 });
 
 /**
@@ -53,9 +55,11 @@ export const updateProjectSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   status: projectStatusEnum.optional(),
-  budgetPoolId: z.string().uuid().optional(),
+  budgetPoolId: z.string().min(1).optional(),
   managerId: z.string().uuid().optional(),
   supervisorId: z.string().uuid().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
 });
 
 // ============================================================
@@ -89,7 +93,7 @@ export const projectRouter = createTRPCRouter({
           limit: z.number().min(1).max(100).default(20),
           search: z.string().optional(),
           status: projectStatusEnum.optional(),
-          budgetPoolId: z.string().uuid().optional(),
+          budgetPoolId: z.string().min(1).optional(),
           managerId: z.string().uuid().optional(),
           supervisorId: z.string().uuid().optional(),
           sortBy: z.enum(['name', 'status', 'createdAt']).default('createdAt'),
@@ -342,6 +346,8 @@ export const projectRouter = createTRPCRouter({
           budgetPoolId: input.budgetPoolId,
           managerId: input.managerId,
           supervisorId: input.supervisorId,
+          startDate: input.startDate,
+          endDate: input.endDate,
           status: 'Draft', // 預設狀態為草稿
         },
         include: {

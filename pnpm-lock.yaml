@@ -66,6 +66,9 @@ importers:
       '@trpc/server':
         specifier: ^10.45.1
         version: 10.45.2
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -79,7 +82,7 @@ importers:
         specifier: 14.1.0
         version: 14.1.0(react-dom@18.3.1)(react@18.3.1)
       next-auth:
-        specifier: ^4.24.6
+        specifier: ^4.24.11
         version: 4.24.11(next@14.1.0)(react-dom@18.3.1)(react@18.3.1)
       react:
         specifier: ^18.2.0
@@ -103,6 +106,9 @@ importers:
       '@next/bundle-analyzer':
         specifier: ^15.5.4
         version: 15.5.4
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/node':
         specifier: ^20.11.19
         version: 20.19.19

@@ -35,7 +35,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch budget pools for dropdown
-  const { data: budgetPools } = api.budgetPool.getAll.useQuery();
+  const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery();
+  const budgetPools = budgetPoolsData?.items ?? [];
 
   // Fetch users for manager and supervisor dropdowns
   const { data: managers } = api.user.getManagers.useQuery();
@@ -43,23 +44,23 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const createMutation = api.project.create.useMutation({
     onSuccess: () => {
-      showToast('Project created successfully!', 'success');
+      showToast('專案創建成功！', 'success');
       router.push('/projects');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`Error: ${error.message}`, 'error');
+      showToast(`錯誤: ${error.message}`, 'error');
     },
   });
 
   const updateMutation = api.project.update.useMutation({
     onSuccess: () => {
-      showToast('Project updated successfully!', 'success');
+      showToast('專案更新成功！', 'success');
       router.push(`/projects/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`Error: ${error.message}`, 'error');
+      showToast(`錯誤: ${error.message}`, 'error');
     },
   });
 
@@ -67,30 +68,30 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Project name is required';
+      newErrors.name = '專案名稱為必填';
     }
 
     if (!formData.budgetPoolId) {
-      newErrors.budgetPoolId = 'Budget pool is required';
+      newErrors.budgetPoolId = '預算池為必填';
     }
 
     if (!formData.managerId) {
-      newErrors.managerId = 'Project manager is required';
+      newErrors.managerId = '專案經理為必填';
     }
 
     if (!formData.supervisorId) {
-      newErrors.supervisorId = 'Supervisor is required';
+      newErrors.supervisorId = '主管為必填';
     }
 
     if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+      newErrors.startDate = '開始日期為必填';
     }
 
     if (formData.endDate && formData.startDate) {
       const start = new Date(formData.startDate);
       const end = new Date(formData.endDate);
       if (end <= start) {
-        newErrors.endDate = 'End date must be after start date';
+        newErrors.endDate = '結束日期必須晚於開始日期';
       }
     }
 
@@ -107,12 +108,12 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
     const submitData = {
       name: formData.name,
-      description: formData.description || null,
+      description: formData.description.trim() === '' ? undefined : formData.description,
       budgetPoolId: formData.budgetPoolId,
       managerId: formData.managerId,
       supervisorId: formData.supervisorId,
       startDate: new Date(formData.startDate),
-      endDate: formData.endDate ? new Date(formData.endDate) : null,
+      endDate: formData.endDate ? new Date(formData.endDate) : undefined,
     };
 
     if (mode === 'create') {
@@ -131,7 +132,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Project Name *
+          專案名稱 *
         </label>
         <input
           type="text"
@@ -139,7 +140,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="e.g., Cloud Migration Phase 1"
+          placeholder="例如：雲端遷移第一階段"
         />
         {errors.name && (
           <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -148,7 +149,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          Description
+          專案描述
         </label>
         <textarea
           id="description"
@@ -156,13 +157,13 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="Describe the project objectives and scope..."
+          placeholder="描述專案目標和範圍..."
         />
       </div>
 
       <div>
         <label htmlFor="budgetPoolId" className="block text-sm font-medium text-gray-700">
-          Budget Pool *
+          預算池 *
         </label>
         <select
           id="budgetPoolId"
@@ -170,7 +171,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           onChange={(e) => setFormData({ ...formData, budgetPoolId: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
         >
-          <option value="">Select a budget pool</option>
+          <option value="">選擇預算池</option>
           {budgetPools?.map((pool) => (
             <option key={pool.id} value={pool.id}>
               {pool.name} - FY{pool.financialYear} (${pool.totalAmount.toLocaleString()})
@@ -185,7 +186,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="managerId" className="block text-sm font-medium text-gray-700">
-            Project Manager *
+            專案經理 *
           </label>
           <select
             id="managerId"
@@ -193,7 +194,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
-            <option value="">Select a manager</option>
+            <option value="">選擇專案經理</option>
             {managers?.map((manager) => (
               <option key={manager.id} value={manager.id}>
                 {manager.name || manager.email}
@@ -207,7 +208,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="supervisorId" className="block text-sm font-medium text-gray-700">
-            Supervisor *
+            主管 *
           </label>
           <select
             id="supervisorId"
@@ -215,7 +216,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
-            <option value="">Select a supervisor</option>
+            <option value="">選擇主管</option>
             {supervisors?.map((supervisor) => (
               <option key={supervisor.id} value={supervisor.id}>
                 {supervisor.name || supervisor.email}
@@ -231,7 +232,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-            Start Date *
+            開始日期 *
           </label>
           <input
             type="date"
@@ -247,7 +248,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-            End Date
+            結束日期
           </label>
           <input
             type="date"
@@ -268,14 +269,14 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
         >
-          {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create Project' : 'Update Project'}
+          {isSubmitting ? '儲存中...' : mode === 'create' ? '創建專案' : '更新專案'}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
           className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50"
         >
-          Cancel
+          取消
         </button>
       </div>
     </form>

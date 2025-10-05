@@ -8,8 +8,10 @@
  * - 審批歷史
  */
 
+'use client';
+
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import { ProposalActions } from '@/components/proposal/ProposalActions';
 import { CommentSection } from '@/components/proposal/CommentSection';
@@ -19,12 +21,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { FileText, DollarSign, Calendar, User, History, Building2 } from 'lucide-react';
-
-interface ProposalDetailPageProps {
-  params: {
-    id: string;
-  };
-}
 
 /**
  * 提案狀態顯示配置
@@ -47,8 +43,21 @@ const ACTION_LABELS: Record<string, string> = {
   MORE_INFO_REQUIRED: '需要更多資訊',
 };
 
-export default async function ProposalDetailPage({ params }: ProposalDetailPageProps) {
-  const proposal = await api.budgetProposal.getById.query({ id: params.id });
+export default function ProposalDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+
+  const { data: proposal, isLoading } = api.budgetProposal.getById.useQuery({ id });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          <div className="text-center py-12 text-gray-500">載入中...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!proposal) {
     notFound();

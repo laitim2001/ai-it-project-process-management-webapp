@@ -15,7 +15,8 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 /**
  * 預算提案狀態枚舉
@@ -34,30 +35,30 @@ const ProposalStatus = z.enum([
 const budgetProposalCreateInputSchema = z.object({
   title: z.string().min(1, '標題為必填欄位'),
   amount: z.number().positive('金額必須大於0'),
-  projectId: z.string().uuid('無效的專案ID'),
+  projectId: z.string().min(1, '專案ID為必填'),
 });
 
 const budgetProposalUpdateInputSchema = z.object({
-  id: z.string().uuid('無效的提案ID'),
+  id: z.string().min(1, '無效的提案ID'),
   title: z.string().min(1, '標題不能為空').optional(),
   amount: z.number().positive('金額必須大於0').optional(),
 });
 
 const budgetProposalSubmitInputSchema = z.object({
-  id: z.string().uuid('無效的提案ID'),
-  userId: z.string().uuid('無效的使用者ID'),
+  id: z.string().min(1, '無效的提案ID'),
+  userId: z.string().min(1, '無效的使用者ID'),
 });
 
 const budgetProposalApprovalInputSchema = z.object({
-  id: z.string().uuid('無效的提案ID'),
-  userId: z.string().uuid('無效的使用者ID'),
+  id: z.string().min(1, '無效的提案ID'),
+  userId: z.string().min(1, '無效的使用者ID'),
   action: z.enum(['Approved', 'Rejected', 'MoreInfoRequired']),
   comment: z.string().optional(),
 });
 
 const commentInputSchema = z.object({
-  budgetProposalId: z.string().uuid('無效的提案ID'),
-  userId: z.string().uuid('無效的使用者ID'),
+  budgetProposalId: z.string().min(1, '無效的提案ID'),
+  userId: z.string().min(1, '無效的使用者ID'),
   content: z.string().min(1, '評論內容不能為空'),
 });
 
@@ -68,12 +69,12 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 取得所有預算提案
    */
-  getAll: publicProcedure
+  getAll: protectedProcedure
     .input(
       z
         .object({
           status: ProposalStatus.optional(),
-          projectId: z.string().uuid().optional(),
+          projectId: z.string().min(1).optional(),
         })
         .optional()
     )
@@ -119,10 +120,10 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 根據 ID 取得預算提案
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(
       z.object({
-        id: z.string().uuid('無效的提案ID'),
+        id: z.string().min(1, '無效的提案ID'),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -167,7 +168,7 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 建立預算提案（預設 Draft 狀態）
    */
-  create: publicProcedure
+  create: protectedProcedure
     .input(budgetProposalCreateInputSchema)
     .mutation(async ({ ctx, input }) => {
       // 驗證專案是否存在
@@ -205,7 +206,7 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 更新預算提案（僅 Draft 或 MoreInfoRequired 狀態可編輯）
    */
-  update: publicProcedure
+  update: protectedProcedure
     .input(budgetProposalUpdateInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
@@ -250,7 +251,7 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 提交提案審批（Draft/MoreInfoRequired → PendingApproval）
    */
-  submit: publicProcedure
+  submit: protectedProcedure
     .input(budgetProposalSubmitInputSchema)
     .mutation(async ({ ctx, input }) => {
       // 檢查提案狀態
@@ -311,7 +312,7 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 審批提案（PendingApproval → Approved/Rejected/MoreInfoRequired）
    */
-  approve: publicProcedure
+  approve: protectedProcedure
     .input(budgetProposalApprovalInputSchema)
     .mutation(async ({ ctx, input }) => {
       // 檢查提案狀態
@@ -387,7 +388,7 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 新增評論
    */
-  addComment: publicProcedure
+  addComment: protectedProcedure
     .input(commentInputSchema)
     .mutation(async ({ ctx, input }) => {
       const comment = await ctx.prisma.comment.create({
@@ -407,10 +408,10 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 刪除預算提案（僅 Draft 狀態可刪除）
    */
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(
       z.object({
-        id: z.string().uuid('無效的提案ID'),
+        id: z.string().min(1, '無效的提案ID'),
       })
     )
     .mutation(async ({ ctx, input }) => {
