@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-05 00:15 (Epic 3 提案審批工作流代碼審查與修復完成)
+**最後更新**: 2025-10-05 20:00 (Epic 5 採購與供應商管理完整測試與修復完成)
 
 ---
 
@@ -268,6 +268,8 @@
 | **BudgetProposal 詳情** | `apps/web/src/app/proposals/[id]/page.tsx` | 預算提案詳情頁面 | 🟡 高 |
 | **BudgetProposal 編輯** | `apps/web/src/app/proposals/[id]/edit/page.tsx` | 預算提案編輯頁面 | 🟡 高 |
 | **BudgetProposal 新增** | `apps/web/src/app/proposals/new/page.tsx` | 預算提案新增頁面 | 🟡 高 |
+| **PM Dashboard** | `apps/web/src/app/dashboard/pm/page.tsx` | 專案經理儀表板頁面 | 🔴 極高 |
+| **Supervisor Dashboard** | `apps/web/src/app/dashboard/supervisor/page.tsx` | 主管儀表板頁面 | 🔴 極高 |
 
 #### API 路由
 
@@ -323,6 +325,8 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **StatsCard** | `apps/web/src/components/dashboard/StatsCard.tsx` | Dashboard 統計卡片元件（支援趨勢指標） | 🟡 高 |
+| **StatCard** | `apps/web/src/components/dashboard/StatCard.tsx` | 可復用統計卡片元件（Epic 7） | 🟡 高 |
+| **BudgetPoolOverview** | `apps/web/src/components/dashboard/BudgetPoolOverview.tsx` | 預算池財務概覽元件（Epic 7） | 🟡 高 |
 | **Budget Pool 表單** | `apps/web/src/components/budget-pool/BudgetPoolForm.tsx` | 預算池表單元件 | 🟡 高 |
 | **Budget Pool 過濾器** | `apps/web/src/components/budget-pool/BudgetPoolFilters.tsx` | 預算池篩選器元件 | 🟡 高 |
 | **Project 表單** | `apps/web/src/components/project/ProjectForm.tsx` | 專案表單元件 | 🟡 高 |
@@ -353,6 +357,7 @@
 | **Project 路由** | `packages/api/src/routers/project.ts` | 專案管理 API 路由 | 🔴 極高 |
 | **User 路由** | `packages/api/src/routers/user.ts` | 使用者管理 API 路由 | 🔴 極高 |
 | **BudgetProposal 路由** | `packages/api/src/routers/budgetProposal.ts` | 預算提案審批 API 路由 | 🔴 極高 |
+| **Dashboard 路由** | `packages/api/src/routers/dashboard.ts` | 儀表板數據聚合 API 路由（PM/Supervisor） | 🔴 極高 |
 | **健康檢查路由** | `packages/api/src/routers/health.ts` | 健康檢查 API | 🟡 高 |
 | **Package 配置** | `packages/api/package.json` | API 套件依賴配置 | 🟡 高 |
 | **TypeScript 配置** | `packages/api/tsconfig.json` | API TypeScript 配置 | 🟡 高 |
@@ -476,12 +481,19 @@
 - ✅ 統計更新：反映 Epic 2 完成後的最新狀態
 
 **核心文件統計**:
-- Next.js 頁面: 22 個
-- API 路由: 5 個 (budgetPool, budgetProposal, project, user, health)
-- UI 組件: 30 個
+- Next.js 頁面: 24 個 (+2 Epic 7 儀表板)
+- API 路由: 6 個 (budgetPool, budgetProposal, project, user, dashboard, health)
+- UI 組件: 32 個 (+2 Epic 7 Dashboard 組件)
 - 文檔文件: 66 個
 
-**Epic 2 相關文件**（已驗證索引）:
+**Epic 7 相關文件**（已驗證索引）- 2025-10-05:
+- ✅ packages/api/src/routers/dashboard.ts (~450行)
+- ✅ apps/web/src/app/dashboard/pm/page.tsx (~390行)
+- ✅ apps/web/src/app/dashboard/supervisor/page.tsx (~400行)
+- ✅ apps/web/src/components/dashboard/StatCard.tsx (~50行)
+- ✅ apps/web/src/components/dashboard/BudgetPoolOverview.tsx (~180行)
+
+**Epic 2 相關文件**（已驗證索引）- 2025-10-04:
 - ✅ packages/api/src/routers/project.ts (~660行)
 - ✅ packages/api/src/trpc.ts (Session 認證修復)
 - ✅ apps/web/src/app/projects/** (4個頁面，~1,146行)

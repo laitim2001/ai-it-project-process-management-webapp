@@ -149,9 +149,11 @@ export default function ProposalsPage() {
         </div>
 
         {/* Summary */}
-        <div className="text-sm text-gray-600">
-          總共 {proposals.length} 個提案
-        </div>
+        {proposals && (
+          <div className="text-sm text-gray-600">
+            總共 {proposals.length} 個提案
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

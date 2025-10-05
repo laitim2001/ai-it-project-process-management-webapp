@@ -664,4 +664,99 @@ export const projectRouter = createTRPCRouter({
 
       return projects;
     }),
+
+  /**
+   * 執行 Charge Out (Story 6.4)
+   * @param id - 專案 ID
+   * @returns 更新後的 Project
+   *
+   * 業務邏輯:
+   * 1. 檢查專案所有費用是否都已支付 (Paid 狀態)
+   * 2. 更新專案狀態為 Completed
+   * 3. 記錄 chargeOutDate
+   */
+  chargeOut: protectedProcedure
+    .input(z.object({
+      id: z.string().uuid('無效的專案ID'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // 1. 檢查專案是否存在
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.id },
+        include: {
+          purchaseOrders: {
+            include: {
+              expenses: true,
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        throw new Error('找不到該專案');
+      }
+
+      // 2. 檢查專案狀態
+      if (project.status === 'Completed' || project.status === 'Archived') {
+        throw new Error('專案已完成或已歸檔，無法再次執行 Charge Out');
+      }
+
+      // 3. 收集所有費用記錄
+      const allExpenses = project.purchaseOrders.flatMap(po => po.expenses);
+
+      if (allExpenses.length === 0) {
+        throw new Error('專案沒有任何費用記錄，無法執行 Charge Out');
+      }
+
+      // 4. 檢查是否所有費用都已支付
+      const unpaidExpenses = allExpenses.filter(exp => exp.status !== 'Paid');
+
+      if (unpaidExpenses.length > 0) {
+        throw new Error(
+          `專案還有 ${unpaidExpenses.length} 筆未支付的費用，無法執行 Charge Out。所有費用必須處於「已支付」狀態。`
+        );
+      }
+
+      // 5. 更新專案狀態為 Completed 並記錄 chargeOutDate
+      const updatedProject = await ctx.prisma.project.update({
+        where: { id: input.id },
+        data: {
+          status: 'Completed',
+          chargeOutDate: new Date(),
+        },
+        include: {
+          manager: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          supervisor: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          budgetPool: {
+            select: {
+              id: true,
+              name: true,
+              totalAmount: true,
+              usedAmount: true,
+              financialYear: true,
+            },
+          },
+          _count: {
+            select: {
+              proposals: true,
+              purchaseOrders: true,
+            },
+          },
+        },
+      });
+
+      return updatedProject;
+    }),
 });

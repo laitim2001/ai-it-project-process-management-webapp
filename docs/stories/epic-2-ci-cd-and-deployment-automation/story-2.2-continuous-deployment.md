@@ -51,3 +51,4 @@
 *   **生產環境部署 (Deployment to Production):** MVP 階段的自動化部署只針對測試環境 (Staging)。部署到正式生產環境 (Production) 的流程，在初期可以暫時採用手動觸發（例如，在 GitHub 上建立一個 release tag），以增加一層控制和保障。
 *   **資料庫遷移 (Database Migration):** 此故事的部署流程暫不包含資料庫結構的自動遷移。在部署新版本時，如果包含了資料庫變更，目前需要手動在對應的環境中執行 `prisma migrate deploy`。未來可以將此步驟整合到 CD 流程中，但需要謹慎處理以防出錯。
 *   **零停機部署 (Zero-Downtime Deployment):** 目前的部署方式可能會導致短暫的服務中斷。實現藍綠部署 (Blue-Green Deployment) 或金絲雀發布 (Canary Releases) 等更高級的零停機策略，可以在後續進行優化。
+

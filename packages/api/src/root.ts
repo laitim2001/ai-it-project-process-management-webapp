@@ -4,6 +4,11 @@ import { budgetPoolRouter } from './routers/budgetPool';
 import { projectRouter } from './routers/project';
 import { userRouter } from './routers/user';
 import { budgetProposalRouter } from './routers/budgetProposal';
+import { vendorRouter } from './routers/vendor';
+import { quoteRouter } from './routers/quote';
+import { purchaseOrderRouter } from './routers/purchaseOrder';
+import { expenseRouter } from './routers/expense';
+import { dashboardRouter } from './routers/dashboard';
 
 /**
  * This is the primary router for your server.
@@ -16,9 +21,11 @@ export const appRouter = createTRPCRouter({
   project: projectRouter,
   user: userRouter,
   budgetProposal: budgetProposalRouter,
-  // Add more routers here as they are created:
-  // vendor: vendorRouter,
-  // expense: expenseRouter,
+  vendor: vendorRouter,
+  quote: quoteRouter,
+  purchaseOrder: purchaseOrderRouter,
+  expense: expenseRouter,
+  dashboard: dashboardRouter,
 });
 
 // export type definition of API

@@ -47,6 +47,7 @@ model BudgetPool {
   id            String   @id @default(uuid())
   name          String
   totalAmount   Float
+  usedAmount    Float    @default(0) // 已使用金額 (Story 6.3)
   financialYear Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -57,22 +58,24 @@ model BudgetPool {
 }
 
 model Project {
-  id           String    @id @default(uuid())
-  name         String
-  description  String?
-  status       String    @default("Draft") // "Draft", "InProgress", "Completed", "Archived"
-  managerId    String
-  supervisorId String
-  budgetPoolId String
-  startDate    DateTime
-  endDate      DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String    @id @default(uuid())
+  name          String
+  description   String?
+  status        String    @default("Draft") // "Draft", "InProgress", "Completed", "Archived"
+  managerId     String
+  supervisorId  String
+  budgetPoolId  String
+  startDate     DateTime
+  endDate       DateTime?
+  chargeOutDate DateTime? // Story 6.4: Charge Out 執行時間
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   manager        User             @relation("ProjectManager", fields: [managerId], references: [id])
   supervisor     User             @relation("Supervisor", fields: [supervisorId], references: [id])
   budgetPool     BudgetPool       @relation(fields: [budgetPoolId], references: [id])
   proposals      BudgetProposal[]
+  quotes         Quote[]          // 新增：專案可以有多個報價
   purchaseOrders PurchaseOrder[]
 
   @@index([managerId])
@@ -117,14 +120,17 @@ model Quote {
   uploadDate      DateTime @default(now())
   amount          Float
   vendorId        String
+  projectId       String   // 新增：關聯到 Project
   purchaseOrderId String?  @unique
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   vendor        Vendor         @relation(fields: [vendorId], references: [id])
+  project       Project        @relation(fields: [projectId], references: [id]) // 新增關聯
   purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
 
   @@index([vendorId])
+  @@index([projectId]) // 新增索引
 }
 
 model PurchaseOrder {

@@ -371,6 +371,35 @@ export default function ProjectDetailPage() {
               </CardContent>
             </Card>
 
+            {/* 報價管理區塊 */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    報價管理
+                  </CardTitle>
+                  <Link href={`/projects/${id}/quotes`}>
+                    <Button variant="outline" size="sm">
+                      查看報價
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-6">
+                  <p className="text-gray-600 mb-4">
+                    在報價管理頁面中可以上傳供應商報價、比較報價，並選擇最終供應商生成採購單
+                  </p>
+                  <Link href={`/projects/${id}/quotes`}>
+                    <Button>
+                      管理報價
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* 採購單列表 */}
             <Card>
               <CardHeader>
