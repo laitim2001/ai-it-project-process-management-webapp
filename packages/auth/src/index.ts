@@ -9,6 +9,7 @@
 import type { NextAuthOptions, User as NextAuthUser } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import AzureADB2CProvider from 'next-auth/providers/azure-ad-b2c';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
@@ -69,6 +70,34 @@ export const authOptions: NextAuthOptions = {
 
   // 認證提供者
   providers: [
+    // Azure AD B2C Provider (Epic 1 - Story 1.3)
+    ...(process.env.AZURE_AD_B2C_CLIENT_ID && process.env.AZURE_AD_B2C_CLIENT_SECRET
+      ? [
+          AzureADB2CProvider({
+            clientId: process.env.AZURE_AD_B2C_CLIENT_ID,
+            clientSecret: process.env.AZURE_AD_B2C_CLIENT_SECRET,
+            tenantId: process.env.AZURE_AD_B2C_TENANT_ID || process.env.AZURE_AD_B2C_TENANT_NAME,
+            primaryUserFlow: process.env.AZURE_AD_B2C_PRIMARY_USER_FLOW || 'B2C_1_signupsignin',
+            authorization: {
+              params: {
+                scope: process.env.AZURE_AD_B2C_SCOPE || 'openid profile email offline_access',
+              },
+            },
+            // 自定義 profile 映射
+            profile(profile: any) {
+              return {
+                id: profile.sub || profile.oid,
+                email: profile.email || profile.emails?.[0] || profile.preferred_username,
+                name: profile.name || `${profile.given_name || ''} ${profile.family_name || ''}`.trim(),
+                image: profile.picture,
+                emailVerified: profile.email_verified ? new Date() : null,
+              };
+            },
+          }),
+        ]
+      : []),
+
+    // Credentials Provider (本地開發與測試)
     CredentialsProvider({
       id: 'credentials',
       name: 'Email and Password',
@@ -112,19 +141,11 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-
-    // 未來可在此添加 Azure AD B2C Provider
-    // AzureADB2CProvider({
-    //   clientId: process.env.AZURE_AD_B2C_CLIENT_ID!,
-    //   clientSecret: process.env.AZURE_AD_B2C_CLIENT_SECRET!,
-    //   tenantId: process.env.AZURE_AD_B2C_TENANT_ID!,
-    //   primaryUserFlow: process.env.AZURE_AD_B2C_PRIMARY_USER_FLOW!,
-    // }),
   ],
 
   // JWT 回調：將用戶信息添加到 JWT
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -132,6 +153,34 @@ export const authOptions: NextAuthOptions = {
         token.roleId = user.roleId;
         token.role = user.role;
       }
+
+      // Azure AD B2C 登入時，確保用戶在資料庫中存在
+      if (account?.provider === 'azure-ad-b2c' && user) {
+        const dbUser = await prisma.user.upsert({
+          where: { email: user.email },
+          update: {
+            name: user.name,
+            image: user.image,
+            emailVerified: (user as any).emailVerified,
+          },
+          create: {
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            emailVerified: (user as any).emailVerified,
+            roleId: 1, // 預設為 ProjectManager (roleId = 1)
+            password: null, // Azure AD B2C 用戶無本地密碼
+          },
+          include: { role: true },
+        });
+
+        token.id = dbUser.id;
+        token.email = dbUser.email;
+        token.name = dbUser.name;
+        token.roleId = dbUser.roleId;
+        token.role = dbUser.role;
+      }
+
       return token;
     },
 

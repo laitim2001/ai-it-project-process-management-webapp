@@ -1,13 +1,14 @@
 /**
- * Session Provider Component
+ * NextAuth SessionProvider 包裝器
  *
- * 包裝 NextAuth SessionProvider，提供認證狀態給整個應用程式
+ * 客戶端組件，用於在整個應用中提供 NextAuth session 上下文
+ * 必須在 'use client' 環境中使用
  */
 
 'use client';
 
 import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
-import { type ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 interface SessionProviderProps {
   children: ReactNode;

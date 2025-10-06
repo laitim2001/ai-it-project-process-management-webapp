@@ -138,4 +138,47 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   });
 });
 
+/**
+ * RBAC 權限控制中間件 (Epic 1 - Story 1.4)
+ *
+ * 檢查用戶是否具有指定角色權限
+ * 使用方式：
+ * - supervisorProcedure: 僅 Supervisor 或 Admin 可訪問
+ * - adminProcedure: 僅 Admin 可訪問
+ */
+
+/**
+ * Supervisor 權限 Procedure
+ * 僅限 Supervisor 和 Admin 角色訪問
+ */
+export const supervisorProcedure = protectedProcedure.use(({ ctx, next }) => {
+  const userRole = ctx.session.user.role.name;
+
+  if (userRole !== 'Supervisor' && userRole !== 'Admin') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: '您沒有權限執行此操作（需要 Supervisor 或 Admin 權限）',
+    });
+  }
+
+  return next({ ctx });
+});
+
+/**
+ * Admin 權限 Procedure
+ * 僅限 Admin 角色訪問
+ */
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  const userRole = ctx.session.user.role.name;
+
+  if (userRole !== 'Admin') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: '您沒有權限執行此操作（需要 Admin 權限）',
+    });
+  }
+
+  return next({ ctx });
+});
+
 // Session type is now imported from @itpm/auth
