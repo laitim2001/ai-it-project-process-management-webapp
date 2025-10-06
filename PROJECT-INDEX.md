@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-05 20:00 (Epic 5 採購與供應商管理完整測試與修復完成)
+**最後更新**: 2025-10-06 22:00 (Epic 8 通知系統完整實現 - 新增 6 個文件：Notification API、EmailService、NotificationBell/Dropdown、Notifications Page)
 
 ---
 
@@ -270,6 +270,7 @@
 | **BudgetProposal 新增** | `apps/web/src/app/proposals/new/page.tsx` | 預算提案新增頁面 | 🟡 高 |
 | **PM Dashboard** | `apps/web/src/app/dashboard/pm/page.tsx` | 專案經理儀表板頁面 | 🔴 極高 |
 | **Supervisor Dashboard** | `apps/web/src/app/dashboard/supervisor/page.tsx` | 主管儀表板頁面 | 🔴 極高 |
+| **Notifications 頁面** | `apps/web/src/app/notifications/page.tsx` | 通知中心完整列表頁面（Epic 8） | 🔴 極高 |
 
 #### API 路由
 
@@ -334,6 +335,9 @@
 | **BudgetProposal 表單** | `apps/web/src/components/proposal/BudgetProposalForm.tsx` | 預算提案表單元件 | 🟡 高 |
 | **ProposalActions** | `apps/web/src/components/proposal/ProposalActions.tsx` | 提案審批操作元件 | 🔴 極高 |
 | **CommentSection** | `apps/web/src/components/proposal/CommentSection.tsx` | 提案評論元件 | 🟡 高 |
+| **NotificationBell** | `apps/web/src/components/notification/NotificationBell.tsx` | 通知鈴鐺圖標元件（Epic 8） | 🟡 高 |
+| **NotificationDropdown** | `apps/web/src/components/notification/NotificationDropdown.tsx` | 通知下拉選單元件（Epic 8） | 🟡 高 |
+| **Notification 元件索引** | `apps/web/src/components/notification/index.ts` | 通知元件統一導出（Epic 8） | 🟢 中 |
 
 #### Hooks 與工具
 
@@ -358,6 +362,8 @@
 | **User 路由** | `packages/api/src/routers/user.ts` | 使用者管理 API 路由 | 🔴 極高 |
 | **BudgetProposal 路由** | `packages/api/src/routers/budgetProposal.ts` | 預算提案審批 API 路由 | 🔴 極高 |
 | **Dashboard 路由** | `packages/api/src/routers/dashboard.ts` | 儀表板數據聚合 API 路由（PM/Supervisor） | 🔴 極高 |
+| **Notification 路由** | `packages/api/src/routers/notification.ts` | 通知系統 API 路由（Epic 8） | 🔴 極高 |
+| **EmailService 服務** | `packages/api/src/lib/email.ts` | 郵件發送服務模組（Epic 8） | 🔴 極高 |
 | **健康檢查路由** | `packages/api/src/routers/health.ts` | 健康檢查 API | 🟡 高 |
 | **Package 配置** | `packages/api/package.json` | API 套件依賴配置 | 🟡 高 |
 | **TypeScript 配置** | `packages/api/tsconfig.json` | API TypeScript 配置 | 🟡 高 |

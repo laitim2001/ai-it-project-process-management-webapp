@@ -60,7 +60,7 @@
 
 ---
 
-## 📊 專案當前狀態 (MVP Phase 1 - 60%)
+## 📊 專案當前狀態 (MVP Phase 1 - 80%)
 
 ### **🎯 Phase 1: 專案初始化** - ✅ 100% 完成 (2025-10-02)
 
@@ -86,7 +86,7 @@
 
 **總代碼量**: ~5,350行核心業務代碼 (+650行 Epic 2 修復與完善)
 
-### **🔄 Phase 2: MVP 功能開發** - 🚧 進行中 (60%)
+### **🔄 Phase 2: MVP 功能開發** - 🚧 進行中 (80%)
 
 | Epic | 功能模組 | 完成度 | 狀態 | 預計時間 |
 |------|---------|-------|------|----------|
@@ -94,15 +94,88 @@
 | **Epic 2** | **專案管理功能** | **100%** | **✅ 完成並測試** | 2 週 |
 | **Epic 3** | **提案審批工作流** | **100%** | **✅ 完成並修復** | 2 週 |
 | **Epic 5** | **採購與供應商管理** | **100%** | **✅ 完成並測試** | 1.5 週 |
-| Epic 6 | 費用記錄與審批 | 100% | ✅ 完成 | 1 週 |
-| Epic 6.5 | 預算池實時追蹤 | 100% | ✅ 完成 | 1 週 |
+| **Epic 6** | **費用記錄與審批** | **100%** | **✅ 完成** | 1 週 |
+| **Epic 6.5** | **預算池實時追蹤** | **100%** | **✅ 完成** | 1 週 |
 | **Epic 7** | **儀表板與基礎報表** | **100%** | **✅ 完成並修復** | 1 週 |
-| Epic 8 | 通知系統 | 0% | 📋 待開始 | 0.5 週 |
+| **Epic 8** | **通知系統** | **100%** | **✅ 完成** | 0.5 週 |
 
 **預計總時程**: 9 週
-**當前進度**: Epic 5, 6, 7 完成，準備開始 Epic 1 (Azure AD B2C 認證) 或 Epic 8 (通知系統)
+**當前進度**: Epic 2-8 完成（80%），僅剩 Epic 1 (Azure AD B2C 認證) 20%
 
-### **📅 最近更新** (2025-10-05 20:00)
+### **📅 最近更新** (2025-10-06 22:00)
+
+#### **Epic 8 - 通知系統完整實現** ✅ (2025-10-06)
+- ✅ **Notification 數據模型** (~80行 Prisma Schema)
+  - Notification 模型設計：userId, type, title, message, link, isRead, emailSent
+  - 實體類型支援：PROPOSAL, EXPENSE, PROJECT
+  - 通知類型：PROPOSAL_SUBMITTED, PROPOSAL_APPROVED, PROPOSAL_REJECTED, PROPOSAL_MORE_INFO, EXPENSE_SUBMITTED, EXPENSE_APPROVED
+  - 完整索引設計：userId, isRead, createdAt, entityType+entityId
+
+- ✅ **EmailService 郵件服務** (~400行)
+  - Singleton 模式實現，環境自適應配置
+  - **開發環境**：Ethereal Email 自動生成測試賬號
+  - **生產環境**：SMTP/SendGrid 支援
+  - 5 個郵件模板方法（完整 HTML 模板）
+    - sendProposalSubmittedEmail - 提案提交通知
+    - sendProposalStatusEmail - 提案審批結果（批准/駁回/需補充）
+    - sendExpenseSubmittedEmail - 費用提交通知
+    - sendExpenseApprovedEmail - 費用批准通知
+    - sendWelcomeEmail - 歡迎郵件（保留給未來使用）
+
+- ✅ **Notification API 路由** (~450行)
+  - **getAll** - 無限滾動分頁（cursor-based），支援已讀/未讀篩選
+  - **getUnreadCount** - 獲取未讀通知數量（用於實時更新 Badge）
+  - **markAsRead** - 標記單個通知為已讀
+  - **markAllAsRead** - 批量標記所有通知為已讀
+  - **delete** - 刪除通知（權限檢查：僅本人可刪除）
+  - **create** - 創建通知（內部 API，支援可選郵件發送）
+  - **getById** - 獲取單個通知詳情
+
+- ✅ **前端通知組件** (~700行)
+  - **NotificationBell** (~150行) - 通知圖標組件
+    - 顯示未讀數量 Badge（99+ 上限）
+    - 30秒自動刷新機制
+    - Click-outside 關閉下拉選單
+  - **NotificationDropdown** (~280行) - 通知下拉選單
+    - 顯示最近 10 條通知
+    - 支援標記為已讀
+    - 標記全部已讀功能
+    - 連結到完整通知頁面
+    - 不同通知類型顯示不同圖標
+  - **NotificationsPage** (~270行) - 完整通知列表頁面
+    - 全部/未讀/已讀 篩選 Tabs
+    - 無限滾動加載（每頁 20 條）
+    - 刪除通知功能
+    - 時間格式化（date-fns + zhTW locale）
+
+- ✅ **集成到現有工作流** (~120行修改)
+  - **BudgetProposal 工作流**
+    - submit 提交時 → 通知 Supervisor（新的提案待審批）
+    - approve 審批時 → 通知 Project Manager（審批結果）
+      - 批准：「預算提案已批准」
+      - 駁回：「預算提案已駁回」+ 原因
+      - 需補充：「預算提案需要補充資訊」+ 說明
+  - **Expense 工作流**
+    - submit 提交時 → 通知 Supervisor（新的費用待審批）
+    - approve 批准時 → 通知 Project Manager（費用已批准並扣款）
+
+- ✅ **TopBar 整合** (~10行修改)
+  - 移除舊的靜態 Bell 圖標
+  - 集成 NotificationBell 組件
+  - 實時顯示未讀通知數量
+
+- ✅ **依賴安裝**
+  - nodemailer@7.0.7 - 郵件發送核心庫
+  - @types/nodemailer@7.0.2 - TypeScript 類型定義
+  - date-fns@4.1.0 - 日期格式化庫（已安裝）
+
+**Epic 8 總代碼**: ~2,200行（數據模型 + 郵件服務 + API + 前端組件 + 集成）
+**累計代碼量**: ~27,000行
+**Epic 8 狀態**: ✅ 100% 完成（無編譯錯誤，開發服務器運行正常）
+
+---
+
+### **📅 歷史更新** (2025-10-05 20:00)
 
 #### **Epic 5 - 採購與供應商管理功能完整測試與修復** ✅ (2025-10-05)
 - ✅ **Vendor CRUD 功能** - 全部測試通過 (Story 5.1)
@@ -798,4 +871,4 @@ git push origin feature-branch  # 推送到遠程
 
 **🎯 記住：良好的導航系統是團隊效率的倍增器！**
 
-**最後更新**: 2025-10-05 00:15
+**最後更新**: 2025-10-06 22:00

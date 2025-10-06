@@ -303,6 +303,23 @@ export const budgetProposalRouter = createTRPCRouter({
           },
         });
 
+        // Epic 8: 發送通知給 Supervisor
+        const submitter = await prisma.user.findUnique({
+          where: { id: input.userId },
+        });
+
+        await prisma.notification.create({
+          data: {
+            userId: proposal.project.supervisorId,
+            type: 'PROPOSAL_SUBMITTED',
+            title: '新的預算提案待審批',
+            message: `${submitter?.name || '專案經理'} 提交了預算提案「${proposal.title}」，請審核。`,
+            link: `/proposals/${proposal.id}`,
+            entityType: 'PROPOSAL',
+            entityId: proposal.id,
+          },
+        });
+
         return proposal;
       });
 
@@ -378,6 +395,41 @@ export const budgetProposalRouter = createTRPCRouter({
             },
           });
         }
+
+        // Epic 8: 發送通知給 Project Manager
+        const reviewer = await prisma.user.findUnique({
+          where: { id: input.userId },
+        });
+
+        const notificationTypeMap = {
+          Approved: 'PROPOSAL_APPROVED' as const,
+          Rejected: 'PROPOSAL_REJECTED' as const,
+          MoreInfoRequired: 'PROPOSAL_MORE_INFO' as const,
+        };
+
+        const notificationTitleMap = {
+          Approved: '預算提案已批准',
+          Rejected: '預算提案已駁回',
+          MoreInfoRequired: '預算提案需要補充資訊',
+        };
+
+        const notificationMessageMap = {
+          Approved: `您的預算提案「${proposal.title}」已被批准。`,
+          Rejected: `您的預算提案「${proposal.title}」已被駁回。${input.comment ? `原因：${input.comment}` : ''}`,
+          MoreInfoRequired: `您的預算提案「${proposal.title}」需要補充更多資訊。${input.comment ? `說明：${input.comment}` : ''}`,
+        };
+
+        await prisma.notification.create({
+          data: {
+            userId: proposal.project.managerId,
+            type: notificationTypeMap[input.action],
+            title: notificationTitleMap[input.action],
+            message: notificationMessageMap[input.action],
+            link: `/proposals/${proposal.id}`,
+            entityType: 'PROPOSAL',
+            entityId: proposal.id,
+          },
+        });
 
         return proposal;
       });

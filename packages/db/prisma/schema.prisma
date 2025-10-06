@@ -23,11 +23,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  role         Role              @relation(fields: [roleId], references: [id])
-  projects     Project[]         @relation("ProjectManager")
-  approvals    Project[]         @relation("Supervisor")
-  comments     Comment[]
-  historyItems History[]
+  role          Role              @relation(fields: [roleId], references: [id])
+  projects      Project[]         @relation("ProjectManager")
+  approvals     Project[]         @relation("Supervisor")
+  comments      Comment[]
+  historyItems  History[]
+  notifications Notification[]    // Epic 8: 用戶的通知列表
 
   @@index([email])
   @@index([roleId])
@@ -199,4 +200,31 @@ model History {
 
   @@index([budgetProposalId])
   @@index([userId])
+}
+
+// ==================================================================
+// 4. 通知系統模型 (Notification System Models)
+// Epic 8 - Story 8.1 & 8.2
+// ==================================================================
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   // 接收通知的用戶
+  type        String   // "PROPOSAL_SUBMITTED", "PROPOSAL_APPROVED", "PROPOSAL_REJECTED", "PROPOSAL_MORE_INFO", "EXPENSE_SUBMITTED", "EXPENSE_APPROVED"
+  title       String   // 通知標題
+  message     String   // 通知內容
+  link        String?  // 相關頁面連結 (例如: /proposals/{id})
+  isRead      Boolean  @default(false) // 是否已讀
+  emailSent   Boolean  @default(false) // 是否已發送郵件
+  entityType  String?  // 關聯實體類型 "PROPOSAL", "EXPENSE", "PROJECT"
+  entityId    String?  // 關聯實體 ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([entityType, entityId])
 }

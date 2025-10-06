@@ -358,6 +358,19 @@ export const expenseRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const expense = await ctx.prisma.expense.findUnique({
         where: { id: input.id },
+        include: {
+          purchaseOrder: {
+            include: {
+              project: {
+                include: {
+                  manager: true,
+                  supervisor: true,
+                },
+              },
+              vendor: true,
+            },
+          },
+        },
       });
 
       if (!expense) {
@@ -375,20 +388,43 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 更新狀態為 PendingApproval
-      const updatedExpense = await ctx.prisma.expense.update({
-        where: { id: input.id },
-        data: {
-          status: 'PendingApproval',
-        },
-        include: {
-          purchaseOrder: {
-            include: {
-              project: true,
-              vendor: true,
+      // Transaction: 更新狀態 + 發送通知
+      const updatedExpense = await ctx.prisma.$transaction(async (prisma) => {
+        // 更新狀態為 PendingApproval
+        const updated = await prisma.expense.update({
+          where: { id: input.id },
+          data: {
+            status: 'PendingApproval',
+          },
+          include: {
+            purchaseOrder: {
+              include: {
+                project: {
+                  include: {
+                    manager: true,
+                    supervisor: true,
+                  },
+                },
+                vendor: true,
+              },
             },
           },
-        },
+        });
+
+        // Epic 8: 發送通知給 Supervisor
+        await prisma.notification.create({
+          data: {
+            userId: updated.purchaseOrder.project.supervisorId,
+            type: 'EXPENSE_SUBMITTED',
+            title: '新的費用待審批',
+            message: `${updated.purchaseOrder.project.manager.name || '專案經理'} 提交了金額為 NT$ ${updated.amount.toLocaleString()} 的費用記錄，請審核。`,
+            link: `/expenses/${updated.id}`,
+            entityType: 'EXPENSE',
+            entityId: updated.id,
+          },
+        });
+
+        return updated;
       });
 
       return updatedExpense;
@@ -449,7 +485,7 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // Transaction: 更新費用狀態 + 扣除預算池
+      // Transaction: 更新費用狀態 + 扣除預算池 + 發送通知
       const result = await ctx.prisma.$transaction(async (prisma) => {
         // 1. 更新費用狀態為 Approved
         const updatedExpense = await prisma.expense.update({
@@ -460,7 +496,12 @@ export const expenseRouter = createTRPCRouter({
           include: {
             purchaseOrder: {
               include: {
-                project: true,
+                project: {
+                  include: {
+                    manager: true,
+                    supervisor: true,
+                  },
+                },
                 vendor: true,
               },
             },
@@ -472,6 +513,19 @@ export const expenseRouter = createTRPCRouter({
           where: { id: budgetPool.id },
           data: {
             usedAmount: usedAmount,
+          },
+        });
+
+        // 3. Epic 8: 發送通知給 Project Manager
+        await prisma.notification.create({
+          data: {
+            userId: updatedExpense.purchaseOrder.project.managerId,
+            type: 'EXPENSE_APPROVED',
+            title: '費用已批准',
+            message: `您的費用記錄（金額 NT$ ${updatedExpense.amount.toLocaleString()}）已被批准並從預算池扣款。`,
+            link: `/expenses/${updatedExpense.id}`,
+            entityType: 'EXPENSE',
+            entityId: updatedExpense.id,
           },
         });
 

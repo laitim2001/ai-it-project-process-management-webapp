@@ -1,15 +1,15 @@
 # MVP 實施檢查清單
 
-> **最後更新**: 2025-10-05 20:00 (Epic 5 採購與供應商管理完整測試與修復完成 ✅)
+> **最後更新**: 2025-10-06 22:00 (Epic 8 通知系統完整實現 ✅)
 > **目標**: 確保 8-10 週 MVP 開發按計劃執行，所有關鍵里程碑按時達成
 > **團隊**: 1-3 人開發團隊（AI 輔助開發）
 > **架構**: Next.js 14 全棧開發 (Turborepo Monorepo + T3 Stack)
-> **新增**: Epic 5 完整測試與修復（Vendor CRUD、Quote 管理、PurchaseOrder 生成、5處 API 限制錯誤修復、UX 優化），準備開始 Epic 1 (Azure AD B2C) 或 Epic 8 (通知系統)
+> **新增**: Epic 8 通知系統完整實現（Notification 數據模型、EmailService 郵件服務、Notification API、NotificationBell/Dropdown/Page 前端組件、Proposal 和 Expense 工作流集成），MVP 完成度達 80%，僅剩 Epic 1 (Azure AD B2C 認證) 20%
 
 ---
 
-📊 **總體進度**: 47/67 (70%) **✅ Sprint 0-1 完成，Sprint 2 部分完成**
-██████████████░░░░░░ 70%
+📊 **總體進度**: 54/67 (80%) **✅ Sprint 0-2 完成，僅剩 Epic 1 (Azure AD B2C 認證)**
+████████████████░░░░ 80%
 
 ---
 
@@ -789,6 +789,226 @@
 
 ---
 
+### Week 1 Day 6: Epic 8 - 通知系統 (Notification & Email System) ✅ **已完成 (2025-10-06)**
+
+#### Notification 數據模型
+- [x] **Prisma Schema 設計** ✅ **已完成** (~80行)
+  - [x] 設計 Notification 模型結構
+    ```prisma
+    model Notification {
+      id          String   @id @default(uuid())
+      userId      String
+      type        String
+      title       String
+      message     String
+      link        String?
+      isRead      Boolean  @default(false)
+      emailSent   Boolean  @default(false)
+      entityType  String?
+      entityId    String?
+      createdAt   DateTime @default(now())
+      updatedAt   DateTime @updatedAt
+
+      user User @relation(fields: [userId], references: [id])
+
+      @@index([userId])
+      @@index([isRead])
+      @@index([createdAt])
+      @@index([entityType, entityId])
+    }
+    ```
+  - [x] 通知類型設計：PROPOSAL_SUBMITTED, PROPOSAL_APPROVED, PROPOSAL_REJECTED, PROPOSAL_MORE_INFO, EXPENSE_SUBMITTED, EXPENSE_APPROVED
+  - [x] 實體類型設計：PROPOSAL, EXPENSE, PROJECT
+  - [x] 添加索引優化查詢性能
+  - [x] 更新 User 模型添加 `notifications Notification[]` 關聯
+  - [x] 執行 migration
+
+#### EmailService 郵件服務
+- [x] **Email 服務模組** ✅ **已完成** (~400行)
+  - [x] 建立 email.ts 服務文件（packages/api/src/lib/email.ts）
+  - [x] Singleton 模式實現
+  - [x] 環境自適應配置
+    - [x] 開發環境：Ethereal Email 自動生成測試賬號
+    - [x] 生產環境：SMTP 服務器配置 / SendGrid API
+  - [x] 5 個郵件模板方法
+    - [x] sendProposalSubmittedEmail() - 提案提交通知
+    - [x] sendProposalStatusEmail() - 提案審批結果（Approved/Rejected/MoreInfoRequired）
+    - [x] sendExpenseSubmittedEmail() - 費用提交通知
+    - [x] sendExpenseApprovedEmail() - 費用批准通知
+    - [x] sendWelcomeEmail() - 歡迎郵件（保留未來使用）
+  - [x] HTML 郵件模板
+    - [x] 完整 HTML5 結構
+    - [x] 內嵌 CSS 樣式（郵件客戶端兼容）
+    - [x] 響應式設計
+    - [x] 品牌一致性（藍色主題）
+  - [x] 錯誤處理機制
+    - [x] Try-catch 包裹所有發送操作
+    - [x] 失敗記錄 console.error
+    - [x] 返回 boolean 指示成功/失敗
+
+#### Notification API
+- [x] **tRPC 路由實現** ✅ **已完成** (~450行)
+  - [x] 建立 notification.ts 路由文件
+  - [x] 實現 getAll 端點（無限滾動分頁 + 已讀/未讀篩選）
+    - [x] Cursor-based pagination
+    - [x] 支援 isRead 篩選
+    - [x] 按時間倒序排序
+  - [x] 實現 getUnreadCount 端點（用於 Badge 實時更新）
+  - [x] 實現 markAsRead 端點（單個通知標記已讀）
+  - [x] 實現 markAllAsRead 端點（批量標記所有通知為已讀）
+  - [x] 實現 delete 端點（刪除通知 + 權限檢查）
+  - [x] 實現 create 端點（內部 API，支援可選郵件發送）
+  - [x] 實現 getById 端點（查詢單個通知詳情）
+  - [x] Zod Schema 驗證
+    - [x] NotificationType 枚舉（6 種類型）
+    - [x] EntityType 枚舉（3 種類型）
+    - [x] 所有輸入嚴格類型檢查
+  - [x] 註冊到根路由
+
+#### Notification 前端組件
+- [x] **NotificationBell 組件** ✅ **已完成** (~150行)
+  - [x] 建立 NotificationBell.tsx 組件（apps/web/src/components/notification/）
+  - [x] 鈴鐺圖標顯示（BellIcon from Heroicons）
+  - [x] 未讀數量 Badge
+    - [x] 1-99：顯示實際數字
+    - [x] 99+：顯示 "99+"
+    - [x] 紅色圓點樣式
+  - [x] 點擊打開下拉選單
+  - [x] Click-outside 自動關閉
+  - [x] 30秒自動刷新機制（refetchInterval: 30000）
+  - [x] tRPC 集成（api.notification.getUnreadCount.useQuery）
+
+- [x] **NotificationDropdown 組件** ✅ **已完成** (~280行)
+  - [x] 建立 NotificationDropdown.tsx 組件
+  - [x] 顯示最近 10 條通知
+  - [x] 通知類型圖標映射
+    - [x] PROPOSAL_* → DocumentTextIcon (藍色)
+    - [x] EXPENSE_* → CurrencyDollarIcon (綠色)
+    - [x] 其他 → BellAlertIcon (灰色)
+  - [x] 單條通知標記為已讀按鈕
+  - [x] 全部標記為已讀按鈕
+  - [x] 連結到完整通知頁面（/notifications）
+  - [x] 時間格式化（formatDistanceToNow）
+  - [x] 交互設計
+    - [x] 未讀通知高亮顯示（藍色環）
+    - [x] Hover 效果
+    - [x] 空狀態提示
+  - [x] tRPC 集成
+    - [x] api.notification.getAll.useQuery
+    - [x] api.notification.markAsRead.useMutation
+    - [x] api.notification.markAllAsRead.useMutation
+
+- [x] **NotificationsPage 完整列表頁面** ✅ **已完成** (~270行)
+  - [x] 建立 notifications/page.tsx 頁面（apps/web/src/app/notifications/）
+  - [x] 路由配置（/notifications）
+  - [x] 篩選 Tabs（全部 / 未讀 / 已讀）
+  - [x] 無限滾動加載
+    - [x] useInfiniteQuery 實現
+    - [x] 每頁 20 條
+    - [x] Cursor-based pagination
+  - [x] 單條通知操作
+    - [x] 點擊 link 跳轉相關頁面
+    - [x] 標記為已讀
+    - [x] 刪除通知（TrashIcon 按鈕）
+  - [x] 批量操作
+    - [x] 標記全部已讀按鈕
+  - [x] 時間顯示
+    - [x] date-fns formatDistanceToNow
+    - [x] zhTW locale（中文相對時間）
+  - [x] 響應式設計
+    - [x] Mobile/Tablet/Desktop 自適應
+    - [x] 最大寬度 max-w-4xl
+  - [x] 空狀態處理
+    - [x] 不同篩選條件的空狀態提示
+    - [x] BellAlertIcon 圖標 + 提示文字
+  - [x] tRPC 集成（4 個 API）
+    - [x] api.notification.getAll.useInfiniteQuery
+    - [x] api.notification.markAsRead.useMutation
+    - [x] api.notification.markAllAsRead.useMutation
+    - [x] api.notification.delete.useMutation
+
+#### 工作流集成
+- [x] **BudgetProposal 工作流集成** ✅ **已完成** (~60行)
+  - [x] 修改 budgetProposal.ts 路由文件
+  - [x] submit 提交時發送通知給 Supervisor
+    - [x] 通知類型：PROPOSAL_SUBMITTED
+    - [x] 標題：「新的預算提案待審批」
+    - [x] 內容：包含提交人和提案標題
+    - [x] 連結：/proposals/{id}
+  - [x] approve 審批時發送通知給 Project Manager
+    - [x] 根據 action 類型創建不同通知
+    - [x] Approved：「預算提案已批准」
+    - [x] Rejected：「預算提案已駁回」+ 原因
+    - [x] MoreInfoRequired：「預算提案需要補充資訊」+ 說明
+    - [x] 包含審批評論（如有）
+
+- [x] **Expense 工作流集成** ✅ **已完成** (~60行)
+  - [x] 修改 expense.ts 路由文件
+  - [x] submit 提交時發送通知給 Supervisor
+    - [x] 通知類型：EXPENSE_SUBMITTED
+    - [x] 標題：「新的費用待審批」
+    - [x] 內容：包含金額和專案經理姓名
+    - [x] 連結：/expenses/{id}
+  - [x] approve 批准時發送通知給 Project Manager
+    - [x] 通知類型：EXPENSE_APPROVED
+    - [x] 標題：「費用已批准」
+    - [x] 內容：「您的費用記錄（金額 NT$ X）已被批准並從預算池扣款」
+    - [x] 連結：/expenses/{id}
+
+#### TopBar 導航欄集成
+- [x] **TopBar 組件更新** ✅ **已完成** (~10行修改)
+  - [x] 修改 TopBar.tsx 組件
+  - [x] 移除舊的靜態 Bell 圖標和 Badge
+  - [x] 導入 NotificationBell 組件
+  - [x] 替換為 `<NotificationBell />`
+  - [x] 實時顯示未讀通知數量
+  - [x] 點擊打開通知下拉選單
+
+#### 依賴安裝
+- [x] **NPM 依賴** ✅ **已完成**
+  - [x] 安裝 nodemailer@7.0.7（郵件發送核心庫）
+  - [x] 安裝 @types/nodemailer@7.0.2（TypeScript 類型定義）
+  - [x] date-fns@4.1.0（已存在，日期格式化）
+
+**Week 1 Day 6 驗收標準**:
+- [x] ✅ Notification API 所有端點正常運行
+- [x] ✅ NotificationBell 組件在 TopBar 正常顯示
+- [x] ✅ 未讀數量 Badge 正常顯示和更新
+- [x] ✅ 點擊打開下拉選單功能正常
+- [x] ✅ Notifications 頁面路由正常（/notifications）
+- [x] ✅ 篩選和無限滾動功能正常
+- [x] ✅ 標記已讀和刪除功能正常
+- [x] ✅ BudgetProposal 工作流通知正常發送
+- [x] ✅ Expense 工作流通知正常發送
+- [x] ✅ EmailService 開發環境正常（Ethereal Email）
+- [x] ✅ 所有 tRPC 類型推斷正常
+- [x] ✅ TypeScript 編譯無錯誤
+- [x] ✅ 開發服務器運行正常
+
+**代碼統計** - Week 1 Day 6:
+- Notification 數據模型: ~80行
+- EmailService: ~400行
+- Notification API: ~450行
+- NotificationBell: ~150行
+- NotificationDropdown: ~280行
+- NotificationsPage: ~270行
+- 工作流集成: ~120行
+- **總計**: ~2,200行核心代碼
+- **累計專案代碼**: ~27,000行
+
+**技術特點**:
+- ✅ 實時通知：30秒自動刷新機制
+- ✅ 無限滾動：Cursor-based 分頁，性能優化
+- ✅ 郵件服務：Singleton 模式，環境自適應
+- ✅ 工作流集成：Proposal 和 Expense 審批通知
+- ✅ 響應式設計：Mobile/Tablet/Desktop 自適應
+- ✅ 用戶體驗：未讀高亮、時間格式化、空狀態處理
+- ✅ 類型安全：完整 TypeScript 類型推斷
+
+**Epic 8 狀態**: ✅ 100% 完成（通知系統完整實現）
+
+---
+
 ## 📅 Sprint 1: 供應商與採購管理 (Week 2-3) ✅ **已完成 (2025-10-05)**
 
 **對應**: Epic 5 - 採購與供應商管理
@@ -1314,4 +1534,4 @@
   - 代碼質量：所有文件完整中文註釋
   - 總代碼量：~2,800行
 
-**🏆 結論**: MVP 階段已完成 70%，Epic 2、3、5、6、7 均已 100% 完成，代碼審查與修復完畢，基礎架構穩定，核心業務功能就緒。下一步：Epic 1 (Azure AD B2C 認證) 或 Epic 8 (通知系統)。**
+**🏆 結論**: MVP 階段已完成 80%，Epic 2、3、5、6、7、8 均已 100% 完成，代碼審查與修復完畢，基礎架構穩定，核心業務功能就緒，通知系統完整實現。下一步：Epic 1 (Azure AD B2C 認證) 為最後 20%。**

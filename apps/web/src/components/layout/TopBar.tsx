@@ -11,10 +11,9 @@
 
 "use client"
 
-import { Search, Bell, Menu, LogOut, User } from "lucide-react"
+import { Search, Menu, LogOut, User } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { NotificationBell } from "@/components/notification"
 
 interface TopBarProps {
   onMenuClick?: () => void
@@ -77,15 +77,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge
-            variant="error"
-            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
-          >
-            3
-          </Badge>
-        </Button>
+        <NotificationBell />
 
         {/* User Menu with Dropdown */}
         <DropdownMenu>
