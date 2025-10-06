@@ -1,0 +1,68 @@
+name: CD - Continuous Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm build
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.STAGING_NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.STAGING_NEXTAUTH_URL }}
+          AZURE_AD_B2C_CLIENT_ID: ${{ secrets.STAGING_AZURE_AD_B2C_CLIENT_ID }}
+          AZURE_AD_B2C_CLIENT_SECRET: ${{ secrets.STAGING_AZURE_AD_B2C_CLIENT_SECRET }}
+          AZURE_AD_B2C_TENANT_ID: ${{ secrets.STAGING_AZURE_AD_B2C_TENANT_ID }}
+          AZURE_AD_B2C_PRIMARY_USER_FLOW: ${{ secrets.STAGING_AZURE_AD_B2C_PRIMARY_USER_FLOW }}
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./apps/web
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          alias-domains: staging-itpm.vercel.app
+
+      - name: Run database migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Deployment to staging successful!"
+          echo "🔗 URL: https://staging-itpm.vercel.app"
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ Deployment to staging failed!"
+          echo "Check logs for details."

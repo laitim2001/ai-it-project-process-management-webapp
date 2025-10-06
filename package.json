@@ -28,6 +28,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:ci": "turbo run test -- --ci --coverage --maxWorkers=2",
     "test:watch": "turbo run test:watch",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "db:studio": "pnpm --filter db prisma studio",
