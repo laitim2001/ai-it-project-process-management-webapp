@@ -107,3 +107,83 @@ export {
 } from "./pagination"
 export { BudgetPoolListSkeleton } from './LoadingSkeleton';
 export { ToastProvider, useToast } from './Toast';
+
+// Phase 2 - Additional P2 Form Components
+export { Checkbox } from "./checkbox";
+export { RadioGroup, RadioGroupItem } from "./radio-group";
+export { Switch } from "./switch";
+export { Slider } from "./slider";
+export {
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormField,
+} from "./form";
+
+// Phase 2 - Additional P3 Overlay Components
+export { Popover, PopoverTrigger, PopoverContent } from "./popover";
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "./tooltip";
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from "./sheet";
+export {
+  AlertDialog,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "./alert-dialog";
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+} from "./context-menu";
+
+// Phase 2 - Additional P4 Feedback Components
+export { Alert, AlertTitle, AlertDescription } from "./alert";
+export { Separator } from "./separator";
+export { toast } from "./use-toast";
+export { Toaster } from "./toaster";
+
+// Phase 2 - P5 Advanced Component (Accordion)
+export {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "./accordion";
