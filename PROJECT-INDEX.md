@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-06 22:00 (Epic 8 通知系統完整實現 - 新增 6 個文件：Notification API、EmailService、NotificationBell/Dropdown、Notifications Page)
+**最後更新**: 2025-10-15 11:35 (索引維護 - Phase 2 設計系統遷移完成，新增 18 個 UI 組件)
 
 ---
 
@@ -90,6 +90,7 @@
 | **設計系統導航** | `docs/README-DESIGN-SYSTEM.md` | 設計系統文檔導航中心 | 🔴 極高 |
 | **UI/UX 重設計規範** | `docs/ui-ux-redesign.md` | 完整的設計系統規範（顏色、字體、間距等） | 🔴 極高 |
 | **設計系統遷移計劃** | `docs/design-system-migration-plan.md` | 完整的遷移策略和時間表 | 🔴 極高 |
+| **設計系統遷移進度** | `claudedocs/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 設計系統遷移完整進度追蹤（v4.0 - Phase 2 完成） | 🔴 極高 |
 | **實作進度總結** | `docs/IMPLEMENTATION-SUMMARY.md` | 設計系統實作進度總結 | 🔴 極高 |
 | **原型使用指南** | `docs/prototype-guide.md` | Dashboard 原型使用說明 | 🟡 高 |
 
@@ -288,27 +289,67 @@
 
 #### UI 元件庫（shadcn/ui 風格）
 
-**基礎元件:**
+**P1 核心元件 (Phase 2 完成):**
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **Button 元件** | `apps/web/src/components/ui/button.tsx` | 按鈕元件（使用 CVA，6 種變體） | 🟡 高 |
 | **Input 元件** | `apps/web/src/components/ui/input.tsx` | 輸入框元件（新設計系統） | 🟡 高 |
-| **Select 元件** | `apps/web/src/components/ui/select.tsx` | 下拉選單複合元件（新設計系統） | 🟡 高 |
-| **Textarea 元件** | `apps/web/src/components/ui/textarea.tsx` | 多行文本輸入元件 | 🟡 高 |
 | **Label 元件** | `apps/web/src/components/ui/label.tsx` | 表單標籤元件 | 🟡 高 |
 | **Badge 元件** | `apps/web/src/components/ui/badge.tsx` | 徽章元件（8 種狀態變體） | 🟡 高 |
 | **Card 元件** | `apps/web/src/components/ui/card.tsx` | 卡片複合元件 (CardHeader, CardTitle, CardContent, CardFooter) | 🟡 高 |
 | **Avatar 元件** | `apps/web/src/components/ui/avatar.tsx` | 頭像元件 (Avatar, AvatarImage, AvatarFallback) | 🟡 高 |
+| **Separator 元件** | `apps/web/src/components/ui/separator.tsx` | 分隔線元件（水平/垂直） | 🟡 高 |
+
+**P2 表單元件 (Phase 2 完成):**
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Textarea 元件** | `apps/web/src/components/ui/textarea.tsx` | 多行文本輸入元件 | 🟡 高 |
+| **Select 元件** | `apps/web/src/components/ui/select.tsx` | 下拉選單複合元件（新設計系統） | 🟡 高 |
+| **Checkbox 元件** | `apps/web/src/components/ui/checkbox.tsx` | 複選框元件（支援不確定狀態） | 🟡 高 |
+| **RadioGroup 元件** | `apps/web/src/components/ui/radio-group.tsx` | 單選按鈕組元件 | 🟡 高 |
+| **Switch 元件** | `apps/web/src/components/ui/switch.tsx` | 開關切換元件 | 🟡 高 |
+| **Slider 元件** | `apps/web/src/components/ui/slider.tsx` | 滑桿元件 | 🟡 高 |
+| **Form 元件** | `apps/web/src/components/ui/form.tsx` | 表單管理元件（react-hook-form + zod 整合） | 🟡 高 |
+
+**P3 浮層元件 (Phase 2 完成):**
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
 | **Dialog 元件** | `apps/web/src/components/ui/dialog.tsx` | 對話框/模態框元件 | 🟡 高 |
 | **DropdownMenu 元件** | `apps/web/src/components/ui/dropdown-menu.tsx` | 下拉選單元件 | 🟡 高 |
-| **Tabs 元件** | `apps/web/src/components/ui/tabs.tsx` | 選項卡元件 (Tabs, TabsList, TabsTrigger, TabsContent) | 🟡 高 |
-| **Table 元件** | `apps/web/src/components/ui/table.tsx` | 表格複合元件 | 🟡 高 |
+| **Popover 元件** | `apps/web/src/components/ui/popover.tsx` | 彈出框元件 | 🟡 高 |
+| **Tooltip 元件** | `apps/web/src/components/ui/tooltip.tsx` | 提示框元件（含 Provider） | 🟡 高 |
+| **Sheet 元件** | `apps/web/src/components/ui/sheet.tsx` | 側邊抽屜元件（4 個方向） | 🟡 高 |
+| **AlertDialog 元件** | `apps/web/src/components/ui/alert-dialog.tsx` | 警告對話框元件 | 🟡 高 |
+| **ContextMenu 元件** | `apps/web/src/components/ui/context-menu.tsx` | 右鍵選單元件 | 🟡 高 |
+
+**P4 回饋元件 (Phase 2 完成):**
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Alert 元件** | `apps/web/src/components/ui/alert.tsx` | 警告提示元件（4 種變體 + 圖標） | 🟡 高 |
+| **use-toast Hook** | `apps/web/src/components/ui/use-toast.tsx` | Toast 通知狀態管理 Hook | 🟡 高 |
+| **Toaster 元件** | `apps/web/src/components/ui/toaster.tsx` | Toast 通知渲染器 | 🟡 高 |
 | **Progress 元件** | `apps/web/src/components/ui/progress.tsx` | 進度條元件 | 🟡 高 |
 | **Skeleton 元件** | `apps/web/src/components/ui/skeleton.tsx` | 骨架屏載入元件（多種預設樣式） | 🟡 高 |
+
+**P5 進階元件 (Phase 2 完成):**
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Tabs 元件** | `apps/web/src/components/ui/tabs.tsx` | 選項卡元件 (Tabs, TabsList, TabsTrigger, TabsContent) | 🟡 高 |
+| **Table 元件** | `apps/web/src/components/ui/table.tsx` | 表格複合元件 | 🟡 高 |
 | **Breadcrumb 元件** | `apps/web/src/components/ui/breadcrumb.tsx` | 麵包屑導航元件 | 🟡 高 |
 | **Pagination 元件** | `apps/web/src/components/ui/pagination.tsx` | 分頁元件 | 🟡 高 |
-| **Toast 元件** | `apps/web/src/components/ui/Toast.tsx` | 提示訊息元件 | 🟡 高 |
+| **Accordion 元件** | `apps/web/src/components/ui/accordion.tsx` | 折疊面板元件（單選/多選模式） | 🟡 高 |
+
+**其他元件:**
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Toast 元件** | `apps/web/src/components/ui/Toast.tsx` | 提示訊息元件（舊版） | 🟡 高 |
 | **LoadingSkeleton** | `apps/web/src/components/ui/LoadingSkeleton.tsx` | 載入骨架元件（舊版） | 🟡 高 |
 | **元件索引** | `apps/web/src/components/ui/index.ts` | 元件統一導出 | 🟡 高 |
 | **UI 元件 README** | `apps/web/src/components/ui/README.md` | UI 元件庫使用說明 | 🟢 中 |
@@ -471,39 +512,45 @@
 
 **文件總數**: 226+ 個重要文件（完整索引，已驗證）
 **專案總文件**: 441 個（md/ts/tsx/json/yml）
-**最後更新**: 2025-10-04 00:30
+**最後更新**: 2025-10-13 11:00
 **維護者**: AI 助手 + 開發團隊
 
-**當前專案狀態**（2025-10-04）:
-- ✅ **Epic 2 完成**: 專案管理 CRUD 功能（100%）
-- 📊 **MVP 進度**: 48% (32/67 任務完成)
-- 📈 **累計代碼**: ~23,150 行核心代碼
-- 🎯 **下一階段**: Epic 3 - 提案審批工作流
+**當前專案狀態**（2025-10-13）:
+- 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
+- ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
+- 📈 **累計代碼**: ~27,000 行核心代碼
+- 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
 
-**本次更新變更**（2025-10-04 00:30）:
-- ✅ Epic 2 完成驗證：所有 Project CRUD 相關文件已索引
-- ✅ 文檔更新：DEVELOPMENT-LOG.md, mvp-implementation-checklist.md, AI-ASSISTANT-GUIDE.md
-- ✅ 索引健康檢查：核心文件覆蓋率 100%
-- ✅ 統計更新：反映 Epic 2 完成後的最新狀態
+**本次更新變更**（2025-10-15 11:35）:
+- ✅ Phase 2 完成：設計系統遷移 - 新增 18 個 UI 組件
+- ✅ 組件分類：按 P1-P5 優先級重新組織 UI 組件索引
+- ✅ 文檔更新：新增 `DESIGN-SYSTEM-MIGRATION-PROGRESS.md` v4.0
+- ✅ 索引維護：執行完整同步檢查，0 個嚴重問題，151 個改進建議
 
 **核心文件統計**:
-- Next.js 頁面: 24 個 (+2 Epic 7 儀表板)
-- API 路由: 6 個 (budgetPool, budgetProposal, project, user, dashboard, health)
-- UI 組件: 32 個 (+2 Epic 7 Dashboard 組件)
-- 文檔文件: 66 個
+- Next.js 頁面: 35+ 個（完整 CRUD 功能，含儀表板和通知）
+- API 路由: 8 個 (budgetPool, project, user, budgetProposal, dashboard, notification, vendor, expense)
+- UI 組件: 46 個（26 個新設計系統組件 + 20 個業務組件）
+  - P1 核心元件: 7 個
+  - P2 表單元件: 7 個
+  - P3 浮層元件: 7 個
+  - P4 回饋元件: 5 個
+  - P5 進階元件: 5 個
+- 文檔文件: 67 個（新增設計系統遷移進度文檔）
 
-**Epic 7 相關文件**（已驗證索引）- 2025-10-05:
-- ✅ packages/api/src/routers/dashboard.ts (~450行)
-- ✅ apps/web/src/app/dashboard/pm/page.tsx (~390行)
-- ✅ apps/web/src/app/dashboard/supervisor/page.tsx (~400行)
-- ✅ apps/web/src/components/dashboard/StatCard.tsx (~50行)
-- ✅ apps/web/src/components/dashboard/BudgetPoolOverview.tsx (~180行)
+**Epic 8 - 通知系統相關文件**（已驗證索引）- 2025-10-06:
+- ✅ packages/api/src/routers/notification.ts (~450行 - Notification API)
+- ✅ packages/api/src/lib/email.ts (~400行 - EmailService)
+- ✅ apps/web/src/components/notification/NotificationBell.tsx (~150行)
+- ✅ apps/web/src/components/notification/NotificationDropdown.tsx (~280行)
+- ✅ apps/web/src/app/notifications/page.tsx (~270行 - 完整通知列表頁面)
 
-**Epic 2 相關文件**（已驗證索引）- 2025-10-04:
-- ✅ packages/api/src/routers/project.ts (~660行)
-- ✅ packages/api/src/trpc.ts (Session 認證修復)
-- ✅ apps/web/src/app/projects/** (4個頁面，~1,146行)
-- ✅ apps/web/src/components/project/ProjectForm.tsx (~283行)
+**Epic 1 - 認證系統相關文件**（已驗證索引）- 2025-10-07:
+- ✅ packages/auth/src/index.ts (~200行 - Azure AD B2C 配置)
+- ✅ apps/web/src/app/api/auth/[...nextauth]/route.ts (~20行 - NextAuth API)
+- ✅ apps/web/src/app/login/page.tsx (~180行 - 登入頁面)
+- ✅ apps/web/src/middleware.ts (~50行 - 認證中間件)
+- ✅ packages/api/src/trpc.ts (RBAC 權限控制中間件)
 
 **歷史更新**（2025-10-03 18:30）:
 - ✅ 修復「索引悖論」：新增索引系統與元文件章節（7個核心元文件）
