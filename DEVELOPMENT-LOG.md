@@ -20,6 +20,66 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-15 22:50 | 重構 | 佈局組件改造 - Source 項目風格遷移
+
+**類型**: 重構 | **負責人**: AI 助手
+
+**背景說明**:
+將 Sidebar 和 TopBar 佈局組件改造為 AI Sales Enablement 項目的視覺風格，提升用戶體驗和功能豐富度，同時保留本項目的業務功能名稱。
+
+**完成內容**:
+
+1. ✅ **Sidebar 組件重構** (`apps/web/src/components/layout/Sidebar.tsx`):
+   - **用戶資訊卡片**: 新增用戶頭像（名字首字母）、姓名、角色、在線狀態（綠色圓點）
+   - **Logo 優化**: 雙行設計 - "IT 專案管理" + "流程平台" 副標題
+   - **功能描述**: 每個導航項都有 tooltip 提示功能說明
+   - **底部導航**: 新增"系統設定"和"幫助中心"導航項
+   - **視覺增強**: shadow-lg、更好的間距、transition 過渡效果
+   - **TypeScript 類型**: 新增 NavigationItem 和 NavigationSection 介面
+   - **Session 整合**: 使用 NextAuth useSession 獲取用戶信息
+
+2. ✅ **TopBar 組件重構** (`apps/web/src/components/layout/TopBar.tsx`):
+   - **通知中心**: 完整的通知下拉選單，顯示未讀數量（紅色 badge）
+   - **通知功能**: 3 條示例通知（預算批准、專案更新、待辦提醒）
+   - **用戶選單增強**: 顯示用戶名、Email、下拉箭頭圖標
+   - **選單項目**: 個人資料、帳戶設定、登出（紅色高亮）
+   - **搜尋框優化**: 使用 shadcn/ui Input 組件，更好的邊框和 focus 效果
+   - **視覺優化**: shadow-sm、更好的間距和對齊
+   - **本地狀態管理**: 使用 useState 管理通知數據
+
+3. ✅ **保留本項目特色**:
+   - 功能名稱: 儀表板、專案管理、預算提案、預算池、供應商、採購單、費用記錄
+   - 搜尋內容: "搜索專案、提案、供應商..."
+   - 導航結構: 按業務邏輯分組（概覽、專案與預算、採購管理、系統管理）
+
+**技術細節**:
+- 使用 `useSession` Hook 獲取用戶信息
+- 實現 `getUserInitials` 函數生成頭像縮寫
+- 使用 Radix UI 的 DropdownMenu 組件
+- 使用 lucide-react 圖標庫
+- 所有顏色保持 Tailwind 標準類別（gray-50, blue-600 等）
+
+**視覺效果對比**:
+| 元素 | 改造前 | 改造後 |
+|-----|-------|--------|
+| Sidebar | 簡潔導航 | 用戶卡片 + 底部導航 + 描述 |
+| Logo | 單行 | 雙行（主標題 + 副標題） |
+| 通知 | 基礎組件 | 完整通知中心 + 未讀 badge |
+| 用戶選單 | 簡單下拉 | 詳細信息 + 多功能項 |
+
+**影響範圍**:
+- 所有使用 DashboardLayout 的頁面（Dashboard、Projects、Budget Pools 等）
+- 用戶體驗提升：更直觀的用戶信息、更豐富的通知功能
+- 視覺一致性：與 Source 項目風格對齊
+
+**相關文件**:
+- `apps/web/src/components/layout/Sidebar.tsx`
+- `apps/web/src/components/layout/TopBar.tsx`
+- `apps/web/src/components/layout/dashboard-layout.tsx`
+- `PROJECT-INDEX.md` (已更新索引)
+
+---
+
 ### 2025-10-06 23:30 | 功能開發 | Epic 2 - CI/CD 與部署自動化完整實現
 
 **類型**: 功能開發 | **負責人**: AI 助手

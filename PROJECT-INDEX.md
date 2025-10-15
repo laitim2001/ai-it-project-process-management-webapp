@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-15 11:35 (索引維護 - Phase 2 設計系統遷移完成，新增 18 個 UI 組件)
+**最後更新**: 2025-10-15 22:50 (佈局組件改造 - Sidebar 和 TopBar 改造為 Source 風格)
 
 ---
 
@@ -354,13 +354,13 @@
 | **元件索引** | `apps/web/src/components/ui/index.ts` | 元件統一導出 | 🟡 高 |
 | **UI 元件 README** | `apps/web/src/components/ui/README.md` | UI 元件庫使用說明 | 🟢 中 |
 
-#### 佈局元件
+#### 佈局元件（2025-10-15 更新）
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **Dashboard Layout** | `apps/web/src/components/layout/dashboard-layout.tsx` | Dashboard 主佈局元件（響應式設計） | 🔴 極高 |
-| **Sidebar** | `apps/web/src/components/layout/sidebar.tsx` | 側邊欄導航元件（支援摺疊、Mobile 適配） | 🔴 極高 |
-| **TopBar** | `apps/web/src/components/layout/topbar.tsx` | 頂部工具欄元件（用戶信息、搜索、通知） | 🔴 極高 |
+| **Sidebar** | `apps/web/src/components/layout/Sidebar.tsx` | 側邊欄導航元件（Source 風格：用戶卡片 + 底部導航 + 描述 tooltip） | 🔴 極高 |
+| **TopBar** | `apps/web/src/components/layout/TopBar.tsx` | 頂部工具欄元件（Source 風格：通知中心 + 增強用戶選單） | 🔴 極高 |
 
 #### 業務元件
 
@@ -521,11 +521,17 @@
 - 📈 **累計代碼**: ~27,000 行核心代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
 
-**本次更新變更**（2025-10-15 11:35）:
+**本次更新變更**（2025-10-15 22:50）:
+- ✅ 佈局組件改造：Sidebar 和 TopBar 改造為 Source 項目風格
+- ✅ Sidebar 新功能：用戶資訊卡片、底部導航、功能描述 tooltip
+- ✅ TopBar 新功能：完整通知中心、增強用戶選單、本地通知管理
+- ✅ 視覺優化：shadow 效果、更好的間距、過渡動畫
+- ✅ 索引維護：執行完整同步檢查，0 個嚴重問題，154 個改進建議
+
+**歷史更新**（2025-10-15 11:35）:
 - ✅ Phase 2 完成：設計系統遷移 - 新增 18 個 UI 組件
 - ✅ 組件分類：按 P1-P5 優先級重新組織 UI 組件索引
 - ✅ 文檔更新：新增 `DESIGN-SYSTEM-MIGRATION-PROGRESS.md` v4.0
-- ✅ 索引維護：執行完整同步檢查，0 個嚴重問題，151 個改進建議
 
 **核心文件統計**:
 - Next.js 頁面: 35+ 個（完整 CRUD 功能，含儀表板和通知）

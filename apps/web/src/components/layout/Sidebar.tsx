@@ -14,85 +14,249 @@ import {
   Receipt,
   Users,
   Settings,
+  HelpCircle,
+  Target,
 } from "lucide-react"
+import { useSession } from "next-auth/react"
 
-const navigation = [
-  {
-    title: "主要功能",
-    items: [
-      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { name: "專案管理", href: "/projects", icon: FolderKanban },
-      { name: "預算提案", href: "/proposals", icon: FileText },
-      { name: "預算池", href: "/budget-pools", icon: Wallet },
-    ],
-  },
-  {
-    title: "採購管理",
-    items: [
-      { name: "供應商", href: "/vendors", icon: Building },
-      { name: "報價單", href: "/quotes", icon: FileCheck },
-      { name: "採購單", href: "/purchase-orders", icon: ShoppingCart },
-      { name: "費用記錄", href: "/expenses", icon: Receipt },
-    ],
-  },
-  {
-    title: "系統管理",
-    items: [
-      { name: "用戶管理", href: "/users", icon: Users },
-      { name: "系統設定", href: "/settings", icon: Settings },
-    ],
-  },
-]
+interface NavigationItem {
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  badge?: string | number
+  description?: string
+}
+
+interface NavigationSection {
+  title: string
+  items: NavigationItem[]
+}
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  const navigation: NavigationSection[] = [
+    {
+      title: "概覽",
+      items: [
+        {
+          name: "儀表板",
+          href: "/dashboard",
+          icon: LayoutDashboard,
+          description: "專案總覽和關鍵指標"
+        },
+      ]
+    },
+    {
+      title: "專案與預算",
+      items: [
+        {
+          name: "專案管理",
+          href: "/projects",
+          icon: FolderKanban,
+          description: "專案資料和進度管理"
+        },
+        {
+          name: "預算提案",
+          href: "/proposals",
+          icon: FileText,
+          description: "預算提案申請與審批"
+        },
+        {
+          name: "預算池",
+          href: "/budget-pools",
+          icon: Wallet,
+          description: "年度預算分配管理"
+        },
+      ]
+    },
+    {
+      title: "採購管理",
+      items: [
+        {
+          name: "供應商",
+          href: "/vendors",
+          icon: Building,
+          description: "供應商資料管理"
+        },
+        {
+          name: "報價單",
+          href: "/quotes",
+          icon: FileCheck,
+          description: "供應商報價管理"
+        },
+        {
+          name: "採購單",
+          href: "/purchase-orders",
+          icon: ShoppingCart,
+          description: "採購訂單追蹤"
+        },
+        {
+          name: "費用記錄",
+          href: "/expenses",
+          icon: Receipt,
+          description: "費用發票與核銷"
+        },
+      ]
+    },
+    {
+      title: "系統管理",
+      items: [
+        {
+          name: "用戶管理",
+          href: "/users",
+          icon: Users,
+          description: "用戶帳號和權限"
+        },
+      ]
+    },
+  ]
+
+  const bottomNavigation = [
+    {
+      name: "系統設定",
+      href: "/settings",
+      icon: Settings,
+      description: "系統參數設定"
+    },
+    {
+      name: "幫助中心",
+      href: "/help",
+      icon: HelpCircle,
+      description: "使用指南和支援"
+    },
+  ]
+
+  // 獲取用戶名稱首字母
+  const getUserInitials = (name: string | null | undefined) => {
+    if (!name) return "U"
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
 
   return (
-    <div className="flex h-full flex-col bg-white border-r">
-      {/* Logo & Brand */}
-      <div className="flex h-16 items-center border-b px-6">
-        <Building className="h-8 w-8 text-primary" />
-        <span className="ml-3 text-xl font-semibold">IT 專案管理</span>
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 shadow-lg">
+      {/* Logo 和品牌 */}
+      <div className="flex h-16 shrink-0 items-center border-b border-gray-200">
+        <Link href="/dashboard" className="flex items-center space-x-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <Building className="h-5 w-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-gray-900">IT 專案管理</span>
+            <span className="text-xs text-gray-500">流程平台</span>
+          </div>
+        </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
-        {navigation.map((section) => (
-          <div key={section.title}>
-            <h3 className="mb-2 px-3 text-xs font-semibold uppercase text-gray-500">
-              {section.title}
-            </h3>
-            <div className="space-y-1">
-              {section.items.map((item) => {
-                const isActive = pathname === item.href
-                const Icon = item.icon
+      {/* 用戶資訊 */}
+      <div className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
+          <span className="text-sm font-medium text-white">
+            {getUserInitials(session?.user?.name)}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">
+            {session?.user?.name || "用戶"}
+          </p>
+          <p className="text-xs text-gray-500 truncate">
+            {(session?.user as any)?.role?.name || "角色"}
+          </p>
+        </div>
+        <div className="flex h-2 w-2 rounded-full bg-green-400"></div>
+      </div>
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-blue-50 text-blue-700 shadow-sm"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                    )}
-                  >
-                    <Icon
+      {/* 主導航 */}
+      <nav className="flex flex-1 flex-col">
+        <div className="space-y-8">
+          {navigation.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {section.title}
+              </h3>
+              <div className="mt-3 space-y-1">
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
                       className={cn(
-                        "h-5 w-5",
+                        'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                         isActive
-                          ? "text-blue-600"
-                          : "text-gray-400 group-hover:text-gray-600"
+                          ? 'bg-blue-50 text-blue-700 shadow-sm'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                       )}
-                    />
-                    <span>{item.name}</span>
-                  </Link>
-                )
-              })}
+                      title={item.description}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <item.icon
+                          className={cn(
+                            'h-5 w-5 shrink-0',
+                            isActive
+                              ? 'text-blue-600'
+                              : 'text-gray-400 group-hover:text-gray-600'
+                          )}
+                        />
+                        <span className="truncate">{item.name}</span>
+                      </div>
+                      {item.badge && (
+                        <span
+                          className={cn(
+                            'rounded-full px-2 py-1 text-xs font-medium',
+                            item.badge === 'NEW'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          )}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* 底部導航 */}
+        <div className="mt-auto pt-6 border-t border-gray-200">
+          <div className="space-y-1">
+            {bottomNavigation.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    'group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+                    isActive
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  )}
+                  title={item.description}
+                >
+                  <item.icon
+                    className={cn(
+                      'mr-3 h-5 w-5 shrink-0',
+                      isActive
+                        ? 'text-gray-600'
+                        : 'text-gray-400 group-hover:text-gray-600'
+                    )}
+                  />
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              )
+            })}
           </div>
-        ))}
+        </div>
       </nav>
     </div>
   )
