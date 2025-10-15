@@ -39,8 +39,8 @@ export default function NewVendorPage() {
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">新增供應商</h1>
-          <p className="mt-2 text-gray-600">填寫供應商基本資訊</p>
+          <h1 className="text-3xl font-bold text-foreground">新增供應商</h1>
+          <p className="mt-2 text-muted-foreground">填寫供應商基本資訊</p>
         </div>
 
         {/* 表單卡片 */}

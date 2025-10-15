@@ -59,8 +59,8 @@ export default function ProposalsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">預算提案</h1>
-            <p className="mt-2 text-gray-600">管理所有專案的預算提案</p>
+            <h1 className="text-3xl font-bold text-foreground">預算提案</h1>
+            <p className="mt-2 text-muted-foreground">管理所有專案的預算提案</p>
           </div>
           <Link href="/proposals/new">
             <Button>
@@ -86,13 +86,13 @@ export default function ProposalsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                     載入中...
                   </TableCell>
                 </TableRow>
               ) : !proposals || proposals.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                     尚無提案資料
                   </TableCell>
                 </TableRow>
@@ -102,7 +102,7 @@ export default function ProposalsPage() {
                     <TableCell>
                       <Link
                         href={`/proposals/${proposal.id}`}
-                        className="font-medium text-blue-600 hover:text-blue-800"
+                        className="font-medium text-primary hover:text-primary"
                       >
                         {proposal.title}
                       </Link>
@@ -110,7 +110,7 @@ export default function ProposalsPage() {
                     <TableCell>
                       <Link
                         href={`/projects/${proposal.project.id}`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-primary hover:text-primary"
                       >
                         {proposal.project.name}
                       </Link>
@@ -119,22 +119,22 @@ export default function ProposalsPage() {
                       ${proposal.amount.toLocaleString()}
                     </TableCell>
                     <TableCell>{getStatusBadge(proposal.status)}</TableCell>
-                    <TableCell className="text-gray-500">
+                    <TableCell className="text-muted-foreground">
                       {new Date(proposal.createdAt).toLocaleDateString('zh-TW')}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link
                         href={`/proposals/${proposal.id}`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-primary hover:text-primary"
                       >
                         查看
                       </Link>
                       {(proposal.status === 'Draft' || proposal.status === 'MoreInfoRequired') && (
                         <>
-                          <span className="mx-2 text-gray-300">|</span>
+                          <span className="mx-2 text-muted-foreground">|</span>
                           <Link
                             href={`/proposals/${proposal.id}/edit`}
-                            className="text-gray-600 hover:text-gray-800"
+                            className="text-muted-foreground hover:text-foreground"
                           >
                             編輯
                           </Link>
@@ -150,7 +150,7 @@ export default function ProposalsPage() {
 
         {/* Summary */}
         {proposals && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             總共 {proposals.length} 個提案
           </div>
         )}

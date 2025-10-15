@@ -73,7 +73,7 @@ export default function BudgetPoolsPage() {
       <DashboardLayout>
         <div className="space-y-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">預算池</h1>
+            <h1 className="text-3xl font-bold text-foreground">預算池</h1>
           </div>
           <BudgetPoolListSkeleton />
         </div>
@@ -84,8 +84,8 @@ export default function BudgetPoolsPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-red-600">Error loading budget pools: {error.message}</p>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
+          <p className="text-destructive">Error loading budget pools: {error.message}</p>
         </div>
       </DashboardLayout>
     );
@@ -113,8 +113,8 @@ export default function BudgetPoolsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">預算池</h1>
-            <p className="mt-2 text-gray-600">管理財務年度預算池</p>
+            <h1 className="text-3xl font-bold text-foreground">預算池</h1>
+            <p className="mt-2 text-muted-foreground">管理財務年度預算池</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -185,7 +185,7 @@ export default function BudgetPoolsPage() {
 
         {/* Results Count */}
         {pagination && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 個預算池
           </div>
@@ -194,7 +194,7 @@ export default function BudgetPoolsPage() {
         {/* Budget Pools Grid */}
         {budgetPools.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {search || yearFilter
                 ? '找不到符合條件的預算池'
                 : '尚未有任何預算池，點擊新增開始建立'}
@@ -208,22 +208,22 @@ export default function BudgetPoolsPage() {
                   key={pool.id}
                   href={`/budget-pools/${pool.id}`}
                 >
-                  <Card className="p-6 transition hover:border-blue-500 hover:shadow-md h-full">
-                    <h2 className="mb-3 text-xl font-semibold text-gray-900">{pool.name}</h2>
+                  <Card className="p-6 transition hover:border-primary hover:shadow-md h-full">
+                    <h2 className="mb-3 text-xl font-semibold text-foreground">{pool.name}</h2>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">財務年度</span>
-                        <span className="font-medium text-gray-900">{pool.financialYear}</span>
+                        <span className="text-muted-foreground">財務年度</span>
+                        <span className="font-medium text-foreground">{pool.financialYear}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">總預算</span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-muted-foreground">總預算</span>
+                        <span className="font-medium text-foreground">
                           ${pool.totalAmount.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">專案數量</span>
-                        <span className="font-medium text-gray-900">{pool._count.projects}</span>
+                        <span className="text-muted-foreground">專案數量</span>
+                        <span className="font-medium text-foreground">{pool._count.projects}</span>
                       </div>
                     </div>
                   </Card>

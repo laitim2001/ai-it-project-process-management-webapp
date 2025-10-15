@@ -162,19 +162,19 @@ export default function ProjectsPage() {
       <DashboardLayout>
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">專案管理</h1>
-            <p className="mt-1 text-gray-500">載入中...</p>
+            <h1 className="text-3xl font-bold text-foreground">專案管理</h1>
+            <p className="mt-1 text-muted-foreground">載入中...</p>
           </div>
           {/* 骨架屏加載動畫 */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
-                  <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                  <div className="h-6 bg-muted rounded mb-4 animate-pulse"></div>
                   <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-muted rounded animate-pulse"></div>
+                    <div className="h-4 bg-muted rounded animate-pulse"></div>
+                    <div className="h-4 bg-muted rounded animate-pulse"></div>
                   </div>
                 </CardContent>
               </Card>
@@ -194,11 +194,11 @@ export default function ProjectsPage() {
       <DashboardLayout>
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">專案管理</h1>
+            <h1 className="text-3xl font-bold text-foreground">專案管理</h1>
           </div>
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-destructive bg-destructive/10">
             <CardContent className="pt-6">
-              <p className="text-red-600 text-center">載入專案時發生錯誤：{error.message}</p>
+              <p className="text-destructive text-center">載入專案時發生錯誤：{error.message}</p>
             </CardContent>
           </Card>
         </div>
@@ -219,8 +219,8 @@ export default function ProjectsPage() {
         {/* 頁面標題和操作按鈕 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">專案管理</h1>
-            <p className="mt-1 text-gray-500">管理所有 IT 專案</p>
+            <h1 className="text-3xl font-bold text-foreground">專案管理</h1>
+            <p className="mt-1 text-muted-foreground">管理所有 IT 專案</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -247,7 +247,7 @@ export default function ProjectsPage() {
               {/* 搜尋框 */}
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="搜尋專案名稱..."
@@ -273,7 +273,7 @@ export default function ProjectsPage() {
                     );
                     setPage(1);
                   }}
-                  className="h-10 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                 >
                   <option value="">所有狀態</option>
                   <option value="Draft">草稿</option>
@@ -288,7 +288,7 @@ export default function ProjectsPage() {
                     setBudgetPoolFilter(e.target.value || undefined);
                     setPage(1);
                   }}
-                  className="h-10 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                 >
                   <option value="">所有預算池</option>
                   {budgetPools.map((pool) => (
@@ -308,7 +308,7 @@ export default function ProjectsPage() {
                     setSortBy(newSortBy);
                     setSortOrder(newSortOrder);
                   }}
-                  className="h-10 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100"
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                 >
                   <option value="createdAt-desc">創建時間（最新優先）</option>
                   <option value="createdAt-asc">創建時間（最舊優先）</option>
@@ -328,7 +328,7 @@ export default function ProjectsPage() {
 
         {/* 結果數量統計 */}
         {pagination && (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             顯示第 {(pagination.page - 1) * pagination.limit + 1} -{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} 項，共{' '}
             {pagination.total} 個專案
@@ -337,9 +337,9 @@ export default function ProjectsPage() {
 
         {/* 專案卡片網格 */}
         {projects.length === 0 ? (
-          <Card className="bg-gray-50">
+          <Card className="bg-muted">
             <CardContent className="pt-6">
-              <p className="text-gray-600 text-center">
+              <p className="text-muted-foreground text-center">
                 {search || statusFilter || budgetPoolFilter
                   ? '沒有找到符合條件的專案。'
                   : '尚未有任何專案。點擊「創建新專案」開始。'}
@@ -355,7 +355,7 @@ export default function ProjectsPage() {
                   href={`/projects/${project.id}`}
                   className="block"
                 >
-                  <Card className="h-full transition-all hover:border-blue-500 hover:shadow-md">
+                  <Card className="h-full transition-all hover:border-primary hover:shadow-md">
                     <CardHeader>
                       {/* 專案標題 */}
                       <div className="flex items-start justify-between">
@@ -378,7 +378,7 @@ export default function ProjectsPage() {
                     </CardHeader>
                     <CardContent>
                       {/* 專案詳細資訊 */}
-                      <div className="space-y-2 text-sm text-gray-600">
+                      <div className="space-y-2 text-sm text-muted-foreground">
                         {/* 預算池 */}
                         <div className="flex justify-between">
                           <span>預算池：</span>
@@ -420,7 +420,7 @@ export default function ProjectsPage() {
             {/* 分頁控件 */}
             {pagination && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   第 {pagination.page} / {pagination.totalPages} 頁
                 </p>
                 <div className="flex gap-2">

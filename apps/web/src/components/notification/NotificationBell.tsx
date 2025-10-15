@@ -11,8 +11,8 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { BellIcon } from '@heroicons/react/24/outline';
-import { api } from '~/lib/trpc';
+import { Bell } from 'lucide-react';
+import { api } from '@/lib/trpc';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export function NotificationBell() {
@@ -58,7 +58,7 @@ export function NotificationBell() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="通知"
       >
-        <BellIcon className="h-6 w-6" aria-hidden="true" />
+        <Bell className="h-6 w-6" aria-hidden="true" />
 
         {/* 未讀數量徽章 */}
         {unreadCount > 0 && (

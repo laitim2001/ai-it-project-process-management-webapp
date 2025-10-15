@@ -115,12 +115,12 @@ export default function SupervisorDashboard() {
       <DashboardLayout>
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">主管儀表板</h1>
-            <p className="mt-2 text-gray-600">部門專案總覽</p>
+            <h1 className="text-3xl font-bold text-foreground">主管儀表板</h1>
+            <p className="mt-2 text-muted-foreground">部門專案總覽</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-lg bg-gray-200" />
+              <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         </div>
@@ -132,12 +132,12 @@ export default function SupervisorDashboard() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-600 mb-4" />
-          <h2 className="text-xl font-bold text-red-900 mb-2">載入失敗</h2>
-          <p className="text-red-600">{error.message}</p>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+          <h2 className="text-xl font-bold text-destructive mb-2">載入失敗</h2>
+          <p className="text-destructive">{error.message}</p>
           {error.message.includes('主管') && (
-            <p className="text-sm text-red-500 mt-2">
+            <p className="text-sm text-destructive mt-2">
               此頁面僅限部門主管訪問
             </p>
           )}
@@ -157,8 +157,8 @@ export default function SupervisorDashboard() {
       <div className="space-y-8">
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">主管儀表板</h1>
-          <p className="mt-2 text-gray-600">部門專案總覽與預算監控</p>
+          <h1 className="text-3xl font-bold text-foreground">主管儀表板</h1>
+          <p className="mt-2 text-muted-foreground">部門專案總覽與預算監控</p>
         </div>
 
         {/* 統計卡片 */}
@@ -208,7 +208,7 @@ export default function SupervisorDashboard() {
             {/* 篩選欄 */}
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   專案狀態
                 </label>
                 <Select
@@ -227,7 +227,7 @@ export default function SupervisorDashboard() {
               </div>
 
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   專案經理
                 </label>
                 <Select
@@ -256,7 +256,7 @@ export default function SupervisorDashboard() {
 
             {/* 結果計數 */}
             {pagination && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
                 {Math.min(pagination.page * pagination.limit, pagination.total)} /{' '}
                 {pagination.total} 個專案
@@ -266,8 +266,8 @@ export default function SupervisorDashboard() {
             {/* 專案列表 */}
             {projects.length === 0 ? (
               <div className="text-center py-12">
-                <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                <p className="text-gray-600">
+                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">
                   {status || managerId ? '該篩選條件下沒有專案' : '尚無專案'}
                 </p>
               </div>
@@ -290,13 +290,13 @@ export default function SupervisorDashboard() {
                     <Link
                       key={project.id}
                       href={`/projects/${project.id}`}
-                      className="block p-6 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition"
+                      className="block p-6 border border-border rounded-lg hover:border-primary hover:shadow-md transition"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           {/* 專案標題 */}
                           <div className="flex items-center gap-3 mb-3">
-                            <h3 className="text-xl font-semibold text-gray-900">
+                            <h3 className="text-xl font-semibold text-foreground">
                               {project.name}
                             </h3>
                             <Badge variant={config.variant}>{config.label}</Badge>
@@ -306,10 +306,10 @@ export default function SupervisorDashboard() {
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {/* 專案經理 */}
                             <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-gray-400" />
+                              <User className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-xs text-gray-500">專案經理</p>
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-xs text-muted-foreground">專案經理</p>
+                                <p className="text-sm font-medium text-foreground">
                                   {project.manager.name}
                                 </p>
                               </div>
@@ -317,10 +317,10 @@ export default function SupervisorDashboard() {
 
                             {/* 預算池 */}
                             <div className="flex items-center gap-2">
-                              <DollarSign className="h-4 w-4 text-gray-400" />
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-xs text-gray-500">預算池</p>
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-xs text-muted-foreground">預算池</p>
+                                <p className="text-sm font-medium text-foreground">
                                   {project.budgetPool.fiscalYear} 年度
                                 </p>
                               </div>
@@ -329,9 +329,9 @@ export default function SupervisorDashboard() {
                             {/* 最新提案 */}
                             {latestProposal && (
                               <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-gray-400" />
+                                <FileText className="h-4 w-4 text-muted-foreground" />
                                 <div>
-                                  <p className="text-xs text-gray-500">最新提案</p>
+                                  <p className="text-xs text-muted-foreground">最新提案</p>
                                   <Badge
                                     variant={
                                       PROPOSAL_STATUS_CONFIG[
@@ -353,9 +353,9 @@ export default function SupervisorDashboard() {
                             {/* 費用總額 */}
                             {totalExpenses > 0 && (
                               <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-gray-400" />
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
                                 <div>
-                                  <p className="text-xs text-gray-500">已批准費用</p>
+                                  <p className="text-xs text-muted-foreground">已批准費用</p>
                                   <p className="text-sm font-medium text-green-600">
                                     ${totalExpenses.toLocaleString()}
                                   </p>
@@ -366,14 +366,14 @@ export default function SupervisorDashboard() {
 
                           {/* 採購單數量 */}
                           {project.purchaseOrders.length > 0 && (
-                            <div className="mt-3 text-sm text-gray-600">
+                            <div className="mt-3 text-sm text-muted-foreground">
                               採購單: {project.purchaseOrders.length} 筆
                             </div>
                           )}
                         </div>
 
                         {/* 最後更新時間 */}
-                        <div className="ml-4 text-right text-sm text-gray-500">
+                        <div className="ml-4 text-right text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4 inline mr-1" />
                           {new Date(project.updatedAt).toLocaleDateString('zh-TW')}
                         </div>

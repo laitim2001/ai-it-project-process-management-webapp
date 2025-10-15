@@ -15,13 +15,13 @@ import { Fragment } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { api } from '~/lib/trpc';
+import { api } from '@/lib/trpc';
 import {
-  CheckIcon,
-  BellAlertIcon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-} from '@heroicons/react/24/outline';
+  Check as CheckIcon,
+  BellRing as BellAlertIcon,
+  FileText as DocumentTextIcon,
+  DollarSign as CurrencyDollarIcon,
+} from 'lucide-react';
 
 interface NotificationDropdownProps {
   onClose: () => void;

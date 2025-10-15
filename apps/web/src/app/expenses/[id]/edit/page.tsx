@@ -41,8 +41,8 @@ export default function EditExpensePage() {
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">編輯費用</h1>
-          <p className="mt-2 text-gray-600">修改費用資訊和發票</p>
+          <h1 className="text-3xl font-bold text-foreground">編輯費用</h1>
+          <p className="mt-2 text-muted-foreground">修改費用資訊和發票</p>
         </div>
 
         {/* 表單 */}

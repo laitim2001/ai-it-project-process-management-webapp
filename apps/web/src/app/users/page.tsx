@@ -40,8 +40,8 @@ export default async function UsersPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">使用者管理</h1>
-            <p className="mt-2 text-gray-600">管理系統中的所有使用者</p>
+            <h1 className="text-3xl font-bold text-foreground">使用者管理</h1>
+            <p className="mt-2 text-muted-foreground">管理系統中的所有使用者</p>
           </div>
           <Link href="/users/new">
             <Button>
@@ -66,7 +66,7 @@ export default async function UsersPage() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                     尚無使用者資料
                   </TableCell>
                 </TableRow>
@@ -76,12 +76,12 @@ export default async function UsersPage() {
                     <TableCell>
                       <Link
                         href={`/users/${user.id}`}
-                        className="font-medium text-blue-600 hover:text-blue-800"
+                        className="font-medium text-primary hover:text-primary/80"
                       >
                         {user.name || '(未設定名稱)'}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-gray-900">
+                    <TableCell className="text-foreground">
                       {user.email}
                     </TableCell>
                     <TableCell>
@@ -96,19 +96,19 @@ export default async function UsersPage() {
                           : '管理員'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-500">
+                    <TableCell className="text-muted-foreground">
                       {new Date(user.createdAt).toLocaleDateString('zh-TW')}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link
                         href={`/users/${user.id}`}
-                        className="mr-4 text-blue-600 hover:text-blue-800"
+                        className="mr-4 text-primary hover:text-primary/80"
                       >
                         查看
                       </Link>
                       <Link
                         href={`/users/${user.id}/edit`}
-                        className="text-gray-600 hover:text-gray-800"
+                        className="text-muted-foreground hover:text-foreground"
                       >
                         編輯
                       </Link>
@@ -121,7 +121,7 @@ export default async function UsersPage() {
         </div>
 
         {/* Summary */}
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           總共 {users.length} 位使用者
         </div>
       </div>

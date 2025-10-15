@@ -26,7 +26,7 @@ export default function EditProposalPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
-          <div className="text-center py-12 text-gray-500">載入中...</div>
+          <div className="text-center py-12 text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -67,8 +67,8 @@ export default function EditProposalPage() {
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">編輯預算提案</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">編輯預算提案</h1>
+          <p className="mt-2 text-muted-foreground">
             更新提案資訊
           </p>
         </div>

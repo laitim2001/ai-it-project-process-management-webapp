@@ -53,8 +53,8 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">編輯專案</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">編輯專案</h1>
+          <p className="mt-2 text-muted-foreground">
             更新專案資訊
           </p>
         </div>

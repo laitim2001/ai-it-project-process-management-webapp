@@ -37,10 +37,10 @@ import {
  * 專案狀態配置
  */
 const PROJECT_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'secondary' as const, color: 'text-gray-600' },
+  Draft: { label: '草稿', variant: 'secondary' as const, color: 'text-muted-foreground' },
   InProgress: { label: '進行中', variant: 'success' as const, color: 'text-green-600' },
-  Completed: { label: '已完成', variant: 'default' as const, color: 'text-blue-600' },
-  Archived: { label: '已歸檔', variant: 'secondary' as const, color: 'text-gray-600' },
+  Completed: { label: '已完成', variant: 'default' as const, color: 'text-primary' },
+  Archived: { label: '已歸檔', variant: 'secondary' as const, color: 'text-muted-foreground' },
 };
 
 /**
@@ -64,12 +64,12 @@ export default function ProjectManagerDashboard() {
       <DashboardLayout>
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">我的儀表板</h1>
-            <p className="mt-2 text-gray-600">專案經理工作概覽</p>
+            <h1 className="text-3xl font-bold text-foreground">我的儀表板</h1>
+            <p className="mt-2 text-muted-foreground">專案經理工作概覽</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-lg bg-gray-200" />
+              <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         </div>
@@ -81,9 +81,9 @@ export default function ProjectManagerDashboard() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-600 mb-4" />
-          <p className="text-red-600">載入儀表板失敗: {error.message}</p>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+          <p className="text-destructive">載入儀表板失敗: {error.message}</p>
         </div>
       </DashboardLayout>
     );
@@ -100,8 +100,8 @@ export default function ProjectManagerDashboard() {
       <div className="space-y-8">
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">我的儀表板</h1>
-          <p className="mt-2 text-gray-600">專案經理工作概覽</p>
+          <h1 className="text-3xl font-bold text-foreground">我的儀表板</h1>
+          <p className="mt-2 text-muted-foreground">專案經理工作概覽</p>
         </div>
 
         {/* 統計卡片 */}
@@ -141,19 +141,19 @@ export default function ProjectManagerDashboard() {
             <CardContent>
               <div className="grid gap-6 md:grid-cols-3">
                 <div>
-                  <p className="text-sm text-gray-600">總預算額度</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                  <p className="text-sm text-muted-foreground">總預算額度</p>
+                  <p className="text-2xl font-bold text-foreground mt-1">
                     ${stats.totalBudget.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">已使用預算</p>
+                  <p className="text-sm text-muted-foreground">已使用預算</p>
                   <p className="text-2xl font-bold text-orange-600 mt-1">
                     ${stats.usedBudget.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">剩餘預算</p>
+                  <p className="text-sm text-muted-foreground">剩餘預算</p>
                   <p className="text-2xl font-bold text-green-600 mt-1">
                     ${(stats.totalBudget - stats.usedBudget).toLocaleString()}
                   </p>
@@ -177,8 +177,8 @@ export default function ProjectManagerDashboard() {
           <CardContent>
             {myProjects.length === 0 ? (
               <div className="text-center py-12">
-                <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                <p className="text-gray-600">尚無專案</p>
+                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">尚無專案</p>
                 <Link href="/projects/new">
                   <Button className="mt-4">創建第一個專案</Button>
                 </Link>
@@ -193,12 +193,12 @@ export default function ProjectManagerDashboard() {
                     <Link
                       key={project.id}
                       href={`/projects/${project.id}`}
-                      className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition"
+                      className="block p-4 border border-border rounded-lg hover:border-primary hover:shadow-md transition"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg font-semibold text-foreground">
                               {project.name}
                             </h3>
                             <Badge variant={config.variant}>{config.label}</Badge>
@@ -207,10 +207,10 @@ export default function ProjectManagerDashboard() {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
                             {/* 預算池 */}
                             <div className="flex items-center gap-2 text-sm">
-                              <DollarSign className="h-4 w-4 text-gray-400" />
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-gray-500">預算池</p>
-                                <p className="font-medium text-gray-900">
+                                <p className="text-muted-foreground">預算池</p>
+                                <p className="font-medium text-foreground">
                                   {project.budgetPool.fiscalYear} 年度
                                 </p>
                               </div>
@@ -219,9 +219,9 @@ export default function ProjectManagerDashboard() {
                             {/* 最新提案 */}
                             {latestProposal && (
                               <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4 text-gray-400" />
+                                <FileText className="h-4 w-4 text-muted-foreground" />
                                 <div>
-                                  <p className="text-gray-500">最新提案</p>
+                                  <p className="text-muted-foreground">最新提案</p>
                                   <Badge
                                     variant={
                                       PROPOSAL_STATUS_CONFIG[
@@ -242,10 +242,10 @@ export default function ProjectManagerDashboard() {
 
                             {/* 採購單數量 */}
                             <div className="flex items-center gap-2 text-sm">
-                              <Receipt className="h-4 w-4 text-gray-400" />
+                              <Receipt className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-gray-500">採購單</p>
-                                <p className="font-medium text-gray-900">
+                                <p className="text-muted-foreground">採購單</p>
+                                <p className="font-medium text-foreground">
                                   {project.purchaseOrders.length} 筆
                                 </p>
                               </div>
@@ -253,7 +253,7 @@ export default function ProjectManagerDashboard() {
                           </div>
                         </div>
 
-                        <Calendar className="h-5 w-5 text-gray-400 ml-4" />
+                        <Calendar className="h-5 w-5 text-muted-foreground ml-4" />
                       </div>
                     </Link>
                   );
@@ -283,7 +283,7 @@ export default function ProjectManagerDashboard() {
             pendingTasks.draftExpenses.length === 0 ? (
               <div className="text-center py-12">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-green-600 mb-3" />
-                <p className="text-gray-600">太棒了！目前沒有待處理的任務</p>
+                <p className="text-muted-foreground">太棒了！目前沒有待處理的任務</p>
               </div>
             ) : (
               <Tabs defaultValue="proposals" className="w-full">
@@ -310,7 +310,7 @@ export default function ProjectManagerDashboard() {
                 <TabsContent value="proposals" className="space-y-3">
                   {pendingTasks.proposalsNeedingInfo.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">沒有需要補充資訊的提案</p>
+                      <p className="text-muted-foreground">沒有需要補充資訊的提案</p>
                     </div>
                   ) : (
                     pendingTasks.proposalsNeedingInfo.map((proposal) => (
@@ -323,12 +323,12 @@ export default function ProjectManagerDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <FileText className="h-5 w-5 text-orange-600" />
-                              <h4 className="font-semibold text-gray-900">
+                              <h4 className="font-semibold text-foreground">
                                 {proposal.project.name}
                               </h4>
                               <Badge variant="warning">需補充資訊</Badge>
                             </div>
-                            <p className="text-sm text-gray-500 mt-2">
+                            <p className="text-sm text-muted-foreground mt-2">
                               最後更新:{' '}
                               {new Date(proposal.updatedAt).toLocaleDateString('zh-TW')}
                             </p>
@@ -344,36 +344,36 @@ export default function ProjectManagerDashboard() {
                 <TabsContent value="expenses" className="space-y-3">
                   {pendingTasks.draftExpenses.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">沒有草稿費用</p>
+                      <p className="text-muted-foreground">沒有草稿費用</p>
                     </div>
                   ) : (
                     pendingTasks.draftExpenses.map((expense) => (
                       <Link
                         key={expense.id}
                         href={`/expenses/${expense.id}`}
-                        className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition"
+                        className="block p-4 border border-border rounded-lg hover:border-primary hover:shadow-md transition"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <Receipt className="h-5 w-5 text-gray-600" />
-                              <h4 className="font-semibold text-gray-900">
+                              <Receipt className="h-5 w-5 text-muted-foreground" />
+                              <h4 className="font-semibold text-foreground">
                                 ${expense.amount.toLocaleString()}
                               </h4>
                               <Badge variant="secondary">草稿</Badge>
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-foreground">
                               採購單: {expense.purchaseOrder.poNumber}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-foreground">
                               專案: {expense.purchaseOrder.project.name}
                             </p>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               費用日期:{' '}
                               {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
                             </p>
                           </div>
-                          <ArrowRight className="h-5 w-5 text-gray-600" />
+                          <ArrowRight className="h-5 w-5 text-muted-foreground" />
                         </div>
                       </Link>
                     ))

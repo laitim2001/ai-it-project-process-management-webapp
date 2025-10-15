@@ -16,14 +16,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { api } from '~/lib/trpc';
+import { api } from '@/lib/trpc';
 import {
-  BellAlertIcon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-  TrashIcon,
-  CheckIcon,
-} from '@heroicons/react/24/outline';
+  BellRing as BellAlertIcon,
+  FileText as DocumentTextIcon,
+  DollarSign as CurrencyDollarIcon,
+  Trash2 as TrashIcon,
+  Check as CheckIcon,
+} from 'lucide-react';
 
 export default function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
@@ -70,20 +70,20 @@ export default function NotificationsPage() {
   // 獲取通知圖標
   const getNotificationIcon = (type: string) => {
     if (type.includes('PROPOSAL')) {
-      return <DocumentTextIcon className="h-6 w-6 text-blue-500" />;
+      return <DocumentTextIcon className="h-6 w-6 text-primary" />;
     }
     if (type.includes('EXPENSE')) {
       return <CurrencyDollarIcon className="h-6 w-6 text-green-500" />;
     }
-    return <BellAlertIcon className="h-6 w-6 text-gray-500" />;
+    return <BellAlertIcon className="h-6 w-6 text-muted-foreground" />;
   };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       {/* 頁面標題 */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">通知中心</h1>
-        <p className="mt-1 text-sm text-gray-600">查看和管理您的通知</p>
+        <h1 className="text-2xl font-bold text-foreground">通知中心</h1>
+        <p className="mt-1 text-sm text-muted-foreground">查看和管理您的通知</p>
       </div>
 
       {/* 篩選和操作列 */}
@@ -94,8 +94,8 @@ export default function NotificationsPage() {
             type="button"
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
               filter === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground ring-1 ring-inset ring-border hover:bg-muted'
             }`}
             onClick={() => setFilter('all')}
           >
@@ -105,8 +105,8 @@ export default function NotificationsPage() {
             type="button"
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
               filter === 'unread'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground ring-1 ring-inset ring-border hover:bg-muted'
             }`}
             onClick={() => setFilter('unread')}
           >
@@ -116,8 +116,8 @@ export default function NotificationsPage() {
             type="button"
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
               filter === 'read'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground ring-1 ring-inset ring-border hover:bg-muted'
             }`}
             onClick={() => setFilter('read')}
           >
@@ -129,7 +129,7 @@ export default function NotificationsPage() {
         {filter !== 'read' && notifications.some((n) => !n.isRead) && (
           <button
             type="button"
-            className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             onClick={() => markAllAsRead.mutate()}
             disabled={markAllAsRead.isPending}
           >
@@ -141,13 +141,13 @@ export default function NotificationsPage() {
 
       {/* 通知列表 */}
       {isLoading ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow">
-          <p className="text-sm text-gray-500">載入中...</p>
+        <div className="rounded-lg bg-background p-12 text-center shadow">
+          <p className="text-sm text-muted-foreground">載入中...</p>
         </div>
       ) : notifications.length === 0 ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow">
-          <BellAlertIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-2 text-sm text-gray-500">
+        <div className="rounded-lg bg-background p-12 text-center shadow">
+          <BellAlertIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-2 text-sm text-muted-foreground">
             {filter === 'all'
               ? '暫無通知'
               : filter === 'unread'
@@ -160,8 +160,8 @@ export default function NotificationsPage() {
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`rounded-lg bg-white shadow transition-colors hover:bg-gray-50 ${
-                !notification.isRead ? 'ring-2 ring-blue-500 ring-opacity-50' : ''
+              className={`rounded-lg bg-background shadow transition-colors hover:bg-muted ${
+                !notification.isRead ? 'ring-2 ring-primary ring-opacity-50' : ''
               }`}
             >
               <div className="p-4">
@@ -178,16 +178,16 @@ export default function NotificationsPage() {
                       <h3
                         className={`text-sm ${
                           !notification.isRead
-                            ? 'font-semibold text-gray-900'
-                            : 'font-medium text-gray-700'
+                            ? 'font-semibold text-foreground'
+                            : 'font-medium text-muted-foreground'
                         }`}
                       >
                         {notification.title}
                       </h3>
-                      <p className="mt-1 text-sm text-gray-600">
+                      <p className="mt-1 text-sm text-foreground/80">
                         {notification.message}
                       </p>
-                      <p className="mt-2 text-xs text-gray-500">
+                      <p className="mt-2 text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(notification.createdAt), {
                           addSuffix: true,
                           locale: zhTW,
@@ -199,7 +199,7 @@ export default function NotificationsPage() {
                         {notification.link && (
                           <Link
                             href={notification.link}
-                            className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                            className="text-sm font-medium text-primary hover:text-primary/80"
                             onClick={() => {
                               if (!notification.isRead) {
                                 markAsRead.mutate({ id: notification.id });
@@ -212,7 +212,7 @@ export default function NotificationsPage() {
                         {!notification.isRead && (
                           <button
                             type="button"
-                            className="text-sm font-medium text-gray-600 hover:text-gray-800"
+                            className="text-sm font-medium text-muted-foreground hover:text-foreground"
                             onClick={() =>
                               markAsRead.mutate({ id: notification.id })
                             }
@@ -228,7 +228,7 @@ export default function NotificationsPage() {
                   {/* 右側: 刪除按鈕 */}
                   <button
                     type="button"
-                    className="ml-4 flex-shrink-0 text-gray-400 hover:text-red-600"
+                    className="ml-4 flex-shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() =>
                       deleteNotification.mutate({ id: notification.id })
                     }
@@ -249,7 +249,7 @@ export default function NotificationsPage() {
         <div className="mt-6 text-center">
           <button
             type="button"
-            className="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+            className="inline-flex items-center rounded-md bg-background px-4 py-2 text-sm font-medium text-foreground shadow ring-1 ring-inset ring-border hover:bg-muted disabled:opacity-50"
             onClick={() => void fetchNextPage()}
             disabled={isFetchingNextPage}
           >

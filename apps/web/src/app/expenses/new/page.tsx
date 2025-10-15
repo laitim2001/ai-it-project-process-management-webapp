@@ -37,8 +37,8 @@ export default function NewExpensePage() {
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">新增費用</h1>
-          <p className="mt-2 text-gray-600">記錄新的費用和發票</p>
+          <h1 className="text-3xl font-bold text-foreground">新增費用</h1>
+          <p className="mt-2 text-muted-foreground">記錄新的費用和發票</p>
         </div>
 
         {/* 表單 */}

@@ -53,8 +53,8 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">編輯使用者</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">編輯使用者</h1>
+          <p className="mt-2 text-muted-foreground">
             更新使用者資訊
           </p>
         </div>

@@ -66,11 +66,11 @@ export default function ExpensesPage() {
       <DashboardLayout>
         <div className="space-y-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">費用管理</h1>
+            <h1 className="text-3xl font-bold text-foreground">費用管理</h1>
           </div>
           <div className="grid gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-lg bg-gray-200" />
+              <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         </div>
@@ -82,8 +82,8 @@ export default function ExpensesPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-red-600">載入費用失敗: {error.message}</p>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
+          <p className="text-destructive">載入費用失敗: {error.message}</p>
         </div>
       </DashboardLayout>
     );
@@ -111,8 +111,8 @@ export default function ExpensesPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">費用管理</h1>
-            <p className="mt-2 text-gray-600">管理和審批所有費用記錄</p>
+            <h1 className="text-3xl font-bold text-foreground">費用管理</h1>
+            <p className="mt-2 text-muted-foreground">管理和審批所有費用記錄</p>
           </div>
           <Link href="/expenses/new">
             <Button>
@@ -129,10 +129,10 @@ export default function ExpensesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">總費用記錄</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalExpenses}</p>
+                    <p className="text-sm text-muted-foreground">總費用記錄</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.totalExpenses}</p>
                   </div>
-                  <Receipt className="h-8 w-8 text-gray-400" />
+                  <Receipt className="h-8 w-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
@@ -141,12 +141,12 @@ export default function ExpensesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">總金額</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-sm text-muted-foreground">總金額</p>
+                    <p className="text-2xl font-bold text-primary">
                       ${stats.totalAmount?.toLocaleString() ?? 0}
                     </p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-blue-600" />
+                  <DollarSign className="h-8 w-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
@@ -219,7 +219,7 @@ export default function ExpensesPage() {
 
         {/* 結果計數 */}
         {pagination && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 筆費用
           </div>
@@ -230,9 +230,9 @@ export default function ExpensesPage() {
           <Card>
             <CardContent className="py-12">
               <div className="text-center">
-                <Receipt className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">尚無費用記錄</h3>
-                <p className="mt-1 text-gray-600">
+                <Receipt className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-2 text-lg font-medium text-foreground">尚無費用記錄</h3>
+                <p className="mt-1 text-muted-foreground">
                   {status || purchaseOrderId ? '該篩選條件下沒有費用記錄' : '開始記錄專案費用'}
                 </p>
                 <Link href="/expenses/new">
@@ -248,23 +248,23 @@ export default function ExpensesPage() {
           <div className="space-y-4">
             {expenses.map((expense) => (
               <Link key={expense.id} href={`/expenses/${expense.id}`} className="block">
-                <Card className="hover:border-blue-500 hover:shadow-md transition cursor-pointer">
+                <Card className="hover:border-primary hover:shadow-md transition cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       {/* 左側：主要資訊 */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-3">
-                          <Receipt className="h-6 w-6 text-blue-600" />
+                          <Receipt className="h-6 w-6 text-primary" />
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className="text-lg font-semibold text-gray-900">
+                              <h3 className="text-lg font-semibold text-foreground">
                                 ${expense.amount.toLocaleString()}
                               </h3>
                               <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
                                 {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
                             </p>
                           </div>
@@ -273,10 +273,10 @@ export default function ExpensesPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
                           {/* 採購單 */}
                           <div className="flex items-center gap-2">
-                            <ShoppingCart className="h-4 w-4 text-gray-400" />
+                            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-xs text-gray-500">採購單</p>
-                              <p className="text-sm font-medium text-gray-900">
+                              <p className="text-xs text-muted-foreground">採購單</p>
+                              <p className="text-sm font-medium text-foreground">
                                 {expense.purchaseOrder.poNumber}
                               </p>
                             </div>
@@ -284,10 +284,10 @@ export default function ExpensesPage() {
 
                           {/* 專案 */}
                           <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-gray-400" />
+                            <FileText className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="text-xs text-gray-500">專案</p>
-                              <p className="text-sm font-medium text-gray-900">
+                              <p className="text-xs text-muted-foreground">專案</p>
+                              <p className="text-sm font-medium text-foreground">
                                 {expense.purchaseOrder.project.name}
                               </p>
                             </div>
@@ -296,7 +296,7 @@ export default function ExpensesPage() {
 
                         {/* 發票 */}
                         {expense.invoiceFilePath && (
-                          <div className="flex items-center gap-2 pl-9 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 pl-9 text-sm text-muted-foreground">
                             <FileText className="h-4 w-4" />
                             <span>{expense.invoiceFilePath.split('/').pop()}</span>
                           </div>
@@ -304,7 +304,7 @@ export default function ExpensesPage() {
                       </div>
 
                       {/* 右側：日期 */}
-                      <div className="text-right text-sm text-gray-500">
+                      <div className="text-right text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4 inline mr-1" />
                         {new Date(expense.createdAt).toLocaleDateString('zh-TW')}
                       </div>

@@ -130,7 +130,7 @@ export default function ProjectDetailPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -145,8 +145,8 @@ export default function ProjectDetailPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到專案</h2>
-            <p className="text-gray-600 mb-4">此專案不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到專案</h2>
+            <p className="text-muted-foreground mb-4">此專案不存在或已被刪除。</p>
             <Link href="/projects">
               <Button>返回專案列表</Button>
             </Link>
@@ -184,7 +184,7 @@ export default function ProjectDetailPage() {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant={PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].variant}>
                   {PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].label}
@@ -221,20 +221,20 @@ export default function ProjectDetailPage() {
               <CardContent className="space-y-4">
                 {project.description && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">專案描述</dt>
-                    <dd className="text-gray-900">{project.description}</dd>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">專案描述</dt>
+                    <dd className="text-foreground">{project.description}</dd>
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">創建時間</dt>
-                    <dd className="text-gray-900 font-medium mt-1">
+                    <dt className="text-sm font-medium text-muted-foreground">創建時間</dt>
+                    <dd className="text-foreground font-medium mt-1">
                       {new Date(project.createdAt).toLocaleDateString('zh-TW')}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">最後更新</dt>
-                    <dd className="text-gray-900 font-medium mt-1">
+                    <dt className="text-sm font-medium text-muted-foreground">最後更新</dt>
+                    <dd className="text-foreground font-medium mt-1">
                       {new Date(project.updatedAt).toLocaleDateString('zh-TW')}
                     </dd>
                   </div>
@@ -255,29 +255,29 @@ export default function ProjectDetailPage() {
                   <div className="grid grid-cols-2 gap-6">
                     {/* 提案統計 */}
                     <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <FileText className="h-4 w-4" />
                         預算提案
                       </h3>
                       <dl className="space-y-2">
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">提案總數</dt>
-                          <dd className="font-medium text-gray-900">{stats.totalProposals}</dd>
+                          <dt className="text-sm text-muted-foreground">提案總數</dt>
+                          <dd className="font-medium text-foreground">{stats.totalProposals}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">已批准</dt>
+                          <dt className="text-sm text-muted-foreground">已批准</dt>
                           <dd className="font-medium text-green-600">
                             {stats.approvedProposals}
                           </dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">提案總金額</dt>
-                          <dd className="font-medium text-gray-900">
+                          <dt className="text-sm text-muted-foreground">提案總金額</dt>
+                          <dd className="font-medium text-foreground">
                             ${stats.totalProposedAmount.toLocaleString()}
                           </dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">已批准金額</dt>
+                          <dt className="text-sm text-muted-foreground">已批准金額</dt>
                           <dd className="font-medium text-green-600">
                             ${stats.approvedAmount.toLocaleString()}
                           </dd>
@@ -287,28 +287,28 @@ export default function ProjectDetailPage() {
 
                     {/* 採購與費用統計 */}
                     <div className="space-y-3 border-l pl-6">
-                      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <Package className="h-4 w-4" />
                         採購與費用
                       </h3>
                       <dl className="space-y-2">
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">採購單數量</dt>
-                          <dd className="font-medium text-gray-900">{stats.totalPurchaseOrders}</dd>
+                          <dt className="text-sm text-muted-foreground">採購單數量</dt>
+                          <dd className="font-medium text-foreground">{stats.totalPurchaseOrders}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">採購總金額</dt>
-                          <dd className="font-medium text-gray-900">
+                          <dt className="text-sm text-muted-foreground">採購總金額</dt>
+                          <dd className="font-medium text-foreground">
                             ${stats.totalPurchaseAmount.toLocaleString()}
                           </dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">費用記錄數</dt>
-                          <dd className="font-medium text-gray-900">{stats.totalExpenses}</dd>
+                          <dt className="text-sm text-muted-foreground">費用記錄數</dt>
+                          <dd className="font-medium text-foreground">{stats.totalExpenses}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">已支付金額</dt>
-                          <dd className="font-medium text-blue-600">
+                          <dt className="text-sm text-muted-foreground">已支付金額</dt>
+                          <dd className="font-medium text-primary">
                             ${stats.paidExpenseAmount.toLocaleString()}
                           </dd>
                         </div>
@@ -337,19 +337,19 @@ export default function ProjectDetailPage() {
               </CardHeader>
               <CardContent>
                 {project.proposals.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">尚未有任何提案</p>
+                  <p className="text-muted-foreground text-center py-8">尚未有任何提案</p>
                 ) : (
                   <div className="space-y-3">
                     {project.proposals.map((proposal) => (
                       <Link
                         key={proposal.id}
                         href={`/proposals/${proposal.id}`}
-                        className="block border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-sm transition"
+                        className="block border border-border rounded-lg p-4 hover:border-primary hover:shadow-sm transition"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 truncate">{proposal.title}</h3>
-                            <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                            <h3 className="font-medium text-foreground truncate">{proposal.title}</h3>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <DollarSign className="h-3 w-3" />
                                 ${proposal.amount.toLocaleString()}
@@ -388,7 +388,7 @@ export default function ProjectDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-6">
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     在報價管理頁面中可以上傳供應商報價、比較報價，並選擇最終供應商生成採購單
                   </p>
                   <Link href={`/projects/${id}/quotes`}>
@@ -418,19 +418,19 @@ export default function ProjectDetailPage() {
               </CardHeader>
               <CardContent>
                 {project.purchaseOrders.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">尚未有任何採購單</p>
+                  <p className="text-muted-foreground text-center py-8">尚未有任何採購單</p>
                 ) : (
                   <div className="space-y-3">
                     {project.purchaseOrders.map((po) => (
                       <Link
                         key={po.id}
                         href={`/purchase-orders/${po.id}`}
-                        className="block border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-sm transition"
+                        className="block border border-border rounded-lg p-4 hover:border-primary hover:shadow-sm transition"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900">PO #{po.poNumber}</h3>
-                            <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                            <h3 className="font-medium text-foreground">PO #{po.poNumber}</h3>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                               <span>供應商：{po.vendor.name}</span>
                               <span className="flex items-center gap-1">
                                 <DollarSign className="h-3 w-3" />
@@ -464,17 +464,17 @@ export default function ProjectDetailPage() {
               <CardContent>
                 <Link
                   href={`/budget-pools/${project.budgetPool.id}`}
-                  className="block hover:text-blue-600 transition"
+                  className="block hover:text-primary transition"
                 >
-                  <p className="font-medium text-lg text-gray-900 mb-3">{project.budgetPool.name}</p>
+                  <p className="font-medium text-lg text-foreground mb-3">{project.budgetPool.name}</p>
                   <dl className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <dt className="text-gray-600">財務年度</dt>
-                      <dd className="font-medium text-gray-900">{project.budgetPool.financialYear}</dd>
+                      <dt className="text-muted-foreground">財務年度</dt>
+                      <dd className="font-medium text-foreground">{project.budgetPool.financialYear}</dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-gray-600">總預算</dt>
-                      <dd className="font-medium text-gray-900">
+                      <dt className="text-muted-foreground">總預算</dt>
+                      <dd className="font-medium text-foreground">
                         ${project.budgetPool.totalAmount.toLocaleString()}
                       </dd>
                     </div>
@@ -494,17 +494,17 @@ export default function ProjectDetailPage() {
               <CardContent className="space-y-4">
                 {/* 專案經理 */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">專案經理</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">專案經理</h3>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-medium">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary font-medium">
                         {project.manager.name?.charAt(0) || 'M'}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900">{project.manager.name}</p>
-                      <p className="text-sm text-gray-600 truncate">{project.manager.email}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-foreground">{project.manager.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{project.manager.email}</p>
+                      <p className="text-xs text-muted-foreground">
                         {project.manager.role.name}
                       </p>
                     </div>
@@ -513,7 +513,7 @@ export default function ProjectDetailPage() {
 
                 {/* 主管 */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">主管</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">主管</h3>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-green-600 font-medium">
@@ -521,9 +521,9 @@ export default function ProjectDetailPage() {
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900">{project.supervisor.name}</p>
-                      <p className="text-sm text-gray-600 truncate">{project.supervisor.email}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-foreground">{project.supervisor.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{project.supervisor.email}</p>
+                      <p className="text-xs text-muted-foreground">
                         {project.supervisor.role.name}
                       </p>
                     </div>

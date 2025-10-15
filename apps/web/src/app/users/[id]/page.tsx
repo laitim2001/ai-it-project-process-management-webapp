@@ -71,10 +71,10 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
         {/* 頁面標題和操作按鈕 */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               {user.name || '(未設定名稱)'}
             </h1>
-            <p className="text-gray-600 mt-2 flex items-center gap-2">
+            <p className="text-muted-foreground mt-2 flex items-center gap-2">
               <Mail className="h-4 w-4" />
               {user.email}
             </p>
@@ -106,14 +106,14 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
               <CardContent>
                 <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Mail className="h-4 w-4" />
                       電子郵件
                     </dt>
-                    <dd className="text-gray-900 font-medium">{user.email}</dd>
+                    <dd className="text-foreground font-medium">{user.email}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Shield className="h-4 w-4" />
                       角色
                     </dt>
@@ -124,20 +124,20 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       建立時間
                     </dt>
-                    <dd className="text-gray-900 font-medium">
+                    <dd className="text-foreground font-medium">
                       {new Date(user.createdAt).toLocaleString('zh-TW')}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       最後更新
                     </dt>
-                    <dd className="text-gray-900 font-medium">
+                    <dd className="text-foreground font-medium">
                       {new Date(user.updatedAt).toLocaleString('zh-TW')}
                     </dd>
                   </div>
@@ -160,12 +160,12 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
-                        className="block border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-sm transition"
+                        className="block border border-border rounded-lg p-4 hover:border-primary hover:shadow-sm transition"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 mb-1">{project.name}</h3>
-                            <p className="text-sm text-gray-600">
+                            <h3 className="font-medium text-foreground mb-1">{project.name}</h3>
+                            <p className="text-sm text-muted-foreground">
                               預算池: {project.budgetPool.name}
                             </p>
                           </div>
@@ -197,10 +197,10 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
-                        className="block border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-sm transition"
+                        className="block border border-border rounded-lg p-4 hover:border-primary hover:shadow-sm transition"
                       >
-                        <h3 className="font-medium text-gray-900 mb-2">{project.name}</h3>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <h3 className="font-medium text-foreground mb-2">{project.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
                           預算池: {project.budgetPool.name}
                         </p>
                         <Badge variant={PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].variant}>

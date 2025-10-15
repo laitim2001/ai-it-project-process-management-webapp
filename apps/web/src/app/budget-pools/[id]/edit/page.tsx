@@ -28,7 +28,7 @@ export default function EditBudgetPoolPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -39,8 +39,8 @@ export default function EditBudgetPoolPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到預算池</h2>
-            <p className="text-gray-600 mb-4">此預算池不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到預算池</h2>
+            <p className="text-muted-foreground mb-4">此預算池不存在或已被刪除。</p>
             <Link href="/budget-pools">
               <Button>返回預算池列表</Button>
             </Link>
@@ -76,8 +76,8 @@ export default function EditBudgetPoolPage() {
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">編輯預算池</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">編輯預算池</h1>
+          <p className="mt-2 text-muted-foreground">
             更新預算池資訊
           </p>
         </div>

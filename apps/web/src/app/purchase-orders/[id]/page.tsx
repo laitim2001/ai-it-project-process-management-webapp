@@ -74,7 +74,7 @@ export default function PurchaseOrderDetailPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -86,8 +86,8 @@ export default function PurchaseOrderDetailPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到採購單</h2>
-            <p className="text-gray-600 mb-4">此採購單不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到採購單</h2>
+            <p className="text-muted-foreground mb-4">此採購單不存在或已被刪除。</p>
             <Link href="/purchase-orders">
               <Button>返回採購單列表</Button>
             </Link>
@@ -120,10 +120,10 @@ export default function PurchaseOrderDetailPage() {
         {/* 頁面標題和操作按鈕 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ShoppingCart className="h-8 w-8 text-blue-600" />
+            <ShoppingCart className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{purchaseOrder.poNumber}</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold text-foreground">{purchaseOrder.poNumber}</h1>
+              <p className="text-sm text-muted-foreground mt-1">
                 創建於 {new Date(purchaseOrder.date).toLocaleDateString('zh-TW')}
               </p>
             </div>
@@ -149,19 +149,19 @@ export default function PurchaseOrderDetailPage() {
             <CardContent className="space-y-4">
               {/* 採購單編號 */}
               <div className="flex items-start gap-3">
-                <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">採購單編號</p>
-                  <p className="text-base text-gray-900 font-mono">{purchaseOrder.poNumber}</p>
+                  <p className="text-sm font-medium text-muted-foreground">採購單編號</p>
+                  <p className="text-base text-foreground font-mono">{purchaseOrder.poNumber}</p>
                 </div>
               </div>
 
               {/* 採購日期 */}
               <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">採購日期</p>
-                  <p className="text-base text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">採購日期</p>
+                  <p className="text-base text-foreground">
                     {new Date(purchaseOrder.date).toLocaleDateString('zh-TW', {
                       year: 'numeric',
                       month: 'long',
@@ -173,10 +173,10 @@ export default function PurchaseOrderDetailPage() {
 
               {/* 總金額 */}
               <div className="flex items-start gap-3">
-                <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
+                <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">總金額</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-sm font-medium text-muted-foreground">總金額</p>
+                  <p className="text-2xl font-bold text-primary">
                     ${purchaseOrder.totalAmount.toLocaleString()}
                   </p>
                 </div>
@@ -192,12 +192,12 @@ export default function PurchaseOrderDetailPage() {
             <CardContent className="space-y-4">
               {/* 專案 */}
               <div className="flex items-start gap-3">
-                <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">專案</p>
+                  <p className="text-sm font-medium text-muted-foreground">專案</p>
                   <Link
                     href={`/projects/${purchaseOrder.project.id}`}
-                    className="text-base text-blue-600 hover:underline"
+                    className="text-base text-primary hover:underline"
                   >
                     {purchaseOrder.project.name}
                   </Link>
@@ -206,12 +206,12 @@ export default function PurchaseOrderDetailPage() {
 
               {/* 供應商 */}
               <div className="flex items-start gap-3">
-                <Building2 className="h-5 w-5 text-gray-400 mt-0.5" />
+                <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">供應商</p>
+                  <p className="text-sm font-medium text-muted-foreground">供應商</p>
                   <Link
                     href={`/vendors/${purchaseOrder.vendor.id}`}
-                    className="text-base text-blue-600 hover:underline"
+                    className="text-base text-primary hover:underline"
                   >
                     {purchaseOrder.vendor.name}
                   </Link>
@@ -221,13 +221,13 @@ export default function PurchaseOrderDetailPage() {
               {/* 關聯報價單 */}
               {purchaseOrder.quote && (
                 <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-500">關聯報價單</p>
-                    <p className="text-base text-gray-900">
+                    <p className="text-sm font-medium text-muted-foreground">關聯報價單</p>
+                    <p className="text-base text-foreground">
                       ${purchaseOrder.quote.amount.toLocaleString()}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       上傳於 {new Date(purchaseOrder.quote.uploadDate).toLocaleDateString('zh-TW')}
                     </p>
                   </div>
@@ -257,42 +257,42 @@ export default function PurchaseOrderDetailPage() {
                   <Link
                     key={expense.id}
                     href={`/expenses/${expense.id}`}
-                    className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition"
+                    className="block p-4 border border-border rounded-lg hover:border-primary hover:shadow-sm transition"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             ${expense.amount.toLocaleString()}
                           </p>
                           <ExpenseStatusBadge status={expense.status} />
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           費用日期: {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
                         </p>
                         {expense.invoiceFilePath && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             發票: {expense.invoiceFilePath.split('/').pop()}
                           </p>
                         )}
                       </div>
-                      <Receipt className="h-5 w-5 text-gray-400" />
+                      <Receipt className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </Link>
                 ))}
 
                 {/* 費用統計摘要 */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-border">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">總費用記錄</p>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-sm text-muted-foreground">總費用記錄</p>
+                      <p className="text-xl font-bold text-foreground">
                         {purchaseOrder.expenses.length} 筆
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">累計金額</p>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-sm text-muted-foreground">累計金額</p>
+                      <p className="text-xl font-bold text-foreground">
                         ${purchaseOrder.expenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
                       </p>
                     </div>
@@ -301,8 +301,8 @@ export default function PurchaseOrderDetailPage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600">尚無費用記錄</p>
+                <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">尚無費用記錄</p>
                 <Link href={`/expenses/new?purchaseOrderId=${purchaseOrder.id}`}>
                   <Button variant="outline" size="sm" className="mt-3">
                     新增第一筆費用

@@ -56,7 +56,7 @@ export default function VendorDetailPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -68,8 +68,8 @@ export default function VendorDetailPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到供應商</h2>
-            <p className="text-gray-600 mb-4">此供應商不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到供應商</h2>
+            <p className="text-muted-foreground mb-4">此供應商不存在或已被刪除。</p>
             <Link href="/vendors">
               <Button>返回供應商列表</Button>
             </Link>
@@ -102,8 +102,8 @@ export default function VendorDetailPage() {
         {/* 頁面標題和操作按鈕 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">{vendor.name}</h1>
+            <Building2 className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold text-foreground">{vendor.name}</h1>
           </div>
           <div className="flex gap-2">
             <Link href={`/vendors/${id}/edit`}>
@@ -133,10 +133,10 @@ export default function VendorDetailPage() {
               {/* 聯絡人 */}
               {vendor.contactPerson && (
                 <div className="flex items-start gap-3">
-                  <User className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">聯絡人</p>
-                    <p className="text-base text-gray-900">{vendor.contactPerson}</p>
+                    <p className="text-sm font-medium text-muted-foreground">聯絡人</p>
+                    <p className="text-base text-foreground">{vendor.contactPerson}</p>
                   </div>
                 </div>
               )}
@@ -144,12 +144,12 @@ export default function VendorDetailPage() {
               {/* 聯絡郵箱 */}
               {vendor.contactEmail && (
                 <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">聯絡郵箱</p>
+                    <p className="text-sm font-medium text-muted-foreground">聯絡郵箱</p>
                     <a
                       href={`mailto:${vendor.contactEmail}`}
-                      className="text-base text-blue-600 hover:underline"
+                      className="text-base text-primary hover:underline"
                     >
                       {vendor.contactEmail}
                     </a>
@@ -160,12 +160,12 @@ export default function VendorDetailPage() {
               {/* 聯絡電話 */}
               {vendor.phone && (
                 <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">聯絡電話</p>
+                    <p className="text-sm font-medium text-muted-foreground">聯絡電話</p>
                     <a
                       href={`tel:${vendor.phone}`}
-                      className="text-base text-blue-600 hover:underline"
+                      className="text-base text-primary hover:underline"
                     >
                       {vendor.phone}
                     </a>
@@ -175,7 +175,7 @@ export default function VendorDetailPage() {
 
               {/* 如果沒有任何聯絡資訊 */}
               {!vendor.contactPerson && !vendor.contactEmail && !vendor.phone && (
-                <p className="text-sm text-gray-500 italic">尚未提供聯絡資訊</p>
+                <p className="text-sm text-muted-foreground italic">尚未提供聯絡資訊</p>
               )}
             </CardContent>
           </Card>
@@ -188,20 +188,20 @@ export default function VendorDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-500">報價單數量</span>
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">報價單數量</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-foreground">
                   {vendor.quotes?.length ?? 0}
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-500">採購單數量</span>
+                  <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">採購單數量</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-foreground">
                   {vendor.purchaseOrders?.length ?? 0}
                 </span>
               </div>
@@ -221,18 +221,18 @@ export default function VendorDetailPage() {
                   <Link
                     key={quote.id}
                     href={`/quotes/${quote.id}`}
-                    className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition"
+                    className="block p-4 border border-border rounded-lg hover:border-primary hover:shadow-sm transition"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           金額: ${quote.amount.toLocaleString()}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           上傳日期: {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
                         </p>
                       </div>
-                      <FileText className="h-5 w-5 text-gray-400" />
+                      <FileText className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </Link>
                 ))}
@@ -253,21 +253,21 @@ export default function VendorDetailPage() {
                   <Link
                     key={po.id}
                     href={`/purchase-orders/${po.id}`}
-                    className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition"
+                    className="block p-4 border border-border rounded-lg hover:border-primary hover:shadow-sm transition"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           PO#{po.poNumber}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           專案: {po.project.name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           金額: ${po.totalAmount.toLocaleString()}
                         </p>
                       </div>
-                      <ShoppingCart className="h-5 w-5 text-gray-400" />
+                      <ShoppingCart className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </Link>
                 ))}

@@ -50,11 +50,11 @@ export default function VendorsPage() {
       <DashboardLayout>
         <div className="space-y-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">供應商管理</h1>
+            <h1 className="text-3xl font-bold text-foreground">供應商管理</h1>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-40 animate-pulse rounded-lg bg-gray-200" />
+              <div key={i} className="h-40 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         </div>
@@ -66,8 +66,8 @@ export default function VendorsPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-red-600">載入供應商失敗: {error.message}</p>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
+          <p className="text-destructive">載入供應商失敗: {error.message}</p>
         </div>
       </DashboardLayout>
     );
@@ -95,8 +95,8 @@ export default function VendorsPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">供應商管理</h1>
-            <p className="mt-2 text-gray-600">管理和維護供應商資訊</p>
+            <h1 className="text-3xl font-bold text-foreground">供應商管理</h1>
+            <p className="mt-2 text-muted-foreground">管理和維護供應商資訊</p>
           </div>
           <Link href="/vendors/new">
             <Button>
@@ -142,7 +142,7 @@ export default function VendorsPage() {
 
         {/* 結果計數 */}
         {pagination && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 個供應商
           </div>
@@ -151,8 +151,8 @@ export default function VendorsPage() {
         {/* 供應商卡片網格 */}
         {vendors.length === 0 ? (
           <Card className="p-8 text-center">
-            <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-600">
+            <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">
               {search
                 ? '找不到符合條件的供應商'
                 : '尚未有任何供應商，點擊新增開始建立'}
@@ -166,31 +166,31 @@ export default function VendorsPage() {
                   key={vendor.id}
                   href={`/vendors/${vendor.id}`}
                 >
-                  <Card className="p-6 transition hover:border-blue-500 hover:shadow-md h-full">
+                  <Card className="p-6 transition hover:border-primary hover:shadow-md h-full">
                     {/* 供應商名稱 */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <Building2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                        <h2 className="text-xl font-semibold text-gray-900">{vendor.name}</h2>
+                        <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
+                        <h2 className="text-xl font-semibold text-foreground">{vendor.name}</h2>
                       </div>
                     </div>
 
                     {/* 聯絡資訊 */}
                     <div className="space-y-2 text-sm">
                       {vendor.contactPerson && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                           <User className="h-4 w-4" />
                           <span>{vendor.contactPerson}</span>
                         </div>
                       )}
                       {vendor.contactEmail && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                           <Mail className="h-4 w-4" />
                           <span className="truncate">{vendor.contactEmail}</span>
                         </div>
                       )}
                       {vendor.phone && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                           <Phone className="h-4 w-4" />
                           <span>{vendor.phone}</span>
                         </div>
@@ -198,16 +198,16 @@ export default function VendorsPage() {
                     </div>
 
                     {/* 統計資訊 */}
-                    <div className="mt-4 flex gap-4 pt-4 border-t border-gray-200 text-sm">
+                    <div className="mt-4 flex gap-4 pt-4 border-t border-border text-sm">
                       <div>
-                        <span className="text-gray-600">報價單: </span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-muted-foreground">報價單: </span>
+                        <span className="font-medium text-foreground">
                           {vendor._count.quotes}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-600">採購單: </span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-muted-foreground">採購單: </span>
+                        <span className="font-medium text-foreground">
                           {vendor._count.purchaseOrders}
                         </span>
                       </div>

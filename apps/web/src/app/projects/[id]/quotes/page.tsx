@@ -67,7 +67,7 @@ export default function ProjectQuotesPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -79,8 +79,8 @@ export default function ProjectQuotesPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到專案</h2>
-            <p className="text-gray-600 mb-4">此專案不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到專案</h2>
+            <p className="text-muted-foreground mb-4">此專案不存在或已被刪除。</p>
             <Link href="/projects">
               <Button>返回專案列表</Button>
             </Link>
@@ -120,8 +120,8 @@ export default function ProjectQuotesPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">報價管理</h1>
-            <p className="mt-2 text-gray-600">{project.name}</p>
+            <h1 className="text-3xl font-bold text-foreground">報價管理</h1>
+            <p className="mt-2 text-muted-foreground">{project.name}</p>
           </div>
         </div>
 
@@ -139,16 +139,16 @@ export default function ProjectQuotesPage() {
           <div className="grid gap-6 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">報價數量</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">報價數量</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-gray-900">{comparison.stats.totalQuotes}</div>
+                <div className="text-3xl font-bold text-foreground">{comparison.stats.totalQuotes}</div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <TrendingDown className="h-4 w-4 text-green-600" />
                   最低報價
                 </CardTitle>
@@ -162,7 +162,7 @@ export default function ProjectQuotesPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-red-600" />
                   最高報價
                 </CardTitle>
@@ -176,10 +176,10 @@ export default function ProjectQuotesPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-600">平均報價</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">平均報價</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-blue-600">
+                <div className="text-3xl font-bold text-primary">
                   ${comparison.stats.averageQuote?.toLocaleString() ?? 'N/A'}
                 </div>
               </CardContent>
@@ -195,9 +195,9 @@ export default function ProjectQuotesPage() {
           <CardContent>
             {sortedQuotes.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 mb-2">尚無報價記錄</p>
-                <p className="text-sm text-gray-500">請先上傳報價單以進行比較</p>
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground mb-2">尚無報價記錄</p>
+                <p className="text-sm text-muted-foreground">請先上傳報價單以進行比較</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -213,7 +213,7 @@ export default function ProjectQuotesPage() {
                         relative border rounded-lg p-6 transition
                         ${isLowest ? 'border-green-500 bg-green-50' : ''}
                         ${isHighest ? 'border-red-500 bg-red-50' : ''}
-                        ${!isLowest && !isHighest ? 'border-gray-200 hover:border-blue-500' : ''}
+                        ${!isLowest && !isHighest ? 'border-border hover:border-primary' : ''}
                         ${hasSelectedPO ? 'opacity-60' : ''}
                       `}
                     >
@@ -240,12 +240,12 @@ export default function ProjectQuotesPage() {
                         <div className="flex-1 space-y-3">
                           {/* 供應商 */}
                           <div className="flex items-center gap-3">
-                            <Building2 className="h-5 w-5 text-gray-400" />
+                            <Building2 className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-gray-600">供應商</p>
+                              <p className="text-sm text-muted-foreground">供應商</p>
                               <Link
                                 href={`/vendors/${quote.vendor.id}`}
-                                className="text-lg font-semibold text-gray-900 hover:text-blue-600"
+                                className="text-lg font-semibold text-foreground hover:text-primary"
                               >
                                 {quote.vendor.name}
                               </Link>
@@ -254,10 +254,10 @@ export default function ProjectQuotesPage() {
 
                           {/* 報價金額 */}
                           <div className="flex items-center gap-3">
-                            <DollarSign className="h-5 w-5 text-gray-400" />
+                            <DollarSign className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-gray-600">報價金額</p>
-                              <p className="text-2xl font-bold text-gray-900">
+                              <p className="text-sm text-muted-foreground">報價金額</p>
+                              <p className="text-2xl font-bold text-foreground">
                                 ${quote.amount.toLocaleString()}
                               </p>
                             </div>
@@ -265,10 +265,10 @@ export default function ProjectQuotesPage() {
 
                           {/* 上傳日期 */}
                           <div className="flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-gray-400" />
+                            <Calendar className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-gray-600">上傳日期</p>
-                              <p className="text-base text-gray-900">
+                              <p className="text-sm text-muted-foreground">上傳日期</p>
+                              <p className="text-base text-foreground">
                                 {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
                               </p>
                             </div>
@@ -276,22 +276,22 @@ export default function ProjectQuotesPage() {
 
                           {/* 報價文件 */}
                           <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-gray-400" />
+                            <FileText className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-gray-600">報價文件</p>
-                              <p className="text-sm text-gray-900">{quote.filePath.split('/').pop()}</p>
+                              <p className="text-sm text-muted-foreground">報價文件</p>
+                              <p className="text-sm text-foreground">{quote.filePath.split('/').pop()}</p>
                             </div>
                           </div>
 
                           {/* 已生成採購單標記 */}
                           {hasSelectedPO && quote.purchaseOrder && (
-                            <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <CheckCircle className="h-5 w-5 text-blue-600" />
+                            <div className="flex items-center gap-2 mt-4 p-3 bg-primary/10 border border-primary rounded-lg">
+                              <CheckCircle className="h-5 w-5 text-primary" />
                               <div>
-                                <p className="text-sm font-medium text-blue-900">此報價已被選用</p>
+                                <p className="text-sm font-medium text-primary">此報價已被選用</p>
                                 <Link
                                   href={`/purchase-orders/${quote.purchaseOrder.id}`}
-                                  className="text-sm text-blue-600 hover:underline"
+                                  className="text-sm text-primary hover:underline"
                                 >
                                   查看採購單 #{quote.purchaseOrder.poNumber}
                                 </Link>

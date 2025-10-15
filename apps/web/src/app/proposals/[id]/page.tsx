@@ -53,7 +53,7 @@ export default function ProposalDetailPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
-          <div className="text-center py-12 text-gray-500">載入中...</div>
+          <div className="text-center py-12 text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -89,16 +89,16 @@ export default function ProposalDetailPage() {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">{proposal.title}</h1>
+              <h1 className="text-3xl font-bold text-foreground">{proposal.title}</h1>
               <Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].variant}>
                 {PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].label}
               </Badge>
             </div>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               專案：
               <Link
                 href={`/projects/${proposal.project.id}`}
-                className="ml-1 text-blue-600 hover:text-blue-800 font-medium"
+                className="ml-1 text-primary hover:text-primary font-medium"
               >
                 {proposal.project.name}
               </Link>
@@ -130,14 +130,14 @@ export default function ProposalDetailPage() {
               <CardContent>
                 <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">預算金額</dt>
-                    <dd className="text-2xl font-bold text-gray-900 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">預算金額</dt>
+                    <dd className="text-2xl font-bold text-foreground flex items-center gap-1">
                       <DollarSign className="h-5 w-5" />
                       ${proposal.amount.toLocaleString()}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">狀態</dt>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">狀態</dt>
                     <dd>
                       <Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].variant}>
                         {PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].label}
@@ -145,15 +145,15 @@ export default function ProposalDetailPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">建立時間</dt>
-                    <dd className="text-sm text-gray-900 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">建立時間</dt>
+                    <dd className="text-sm text-foreground flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {new Date(proposal.createdAt).toLocaleString('zh-TW')}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">最後更新</dt>
-                    <dd className="text-sm text-gray-900 flex items-center gap-1">
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">最後更新</dt>
+                    <dd className="text-sm text-foreground flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {new Date(proposal.updatedAt).toLocaleString('zh-TW')}
                     </dd>
@@ -172,43 +172,43 @@ export default function ProposalDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <span className="text-sm font-medium text-gray-500">專案名稱：</span>
+                  <span className="text-sm font-medium text-muted-foreground">專案名稱：</span>
                   <Link
                     href={`/projects/${proposal.project.id}`}
-                    className="ml-2 text-blue-600 hover:text-blue-800 font-medium"
+                    className="ml-2 text-primary hover:text-primary font-medium"
                   >
                     {proposal.project.name}
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-sm font-medium text-gray-500 block mb-2">專案管理者</span>
+                    <span className="text-sm font-medium text-muted-foreground block mb-2">專案管理者</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-blue-600" />
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-primary" />
                       </div>
-                      <span className="text-sm text-gray-900">
+                      <span className="text-sm text-foreground">
                         {proposal.project.manager.name || proposal.project.manager.email}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-500 block mb-2">監督者</span>
+                    <span className="text-sm font-medium text-muted-foreground block mb-2">監督者</span>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                         <User className="h-4 w-4 text-green-600" />
                       </div>
-                      <span className="text-sm text-gray-900">
+                      <span className="text-sm text-foreground">
                         {proposal.project.supervisor.name || proposal.project.supervisor.email}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-500">預算池：</span>
+                  <span className="text-sm font-medium text-muted-foreground">預算池：</span>
                   <Link
                     href={`/budget-pools/${proposal.project.budgetPool.id}`}
-                    className="ml-2 text-blue-600 hover:text-blue-800 font-medium"
+                    className="ml-2 text-primary hover:text-primary font-medium"
                   >
                     {proposal.project.budgetPool.name}
                   </Link>
@@ -245,21 +245,21 @@ export default function ProposalDetailPage() {
                     {proposal.historyItems.map((history) => (
                       <div
                         key={history.id}
-                        className="border-l-2 border-blue-500 pl-4"
+                        className="border-l-2 border-primary pl-4"
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-foreground">
                             {getActionLabel(history.action)}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(history.createdAt).toLocaleString('zh-TW')}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {history.user.name || history.user.email}
                         </p>
                         {history.details && (
-                          <p className="mt-1 text-sm text-gray-500">{history.details}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{history.details}</p>
                         )}
                       </div>
                     ))}

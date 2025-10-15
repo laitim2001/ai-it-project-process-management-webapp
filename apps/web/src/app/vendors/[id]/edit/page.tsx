@@ -32,7 +32,7 @@ export default function EditVendorPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -44,8 +44,8 @@ export default function EditVendorPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到供應商</h2>
-            <p className="text-gray-600 mb-4">此供應商不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到供應商</h2>
+            <p className="text-muted-foreground mb-4">此供應商不存在或已被刪除。</p>
             <Link href="/vendors">
               <Button>返回供應商列表</Button>
             </Link>
@@ -81,8 +81,8 @@ export default function EditVendorPage() {
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">編輯供應商</h1>
-          <p className="mt-2 text-gray-600">更新 {vendor.name} 的資訊</p>
+          <h1 className="text-3xl font-bold text-foreground">編輯供應商</h1>
+          <p className="mt-2 text-muted-foreground">更新 {vendor.name} 的資訊</p>
         </div>
 
         {/* 表單卡片 */}

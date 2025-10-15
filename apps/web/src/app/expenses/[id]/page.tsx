@@ -148,7 +148,7 @@ export default function ExpenseDetailPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-gray-600">載入中...</div>
+          <div className="text-lg text-muted-foreground">載入中...</div>
         </div>
       </DashboardLayout>
     );
@@ -160,8 +160,8 @@ export default function ExpenseDetailPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">找不到費用記錄</h2>
-            <p className="text-gray-600 mb-4">此費用不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到費用記錄</h2>
+            <p className="text-muted-foreground mb-4">此費用不存在或已被刪除。</p>
             <Link href="/expenses">
               <Button>返回費用列表</Button>
             </Link>
@@ -201,16 +201,16 @@ export default function ExpenseDetailPage() {
         {/* 頁面標題和操作按鈕 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Receipt className="h-8 w-8 text-blue-600" />
+            <Receipt className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 ${expense.amount.toLocaleString()}
               </h1>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
                   {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
                 </Badge>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   創建於 {new Date(expense.createdAt).toLocaleDateString('zh-TW')}
                 </span>
               </div>
@@ -249,10 +249,10 @@ export default function ExpenseDetailPage() {
               <CardContent className="space-y-4">
                 {/* 費用日期 */}
                 <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">費用日期</p>
-                    <p className="text-base text-gray-900">
+                    <p className="text-sm font-medium text-muted-foreground">費用日期</p>
+                    <p className="text-base text-foreground">
                       {new Date(expense.expenseDate).toLocaleDateString('zh-TW', {
                         year: 'numeric',
                         month: 'long',
@@ -264,10 +264,10 @@ export default function ExpenseDetailPage() {
 
                 {/* 費用金額 */}
                 <div className="flex items-start gap-3">
-                  <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">費用金額</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-sm font-medium text-muted-foreground">費用金額</p>
+                    <p className="text-2xl font-bold text-primary">
                       ${expense.amount.toLocaleString()}
                     </p>
                   </div>
@@ -276,14 +276,14 @@ export default function ExpenseDetailPage() {
                 {/* 發票文件 */}
                 {expense.invoiceFilePath && (
                   <div className="flex items-start gap-3">
-                    <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                    <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-500">發票文件</p>
+                      <p className="text-sm font-medium text-muted-foreground">發票文件</p>
                       <a
                         href={expense.invoiceFilePath}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-base text-blue-600 hover:underline"
+                        className="text-base text-primary hover:underline"
                       >
                         {expense.invoiceFilePath.split('/').pop()}
                       </a>
@@ -301,16 +301,16 @@ export default function ExpenseDetailPage() {
               <CardContent className="space-y-4">
                 {/* 採購單 */}
                 <div className="flex items-start gap-3">
-                  <ShoppingCart className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <ShoppingCart className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">採購單</p>
+                    <p className="text-sm font-medium text-muted-foreground">採購單</p>
                     <Link
                       href={`/purchase-orders/${expense.purchaseOrder.id}`}
-                      className="text-base text-blue-600 hover:underline"
+                      className="text-base text-primary hover:underline"
                     >
                       {expense.purchaseOrder.poNumber}
                     </Link>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       金額: ${expense.purchaseOrder.totalAmount.toLocaleString()}
                     </p>
                   </div>
@@ -318,12 +318,12 @@ export default function ExpenseDetailPage() {
 
                 {/* 專案 */}
                 <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">專案</p>
+                    <p className="text-sm font-medium text-muted-foreground">專案</p>
                     <Link
                       href={`/projects/${expense.purchaseOrder.project.id}`}
-                      className="text-base text-blue-600 hover:underline"
+                      className="text-base text-primary hover:underline"
                     >
                       {expense.purchaseOrder.project.name}
                     </Link>
@@ -332,12 +332,12 @@ export default function ExpenseDetailPage() {
 
                 {/* 供應商 */}
                 <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">供應商</p>
+                    <p className="text-sm font-medium text-muted-foreground">供應商</p>
                     <Link
                       href={`/vendors/${expense.purchaseOrder.vendor.id}`}
-                      className="text-base text-blue-600 hover:underline"
+                      className="text-base text-primary hover:underline"
                     >
                       {expense.purchaseOrder.vendor.name}
                     </Link>
@@ -401,7 +401,7 @@ export default function ExpenseDetailPage() {
                 )}
 
                 {!canSubmit && !canApprove && !canReject && !canMarkAsPaid && (
-                  <p className="text-sm text-gray-600 text-center py-4">
+                  <p className="text-sm text-muted-foreground text-center py-4">
                     當前狀態下無可用操作
                   </p>
                 )}
@@ -413,7 +413,7 @@ export default function ExpenseDetailPage() {
               <CardHeader>
                 <CardTitle className="text-sm">狀態說明</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-gray-600 space-y-2">
+              <CardContent className="text-sm text-muted-foreground space-y-2">
                 <p><strong>草稿:</strong> 可編輯、提交審批</p>
                 <p><strong>待審批:</strong> 等待主管批准或拒絕</p>
                 <p><strong>已批准:</strong> 已從預算池扣款，可標記已支付</p>
@@ -432,13 +432,13 @@ export default function ExpenseDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    拒絕原因 <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    拒絕原因 <span className="text-destructive">*</span>
                   </label>
                   <textarea
                     value={rejectComment}
                     onChange={(e) => setRejectComment(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:border-ring"
                     rows={4}
                     placeholder="請輸入拒絕原因..."
                   />
