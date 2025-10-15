@@ -93,8 +93,8 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">儀表板</h1>
-          <p className="mt-1 text-gray-500">歡迎回來！查看您的專案進度和最新動態</p>
+          <h1 className="text-3xl font-bold text-foreground">儀表板</h1>
+          <p className="mt-1 text-muted-foreground">歡迎回來！查看您的專案進度和最新動態</p>
         </div>
 
         {/* Stats Cards */}
@@ -106,13 +106,13 @@ export default function DashboardPage() {
             return (
               <Card key={index} className="relative overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     {stat.title}
                   </CardTitle>
-                  <Icon className="h-4 w-4 text-gray-400" />
+                  <Icon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-foreground">
                     {stat.value}
                   </div>
                   <div className="mt-1 flex items-center text-xs">
@@ -128,10 +128,10 @@ export default function DashboardPage() {
                     >
                       {stat.change.value}
                     </span>
-                    <span className="ml-1 text-gray-500">{stat.change.label}</span>
+                    <span className="ml-1 text-muted-foreground">{stat.change.label}</span>
                   </div>
                 </CardContent>
-                <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-blue-500 opacity-10" />
+                <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-primary opacity-10" />
               </Card>
             );
           })}
@@ -145,7 +145,7 @@ export default function DashboardPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>預算趨勢</CardTitle>
-                  <select className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-100">
+                  <select className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring">
                     <option>近 6 個月</option>
                     <option>近 3 個月</option>
                     <option>本月</option>
@@ -161,27 +161,27 @@ export default function DashboardPage() {
                           +{height}
                         </span>
                         <div
-                          className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-blue-400"
+                          className="w-full rounded-t-md bg-gradient-to-t from-primary to-primary/70"
                           style={{ height: `${height * 4.5}px` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-600">{i + 1}月</span>
+                      <span className="text-xs text-muted-foreground">{i + 1}月</span>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
+                <div className="mt-4 flex items-center justify-between border-t pt-3">
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">RM 485K</p>
-                    <p className="text-xs text-gray-600">本月預算額</p>
+                    <p className="text-2xl font-bold text-foreground">RM 485K</p>
+                    <p className="text-xs text-muted-foreground">本月預算額</p>
                   </div>
                   <div className="flex gap-6">
                     <div className="text-center">
                       <p className="text-base font-semibold text-green-600">+7.8%</p>
-                      <p className="text-xs text-gray-600">月增長率</p>
+                      <p className="text-xs text-muted-foreground">月增長率</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-base font-semibold text-blue-600">151</p>
-                      <p className="text-xs text-gray-600">總提案數</p>
+                      <p className="text-base font-semibold text-primary">151</p>
+                      <p className="text-xs text-muted-foreground">總提案數</p>
                     </div>
                   </div>
                 </div>
@@ -205,12 +205,12 @@ export default function DashboardPage() {
                   variant="outline"
                   className="flex flex-col h-auto items-center gap-2 p-3"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-xl flex-shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-xl flex-shrink-0">
                     {action.icon}
                   </div>
                   <div className="w-full">
-                    <p className="text-xs font-medium text-gray-900 leading-tight">{action.name}</p>
-                    <p className="text-xs text-gray-600 truncate mt-0.5">{action.description}</p>
+                    <p className="text-xs font-medium text-foreground leading-tight">{action.name}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{action.description}</p>
                   </div>
                 </Button>
               ))}
@@ -223,7 +223,7 @@ export default function DashboardPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>最近活動</CardTitle>
-                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
                     查看全部 →
                   </Button>
                 </div>
@@ -233,9 +233,9 @@ export default function DashboardPage() {
                   {recentActivities.map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-center gap-3 rounded-md border border-gray-200 p-3 hover:border-gray-300 transition-colors"
+                      className="flex items-center gap-3 rounded-md border p-3 hover:border-muted-foreground/30 transition-colors"
                     >
-                      <div className="rounded-md bg-blue-50 p-2.5">
+                      <div className="rounded-md bg-primary/10 p-2.5">
                         {activity.status === 'completed' ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
@@ -244,15 +244,15 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <h3 className="text-sm font-medium text-gray-900">{activity.title}</h3>
-                          <span className="text-xs text-gray-500">•</span>
-                          <span className="text-xs text-gray-600">{activity.time}</span>
+                          <h3 className="text-sm font-medium text-foreground">{activity.title}</h3>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <span className="text-xs text-muted-foreground">{activity.time}</span>
                         </div>
-                        <p className="mt-1 text-xs text-gray-700 leading-snug">{activity.subtitle}</p>
-                        <p className="mt-0.5 text-xs text-gray-600">{activity.company}</p>
+                        <p className="mt-1 text-xs text-foreground/80 leading-snug">{activity.subtitle}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{activity.company}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-semibold text-gray-900 whitespace-nowrap">{activity.amount}</p>
+                        <p className="text-sm font-semibold text-foreground whitespace-nowrap">{activity.amount}</p>
                         {activity.status === 'completed' && (
                           <Badge variant="success" className="mt-1">
                             完成
@@ -268,7 +268,7 @@ export default function DashboardPage() {
 
           {/* AI Insights */}
           <div>
-            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/20">
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <span className="text-lg">🤖</span>
@@ -278,34 +278,34 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2.5">
-                <div className="rounded-md bg-white p-3 shadow-sm">
+                <div className="rounded-md bg-card p-3 shadow-sm">
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-800">預算優化建議</span>
+                    <span className="text-sm font-medium text-foreground">預算優化建議</span>
                     <span className="text-xs font-semibold text-green-600">92% 信心度</span>
                   </div>
-                  <p className="text-xs text-gray-700 leading-relaxed">
+                  <p className="text-xs text-foreground/80 leading-relaxed">
                     系統分析顯示：Q4 雲端服務項目預算使用率偏低，建議重新分配至開發項目以提高整體效益。
                   </p>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-200">
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
                     <div className="h-full w-[92%] bg-gradient-to-r from-green-600 to-green-400"></div>
                   </div>
                 </div>
 
                 <Button variant="outline" className="w-full justify-between">
-                  <span className="text-xs font-medium text-blue-600">查看詳情</span>
+                  <span className="text-xs font-medium text-primary">查看詳情</span>
                   <span className="text-base">→</span>
                 </Button>
               </div>
 
               <div className="mt-4 space-y-2">
-                <p className="text-xs font-semibold text-gray-700">今日統計</p>
+                <p className="text-xs font-semibold text-foreground">今日統計</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-gray-900">42</span>
-                  <span className="text-xs text-gray-700">待處理提案</span>
+                  <span className="text-2xl font-bold text-foreground">42</span>
+                  <span className="text-xs text-foreground/80">待處理提案</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-gray-900">8</span>
-                  <span className="text-xs text-gray-700">今日會議</span>
+                  <span className="text-2xl font-bold text-foreground">8</span>
+                  <span className="text-xs text-foreground/80">今日會議</span>
                 </div>
               </div>
             </CardContent>
