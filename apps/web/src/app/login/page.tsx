@@ -17,6 +17,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -66,18 +68,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+    <div className="flex min-h-screen items-center justify-center bg-muted/50 px-4 py-12 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-3xl font-bold tracking-tight">
             IT 專案流程管理平台
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
+          </CardTitle>
+          <CardDescription className="text-sm">
             請登入您的帳號以繼續
-          </p>
-        </div>
+          </CardDescription>
+        </CardHeader>
 
-        <div className="mt-8 space-y-6 rounded-lg bg-white p-8 shadow">
+        <CardContent className="space-y-6">
           {/* Azure AD B2C SSO 登入按鈕 */}
           {process.env.NEXT_PUBLIC_AZURE_AD_B2C_ENABLED === 'true' && (
             <>
@@ -99,10 +101,10 @@ export default function LoginPage() {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-gray-500">或</span>
+                  <span className="bg-card px-2 text-muted-foreground">或</span>
                 </div>
               </div>
             </>
@@ -110,10 +112,10 @@ export default function LoginPage() {
 
           {/* Email/Password 登入表單 */}
           <form onSubmit={handleCredentialsLogin} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <Label htmlFor="email">
                 Email 地址
-              </label>
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -124,14 +126,13 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 placeholder="user@example.com"
-                className="mt-1"
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <Label htmlFor="password">
                 密碼
-              </label>
+              </Label>
               <Input
                 id="password"
                 name="password"
@@ -142,13 +143,12 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
                 placeholder="••••••••"
-                className="mt-1"
               />
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 p-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md bg-destructive/10 p-3">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
@@ -160,12 +160,14 @@ export default function LoginPage() {
               {isLoading ? '登入中...' : '登入'}
             </Button>
           </form>
+        </CardContent>
 
-          <p className="text-center text-xs text-gray-500">
+        <CardFooter>
+          <p className="text-center text-xs text-muted-foreground w-full">
             登入即表示您同意我們的服務條款和隱私政策
           </p>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
