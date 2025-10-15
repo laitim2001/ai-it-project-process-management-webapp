@@ -1,5 +1,22 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+/**
+ * ================================================================
+ * Input 組件 - 輸入框
+ * ================================================================
+ *
+ * 【功能說明】
+ * 統一的輸入框組件，支援所有原生 HTML input 屬性
+ *
+ * 【使用範例】
+ * ```tsx
+ * <Input type="text" placeholder="請輸入..." />
+ * <Input type="email" placeholder="電子郵件" />
+ * <Input type="password" placeholder="密碼" />
+ * <Input type="file" />
+ * ```
+ */
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -16,9 +33,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         {...props}
       />
-    )
+    );
   }
-)
-Input.displayName = "Input"
+);
+Input.displayName = "Input";
 
-export { Input }
+export { Input };

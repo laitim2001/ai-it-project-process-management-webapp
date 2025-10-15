@@ -1,5 +1,35 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+/**
+ * ================================================================
+ * Card 組件 - 卡片容器
+ * ================================================================
+ *
+ * 【複合組件結構】
+ * • Card - 主容器
+ * • CardHeader - 頂部區域
+ * • CardTitle - 標題
+ * • CardDescription - 描述文字
+ * • CardContent - 內容區域
+ * • CardFooter - 底部區域
+ *
+ * 【使用範例】
+ * ```tsx
+ * <Card>
+ *   <CardHeader>
+ *     <CardTitle>卡片標題</CardTitle>
+ *     <CardDescription>卡片描述</CardDescription>
+ *   </CardHeader>
+ *   <CardContent>
+ *     卡片內容
+ *   </CardContent>
+ *   <CardFooter>
+ *     <Button>操作</Button>
+ *   </CardFooter>
+ * </Card>
+ * ```
+ */
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
