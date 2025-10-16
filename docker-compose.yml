@@ -47,7 +47,7 @@ services:
     container_name: itpm-redis-dev
     restart: unless-stopped
     ports:
-      - '6380:6379'  # Use port 6380 to avoid conflict with other projects
+      - '6381:6379'  # Use port 6381 to avoid conflict with other projects
     volumes:
       - redis_data:/data
     healthcheck:

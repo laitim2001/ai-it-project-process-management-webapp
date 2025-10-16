@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-15 22:50 (佈局組件改造 - Sidebar 和 TopBar 改造為 Source 風格)
+**最後更新**: 2025-10-16 17:00 (Phase 4 進階功能整合 - 主題系統與無障礙性完善)
 
 ---
 
@@ -59,8 +59,13 @@
 | **項目完整索引** | `PROJECT-INDEX.md` | 項目所有重要文件的導航地圖（本文件） | 🔴 極高 |
 | **索引維護指南** | `INDEX-MAINTENANCE-GUIDE.md` | 索引維護策略、分類標準、更新流程 | 🔴 極高 |
 | **AI 助手快速參考** | `AI-ASSISTANT-GUIDE.md` | AI 助手工作流程、快速參考、開發進度 | 🔴 極高 |
-| **開發記錄** | `DEVELOPMENT-LOG.md` | 所有開發決策、里程碑、重要變更記錄 | 🔴 極高 |
+| **開發記錄** | `DEVELOPMENT-LOG.md` | 所有開發決策、里程碑、重要變更記錄（倒序） | 🔴 極高 |
 | **問題修復記錄** | `FIXLOG.md` | Bug 修復記錄、問題解決方案 | 🟡 高 |
+| **導航系統指南** | `NAVIGATION-SYSTEM-GUIDE.md` | 項目導航系統使用指南 | 🟡 高 |
+| **服務管理指南** | `DEVELOPMENT-SERVICE-MANAGEMENT.md` | 開發服務管理文檔 | 🟡 高 |
+| **Epic 1 記錄** | `EPIC1-RECORD.md` | Epic 1 詳細開發記錄（建議歸檔到 claudedocs/） | 🟢 中 |
+| **Epic 2 記錄** | `EPIC2-RECORD.md` | Epic 2 詳細開發記錄（建議歸檔到 claudedocs/） | 🟢 中 |
+| **臨時日誌** | `temp_epic1_log.md` | Epic 1 臨時日誌（⚠️ 待刪除） | 🔴 刪除 |
 | **安裝命令參考** | `INSTALL-COMMANDS.md` | 常用安裝命令快速參考 | 🟡 高 |
 | **認證系統摘要** | `認證系統實現摘要.md` | 認證系統實現總結（中文版） | 🟢 中 |
 
@@ -76,11 +81,9 @@
 | **專案簡報** | `docs/brief.md` | 項目背景、目標與價值主張 | 🔴 極高 |
 | **MVP 開發計劃** | `mvp-development-plan.md` | MVP 完整開發路線圖和 Sprint 規劃 | 🔴 極高 |
 | **MVP 實施檢查清單** | `mvp-implementation-checklist.md` | MVP 詳細實施檢查清單和進度追蹤 | 🔴 極高 |
-| **環境設置指南** | `SETUP-COMPLETE.md` | 完整的環境設置步驟 | 🟡 高 |
-| **貢獻指南** | `CONTRIBUTING.md` | 如何為項目做貢獻 | 🟡 高 |
-| **Claude Code 指南** | `CLAUDE.md` | Claude Code AI 助手使用規則 | 🟢 中 |
-| **導航系統指南** | `NAVIGATION-SYSTEM-GUIDE.md` | 項目導航系統使用指南 | 🟢 中 |
-| **服務管理指南** | `DEVELOPMENT-SERVICE-MANAGEMENT.md` | 開發服務管理文檔 | 🟢 中 |
+| **環境設置指南** | `SETUP-COMPLETE.md` | 完整的環境設置步驟和驗證清單 | 🟡 高 |
+| **貢獻指南** | `CONTRIBUTING.md` | 如何為項目做貢獻的完整指南 | 🟡 高 |
+| **Claude Code 指南** | `CLAUDE.md` | Claude Code AI 助手使用規則和項目上下文 | 🟢 中 |
 
 ### 設計系統文檔
 
@@ -221,12 +224,57 @@
 
 ### 研究與發現
 
+> **建議**: 這些文檔有歷史價值，建議移到 `docs/research/` 子目錄歸檔
+
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **用戶研究提示** | `docs/user-research-prompt.md` | 用戶研究方法論 | 🟢 中 |
-| **用戶研究結果** | `docs/user-research-result.md` | 用戶研究原始數據 | 🟢 中 |
-| **用戶研究洞察** | `docs/user-research-insights.md` | 用戶研究分析與洞察 | 🟢 中 |
-| **腦力激盪結果** | `docs/brainstorming-session-results.md` | 需求探索會議記錄 | 🟢 中 |
+| **用戶研究提示** | `docs/user-research-prompt.md` | 用戶研究方法論（建議歸檔） | 🟢 中 |
+| **用戶研究結果** | `docs/user-research-result.md` | 用戶研究原始數據（建議歸檔） | 🟢 中 |
+| **用戶研究洞察** | `docs/user-research-insights.md` | 用戶研究分析與洞察（建議歸檔） | 🟢 中 |
+| **腦力激盪結果** | `docs/brainstorming-session-results.md` | 需求探索會議記錄（建議歸檔） | 🟢 中 |
+
+### Sample-Docs 範例文檔庫
+
+> **說明**: Sample-Docs 目錄作為**範例文檔庫**保留，用於項目演示和參考用途。這些文件不會影響項目索引系統（已在索引配置中排除）。
+
+| 文件名稱 | 路徑 | 用途 | 重要性 |
+|---------|------|------|--------|
+| **AI 助手指南範例** | `Sample-Docs/AI-ASSISTANT-GUIDE.md` | 範例參考文檔 | 🟢 參考 |
+| **項目索引範例** | `Sample-Docs/PROJECT-INDEX.md` | 範例參考文檔 | 🟢 參考 |
+| **索引維護指南範例** | `Sample-Docs/INDEX-MAINTENANCE-GUIDE.md` | 範例參考文檔 | 🟢 參考 |
+| **開發記錄範例** | `Sample-Docs/DEVELOPMENT-LOG.md` | 範例參考文檔 | 🟢 參考 |
+| **修復記錄範例** | `Sample-Docs/FIXLOG.md` | 範例參考文檔 | 🟢 參考 |
+| **服務管理範例** | `Sample-Docs/DEVELOPMENT-SERVICE-MANAGEMENT.md` | 範例參考文檔 | 🟢 參考 |
+| **前端規格範例** | `Sample-Docs/front-end-spec.md` | 範例參考文檔 | 🟢 參考 |
+| **MVP 計劃範例** | `Sample-Docs/mvp-development-plan.md` | 範例參考文檔 | 🟢 參考 |
+| **MVP 檢查清單範例** | `Sample-Docs/mvp-implementation-checklist.md` | 範例參考文檔 | 🟢 參考 |
+| **MVP2 計劃** | `Sample-Docs/mvp2-development-plan.md` | 未來規劃參考文檔 | 🟢 參考 |
+| **MVP2 檢查清單** | `Sample-Docs/mvp2-implementation-checklist.md` | 未來規劃參考文檔 | 🟢 參考 |
+| **服務啟動指南** | `Sample-Docs/START-SERVICES.md` | 服務啟動參考文檔 | 🟢 參考 |
+| **啟動指南** | `Sample-Docs/STARTUP-GUIDE.md` | 啟動流程參考文檔 | 🟢 參考 |
+| **架構文檔範例** | `Sample-Docs/architecture.md` | 架構參考文檔 | 🟢 參考 |
+
+### Claude 專用文檔 (claudedocs/)
+
+> **說明**: 這些是 AI 助手生成的分析、計劃和進度追蹤文檔
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **設計系統遷移計劃** | `claudedocs/DESIGN-SYSTEM-MIGRATION-PLAN.md` | 設計系統遷移策略 | 🔴 極高 |
+| **設計系統遷移進度** | `claudedocs/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 遷移進度追蹤（v4.0） | 🔴 極高 |
+| **Phase 4 無障礙性增強** | `claudedocs/PHASE-4-ACCESSIBILITY-ENHANCEMENTS.md` | Phase 4 無障礙性功能詳細說明 | 🔴 極高 |
+| **設計系統細節優化** | `claudedocs/DESIGN-SYSTEM-REFINEMENTS.md` | 設計系統完整優化總結 | 🔴 極高 |
+| **Epic 5 缺失功能** | `claudedocs/EPIC-5-MISSING-FEATURES.md` | Epic 5 功能缺口分析 | 🟡 高 |
+| **Epic 6 測試清單** | `claudedocs/EPIC-6-TESTING-CHECKLIST.md` | Epic 6 測試檢查清單 | 🟡 高 |
+| **Epic 7 實施計劃** | `claudedocs/EPIC-7-IMPLEMENTATION-PLAN.md` | Epic 7 詳細實施計劃 | 🟡 高 |
+| **Git 工作流程** | `claudedocs/GIT-WORKFLOW-AND-BRANCHING-STRATEGY.md` | Git 分支策略和工作流程 | 🟡 高 |
+| **遷移檢查清單** | `claudedocs/MIGRATION-CHECKLIST-AND-ACCEPTANCE-CRITERIA.md` | 遷移驗收標準 | 🟡 高 |
+| **POC 驗證計劃** | `claudedocs/POC-VALIDATION-EXECUTION-PLAN.md` | POC 驗證執行計劃 | 🟡 高 |
+| **Phase 1 詳細任務** | `claudedocs/PHASE-1-DETAILED-TASKS.md` | Phase 1 任務分解 | 🟡 高 |
+| **Phase 2 詳細任務** | `claudedocs/PHASE-2-DETAILED-TASKS.md` | Phase 2 任務分解 | 🟡 高 |
+| **Phase 3 詳細任務** | `claudedocs/PHASE-3-DETAILED-TASKS.md` | Phase 3 任務分解 | 🟡 高 |
+| **Phase 4 詳細任務** | `claudedocs/PHASE-4-DETAILED-TASKS.md` | Phase 4 任務分解 | 🟡 高 |
+| **MD 文件整理報告** | `claudedocs/MD-FILES-ORGANIZATION-REPORT.md` | MD 文件組織分析報告 | 🟡 高 |
 
 ---
 
@@ -354,13 +402,19 @@
 | **元件索引** | `apps/web/src/components/ui/index.ts` | 元件統一導出 | 🟡 高 |
 | **UI 元件 README** | `apps/web/src/components/ui/README.md` | UI 元件庫使用說明 | 🟢 中 |
 
-#### 佈局元件（2025-10-15 更新）
+#### 佈局元件（2025-10-16 更新）
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **Dashboard Layout** | `apps/web/src/components/layout/dashboard-layout.tsx` | Dashboard 主佈局元件（響應式設計） | 🔴 極高 |
-| **Sidebar** | `apps/web/src/components/layout/Sidebar.tsx` | 側邊欄導航元件（Source 風格：用戶卡片 + 底部導航 + 描述 tooltip） | 🔴 極高 |
-| **TopBar** | `apps/web/src/components/layout/TopBar.tsx` | 頂部工具欄元件（Source 風格：通知中心 + 增強用戶選單） | 🔴 極高 |
+| **Dashboard Layout** | `apps/web/src/components/layout/dashboard-layout.tsx` | Dashboard 主佈局元件（響應式設計 + 主題適配） | 🔴 極高 |
+| **Sidebar** | `apps/web/src/components/layout/Sidebar.tsx` | 側邊欄導航元件（主題適配 + Source 風格） | 🔴 極高 |
+| **TopBar** | `apps/web/src/components/layout/TopBar.tsx` | 頂部工具欄元件（主題切換器 + 通知中心 + 用戶選單） | 🔴 極高 |
+
+#### 主題元件（Phase 4 新增）
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **ThemeToggle** | `apps/web/src/components/theme/ThemeToggle.tsx` | 主題切換組件（Light/Dark/System 模式） | 🔴 極高 |
 
 #### 業務元件
 
@@ -384,6 +438,7 @@
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
+| **useTheme Hook** | `apps/web/src/hooks/use-theme.ts` | 主題切換 Hook (Light/Dark/System) | 🔴 極高 |
 | **useDebounce Hook** | `apps/web/src/hooks/useDebounce.ts` | 防抖 Hook | 🟡 高 |
 | **工具函數** | `apps/web/src/lib/utils.ts` | cn() 函數和其他工具函數（className 合併） | 🔴 極高 |
 | **tRPC Client** | `apps/web/src/lib/trpc.ts` | tRPC 客戶端配置 | 🔴 極高 |
@@ -510,18 +565,30 @@
 
 ## 📊 索引統計
 
-**文件總數**: 226+ 個重要文件（完整索引，已驗證）
-**專案總文件**: 441 個（md/ts/tsx/json/yml）
-**最後更新**: 2025-10-13 11:00
+**文件總數**: 250+ 個重要文件（完整索引，已驗證）
+**專案總文件**: 313+ 個 MD 文件（包含 Sample-Docs 和 claudedocs）
+**核心項目文件**: ~80 個（不含範例和第三方框架）
+**最後更新**: 2025-10-16 17:00
 **維護者**: AI 助手 + 開發團隊
 
-**當前專案狀態**（2025-10-13）:
+**當前專案狀態**（2025-10-16）:
 - 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
 - ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
-- 📈 **累計代碼**: ~27,000 行核心代碼
+- 🌟 **Phase 4 完成**: 主題切換系統、暗色模式優化、響應式增強、無障礙性完善
+- 📈 **累計代碼**: ~27,500 行核心代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
 
-**本次更新變更**（2025-10-15 22:50）:
+**本次更新變更**（2025-10-16 17:00）:
+- ✅ Phase 4 進階功能整合完成
+- ✅ 主題系統: 新增 useTheme Hook 和 ThemeToggle 組件
+- ✅ 暗色模式: 優化顏色配置，對比度達 WCAG 2.1 AA 標準
+- ✅ 佈局優化: TopBar/Sidebar/DashboardLayout 主題適配
+- ✅ 響應式: Mobile sidebar 優化，防止背景滾動
+- ✅ 無障礙性: ARIA 標籤、鍵盤導航、Focus 指示器完善
+- ✅ 文檔: 新增 PHASE-4-ACCESSIBILITY-ENHANCEMENTS.md 和 DESIGN-SYSTEM-REFINEMENTS.md
+- ✅ 更新索引: 添加主題相關文件和組件
+
+**歷史更新**（2025-10-15 22:50）:
 - ✅ 佈局組件改造：Sidebar 和 TopBar 改造為 Source 項目風格
 - ✅ Sidebar 新功能：用戶資訊卡片、底部導航、功能描述 tooltip
 - ✅ TopBar 新功能：完整通知中心、增強用戶選單、本地通知管理
@@ -542,7 +609,9 @@
   - P3 浮層元件: 7 個
   - P4 回饋元件: 5 個
   - P5 進階元件: 5 個
-- 文檔文件: 67 個（新增設計系統遷移進度文檔）
+- 核心文檔: 80+ 個（業務需求、架構設計、用戶故事）
+- Sample-Docs: 14 個範例文檔（已排除索引）
+- claudedocs: 13 個 AI 分析文檔
 
 **Epic 8 - 通知系統相關文件**（已驗證索引）- 2025-10-06:
 - ✅ packages/api/src/routers/notification.ts (~450行 - Notification API)
@@ -593,11 +662,20 @@ npm run index:health
 
 ## 🚫 排除目錄說明
 
-以下目錄**不包含在索引中**，因為它們是工具或系統文件：
+以下目錄**不包含在索引中**，因為它們是工具、範例或系統文件：
 
-- `.bmad-core/` - BMad 開發工具框架
-- `.bmad-infrastructure-devops/` - DevOps 工具
-- `.bmad-creative-writing/` - 創意寫作工具
+### 範例文檔（已記錄但排除索引檢查）
+- `Sample-Docs/` - 範例文檔庫（14個參考文件，用於項目演示）
+
+### 第三方框架（約 205 個 MD 文件）
+- `.bmad-core/` - BMad 開發工具框架（~50個文件）
+- `.bmad-infrastructure-devops/` - DevOps 工具（~10個文件）
+- `.bmad-creative-writing/` - 創意寫作工具（~80個文件）
+- `.claude/commands/BMad/` - BMad 命令（~30個文件）
+- `.claude/commands/bmad-cw/` - 創意寫作命令（~30個文件）
+- `.claude/commands/bmadInfraDevOps/` - DevOps 命令（~5個文件）
+
+### 系統和工具目錄
 - `web-bundles/` - 前端工具擴展
 - `.claude/` `.cursor/` - IDE 配置
 - `.git/` - Git 內部文件

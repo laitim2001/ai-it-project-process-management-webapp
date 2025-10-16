@@ -140,32 +140,32 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 shadow-lg">
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-card px-6 pb-4 shadow-lg border-r border-border">
       {/* Logo 和品牌 */}
-      <div className="flex h-16 shrink-0 items-center border-b border-gray-200">
+      <div className="flex h-16 shrink-0 items-center border-b border-border">
         <Link href="/dashboard" className="flex items-center space-x-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
             <Building className="h-5 w-5 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-900">IT 專案管理</span>
-            <span className="text-xs text-gray-500">流程平台</span>
+            <span className="text-sm font-semibold text-foreground">IT 專案管理</span>
+            <span className="text-xs text-muted-foreground">流程平台</span>
           </div>
         </Link>
       </div>
 
       {/* 用戶資訊 */}
-      <div className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
-          <span className="text-sm font-medium text-white">
+      <div className="flex items-center space-x-3 rounded-lg bg-muted p-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
+          <span className="text-sm font-medium text-primary-foreground">
             {getUserInitials(session?.user?.name)}
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">
+          <p className="text-sm font-medium text-foreground truncate">
             {session?.user?.name || "用戶"}
           </p>
-          <p className="text-xs text-gray-500 truncate">
+          <p className="text-xs text-muted-foreground truncate">
             {(session?.user as any)?.role?.name || "角色"}
           </p>
         </div>
@@ -177,7 +177,7 @@ export function Sidebar() {
         <div className="space-y-8">
           {navigation.map((section) => (
             <div key={section.title}>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {section.title}
               </h3>
               <div className="mt-3 space-y-1">
@@ -190,8 +190,8 @@ export function Sidebar() {
                       className={cn(
                         'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                         isActive
-                          ? 'bg-blue-50 text-blue-700 shadow-sm'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-primary/10 text-primary shadow-sm'
+                          : 'text-foreground/70 hover:bg-accent hover:text-foreground'
                       )}
                       title={item.description}
                     >
@@ -200,8 +200,8 @@ export function Sidebar() {
                           className={cn(
                             'h-5 w-5 shrink-0',
                             isActive
-                              ? 'text-blue-600'
-                              : 'text-gray-400 group-hover:text-gray-600'
+                              ? 'text-primary'
+                              : 'text-muted-foreground group-hover:text-foreground'
                           )}
                         />
                         <span className="truncate">{item.name}</span>
@@ -227,7 +227,7 @@ export function Sidebar() {
         </div>
 
         {/* 底部導航 */}
-        <div className="mt-auto pt-6 border-t border-gray-200">
+        <div className="mt-auto pt-6 border-t border-border">
           <div className="space-y-1">
             {bottomNavigation.map((item) => {
               const isActive = pathname === item.href
@@ -238,8 +238,8 @@ export function Sidebar() {
                   className={cn(
                     'group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-accent text-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                   )}
                   title={item.description}
                 >
@@ -247,8 +247,8 @@ export function Sidebar() {
                     className={cn(
                       'mr-3 h-5 w-5 shrink-0',
                       isActive
-                        ? 'text-gray-600'
-                        : 'text-gray-400 group-hover:text-gray-600'
+                        ? 'text-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
                     )}
                   />
                   <span className="truncate">{item.name}</span>

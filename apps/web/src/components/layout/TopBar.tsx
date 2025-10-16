@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 
 interface TopBarProps {
   onMenuClick?: () => void
@@ -78,7 +79,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-background shadow-sm border-b border-border">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* 左側：Mobile 菜單 + 搜索欄 */}
         <div className="flex flex-1 items-center justify-start">
@@ -114,6 +115,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         {/* 右側工具欄 */}
         <div className="flex items-center space-x-4">
+          {/* 主題切換 */}
+          <ThemeToggle />
+
           {/* 通知 */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
