@@ -56,6 +56,83 @@ const getQuotesByProjectSchema = z.object({
 export const quoteRouter = createTRPCRouter({
 
   /**
+   * 查詢所有報價單（分頁）
+   * @param page - 頁碼（預設 1）
+   * @param limit - 每頁數量（預設 10，最大 100）
+   * @param projectId - 可選：按專案篩選
+   * @param vendorId - 可選：按供應商篩選
+   * @returns { items: Quote[], pagination: { page, limit, total, totalPages } }
+   */
+  getAll: protectedProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(100).default(10),
+      projectId: z.string().optional(),
+      vendorId: z.string().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { page, limit, projectId, vendorId } = input;
+      const skip = (page - 1) * limit;
+
+      // 構建查詢條件
+      const whereCondition: any = {};
+      if (projectId) {
+        whereCondition.projectId = projectId;
+      }
+      if (vendorId) {
+        whereCondition.vendorId = vendorId;
+      }
+
+      // 查詢總數
+      const total = await ctx.prisma.quote.count({
+        where: whereCondition,
+      });
+
+      // 查詢報價單列表
+      const quotes = await ctx.prisma.quote.findMany({
+        where: whereCondition,
+        include: {
+          vendor: {
+            select: {
+              id: true,
+              name: true,
+              contactPerson: true,
+              contactEmail: true,
+              phone: true,
+            },
+          },
+          project: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
+          purchaseOrder: {
+            select: {
+              id: true,
+              poNumber: true,
+              date: true,
+            },
+          },
+        },
+        orderBy: { uploadDate: 'desc' },
+        skip,
+        take: limit,
+      });
+
+      return {
+        items: quotes,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }),
+
+  /**
    * 根據專案 ID 查詢所有報價單
    * @param projectId - 專案 ID
    * @param vendorId - 可選：只查詢特定供應商的報價
