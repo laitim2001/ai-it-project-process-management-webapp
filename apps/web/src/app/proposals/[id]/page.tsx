@@ -20,17 +20,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { FileText, DollarSign, Calendar, User, History, Building2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle } from 'lucide-react';
 
 /**
  * 提案狀態顯示配置
  */
 const PROPOSAL_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'default' as const },
-  PendingApproval: { label: '待審批', variant: 'warning' as const },
-  Approved: { label: '已批准', variant: 'success' as const },
-  Rejected: { label: '已拒絕', variant: 'error' as const },
-  MoreInfoRequired: { label: '需更多資訊', variant: 'warning' as const },
+  Draft: { label: '草稿', variant: 'outline' as const },
+  PendingApproval: { label: '待審批', variant: 'default' as const },
+  Approved: { label: '已批准', variant: 'secondary' as const },
+  Rejected: { label: '已拒絕', variant: 'destructive' as const },
+  MoreInfoRequired: { label: '需更多資訊', variant: 'default' as const },
 } as const;
 
 /**
@@ -53,14 +55,79 @@ export default function ProposalDetailPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
-          <div className="text-center py-12 text-muted-foreground">載入中...</div>
+          {/* Breadcrumb Skeleton */}
+          <Skeleton className="h-5 w-[420px]" />
+
+          {/* Header Skeleton */}
+          <div className="flex items-start justify-between">
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-9 w-64" />
+                <Skeleton className="h-6 w-20" />
+              </div>
+              <Skeleton className="h-5 w-48" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+
+          {/* Content Skeleton */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-96 w-full" />
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
   if (!proposal) {
-    notFound();
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/proposals">預算提案</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>詳情</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Error State */}
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到提案。此提案可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/proposals">
+                <Button>返回提案列表</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   const getActionLabel = (action: string) => ACTION_LABELS[action] || action;

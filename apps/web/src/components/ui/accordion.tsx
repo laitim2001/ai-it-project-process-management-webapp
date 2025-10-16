@@ -51,7 +51,10 @@
  * const [value, setValue] = useState("item-1")
  *
  * <Accordion type="single" value={value} onValueChange={setValue}>
- *   {/* ... */}
+ *   <AccordionItem value="item-1">
+ *     <AccordionTrigger>標題</AccordionTrigger>
+ *     <AccordionContent>內容</AccordionContent>
+ *   </AccordionItem>
  * </Accordion>
  * ```
  *

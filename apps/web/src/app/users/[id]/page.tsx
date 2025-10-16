@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * User 詳情頁面
  *
@@ -5,7 +7,7 @@
  */
 
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { User as UserIcon, Mail, Calendar, Shield, Folder, Edit } from 'lucide-react';
-
-interface UserDetailPageProps {
-  params: {
-    id: string;
-  };
-}
 
 /**
  * 角色顯示配置
@@ -39,11 +35,37 @@ const PROJECT_STATUS_CONFIG = {
   Archived: { label: '已歸檔', variant: 'default' as const },
 } as const;
 
-export default async function UserDetailPage({ params }: UserDetailPageProps) {
-  const user = await api.user.getById.query({ id: params.id });
+export default function UserDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const userId = params.id as string;
+
+  const { data: user, isLoading } = api.user.getById.useQuery({ id: userId });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-lg text-muted-foreground">載入中...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!user) {
-    notFound();
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-2">找不到使用者</h2>
+            <p className="text-muted-foreground mb-4">此使用者不存在或已被刪除。</p>
+            <Link href="/users">
+              <Button>返回使用者列表</Button>
+            </Link>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   const roleConfig = ROLE_CONFIG[user.role.name as keyof typeof ROLE_CONFIG] || { label: user.role.name, variant: 'default' as const };

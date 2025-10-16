@@ -38,26 +38,28 @@ import {
   FileText,
   XCircle,
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * 專案狀態配置
  */
 const PROJECT_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'secondary' as const, icon: FileText },
-  InProgress: { label: '進行中', variant: 'success' as const, icon: TrendingUp },
+  Draft: { label: '草稿', variant: 'outline' as const, icon: FileText },
+  InProgress: { label: '進行中', variant: 'secondary' as const, icon: TrendingUp },
   Completed: { label: '已完成', variant: 'default' as const, icon: CheckCircle2 },
-  Archived: { label: '已歸檔', variant: 'secondary' as const, icon: XCircle },
+  Archived: { label: '已歸檔', variant: 'outline' as const, icon: XCircle },
 };
 
 /**
  * 提案狀態配置
  */
 const PROPOSAL_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'secondary' as const },
-  PendingApproval: { label: '待審批', variant: 'warning' as const },
-  Approved: { label: '已批准', variant: 'success' as const },
+  Draft: { label: '草稿', variant: 'outline' as const },
+  PendingApproval: { label: '待審批', variant: 'default' as const },
+  Approved: { label: '已批准', variant: 'secondary' as const },
   Rejected: { label: '已拒絕', variant: 'destructive' as const },
-  MoreInfoRequired: { label: '需補充資訊', variant: 'warning' as const },
+  MoreInfoRequired: { label: '需補充資訊', variant: 'default' as const },
 };
 
 export default function SupervisorDashboard() {
@@ -114,15 +116,17 @@ export default function SupervisorDashboard() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">主管儀表板</h1>
-            <p className="mt-2 text-muted-foreground">部門專案總覽</p>
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-5 w-64" />
           </div>
-          <div className="grid gap-6 md:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+              <Skeleton key={i} className="h-32" />
             ))}
           </div>
+          <Skeleton className="h-64" />
+          <Skeleton className="h-96" />
         </div>
       </DashboardLayout>
     );
@@ -132,15 +136,20 @@ export default function SupervisorDashboard() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
-          <h2 className="text-xl font-bold text-destructive mb-2">載入失敗</h2>
-          <p className="text-destructive">{error.message}</p>
-          {error.message.includes('主管') && (
-            <p className="text-sm text-destructive mt-2">
-              此頁面僅限部門主管訪問
-            </p>
-          )}
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="max-w-md space-y-6 text-center">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                載入失敗: {error.message}
+                {error.message.includes('主管') && (
+                  <div className="mt-2 text-sm">
+                    此頁面僅限部門主管訪問
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          </div>
         </div>
       </DashboardLayout>
     );

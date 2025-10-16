@@ -21,16 +21,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Receipt, FileText, ShoppingCart, Calendar, DollarSign, Edit, Trash2, Send, CheckCircle, XCircle, Banknote } from 'lucide-react';
+import { Receipt, FileText, ShoppingCart, Calendar, DollarSign, Edit, Trash2, Send, CheckCircle, XCircle, Banknote, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * 費用狀態配置
  */
 const EXPENSE_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'secondary' as const },
-  PendingApproval: { label: '待審批', variant: 'warning' as const },
-  Approved: { label: '已批准', variant: 'success' as const },
+  Draft: { label: '草稿', variant: 'outline' as const },
+  PendingApproval: { label: '待審批', variant: 'default' as const },
+  Approved: { label: '已批准', variant: 'secondary' as const },
   Paid: { label: '已支付', variant: 'default' as const },
 };
 
@@ -147,8 +149,34 @@ export default function ExpenseDetailPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+        <div className="space-y-8">
+          <Skeleton className="h-5 w-[420px]" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded" />
+              <div className="space-y-2">
+                <Skeleton className="h-9 w-32" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-48" />
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-48" />
+              <Skeleton className="h-32" />
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -158,13 +186,34 @@ export default function ExpenseDetailPage() {
   if (!expense) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到費用記錄</h2>
-            <p className="text-muted-foreground mb-4">此費用不存在或已被刪除。</p>
-            <Link href="/expenses">
-              <Button>返回費用列表</Button>
-            </Link>
+        <div className="space-y-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/expenses">費用管理</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>詳情</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到費用記錄。此費用可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/expenses">
+                <Button>返回費用列表</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </DashboardLayout>

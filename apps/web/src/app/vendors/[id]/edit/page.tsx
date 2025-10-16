@@ -19,6 +19,9 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function EditVendorPage() {
   const params = useParams();
@@ -31,8 +34,36 @@ export default function EditVendorPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+        <div className="space-y-8 max-w-3xl">
+          <Skeleton className="h-5 w-[520px]" />
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+          <Card className="p-6">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="flex gap-4">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+            </div>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -42,13 +73,34 @@ export default function EditVendorPage() {
   if (error || !vendor) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到供應商</h2>
-            <p className="text-muted-foreground mb-4">此供應商不存在或已被刪除。</p>
-            <Link href="/vendors">
-              <Button>返回供應商列表</Button>
-            </Link>
+        <div className="space-y-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/vendors">供應商管理</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>編輯</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到供應商。此供應商可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/vendors">
+                <Button>返回供應商列表</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </DashboardLayout>

@@ -23,15 +23,17 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart } from 'lucide-react';
+import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * 費用狀態配置
  */
 const EXPENSE_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'secondary' as const },
-  PendingApproval: { label: '待審批', variant: 'warning' as const },
-  Approved: { label: '已批准', variant: 'success' as const },
+  Draft: { label: '草稿', variant: 'outline' as const },
+  PendingApproval: { label: '待審批', variant: 'default' as const },
+  Approved: { label: '已批准', variant: 'secondary' as const },
   Paid: { label: '已支付', variant: 'default' as const },
 };
 
@@ -65,12 +67,26 @@ export default function ExpensesPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
+          <Skeleton className="h-5 w-64" />
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-foreground">費用管理</h1>
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-48" />
+              <Skeleton className="h-5 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
           </div>
-          <div className="grid gap-4">
+          <div className="grid gap-6 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+          <div className="flex gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 flex-1" />
+          </div>
+          <div className="space-y-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+              <Skeleton key={i} className="h-32" />
             ))}
           </div>
         </div>
@@ -82,8 +98,28 @@ export default function ExpensesPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
-          <p className="text-destructive">載入費用失敗: {error.message}</p>
+        <div className="space-y-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>費用管理</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  載入費用失敗: {error.message}
+                </AlertDescription>
+              </Alert>
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );

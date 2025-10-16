@@ -9,6 +9,8 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const BudgetPoolForm = dynamic(
   () => import('@/components/budget-pool/BudgetPoolForm').then((mod) => ({ default: mod.BudgetPoolForm })),
@@ -27,8 +29,37 @@ export default function EditBudgetPoolPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+        <div className="space-y-8">
+          {/* Breadcrumb Skeleton */}
+          <Skeleton className="h-5 w-[480px]" />
+
+          {/* Header Skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+
+          {/* Form Card Skeleton */}
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="flex gap-4">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -37,13 +68,37 @@ export default function EditBudgetPoolPage() {
   if (!budgetPool) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到預算池</h2>
-            <p className="text-muted-foreground mb-4">此預算池不存在或已被刪除。</p>
-            <Link href="/budget-pools">
-              <Button>返回預算池列表</Button>
-            </Link>
+        <div className="space-y-8">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>編輯</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Error State */}
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到預算池。此預算池可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/budget-pools">
+                <Button>返回預算池列表</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </DashboardLayout>

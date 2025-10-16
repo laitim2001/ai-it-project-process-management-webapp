@@ -1,10 +1,16 @@
+'use client';
+
 import dynamic from 'next/dynamic';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/trpc';
-import { notFound } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const UserForm = dynamic(
   () => import('@/components/user/UserForm').then((mod) => ({ default: mod.UserForm })),
@@ -14,17 +20,89 @@ const UserForm = dynamic(
   }
 );
 
-interface EditUserPageProps {
-  params: {
-    id: string;
-  };
-}
+export default function EditUserPage() {
+  const params = useParams();
+  const userId = params.id as string;
 
-export default async function EditUserPage({ params }: EditUserPageProps) {
-  const user = await api.user.getById.query({ id: params.id });
+  const { data: user, isLoading } = api.user.getById.useQuery({ id: userId });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          {/* Breadcrumb Skeleton */}
+          <Skeleton className="h-5 w-96" />
+
+          {/* Header Skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+
+          {/* Form Card Skeleton */}
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="flex gap-4">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!user) {
-    notFound();
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/users">使用者</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>編輯</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Error State */}
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到使用者。此使用者可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/users">
+                <Button>返回使用者列表</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -42,7 +120,7 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/users/${params.id}`}>{user.name || user.email}</BreadcrumbLink>
+              <BreadcrumbLink href={`/users/${userId}`}>{user.name || user.email}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

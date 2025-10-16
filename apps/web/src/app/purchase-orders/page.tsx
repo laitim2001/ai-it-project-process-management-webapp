@@ -23,7 +23,9 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShoppingCart, Building2, FileText, Calendar, DollarSign } from 'lucide-react';
+import { ShoppingCart, Building2, FileText, Calendar, DollarSign, AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function PurchaseOrdersPage() {
   // 狀態管理
@@ -63,12 +65,20 @@ export default function PurchaseOrdersPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
+          <Skeleton className="h-5 w-64" />
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-foreground">採購單管理</h1>
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-48" />
+              <Skeleton className="h-5 w-64" />
+            </div>
           </div>
-          <div className="grid gap-4">
+          <div className="flex gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 flex-1" />
+          </div>
+          <div className="space-y-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+              <Skeleton key={i} className="h-32" />
             ))}
           </div>
         </div>
@@ -80,8 +90,28 @@ export default function PurchaseOrdersPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
-          <p className="text-destructive">載入採購單失敗: {error.message}</p>
+        <div className="space-y-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>採購單管理</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  載入採購單失敗: {error.message}
+                </AlertDescription>
+              </Alert>
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );

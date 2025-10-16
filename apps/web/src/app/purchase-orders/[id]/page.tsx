@@ -21,20 +21,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { ShoppingCart, FileText, Building2, Calendar, DollarSign, Edit, Trash2, Receipt } from 'lucide-react';
+import { ShoppingCart, FileText, Building2, Calendar, DollarSign, Edit, Trash2, Receipt, AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * 費用狀態徽章組件
  */
 function ExpenseStatusBadge({ status }: { status: string }) {
   const statusConfig = {
-    Draft: { label: '草稿', variant: 'secondary' as const },
-    PendingApproval: { label: '待審批', variant: 'warning' as const },
-    Approved: { label: '已批准', variant: 'success' as const },
+    Draft: { label: '草稿', variant: 'outline' as const },
+    PendingApproval: { label: '待審批', variant: 'default' as const },
+    Approved: { label: '已批准', variant: 'secondary' as const },
     Paid: { label: '已支付', variant: 'default' as const },
   };
 
-  const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
+  const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'outline' as const };
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
@@ -73,8 +75,23 @@ export default function PurchaseOrderDetailPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+        <div className="space-y-8">
+          <Skeleton className="h-5 w-[480px]" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded" />
+              <div className="space-y-2">
+                <Skeleton className="h-9 w-48" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-24" />
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
+          <Skeleton className="h-96" />
         </div>
       </DashboardLayout>
     );
@@ -84,13 +101,34 @@ export default function PurchaseOrderDetailPage() {
   if (!purchaseOrder) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到採購單</h2>
-            <p className="text-muted-foreground mb-4">此採購單不存在或已被刪除。</p>
-            <Link href="/purchase-orders">
-              <Button>返回採購單列表</Button>
-            </Link>
+        <div className="space-y-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/purchase-orders">採購單管理</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>詳情</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到採購單。此採購單可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/purchase-orders">
+                <Button>返回採購單列表</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </DashboardLayout>

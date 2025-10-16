@@ -12,7 +12,8 @@ import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportU
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card } from '@/components/ui/card';
-import { Plus, Download } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Plus, Download, Wallet, AlertCircle } from 'lucide-react';
 
 export default function BudgetPoolsPage() {
   const [page, setPage] = useState(1);
@@ -84,8 +85,29 @@ export default function BudgetPoolsPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
-          <p className="text-destructive">Error loading budget pools: {error.message}</p>
+        <div className="space-y-8">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>預算池</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Error State */}
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                載入預算池時發生錯誤：{error.message}。請稍後再試或聯繫系統管理員。
+              </AlertDescription>
+            </Alert>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -193,12 +215,20 @@ export default function BudgetPoolsPage() {
 
         {/* Budget Pools Grid */}
         {budgetPools.length === 0 ? (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">
-              {search || yearFilter
-                ? '找不到符合條件的預算池'
-                : '尚未有任何預算池，點擊新增開始建立'}
-            </p>
+          <Card className="p-12 text-center">
+            <div className="flex flex-col items-center justify-center">
+              <Wallet className="h-16 w-16 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground font-medium mb-2">
+                {search || yearFilter
+                  ? '找不到符合條件的預算池'
+                  : '尚未有任何預算池'}
+              </p>
+              {!search && !yearFilter && (
+                <p className="text-sm text-muted-foreground">
+                  點擊上方「新增預算池」按鈕開始建立
+                </p>
+              )}
+            </div>
           </Card>
         ) : (
           <>

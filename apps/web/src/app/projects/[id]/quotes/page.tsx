@@ -21,7 +21,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { FileText, Building2, Calendar, DollarSign, TrendingUp, TrendingDown, CheckCircle, ShoppingCart } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileText, Building2, Calendar, DollarSign, TrendingUp, TrendingDown, CheckCircle, ShoppingCart, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { QuoteUploadForm } from '@/components/quote/QuoteUploadForm';
 
@@ -66,8 +68,37 @@ export default function ProjectQuotesPage() {
   if (projectLoading || quotesLoading) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+        <div className="space-y-8">
+          {/* Breadcrumb Skeleton */}
+          <Skeleton className="h-5 w-[520px]" />
+
+          {/* Header Skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+
+          {/* Upload Form Skeleton */}
+          <Skeleton className="h-64 w-full" />
+
+          {/* Stats Cards Skeleton */}
+          <div className="grid gap-6 md:grid-cols-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+
+          {/* Quotes List Skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-48 w-full" />
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -77,13 +108,37 @@ export default function ProjectQuotesPage() {
   if (!project) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到專案</h2>
-            <p className="text-muted-foreground mb-4">此專案不存在或已被刪除。</p>
-            <Link href="/projects">
-              <Button>返回專案列表</Button>
-            </Link>
+        <div className="space-y-8">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/projects">專案管理</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>報價管理</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Error State */}
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到專案。此專案可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/projects">
+                <Button>返回專案列表</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -220,7 +275,7 @@ export default function ProjectQuotesPage() {
                       {/* 最低/最高標記 */}
                       {isLowest && (
                         <div className="absolute top-4 right-4">
-                          <Badge variant="success" className="flex items-center gap-1">
+                          <Badge variant="secondary" className="flex items-center gap-1">
                             <TrendingDown className="h-3 w-3" />
                             最低價
                           </Badge>
@@ -228,7 +283,7 @@ export default function ProjectQuotesPage() {
                       )}
                       {isHighest && !isLowest && (
                         <div className="absolute top-4 right-4">
-                          <Badge variant="error" className="flex items-center gap-1">
+                          <Badge variant="destructive" className="flex items-center gap-1">
                             <TrendingUp className="h-3 w-3" />
                             最高價
                           </Badge>

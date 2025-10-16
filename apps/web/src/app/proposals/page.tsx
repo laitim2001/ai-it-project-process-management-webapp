@@ -17,18 +17,19 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Plus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Plus, FileText } from 'lucide-react';
 
 export default function ProposalsPage() {
   const { data: proposals, isLoading } = api.budgetProposal.getAll.useQuery();
 
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
-      Draft: { label: '草稿', variant: 'default' },
-      PendingApproval: { label: '待審批', variant: 'warning' },
-      Approved: { label: '已批准', variant: 'success' },
-      Rejected: { label: '已拒絕', variant: 'error' },
-      MoreInfoRequired: { label: '需更多資訊', variant: 'warning' },
+    const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
+      Draft: { label: '草稿', variant: 'outline' },
+      PendingApproval: { label: '待審批', variant: 'default' },
+      Approved: { label: '已批准', variant: 'secondary' },
+      Rejected: { label: '已拒絕', variant: 'destructive' },
+      MoreInfoRequired: { label: '需更多資訊', variant: 'default' },
     };
 
     const statusInfo = statusMap[status] || { label: status, variant: 'default' as const };
@@ -39,6 +40,36 @@ export default function ProposalsPage() {
       </Badge>
     );
   };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          {/* Breadcrumb Skeleton */}
+          <Skeleton className="h-5 w-64" />
+
+          {/* Header Skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-48" />
+              <Skeleton className="h-5 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="rounded-lg border bg-card shadow-sm">
+            <div className="p-6 space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -71,7 +102,7 @@ export default function ProposalsPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-lg border bg-white shadow-sm">
+        <div className="rounded-lg border bg-card shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>
@@ -84,16 +115,14 @@ export default function ProposalsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {!proposals || proposals.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                    載入中...
-                  </TableCell>
-                </TableRow>
-              ) : !proposals || proposals.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                    尚無提案資料
+                  <TableCell colSpan={6} className="text-center py-12">
+                    <div className="flex flex-col items-center justify-center">
+                      <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <p className="text-muted-foreground font-medium">尚無提案資料</p>
+                      <p className="text-sm text-muted-foreground mt-1">請點擊右上角「新增提案」按鈕建立第一個提案</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (

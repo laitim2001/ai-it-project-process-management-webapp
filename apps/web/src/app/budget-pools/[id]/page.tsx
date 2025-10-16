@@ -9,7 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { DollarSign, Calendar, TrendingUp, Folder, Edit, Trash2, User } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { DollarSign, Calendar, TrendingUp, Folder, Edit, Trash2, User, AlertCircle } from 'lucide-react';
 
 /**
  * 專案狀態顯示配置
@@ -21,15 +23,15 @@ const PROJECT_STATUS_CONFIG = {
   },
   InProgress: {
     label: '進行中',
-    variant: 'info' as const,
+    variant: 'default' as const,
   },
   Completed: {
     label: '已完成',
-    variant: 'success' as const,
+    variant: 'secondary' as const,
   },
   Archived: {
     label: '已歸檔',
-    variant: 'default' as const,
+    variant: 'outline' as const,
   },
 } as const;
 
@@ -62,8 +64,32 @@ export default function BudgetPoolDetailPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+        <div className="space-y-8">
+          {/* Breadcrumb Skeleton */}
+          <Skeleton className="h-5 w-96" />
+
+          {/* Header Skeleton */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-64" />
+              <Skeleton className="h-5 w-48" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+
+          {/* Content Skeleton */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+            <div className="lg:col-span-1">
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -72,13 +98,37 @@ export default function BudgetPoolDetailPage() {
   if (!budgetPool) {
     return (
       <DashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到預算池</h2>
-            <p className="text-muted-foreground mb-4">此預算池不存在或已被刪除。</p>
-            <Link href="/budget-pools">
-              <Button>返回預算池列表</Button>
-            </Link>
+        <div className="space-y-8">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>詳情</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Error State */}
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="max-w-md space-y-6 text-center">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  找不到預算池。此預算池可能不存在或已被刪除。
+                </AlertDescription>
+              </Alert>
+              <Link href="/budget-pools">
+                <Button>返回預算池列表</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </DashboardLayout>
