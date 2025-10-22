@@ -31,13 +31,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   Search,
   Plus,
   Download,
   SlidersHorizontal,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
@@ -79,6 +82,7 @@ export default function ProjectsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   const utils = api.useContext();
 
@@ -223,6 +227,25 @@ export default function ProjectsPage() {
             <p className="mt-1 text-muted-foreground">管理所有 IT 專案</p>
           </div>
           <div className="flex gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
             <Button
               variant="outline"
               onClick={handleExport}
@@ -335,7 +358,7 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* 專案卡片網格 */}
+        {/* 專案顯示區域 - 根據視圖模式切換 */}
         {projects.length === 0 ? (
           <Card className="bg-muted">
             <CardContent className="pt-6">
@@ -346,8 +369,9 @@ export default function ProjectsPage() {
               </p>
             </CardContent>
           </Card>
-        ) : (
+        ) : viewMode === 'card' ? (
           <>
+            {/* 卡片視圖 */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {projects.map((project) => (
                 <Link
@@ -416,58 +440,120 @@ export default function ProjectsPage() {
                 </Link>
               ))}
             </div>
-
-            {/* 分頁控件 */}
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  第 {pagination.page} / {pagination.totalPages} 頁
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.page === 1}
-                    onClick={() => setPage(pagination.page - 1)}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  {/* 頁碼按鈕 */}
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (pagination.totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (pagination.page <= 3) {
-                      pageNum = i + 1;
-                    } else if (pagination.page >= pagination.totalPages - 2) {
-                      pageNum = pagination.totalPages - 4 + i;
-                    } else {
-                      pageNum = pagination.page - 2 + i;
-                    }
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pagination.page === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setPage(pageNum)}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.page === pagination.totalPages}
-                    onClick={() => setPage(pagination.page + 1)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
           </>
+        ) : (
+          <>
+            {/* 列表視圖 */}
+            <div className="rounded-lg border bg-card shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>專案名稱</TableHead>
+                    <TableHead>狀態</TableHead>
+                    <TableHead>預算池</TableHead>
+                    <TableHead>專案經理</TableHead>
+                    <TableHead>主管</TableHead>
+                    <TableHead className="text-center">提案</TableHead>
+                    <TableHead className="text-center">採購單</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects.map((project) => (
+                    <TableRow key={project.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {project.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            PROJECT_STATUS_CONFIG[
+                              project.status as keyof typeof PROJECT_STATUS_CONFIG
+                            ].variant
+                          }
+                        >
+                          {
+                            PROJECT_STATUS_CONFIG[
+                              project.status as keyof typeof PROJECT_STATUS_CONFIG
+                            ].label
+                          }
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{project.budgetPool.name}</TableCell>
+                      <TableCell>{project.manager.name}</TableCell>
+                      <TableCell>{project.supervisor.name}</TableCell>
+                      <TableCell className="text-center">{project._count.proposals}</TableCell>
+                      <TableCell className="text-center">{project._count.purchaseOrders}</TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          查看
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
+
+        {/* 分頁控件 */}
+        {projects.length > 0 && pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              第 {pagination.page} / {pagination.totalPages} 頁
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === 1}
+                onClick={() => setPage(pagination.page - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {/* 頁碼按鈕 */}
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (pagination.page <= 3) {
+                  pageNum = i + 1;
+                } else if (pagination.page >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = pagination.page - 2 + i;
+                }
+
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pagination.page === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === pagination.totalPages}
+                onClick={() => setPage(pagination.page + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </DashboardLayout>

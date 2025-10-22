@@ -24,7 +24,8 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Building2, Mail, Phone, User, AlertCircle } from 'lucide-react';
+import { Plus, Building2, Mail, Phone, User, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 export default function VendorsPage() {
   // 狀態管理
@@ -32,6 +33,7 @@ export default function VendorsPage() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'updatedAt'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { showToast } = useToast();
 
   // Debounce 搜尋避免過多 API 請求
@@ -129,12 +131,35 @@ export default function VendorsPage() {
             <h1 className="text-3xl font-bold text-foreground">供應商管理</h1>
             <p className="mt-2 text-muted-foreground">管理和維護供應商資訊</p>
           </div>
-          <Link href="/vendors/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              新增供應商
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+                aria-label="卡片視圖"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+                aria-label="列表視圖"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Link href="/vendors/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                新增供應商
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* 搜尋和排序欄 */}
@@ -179,7 +204,7 @@ export default function VendorsPage() {
           </div>
         )}
 
-        {/* 供應商卡片網格 */}
+        {/* 供應商顯示 - 根據視圖模式切換 */}
         {vendors.length === 0 ? (
           <Card className="p-8 text-center">
             <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -189,8 +214,9 @@ export default function VendorsPage() {
                 : '尚未有任何供應商，點擊新增開始建立'}
             </p>
           </Card>
-        ) : (
+        ) : viewMode === 'card' ? (
           <>
+            {/* 卡片視圖 */}
             <div className="grid gap-4 md:grid-cols-2">
               {vendors.map((vendor) => (
                 <Link
@@ -246,6 +272,62 @@ export default function VendorsPage() {
                   </Card>
                 </Link>
               ))}
+            </div>
+
+            {/* 分頁 */}
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {/* 列表視圖 */}
+            <div className="rounded-lg border bg-card shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>供應商名稱</TableHead>
+                    <TableHead>聯絡人</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>電話</TableHead>
+                    <TableHead className="text-center">報價數量</TableHead>
+                    <TableHead className="text-center">採購單數量</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vendors.map((vendor) => (
+                    <TableRow key={vendor.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <Link
+                          href={`/vendors/${vendor.id}`}
+                          className="font-medium text-primary hover:underline flex items-center gap-2"
+                        >
+                          <Building2 className="h-4 w-4" />
+                          {vendor.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{vendor.contactPerson || '-'}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">{vendor.contactEmail || '-'}</TableCell>
+                      <TableCell>{vendor.phone || '-'}</TableCell>
+                      <TableCell className="text-center">{vendor._count.quotes}</TableCell>
+                      <TableCell className="text-center">{vendor._count.purchaseOrders}</TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/vendors/${vendor.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          查看
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
 
             {/* 分頁 */}

@@ -52,27 +52,27 @@ export default function DashboardPage() {
   const recentActivities = [
     {
       id: 1,
-      title: '客戶電話會議',
-      subtitle: '討論 Q4 合作計劃和預算分配',
-      company: 'ABC Corporation',
+      title: '預算提案已批准',
+      subtitle: 'Q4 雲端服務擴充專案預算已獲主管批准',
+      company: 'IT 部門',
       time: '1 小時前',
       amount: 'RM 150,000',
       status: 'completed',
     },
     {
       id: 2,
-      title: '提案文件生成',
-      subtitle: 'AI 自動生成人工智慧解決方案提案文件',
-      company: 'XYZ Technology',
+      title: '採購單已建立',
+      subtitle: 'AI 專案管理系統開發採購單已完成',
+      company: 'Tech Solutions Ltd',
       time: '2 小時前',
       amount: 'RM 85,000',
       status: 'completed',
     },
     {
       id: 3,
-      title: '新增客戶',
-      subtitle: '系統自動創建新客戶資料',
-      company: 'Tech Startup Inc',
+      title: '新專案建立',
+      subtitle: '數位轉型專案已加入系統並分配預算池',
+      company: 'IT 部門',
       time: '3 小時前',
       amount: 'RM 45,000',
       status: 'pending',
@@ -80,12 +80,12 @@ export default function DashboardPage() {
   ];
 
   const quickActions = [
-    { name: '新增客戶', description: '建立新的客戶資料', icon: '➕' },
-    { name: 'AI 助手', description: '開始智能對話', icon: '💬' },
-    { name: '生成提案', description: '創建新提案文件', icon: '📋' },
-    { name: '知識搜索', description: '查找產品信息', icon: '🔍' },
-    { name: '安排會議', description: '預約客戶會議', icon: '📅' },
-    { name: '聯絡客戶', description: '撥打或發送郵件', icon: '📞' },
+    { name: '新增專案', description: '建立新的 IT 專案', icon: '📁' },
+    { name: '建立提案', description: '提交預算提案申請', icon: '📋' },
+    { name: '新增預算池', description: '創建財政年度預算池', icon: '💰' },
+    { name: '供應商管理', description: '管理供應商資料', icon: '🏢' },
+    { name: '查看採購單', description: '檢視採購訂單狀態', icon: '📄' },
+    { name: '費用記錄', description: '記錄專案費用支出', icon: '💸' },
   ];
 
   return (

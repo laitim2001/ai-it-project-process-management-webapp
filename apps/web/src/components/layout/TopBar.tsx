@@ -74,8 +74,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   }
 
   // 處理登出
-  const handleSignOut = () => {
-    signOut({ callbackUrl: "/login" })
+  const handleSignOut = async () => {
+    // 使用當前的 origin 以確保重定向到正確的端口
+    const loginUrl = `${window.location.origin}/login`
+    await signOut({
+      callbackUrl: loginUrl,
+      redirect: true
+    })
   }
 
   return (

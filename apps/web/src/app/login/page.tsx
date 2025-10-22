@@ -152,6 +152,15 @@ export default function LoginPage() {
               </div>
             )}
 
+            <div className="flex items-center justify-between text-sm">
+              <a
+                href="/forgot-password"
+                className="text-primary hover:underline"
+              >
+                忘記密碼？
+              </a>
+            </div>
+
             <Button
               type="submit"
               disabled={isLoading}
@@ -162,7 +171,16 @@ export default function LoginPage() {
           </form>
         </CardContent>
 
-        <CardFooter>
+        <CardFooter className="flex flex-col space-y-4">
+          <div className="text-center text-sm">
+            <span className="text-muted-foreground">還沒有帳號？</span>{' '}
+            <a
+              href="/register"
+              className="text-primary font-medium hover:underline"
+            >
+              立即註冊
+            </a>
+          </div>
           <p className="text-center text-xs text-muted-foreground w-full">
             登入即表示您同意我們的服務條款和隱私政策
           </p>

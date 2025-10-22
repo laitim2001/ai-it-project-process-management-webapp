@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Pagination, BudgetPoolListSkeleton, useToast } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
@@ -13,7 +14,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Download, Wallet, AlertCircle } from 'lucide-react';
+import { Plus, Download, Wallet, AlertCircle, LayoutGrid, List } from 'lucide-react';
 
 export default function BudgetPoolsPage() {
   const [page, setPage] = useState(1);
@@ -24,6 +25,7 @@ export default function BudgetPoolsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'year' | 'amount'>('year');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { showToast } = useToast();
   const utils = api.useContext();
 
@@ -139,6 +141,27 @@ export default function BudgetPoolsPage() {
             <p className="mt-2 text-muted-foreground">管理財務年度預算池</p>
           </div>
           <div className="flex gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+                aria-label="卡片視圖"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+                aria-label="列表視圖"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
             <Button
               variant="outline"
               onClick={handleExport}
@@ -213,7 +236,7 @@ export default function BudgetPoolsPage() {
           </div>
         )}
 
-        {/* Budget Pools Grid */}
+        {/* Budget Pools Display - 根據視圖模式切換 */}
         {budgetPools.length === 0 ? (
           <Card className="p-12 text-center">
             <div className="flex flex-col items-center justify-center">
@@ -230,8 +253,9 @@ export default function BudgetPoolsPage() {
               )}
             </div>
           </Card>
-        ) : (
+        ) : viewMode === 'card' ? (
           <>
+            {/* 卡片視圖 */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {budgetPools.map((pool) => (
                 <Link
@@ -259,6 +283,59 @@ export default function BudgetPoolsPage() {
                   </Card>
                 </Link>
               ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {/* 列表視圖 */}
+            <div className="rounded-lg border bg-card shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>預算池名稱</TableHead>
+                    <TableHead>財務年度</TableHead>
+                    <TableHead className="text-right">總預算金額</TableHead>
+                    <TableHead className="text-center">專案數量</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {budgetPools.map((pool) => (
+                    <TableRow key={pool.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <Link
+                          href={`/budget-pools/${pool.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {pool.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>FY {pool.financialYear}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        ${pool.totalAmount.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-center">{pool._count.projects}</TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/budget-pools/${pool.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          查看
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
 
             {/* Pagination */}

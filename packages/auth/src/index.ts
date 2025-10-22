@@ -207,6 +207,13 @@ export const authOptions: NextAuthOptions = {
     // newUser: '/auth/new-user',
   },
 
+  // 事件處理
+  events: {
+    async signOut() {
+      // 登出事件處理（如需記錄日誌等）
+    },
+  },
+
   // 調試模式（僅在開發環境）
   debug: process.env.NODE_ENV === 'development',
 

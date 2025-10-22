@@ -23,7 +23,8 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -42,6 +43,7 @@ export default function ExpensesPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [purchaseOrderId, setPurchaseOrderId] = useState<string | undefined>(undefined);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { showToast } = useToast();
 
   // 查詢費用列表
@@ -150,12 +152,35 @@ export default function ExpensesPage() {
             <h1 className="text-3xl font-bold text-foreground">費用管理</h1>
             <p className="mt-2 text-muted-foreground">管理和審批所有費用記錄</p>
           </div>
-          <Link href="/expenses/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              新增費用
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+                aria-label="卡片視圖"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+                aria-label="列表視圖"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Link href="/expenses/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                新增費用
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* 統計卡片 */}
@@ -261,7 +286,7 @@ export default function ExpensesPage() {
           </div>
         )}
 
-        {/* 費用列表 */}
+        {/* 費用顯示 - 根據視圖模式切換 */}
         {expenses.length === 0 ? (
           <Card>
             <CardContent className="py-12">
@@ -280,85 +305,158 @@ export default function ExpensesPage() {
               </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-4">
-            {expenses.map((expense) => (
-              <Link key={expense.id} href={`/expenses/${expense.id}`} className="block">
-                <Card className="hover:border-primary hover:shadow-md transition cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      {/* 左側：主要資訊 */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <Receipt className="h-6 w-6 text-primary" />
-                          <div>
+        ) : viewMode === 'card' ? (
+          <>
+            {/* 卡片視圖 */}
+            <div className="space-y-4">
+              {expenses.map((expense) => (
+                <Link key={expense.id} href={`/expenses/${expense.id}`} className="block">
+                  <Card className="hover:border-primary hover:shadow-md transition cursor-pointer">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        {/* 左側：主要資訊 */}
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Receipt className="h-6 w-6 text-primary" />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-foreground">
+                                  ${expense.amount.toLocaleString()}
+                                </h3>
+                                <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
+                                  {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
+                            {/* 採購單 */}
                             <div className="flex items-center gap-2">
-                              <h3 className="text-lg font-semibold text-foreground">
-                                ${expense.amount.toLocaleString()}
-                              </h3>
-                              <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
-                                {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
-                              </Badge>
+                              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">採購單</p>
+                                <p className="text-sm font-medium text-foreground">
+                                  {expense.purchaseOrder.poNumber}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
-                            </p>
+
+                            {/* 專案 */}
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">專案</p>
+                                <p className="text-sm font-medium text-foreground">
+                                  {expense.purchaseOrder.project.name}
+                                </p>
+                              </div>
+                            </div>
                           </div>
+
+                          {/* 發票 */}
+                          {expense.invoiceFilePath && (
+                            <div className="flex items-center gap-2 pl-9 text-sm text-muted-foreground">
+                              <FileText className="h-4 w-4" />
+                              <span>{expense.invoiceFilePath.split('/').pop()}</span>
+                            </div>
+                          )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
-                          {/* 採購單 */}
-                          <div className="flex items-center gap-2">
-                            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">採購單</p>
-                              <p className="text-sm font-medium text-foreground">
-                                {expense.purchaseOrder.poNumber}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* 專案 */}
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">專案</p>
-                              <p className="text-sm font-medium text-foreground">
-                                {expense.purchaseOrder.project.name}
-                              </p>
-                            </div>
-                          </div>
+                        {/* 右側：日期 */}
+                        <div className="text-right text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4 inline mr-1" />
+                          {new Date(expense.createdAt).toLocaleDateString('zh-TW')}
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
 
-                        {/* 發票 */}
-                        {expense.invoiceFilePath && (
-                          <div className="flex items-center gap-2 pl-9 text-sm text-muted-foreground">
-                            <FileText className="h-4 w-4" />
-                            <span>{expense.invoiceFilePath.split('/').pop()}</span>
-                          </div>
+            {/* 分頁 */}
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {/* 列表視圖 */}
+            <div className="rounded-lg border bg-card shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">金額</TableHead>
+                    <TableHead>狀態</TableHead>
+                    <TableHead>採購單</TableHead>
+                    <TableHead>專案</TableHead>
+                    <TableHead>費用日期</TableHead>
+                    <TableHead>發票</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {expenses.map((expense) => (
+                    <TableRow key={expense.id} className="hover:bg-muted/50">
+                      <TableCell className="text-right font-medium">
+                        <Link
+                          href={`/expenses/${expense.id}`}
+                          className="text-primary hover:underline flex items-center justify-end gap-2"
+                        >
+                          <Receipt className="h-4 w-4" />
+                          ${expense.amount.toLocaleString()}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
+                          {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{expense.purchaseOrder.poNumber}</TableCell>
+                      <TableCell>{expense.purchaseOrder.project.name}</TableCell>
+                      <TableCell>
+                        {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
+                      </TableCell>
+                      <TableCell>
+                        {expense.invoiceFilePath ? (
+                          <span className="text-sm text-muted-foreground">
+                            {expense.invoiceFilePath.split('/').pop()}
+                          </span>
+                        ) : (
+                          '-'
                         )}
-                      </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/expenses/${expense.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          查看
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
-                      {/* 右側：日期 */}
-                      <div className="text-right text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4 inline mr-1" />
-                        {new Date(expense.createdAt).toLocaleDateString('zh-TW')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* 分頁 */}
-        {pagination && pagination.totalPages > 1 && (
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={setPage}
-          />
+            {/* 分頁 */}
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>

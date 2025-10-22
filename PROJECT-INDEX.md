@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-16 17:00 (Phase 4 進階功能整合 - 主題系統與無障礙性完善)
+**最後更新**: 2025-10-16 21:30 (用戶反饋增強 - UI/UX 改進與缺失頁面實現)
 
 ---
 
@@ -275,6 +275,7 @@
 | **Phase 3 詳細任務** | `claudedocs/PHASE-3-DETAILED-TASKS.md` | Phase 3 任務分解 | 🟡 高 |
 | **Phase 4 詳細任務** | `claudedocs/PHASE-4-DETAILED-TASKS.md` | Phase 4 任務分解 | 🟡 高 |
 | **MD 文件整理報告** | `claudedocs/MD-FILES-ORGANIZATION-REPORT.md` | MD 文件組織分析報告 | 🟡 高 |
+| **用戶反饋增強記錄** | `claudedocs/USER-FEEDBACK-ENHANCEMENTS-2025-10-16-PHASE-2.md` | 用戶反饋 UI/UX 改進實施記錄 | 🔴 極高 |
 
 ---
 
@@ -320,6 +321,8 @@
 | **PM Dashboard** | `apps/web/src/app/dashboard/pm/page.tsx` | 專案經理儀表板頁面 | 🔴 極高 |
 | **Supervisor Dashboard** | `apps/web/src/app/dashboard/supervisor/page.tsx` | 主管儀表板頁面 | 🔴 極高 |
 | **Notifications 頁面** | `apps/web/src/app/notifications/page.tsx` | 通知中心完整列表頁面（Epic 8） | 🔴 極高 |
+| **Quotes 頁面** | `apps/web/src/app/quotes/page.tsx` | 報價單列表頁面（卡片/列表視圖切換）| 🔴 極高 |
+| **Settings 頁面** | `apps/web/src/app/settings/page.tsx` | 系統設定頁面（個人資料、通知、偏好、安全） | 🔴 極高 |
 
 #### API 路由
 
@@ -575,18 +578,18 @@
 - 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
 - ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
 - 🌟 **Phase 4 完成**: 主題切換系統、暗色模式優化、響應式增強、無障礙性完善
-- 📈 **累計代碼**: ~27,500 行核心代碼
+- 📈 **累計代碼**: ~29,000+ 行核心代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
+- 💼 **開發階段**: MVP 後期增強階段 (Post-MVP Enhancement Phase)
 
-**本次更新變更**（2025-10-16 17:00）:
-- ✅ Phase 4 進階功能整合完成
-- ✅ 主題系統: 新增 useTheme Hook 和 ThemeToggle 組件
-- ✅ 暗色模式: 優化顏色配置，對比度達 WCAG 2.1 AA 標準
-- ✅ 佈局優化: TopBar/Sidebar/DashboardLayout 主題適配
-- ✅ 響應式: Mobile sidebar 優化，防止背景滾動
-- ✅ 無障礙性: ARIA 標籤、鍵盤導航、Focus 指示器完善
-- ✅ 文檔: 新增 PHASE-4-ACCESSIBILITY-ENHANCEMENTS.md 和 DESIGN-SYSTEM-REFINEMENTS.md
-- ✅ 更新索引: 添加主題相關文件和組件
+**本次更新變更**（2025-10-16 21:30）:
+- ✅ 用戶反饋增強: 修復登出重定向、List 視圖切換、新增頁面
+- ✅ Bug 修復: 登出重定向端口問題、重複分頁代碼
+- ✅ List 視圖: 預算池、供應商、採購單、費用記錄 (4 個頁面)
+- ✅ 新增頁面: Quotes 報價單列表、Settings 系統設定中心
+- ✅ 開發評估: 完成開發階段評估文檔 (MVP 100% 完成)
+- ✅ 文檔更新: DEVELOPMENT-LOG.md、PROJECT-INDEX.md
+- ✅ 用戶體驗: 提升數據瀏覽效率、系統功能完整性
 
 **歷史更新**（2025-10-15 22:50）:
 - ✅ 佈局組件改造：Sidebar 和 TopBar 改造為 Source 項目風格
@@ -601,7 +604,7 @@
 - ✅ 文檔更新：新增 `DESIGN-SYSTEM-MIGRATION-PROGRESS.md` v4.0
 
 **核心文件統計**:
-- Next.js 頁面: 35+ 個（完整 CRUD 功能，含儀表板和通知）
+- Next.js 頁面: 37 個（完整 CRUD 功能，含儀表板、通知、報價單、設定）
 - API 路由: 8 個 (budgetPool, project, user, budgetProposal, dashboard, notification, vendor, expense)
 - UI 組件: 46 個（26 個新設計系統組件 + 20 個業務組件）
   - P1 核心元件: 7 個
@@ -611,7 +614,7 @@
   - P5 進階元件: 5 個
 - 核心文檔: 80+ 個（業務需求、架構設計、用戶故事）
 - Sample-Docs: 14 個範例文檔（已排除索引）
-- claudedocs: 13 個 AI 分析文檔
+- claudedocs: 14 個 AI 分析文檔（新增用戶反饋增強記錄）
 
 **Epic 8 - 通知系統相關文件**（已驗證索引）- 2025-10-06:
 - ✅ packages/api/src/routers/notification.ts (~450行 - Notification API)
