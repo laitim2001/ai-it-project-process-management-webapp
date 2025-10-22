@@ -40,6 +40,8 @@
     "index:check:incremental": "node scripts/check-index-sync.js --incremental",
     "index:fix": "node scripts/check-index-sync.js --auto-fix",
     "index:health": "node scripts/check-index-sync.js",
+    "check:env": "node scripts/check-environment.js",
+    "setup": "pnpm install && pnpm db:generate && node scripts/check-environment.js",
     "postinstall": "pnpm db:generate"
   },
   "dependencies": {

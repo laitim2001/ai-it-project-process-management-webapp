@@ -100,49 +100,71 @@ graph LR
 
 ## 🚀 快速開始
 
+### 📖 完整設置指引
+
+**強烈建議**: 如果您是第一次設置此項目或在新機器上部署，請參閱 **[DEVELOPMENT-SETUP.md](./DEVELOPMENT-SETUP.md)** 獲取詳細的逐步指引。
+
 ### 前置需求
 
-- **Node.js**: v20.x LTS ([下載](https://nodejs.org/))
-- **pnpm**: v8+ (執行 `npm install -g pnpm`)
-- **Docker Desktop**: ([下載](https://www.docker.com/products/docker-desktop))
-- **Git**: ([下載](https://git-scm.com/))
+| 軟件 | 版本 | 安裝方式 |
+|------|------|----------|
+| **Node.js** | >= 20.0.0 | [nodejs.org](https://nodejs.org/) 或 `nvm install 20` |
+| **pnpm** | >= 8.0.0 | `npm install -g pnpm` |
+| **Docker Desktop** | 最新版 | [docker.com](https://www.docker.com/products/docker-desktop) |
+| **Git** | >= 2.30 | [git-scm.com](https://git-scm.com/) |
 
-### 安裝步驟
+### 快速安裝（適用於有經驗的開發者）
 
 ```bash
 # 1. 克隆專案
-git clone <repository-url>
+git clone https://github.com/laitim2001/ai-it-project-process-management-webapp.git
 cd ai-it-project-process-management-webapp
 
-# 2. 安裝相依套件
-pnpm install
-
-# 3. 設置環境變數
+# 2. 配置環境變數
 cp .env.example .env
-# 編輯 .env 並填寫必要的值 (詳見下方說明)
+# ⚠️ 編輯 .env 並填寫必要的值 (見下方說明)
 
-# 4. 啟動 Docker 服務 (PostgreSQL, Redis, Mailhog)
+# 3. 啟動 Docker 服務
 docker-compose up -d
 
+# 4. 一鍵安裝與檢查
+pnpm setup
+
 # 5. 執行資料庫遷移
-pnpm prisma migrate dev
+pnpm db:migrate
 
-# 6. (可選) 填充種子資料
-pnpm prisma db seed
+# 6. (可選) 填充測試資料
+pnpm db:seed
 
-# 7. 啟動開發伺服器
+# 7. 啟動開發服務器
 pnpm dev
 ```
+
+### 自動環境檢查
+
+```bash
+# 在開始開發前，執行環境檢查確保配置正確
+pnpm check:env
+```
+
+此腳本會自動驗證:
+- ✓ Node.js 和 pnpm 版本
+- ✓ Docker 服務狀態
+- ✓ .env 配置完整性
+- ✓ 依賴安裝狀態
+- ✓ Prisma Client 生成
+- ✓ 資料庫連接
+- ✓ 端口可用性
 
 ### 環境變數設定
 
 編輯 `.env` 檔案並填寫以下**必要**變數:
 
 ```bash
-# Database
-DATABASE_URL="postgresql://postgres:localdev123@localhost:5432/itpm_dev"
+# Database (注意: Docker Compose 使用 port 5434 避免衝突)
+DATABASE_URL="postgresql://postgres:localdev123@localhost:5434/itpm_dev"
 
-# NextAuth
+# NextAuth (生成密鑰: openssl rand -base64 32)
 NEXTAUTH_SECRET="<使用 openssl rand -base64 32 生成>"
 NEXTAUTH_URL="http://localhost:3000"
 
