@@ -16,7 +16,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/select';
 import { Pagination, useToast } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';

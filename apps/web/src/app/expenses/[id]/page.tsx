@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { useToast } from '@/components/ui/Toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Receipt, FileText, ShoppingCart, Calendar, DollarSign, Edit, Trash2, Send, CheckCircle, XCircle, Banknote, AlertCircle } from 'lucide-react';

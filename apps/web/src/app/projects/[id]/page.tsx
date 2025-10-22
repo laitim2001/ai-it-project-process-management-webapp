@@ -23,7 +23,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { useToast } from '@/components/ui/Toast';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';

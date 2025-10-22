@@ -14,7 +14,7 @@
 import { useState } from "react"
 import { Search, Menu, LogOut, User, Settings, ChevronDown, Bell } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
