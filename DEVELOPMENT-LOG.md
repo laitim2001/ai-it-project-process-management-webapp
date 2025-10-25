@@ -20,6 +20,181 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-25 | 文檔更新 | CLAUDE.md 全面同步更新
+
+**類型**: 文檔更新 | **負責人**: AI 助手
+
+**背景說明**:
+CLAUDE.md 是 Claude Code 的主要指導文件，在每次對話開始時自動讀取。經分析發現原文件內容與項目實際狀況嚴重不同步，影響 AI 助手的工作效果。
+
+**問題識別**:
+
+根據 `claudedocs/CLAUDE-MD-ANALYSIS-REPORT.md` 分析，發現 8 大類差異：
+
+1. ❌ **項目狀態過時**: 描述為 "greenfield project"，實際已完成 MVP 和 Post-MVP 階段
+2. ❌ **數據模型缺失**: 缺少 4 個關鍵模型（Account, Session, VerificationToken, Notification）
+3. ❌ **環境配置錯誤**: DATABASE_URL 端口錯誤（5432 應為 5434），缺少 15+ 環境變數
+4. ❌ **開發命令不全**: 缺少 8 個新增命令（setup, check:env, index:* 系列）
+5. ❌ **Epic 狀態缺失**: 無 Epic 完成狀態記錄
+6. ❌ **文檔結構過時**: 缺少 AI 導航系統、claudedocs/ 等新增文檔
+7. ❌ **Post-MVP 未記錄**: 未記錄設計系統遷移、新增頁面等增強功能
+8. ❌ **項目指標缺失**: 無代碼統計、開發時間線等關鍵指標
+
+**完成內容**:
+
+✅ **P0 關鍵修復** (Critical - 影響核心功能理解):
+
+1. **項目狀態更新**:
+   - Before: "This is a **greenfield** full-stack web application"
+   - After: "This is a **production-ready** full-stack web application"
+   - 添加開發階段說明: MVP 100% Complete → Post-MVP Complete → Epic 9-10 Planned
+
+2. **數據模型補充** (新增 4 個模型):
+   ```prisma
+   model Account {        // NextAuth OAuth
+   model Session {        // NextAuth session management
+   model VerificationToken {  // NextAuth email verification
+   model Notification {   // Epic 8 通知系統
+   ```
+
+3. **DATABASE_URL 端口修正**:
+   - Before: `postgresql://user:password@host:5432/dbname`
+   - After: `postgresql://postgres:localdev123@localhost:5434/itpm_dev`
+   - ⚠️ **Critical**: 本地 Docker 使用端口 5434，非標準 5432
+
+4. **環境變數補充** (新增 15+ 變數):
+   - Redis: `REDIS_URL="redis://localhost:6381"`
+   - Email (SendGrid): `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `SENDGRID_FROM_NAME`
+   - Email (Mailhog): `SMTP_HOST=localhost`, `SMTP_PORT=1025`
+   - Feature Flags: `NEXT_PUBLIC_FEATURE_AI_ASSISTANT`, `NEXT_PUBLIC_FEATURE_EXTERNAL_INTEGRATION`
+   - Docker 端口映射文檔
+
+5. **Epic 狀態文檔** (新增完整章節):
+   - ✅ Epic 1-8: 100% Complete (詳細功能列表)
+   - ✅ Post-MVP Enhancements: 100% Complete
+   - 📋 Epic 9-10: Planned (AI Assistant + External Integration)
+
+✅ **P1 重要更新** (Important - 影響開發流程):
+
+1. **新增開發命令** (8 個新命令):
+   ```bash
+   pnpm setup                    # 一鍵安裝 + 生成 + 檢查
+   pnpm check:env                # 環境配置驗證
+   pnpm index:check              # 基本同步檢查
+   pnpm index:check:incremental  # 僅檢查變更文件
+   pnpm index:fix                # 自動修復（謹慎使用）
+   pnpm index:health             # 完整健康檢查
+   ```
+
+2. **頁面列表文檔** (18 個頁面完整記錄):
+   - 在 Project Structure 章節添加完整頁面樹狀圖
+   - 標註各頁面狀態 (✅ Complete) 和功能範圍
+
+3. **文檔結構更新**:
+   - 新增 "AI Assistant Navigation System" 章節
+   - 記錄 4 層索引架構 (L0-L3)
+   - 添加 claudedocs/ 分析報告引用
+
+4. **開發工具說明** (新增 3 個章節):
+   - Automated Environment Check: `check-environment.js` (404 lines)
+   - Index Maintenance: `check-index-sync.js`
+   - Quick Setup: `pnpm setup` 一鍵配置
+
+✅ **P2 增強內容** (Enhancement - 改善可讀性):
+
+1. **項目指標** (新增完整統計):
+   ```markdown
+   Code Statistics (as of 2025-10-25):
+   - Total Core Code: ~30,000+ lines
+   - Indexed Files: 250+ important files
+   - UI Components: 46 (26 design system + 20 business)
+   - API Routers: 10
+   - Prisma Models: 10+
+   - Pages: 18 full-featured pages
+   - Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements
+
+   Development Timeline:
+   - Sprint 0-8: MVP Phase 1 (Epic 1-8) ✅
+   - Sprint 9-10: Post-MVP Enhancements ✅
+   - Sprint 11+: Epic 9-10 (Planned)
+   ```
+
+2. **Common Gotchas 更新**:
+   - 添加第 6 點: Multiple dev servers（多服務端口衝突檢查）
+   - 添加第 7 點: Email in dev（Mailhog UI 使用說明）
+
+3. **最後更新時間**:
+   - 添加頁首 metadata: Last Updated: 2025-10-25
+   - 添加 Epic Status 狀態摘要
+
+**更新統計**:
+
+| 項目 | Before | After | 增量 |
+|------|--------|-------|------|
+| 總行數 | 278 行 | 808 行 | +530 行 (+191%) |
+| 章節數 | 12 個 | 18 個 | +6 個 |
+| Prisma 模型記錄 | 6 個 | 10+ 個 | +4 個 |
+| 環境變數記錄 | 7 個 | 22+ 個 | +15 個 |
+| 開發命令記錄 | 11 個 | 19 個 | +8 個 |
+| Epic 狀態記錄 | 0 個 | 10 個 | +10 個 |
+
+**技術細節**:
+
+**更新方法**: 完整重寫（非增量修改）
+- 原因: 確保全文一致性和結構完整性
+- 備份: CLAUDE.md.backup（278 lines, 原始版本）
+
+**新增章節**:
+1. Current Development Stage（開發階段說明）
+2. Epic Status & Feature Completion（Epic 完成狀態）
+3. Development Tools & Scripts（開發工具腳本）
+4. Project Metrics（項目指標統計）
+
+**關鍵配置修正**:
+```bash
+# Critical Fix: Docker Port Mapping
+DATABASE_URL="postgresql://postgres:localdev123@localhost:5434/itpm_dev"
+REDIS_URL="redis://localhost:6381"
+SMTP_PORT=1025  # Mailhog SMTP
+# Mailhog UI: http://localhost:8025
+
+# Docker Service Ports (Local Development):
+PostgreSQL:   localhost:5434 (mapped from 5432)
+Redis:        localhost:6381 (mapped from 6379)
+Mailhog SMTP: localhost:1025
+Mailhog UI:   localhost:8025
+```
+
+**影響範圍**:
+
+✅ **對 Claude Code 的影響**:
+- Claude Code 在每次對話開始時自動讀取 CLAUDE.md
+- CLAUDE.md 指令優先級 **高於** 用戶提示
+- 更新後 Claude Code 將正確理解：
+  - 項目處於 Post-MVP 階段，非初始開發
+  - 完整數據模型（10+ 個 Prisma models）
+  - 正確的端口配置（5434, 6381, 1025）
+  - 所有可用的開發命令和工具
+  - Epic 1-8 已完成，Epic 9-10 待開發
+
+✅ **對開發流程的影響**:
+- 新貢獻者可快速了解項目完整狀態
+- 環境配置錯誤將大幅減少（正確的端口和變數）
+- 開發命令文檔完整（setup, check:env, index:* 等）
+
+**相關文件**:
+- 修改: `CLAUDE.md` (278 → 808 lines)
+- 新增: `CLAUDE.md.backup` (原始版本備份)
+- 參考: `claudedocs/CLAUDE-MD-ANALYSIS-REPORT.md` (分析報告)
+
+**下一步行動**:
+- ✅ 更新 DEVELOPMENT-LOG.md（本記錄）
+- ⏳ 檢查 mvp-progress-report.json
+- ⏳ 執行索引維護
+- ⏳ 同步到 GitHub
+
+---
+
 ### 2025-10-16 | Bug 修復 | Quotes API 和 Settings UI 問題修復
 
 **類型**: Bug 修復 + UI 優化 | **負責人**: AI 助手
