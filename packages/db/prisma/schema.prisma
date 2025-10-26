@@ -25,14 +25,16 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  role          Role              @relation(fields: [roleId], references: [id])
-  projects      Project[]         @relation("ProjectManager")
-  approvals     Project[]         @relation("Supervisor")
-  comments      Comment[]
-  historyItems  History[]
-  notifications Notification[]    // Epic 8: 用戶的通知列表
-  accounts      Account[]         // NextAuth: OAuth 帳號關聯
-  sessions      Session[]         // NextAuth: 活躍 Session
+  role                Role              @relation(fields: [roleId], references: [id])
+  projects            Project[]         @relation("ProjectManager")
+  approvals           Project[]         @relation("Supervisor")
+  comments            Comment[]
+  historyItems        History[]
+  notifications       Notification[]    // Epic 8: 用戶的通知列表
+  accounts            Account[]         // NextAuth: OAuth 帳號關聯
+  sessions            Session[]         // NextAuth: 活躍 Session
+  approvedProposals   BudgetProposal[]  @relation("ProposalApprover") // 新增：批准的提案
+  confirmedChargeOuts ChargeOut[]       @relation("ChargeOutConfirmer") // 新增：確認的費用轉嫁
 
   @@index([email])
   @@index([roleId])
@@ -91,41 +93,49 @@ model Role {
 model BudgetPool {
   id            String   @id @default(uuid())
   name          String
-  totalAmount   Float
-  usedAmount    Float    @default(0) // 已使用金額 (Story 6.3)
+  totalAmount   Float    // DEPRECATED: 改由 categories 計算，保留以向後兼容
+  usedAmount    Float    @default(0) // DEPRECATED: 改由 categories 計算，保留以向後兼容
   financialYear Int
+  description   String?  // 新增：預算池描述
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  projects Project[]
+  categories BudgetCategory[] // 新增：多個預算類別
+  projects   Project[]
 
   @@index([financialYear])
 }
 
 model Project {
-  id            String    @id @default(uuid())
-  name          String
-  description   String?
-  status        String    @default("Draft") // "Draft", "InProgress", "Completed", "Archived"
-  managerId     String
-  supervisorId  String
-  budgetPoolId  String
-  startDate     DateTime
-  endDate       DateTime?
-  chargeOutDate DateTime? // Story 6.4: Charge Out 執行時間
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  name             String
+  description      String?
+  status           String    @default("Draft") // "Draft", "InProgress", "Completed", "Archived"
+  managerId        String
+  supervisorId     String
+  budgetPoolId     String
+  budgetCategoryId String?   // 新增：關聯到具體預算類別
+  requestedBudget  Float?    // 新增：請求的預算金額
+  approvedBudget   Float?    // 新增：批准的預算金額
+  startDate        DateTime
+  endDate          DateTime?
+  chargeOutDate    DateTime? // Story 6.4: Charge Out 執行時間
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   manager        User             @relation("ProjectManager", fields: [managerId], references: [id])
   supervisor     User             @relation("Supervisor", fields: [supervisorId], references: [id])
   budgetPool     BudgetPool       @relation(fields: [budgetPoolId], references: [id])
+  budgetCategory BudgetCategory?  @relation(fields: [budgetCategoryId], references: [id]) // 新增
   proposals      BudgetProposal[]
-  quotes         Quote[]          // 新增：專案可以有多個報價
+  quotes         Quote[]
   purchaseOrders PurchaseOrder[]
+  chargeOuts     ChargeOut[] // 新增：費用轉嫁
 
   @@index([managerId])
   @@index([supervisorId])
   @@index([budgetPoolId])
+  @@index([budgetCategoryId]) // 新增索引
   @@index([status])
 }
 
@@ -135,15 +145,34 @@ model BudgetProposal {
   amount    Float
   status    String   @default("Draft") // "Draft", "PendingApproval", "Approved", "Rejected", "MoreInfoRequired"
   projectId String
+
+  // 新增：項目計劃書相關
+  proposalFilePath String?  // 計劃書文件路徑
+  proposalFileName String?  // 原始文件名
+  proposalFileSize Int?     // 文件大小（bytes）
+
+  // 新增：會議相關
+  meetingDate  DateTime? // 會議日期
+  meetingNotes String?   @db.Text // 會議記錄
+  presentedBy  String?   // 負責介紹人員
+
+  // 新增：批准相關
+  approvedAmount  Float?    // 批准的預算金額
+  approvedBy      String?   // 批准者 User ID
+  approvedAt      DateTime? // 批准日期
+  rejectionReason String?   @db.Text // 拒絕原因
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   project      Project   @relation(fields: [projectId], references: [id])
+  approver     User?     @relation("ProposalApprover", fields: [approvedBy], references: [id]) // 新增
   comments     Comment[]
   historyItems History[]
 
   @@index([projectId])
   @@index([status])
+  @@index([approvedBy]) // 新增索引
 }
 
 model Vendor {
@@ -157,60 +186,95 @@ model Vendor {
 
   quotes         Quote[]
   purchaseOrders PurchaseOrder[]
+  expenses       Expense[]   // 新增：關聯費用
+  omExpenses     OMExpense[] // 新增：關聯 OM 費用
 }
 
 model Quote {
-  id              String   @id @default(uuid())
-  filePath        String
-  uploadDate      DateTime @default(now())
-  amount          Float
-  vendorId        String
-  projectId       String   // 新增：關聯到 Project
-  purchaseOrderId String?  @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default(uuid())
+  filePath  String
+  uploadDate DateTime @default(now())
+  amount    Float
+  vendorId  String
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  vendor        Vendor         @relation(fields: [vendorId], references: [id])
-  project       Project        @relation(fields: [projectId], references: [id]) // 新增關聯
-  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  vendor         Vendor          @relation(fields: [vendorId], references: [id])
+  project        Project         @relation(fields: [projectId], references: [id])
+  purchaseOrders PurchaseOrder[] // 修改：一個報價可以關聯多個 PO
 
   @@index([vendorId])
-  @@index([projectId]) // 新增索引
+  @@index([projectId])
 }
 
 model PurchaseOrder {
   id          String   @id @default(uuid())
   poNumber    String   @unique @default(cuid())
+  name        String   // 新增：PO 名稱
+  description String?  @db.Text // 新增：描述
   date        DateTime @default(now())
-  totalAmount Float
+  totalAmount Float    // 由明細自動計算
+  status      String   @default("Draft") // 新增：Draft, Submitted, Approved, Completed, Cancelled
   projectId   String
   vendorId    String
+  quoteId     String?
+  approvedDate DateTime? // 新增：批准日期
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project  Project   @relation(fields: [projectId], references: [id])
-  vendor   Vendor    @relation(fields: [vendorId], references: [id])
-  quote    Quote?
+  project  Project             @relation(fields: [projectId], references: [id])
+  vendor   Vendor              @relation(fields: [vendorId], references: [id])
+  quote    Quote?              @relation(fields: [quoteId], references: [id])
+  items    PurchaseOrderItem[] // 新增：明細項目
   expenses Expense[]
 
   @@index([projectId])
   @@index([vendorId])
+  @@index([status]) // 新增索引
 }
 
 model Expense {
-  id              String   @id @default(uuid())
-  invoiceFilePath String?
-  amount          Float
-  expenseDate     DateTime
-  status          String   @default("Draft") // "Draft", "PendingApproval", "Approved", "Paid"
-  purchaseOrderId String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(uuid())
+  name        String   // 新增：費用名稱
+  description String?  @db.Text // 新增：描述
 
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  // 財務信息
+  totalAmount Float    // 新增：改為 totalAmount，由明細自動計算
+  status      String   @default("Draft") // "Draft", "PendingApproval", "Approved", "Paid", "Rejected"
+
+  // 發票信息
+  invoiceNumber   String?   // 新增：發票號碼
+  invoiceDate     DateTime  // 新增：發票日期（原 expenseDate 改名）
+  invoiceFilePath String?   // 保留：發票文件路徑
+
+  // 分類標記
+  requiresChargeOut Boolean @default(false) // 新增：是否需要費用轉嫁
+  isOperationMaint  Boolean @default(false) // 新增：是否為運維費用
+
+  // 關聯
+  purchaseOrderId  String
+  budgetCategoryId String? // 新增：關聯預算類別
+  vendorId         String? // 新增：直接關聯供應商
+
+  expenseDate  DateTime  // 保留：費用日期
+  approvedDate DateTime? // 新增：批准日期
+  paidDate     DateTime? // 新增：支付日期
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  purchaseOrder  PurchaseOrder    @relation(fields: [purchaseOrderId], references: [id])
+  budgetCategory BudgetCategory?  @relation(fields: [budgetCategoryId], references: [id]) // 新增
+  vendor         Vendor?          @relation(fields: [vendorId], references: [id]) // 新增
+  items          ExpenseItem[]    // 新增：明細項目
+  chargeOutItems ChargeOutItem[]  // 新增：關聯的費用轉嫁明細
 
   @@index([purchaseOrderId])
+  @@index([budgetCategoryId]) // 新增索引
+  @@index([vendorId]) // 新增索引
   @@index([status])
+  @@index([requiresChargeOut]) // 新增索引
+  @@index([isOperationMaint]) // 新增索引
 }
 
 // ==================================================================
@@ -271,4 +335,256 @@ model Notification {
   @@index([isRead])
   @@index([createdAt])
   @@index([entityType, entityId])
+}
+
+// ==================================================================
+// 5. 營運公司與預算類別模型 (Operating Company & Budget Category Models)
+// Post-MVP Enhancement - Multi-Category Budget & OpCo Management
+// ==================================================================
+
+// 營運公司（OpCo）
+model OperatingCompany {
+  id          String   @id @default(uuid())
+  code        String   @unique // 如: "OpCo-HK", "OpCo-SG"
+  name        String   // 如: "Hong Kong Operations"
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  chargeOuts       ChargeOut[]
+  omExpenses       OMExpense[]
+  omExpenseMonthly OMExpenseMonthly[]
+
+  @@index([isActive])
+}
+
+// 預算類別
+model BudgetCategory {
+  id           String   @id @default(uuid())
+  budgetPoolId String   // 所屬預算池
+
+  // 分類信息
+  categoryName String  // "Hardware", "Software", "Services", "Consulting", etc.
+  categoryCode String? // 可選的類別代碼（如 HW, SW, SVC）
+  description  String? // 類別描述
+
+  // 預算金額
+  totalAmount Float // 該類別的總預算
+  usedAmount  Float @default(0) // 已使用金額
+
+  // 元數據
+  sortOrder Int     @default(0) // 顯示順序
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  budgetPool BudgetPool @relation(fields: [budgetPoolId], references: [id], onDelete: Cascade)
+  projects   Project[] // 使用此類別的項目
+  expenses   Expense[] // 關聯的支出
+
+  @@unique([budgetPoolId, categoryName])
+  @@index([budgetPoolId])
+  @@index([isActive])
+}
+
+// ==================================================================
+// 6. 採購單與費用明細模型 (Purchase Order & Expense Detail Models)
+// Post-MVP Enhancement - Header-Detail Pattern
+// ==================================================================
+
+// 採購單明細
+model PurchaseOrderItem {
+  id              String @id @default(uuid())
+  purchaseOrderId String
+
+  // 品項信息
+  itemName    String  // 品項名稱
+  description String? @db.Text
+  quantity    Int     // 數量
+  unitPrice   Float   // 單價
+  subtotal    Float   // 小計（quantity * unitPrice）
+
+  // 元數據
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseOrderId])
+}
+
+// 費用明細
+model ExpenseItem {
+  id        String @id @default(uuid())
+  expenseId String
+
+  // 費用項目信息
+  itemName    String  // 費用項目名稱
+  description String? @db.Text
+  amount      Float   // 金額
+  category    String? // 費用類別（如: Hardware, Software, Consulting）
+
+  // 元數據
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+}
+
+// ==================================================================
+// 7. 操作與維護費用模型 (OM Expense Models)
+// Post-MVP Enhancement - Module 6
+// ==================================================================
+
+// 操作與維護費用（表頭）
+model OMExpense {
+  id String @id @default(uuid())
+
+  // 基本信息
+  name        String  // OM費用名稱
+  description String? @db.Text
+
+  // 年度和類別
+  financialYear Int    // 財務年度
+  category      String // OM類別（如: Server Maintenance, License Renewal, Support Contract）
+
+  // OpCo 歸屬
+  opCoId String // 持有此費用的 OpCo
+
+  // 預算和實際
+  budgetAmount Float // 預算金額
+  actualSpent  Float @default(0) // 不手動輸入，由月度記錄自動計算
+
+  // 增長率（對比上年度）
+  yoyGrowthRate Float? // Year-over-Year Growth Rate (%)
+
+  // 供應商
+  vendorId String?
+
+  // 日期範圍
+  startDate DateTime
+  endDate   DateTime
+
+  // 元數據
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  opCo           OperatingCompany   @relation(fields: [opCoId], references: [id])
+  vendor         Vendor?            @relation(fields: [vendorId], references: [id])
+  monthlyRecords OMExpenseMonthly[] // 月度支出記錄（1-12月）
+
+  @@index([opCoId])
+  @@index([vendorId])
+  @@index([financialYear])
+  @@index([category])
+}
+
+// OM費用月度記錄
+model OMExpenseMonthly {
+  id          String @id @default(uuid())
+  omExpenseId String
+
+  // 月份 (1-12)
+  month Int // 1 = January, 12 = December
+
+  // 實際支出
+  actualAmount Float // 該月實際支出金額
+
+  // OpCo（冗余，方便查詢）
+  opCoId String
+
+  // 元數據
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  omExpense OMExpense        @relation(fields: [omExpenseId], references: [id], onDelete: Cascade)
+  opCo      OperatingCompany @relation(fields: [opCoId], references: [id])
+
+  @@unique([omExpenseId, month]) // 每個 OM 費用每月只能有一條記錄
+  @@index([omExpenseId])
+  @@index([opCoId])
+  @@index([month])
+}
+
+// ==================================================================
+// 8. 費用轉嫁模型 (Charge Out Models)
+// Post-MVP Enhancement - Module 7 & 8
+// ==================================================================
+
+// 費用轉嫁（表頭）
+model ChargeOut {
+  id String @id @default(uuid())
+
+  // 基本信息
+  name        String  // Charge Out 名稱
+  description String? @db.Text
+
+  // 關聯項目
+  projectId String
+
+  // OpCo 信息
+  opCoId String // 向哪個 OpCo 收費
+
+  // 財務信息
+  totalAmount Float  // 不手動輸入，由明細自動計算
+  status      String @default("Draft") // Draft, Submitted, Confirmed, Paid, Rejected
+
+  // Debit Note 信息
+  debitNoteNumber String?   @unique // Debit Note 號碼
+  issueDate       DateTime? // 開立日期
+  paymentDate     DateTime? // 收款日期
+
+  // 審核信息
+  confirmedBy String?   // 確認者 User ID
+  confirmedAt DateTime? // 確認時間
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  project   Project          @relation(fields: [projectId], references: [id])
+  opCo      OperatingCompany @relation(fields: [opCoId], references: [id])
+  confirmer User?            @relation("ChargeOutConfirmer", fields: [confirmedBy], references: [id])
+  items     ChargeOutItem[] // 明細項目（關聯的費用）
+
+  @@index([projectId])
+  @@index([opCoId])
+  @@index([status])
+  @@index([confirmedBy])
+}
+
+// 費用轉嫁明細
+model ChargeOutItem {
+  id          String @id @default(uuid())
+  chargeOutId String
+
+  // 關聯的費用
+  expenseId String // 關聯到哪筆費用
+
+  // 分攤金額
+  amount      Float   // 向此 OpCo 分攤的金額（可能與費用總額不同）
+  description String? @db.Text // 分攤說明
+
+  // 元數據
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  chargeOut ChargeOut @relation(fields: [chargeOutId], references: [id], onDelete: Cascade)
+  expense   Expense   @relation(fields: [expenseId], references: [id])
+
+  @@index([chargeOutId])
+  @@index([expenseId])
 }

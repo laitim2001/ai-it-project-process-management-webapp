@@ -2,10 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-10-25
+> **Last Updated**: 2025-10-26
 > **Project Status**: Post-MVP Enhancement Phase (MVP 100% Complete)
 > **Total Code**: ~30,000+ lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
+> **Language Preference**: 繁體中文 (Traditional Chinese) - AI assistants should communicate in Traditional Chinese by default
+
+---
+
+## 🌐 Language and Communication
+
+**Primary Language**: 繁體中文 (Traditional Chinese)
+
+All AI assistants working with this codebase should:
+- **Communicate in Traditional Chinese** by default for all interactions
+- Use Chinese for explanations, documentation, and technical discussions
+- Keep code comments and technical terms in English when appropriate (e.g., variable names, function names)
+- Translate technical concepts into clear Chinese explanations
+- Use Chinese for commit messages, documentation updates, and development logs
+
+**Code Language Standards**:
+- **Code**: English (variable names, function names, class names)
+- **Comments**: Traditional Chinese for business logic explanations
+- **Documentation**: Traditional Chinese for user-facing docs, English for technical specs when needed
+- **Commit Messages**: Traditional Chinese with conventional commit format
+
+**Examples**:
+```typescript
+// ✅ Good: English code with Chinese comments
+function calculateBudgetUtilization(budgetPool: BudgetPool): number {
+  // 計算預算池使用率：已使用金額 / 總金額
+  return (budgetPool.usedAmount / budgetPool.totalAmount) * 100;
+}
+
+// ❌ Avoid: Chinese variable names
+function 計算預算使用率(預算池: BudgetPool): number {
+  return (預算池.已使用金額 / 預算池.總金額) * 100;
+}
+```
 
 ---
 

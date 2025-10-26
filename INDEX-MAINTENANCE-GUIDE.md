@@ -77,6 +77,141 @@ git commit -m "feat: 新增功能文檔並更新索引"
 
 ---
 
+## 📂 檔案歸檔策略
+
+### 🎯 歸檔目的
+- 保持根目錄和核心文檔目錄的清潔
+- 避免索引文件過於龐大
+- 保留歷史記錄的可追溯性
+- 優化 AI 助手的上下文載入效率
+
+### 📋 歸檔分類
+
+#### 1. 開發記錄歸檔（archive/development-logs/）
+**觸發條件**：
+- 季度結束（每年 1/4/7/10 月 1 日）
+- DEVELOPMENT-LOG.md 超過 5,000 行
+
+**歸檔流程**：
+```bash
+# 1. 創建季度歸檔文件
+archive/development-logs/DEVELOPMENT-LOG-2025-Q3.md
+
+# 2. 移動當季記錄到歸檔文件
+
+# 3. 在當前 DEVELOPMENT-LOG.md 頂部添加歷史摘要索引
+## 📚 歷史記錄索引
+- 2025-Q3: Epic 6-8 完成，設計系統遷移 → [查看詳情](../archive/development-logs/DEVELOPMENT-LOG-2025-Q3.md)
+- 2025-Q2: Epic 3-5 完成，採購與費用系統 → [查看詳情](../archive/development-logs/DEVELOPMENT-LOG-2025-Q2.md)
+
+# 4. 保留當前季度記錄
+```
+
+**優化效果**：
+- Token 使用減少 80-85%（從 ~40,000 tokens 降至 ~6,000 tokens）
+- AI 助手載入速度提升 5-10 倍
+- 保留完整歷史可追溯性
+
+#### 2. 問題修復記錄歸檔（archive/fix-logs/）
+**觸發條件**：
+- 季度結束
+- FIXLOG.md 超過 2,000 行
+
+**歸檔流程**：與 DEVELOPMENT-LOG.md 相同
+
+#### 3. 臨時文檔歸檔（claudedocs/archive/）
+**觸發條件**：
+- Epic/階段完成且不再需要頻繁查閱
+- 文檔對應的功能已上線穩定運行 > 1 個月
+
+**歸檔範圍**：
+- 階段性實施計劃（PHASE-*.md）
+- 已完成的 Epic 規劃文件
+- 過時的分析報告
+
+**歸檔流程**：
+```bash
+# 移動到 claudedocs/archive/[category]/
+claudedocs/archive/design-system-migration/
+  ├── PHASE-1-DETAILED-TASKS.md
+  ├── PHASE-2-DETAILED-TASKS.md
+  ├── PHASE-3-DETAILED-TASKS.md
+  └── PHASE-4-DETAILED-TASKS.md
+```
+
+### 🔄 歸檔工作流程
+
+#### 季度歸檔標準流程（每季度末）
+
+**準備階段**：
+1. ✅ 確認當前季度結束日期
+2. ✅ 檢查 DEVELOPMENT-LOG.md 和 FIXLOG.md 行數
+3. ✅ 評估 claudedocs/ 中可歸檔的文件
+
+**執行階段**：
+1. ✅ 創建 `archive/development-logs/DEVELOPMENT-LOG-[YYYY-QX].md`
+2. ✅ 將當季記錄移動到歸檔文件
+3. ✅ 為當季記錄創建 3 行摘要（主要成就、Epic 完成、重要決策）
+4. ✅ 更新當前 DEVELOPMENT-LOG.md 頂部歷史索引
+5. ✅ 對 FIXLOG.md 重複相同流程
+6. ✅ 評估並歸檔 claudedocs/ 中的完成文件
+
+**驗證階段**：
+1. ✅ 檢查歷史摘要索引是否正確
+2. ✅ 驗證歸檔文件路徑可訪問
+3. ✅ 確認當前記錄文件大小已顯著減少
+4. ✅ 更新 PROJECT-INDEX.md 引用
+
+### 📊 歸檔效果監控
+
+**關鍵指標**：
+- ✅ DEVELOPMENT-LOG.md 行數 < 2,000 行（目標）
+- ✅ FIXLOG.md 行數 < 1,000 行（目標）
+- ✅ AI 助手載入時間 < 5 秒（從 15-30 秒降至 3-5 秒）
+- ✅ 歷史記錄可追溯性 = 100%
+
+**監控方法**：
+```bash
+# 檢查記錄文件行數
+wc -l DEVELOPMENT-LOG.md FIXLOG.md
+
+# 檢查歸檔文件數量
+ls -la archive/development-logs/
+ls -la archive/fix-logs/
+```
+
+### 📝 歸檔檢查清單
+
+#### 季度歸檔檢查清單
+- [ ] 創建 archive/development-logs/ 和 archive/fix-logs/ 目錄（如不存在）
+- [ ] 移動當季 DEVELOPMENT-LOG.md 記錄到歸檔文件
+- [ ] 移動當季 FIXLOG.md 記錄到歸檔文件
+- [ ] 為每個季度創建 3 行摘要
+- [ ] 更新當前記錄文件頂部歷史索引
+- [ ] 評估 claudedocs/ 中可歸檔文件
+- [ ] 移動已完成階段文件到 claudedocs/archive/
+- [ ] 更新 PROJECT-INDEX.md 引用路徑
+- [ ] 執行 `pnpm index:check` 驗證索引同步
+- [ ] 更新 DEVELOPMENT-LOG.md 記錄歸檔操作
+
+### 💡 歸檔最佳實踐
+
+#### ✅ DO（推薦做法）
+1. **定期歸檔** - 每季度末執行，不要拖延
+2. **保留摘要** - 每個歸檔季度至少 3 行摘要
+3. **完整引用** - 確保歷史記錄可通過索引訪問
+4. **驗證路徑** - 歸檔後檢查所有引用路徑
+5. **記錄操作** - 歸檔操作本身也要記錄到 DEVELOPMENT-LOG.md
+
+#### ❌ DON'T（避免做法）
+1. **過早歸檔** - 當前季度記錄不要提前歸檔
+2. **直接刪除** - 永遠不要刪除歷史記錄，只歸檔
+3. **忽略摘要** - 不創建摘要會降低可追溯性
+4. **忘記索引** - 歸檔後必須更新 PROJECT-INDEX.md
+5. **批量操作** - 避免一次歸檔多個季度，分步執行
+
+---
+
 ## 🏗️ 多層級索引架構設計
 
 ### 當前四層架構

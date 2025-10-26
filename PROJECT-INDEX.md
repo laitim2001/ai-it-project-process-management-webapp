@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-16 21:30 (用戶反饋增強 - UI/UX 改進與缺失頁面實現)
+**最後更新**: 2025-10-26 18:30 (文檔重組 - Method C 深度整理完成)
 
 ---
 
@@ -57,17 +57,13 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **項目完整索引** | `PROJECT-INDEX.md` | 項目所有重要文件的導航地圖（本文件） | 🔴 極高 |
-| **索引維護指南** | `INDEX-MAINTENANCE-GUIDE.md` | 索引維護策略、分類標準、更新流程 | 🔴 極高 |
-| **AI 助手快速參考** | `AI-ASSISTANT-GUIDE.md` | AI 助手工作流程、快速參考、開發進度 | 🔴 極高 |
+| **索引維護指南** | `INDEX-MAINTENANCE-GUIDE.md` | 索引維護策略、分類標準、更新流程、歸檔策略 | 🔴 極高 |
+| **AI 助手快速參考** | `AI-ASSISTANT-GUIDE.md` | AI 助手工作流程、快速參考、開發進度、索引系統架構 | 🔴 極高 |
+| **快速啟動指南** | `QUICK-START.md` | 場景化 Prompt 模板（冷啟動、溫啟動、維護提醒） | 🔴 極高 |
 | **開發記錄** | `DEVELOPMENT-LOG.md` | 所有開發決策、里程碑、重要變更記錄（倒序） | 🔴 極高 |
 | **問題修復記錄** | `FIXLOG.md` | Bug 修復記錄、問題解決方案 | 🟡 高 |
-| **導航系統指南** | `NAVIGATION-SYSTEM-GUIDE.md` | 項目導航系統使用指南 | 🟡 高 |
-| **服務管理指南** | `DEVELOPMENT-SERVICE-MANAGEMENT.md` | 開發服務管理文檔 | 🟡 高 |
-| **Epic 1 記錄** | `EPIC1-RECORD.md` | Epic 1 詳細開發記錄（建議歸檔到 claudedocs/） | 🟢 中 |
-| **Epic 2 記錄** | `EPIC2-RECORD.md` | Epic 2 詳細開發記錄（建議歸檔到 claudedocs/） | 🟢 中 |
-| **臨時日誌** | `temp_epic1_log.md` | Epic 1 臨時日誌（⚠️ 待刪除） | 🔴 刪除 |
-| **安裝命令參考** | `INSTALL-COMMANDS.md` | 常用安裝命令快速參考 | 🟡 高 |
-| **認證系統摘要** | `認證系統實現摘要.md` | 認證系統實現總結（中文版） | 🟢 中 |
+| **服務管理指南** | `docs/development/DEVELOPMENT-SERVICE-MANAGEMENT.md` | 開發服務管理文檔 | 🟡 高 |
+| **安裝命令參考** | `docs/development/INSTALL-COMMANDS.md` | 常用安裝命令快速參考 | 🟡 高 |
 
 ---
 
@@ -81,21 +77,23 @@
 | **專案簡報** | `docs/brief.md` | 項目背景、目標與價值主張 | 🔴 極高 |
 | **MVP 開發計劃** | `mvp-development-plan.md` | MVP 完整開發路線圖和 Sprint 規劃 | 🔴 極高 |
 | **MVP 實施檢查清單** | `mvp-implementation-checklist.md` | MVP 詳細實施檢查清單和進度追蹤 | 🔴 極高 |
-| **環境設置指南** | `SETUP-COMPLETE.md` | 完整的環境設置步驟和驗證清單 | 🟡 高 |
+| **完整環境設置指南** | `DEVELOPMENT-SETUP.md` | 711 行跨平台環境設置完整指南（Windows/Mac/Linux） | 🔴 極高 |
+| **環境設置驗證** | `docs/development/SETUP-COMPLETE.md` | 環境設置完成後的驗證清單 | 🟡 高 |
 | **貢獻指南** | `CONTRIBUTING.md` | 如何為項目做貢獻的完整指南 | 🟡 高 |
 | **Claude Code 指南** | `CLAUDE.md` | Claude Code AI 助手使用規則和項目上下文 | 🟢 中 |
 
 ### 設計系統文檔
 
+> **索引說明**: 兩層索引策略 - 核心文件直接列出，完整列表參見 [docs/design-system/README.md](./docs/design-system/README.md)
+
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **設計系統快速指南** | `DESIGN-SYSTEM-GUIDE.md` | 日常開發快速參考，確保一致風格 | 🔴 極高 |
-| **設計系統導航** | `docs/README-DESIGN-SYSTEM.md` | 設計系統文檔導航中心 | 🔴 極高 |
-| **UI/UX 重設計規範** | `docs/ui-ux-redesign.md` | 完整的設計系統規範（顏色、字體、間距等） | 🔴 極高 |
-| **設計系統遷移計劃** | `docs/design-system-migration-plan.md` | 完整的遷移策略和時間表 | 🔴 極高 |
-| **設計系統遷移進度** | `claudedocs/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 設計系統遷移完整進度追蹤（v4.0 - Phase 2 完成） | 🔴 極高 |
-| **實作進度總結** | `docs/IMPLEMENTATION-SUMMARY.md` | 設計系統實作進度總結 | 🔴 極高 |
-| **原型使用指南** | `docs/prototype-guide.md` | Dashboard 原型使用說明 | 🟡 高 |
+| **設計系統總覽** | `docs/design-system/README.md` | 設計系統文檔導航和狀態總覽（4 個文件索引） | 🔴 極高 |
+| **設計系統快速指南** | `docs/design-system/DESIGN-SYSTEM-GUIDE.md` | 日常開發快速參考，確保一致風格 | 🔴 極高 |
+| **UI/UX 重設計規範** | `docs/design-system/ui-ux-redesign.md` | 完整的設計系統規範（顏色、字體、間距等，64KB） | 🔴 極高 |
+| **設計系統遷移計劃** | `docs/design-system/design-system-migration-plan.md` | 完整的遷移策略和時間表 | 🟡 高 |
+| **設計系統導航** | `docs/design-system/README-DESIGN-SYSTEM.md` | 設計系統文檔導航中心 | 🟡 高 |
+| **設計系統遷移進度** | `claudedocs/design-system/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 設計系統遷移完整進度追蹤（v4.0 - Phase 2 完成） | 🔴 極高 |
 
 ### 產品需求 (PRD)
 
@@ -216,22 +214,53 @@
 
 ### 基礎設施
 
+> **索引說明**: 兩層索引策略 - 核心文件直接列出，完整列表參見 [docs/infrastructure/README.md](./docs/infrastructure/README.md)
+
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **本地開發設置** | `docs/infrastructure/local-dev-setup.md` | 本地開發環境設置指南 | 🟡 高 |
-| **Azure 基礎設施** | `docs/infrastructure/azure-infrastructure-setup.md` | Azure 雲端基礎設施設置 | 🟡 高 |
+| **基礎設施總覽** | `docs/infrastructure/README.md` | 基礎設施文檔導航和環境對比（3 個文件索引） | 🟡 高 |
+| **本地開發設置** | `docs/infrastructure/local-dev-setup.md` | 本地開發環境設置指南（Docker Compose, PostgreSQL:5434, Redis:6381） | 🟡 高 |
+| **Azure 基礎設施** | `docs/infrastructure/azure-infrastructure-setup.md` | Azure 雲端基礎設施設置（App Service, Database, Blob Storage） | 🟡 高 |
 | **專案設置檢查清單** | `docs/infrastructure/project-setup-checklist.md` | 完整的設置檢查清單 | 🟢 中 |
+
+### 實施記錄
+
+> **索引說明**: 兩層索引策略 - 核心文件直接列出，完整列表參見 [docs/implementation/README.md](./docs/implementation/README.md)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **實施總覽** | `docs/implementation/README.md` | 實施階段回顧和成果總結（2 個文件索引） | 🔴 極高 |
+| **實施總結報告** | `docs/implementation/IMPLEMENTATION-SUMMARY.md` | Phase 1-2 完整實施總結（MVP + Post-MVP，~30,000+ 行代碼） | 🔴 極高 |
+| **原型開發指南** | `docs/implementation/prototype-guide.md` | 原型開發和快速驗證方法論 | 🟡 高 |
 
 ### 研究與發現
 
-> **建議**: 這些文檔有歷史價值，建議移到 `docs/research/` 子目錄歸檔
+> **索引說明**: 兩層索引策略 - 核心文件直接列出，完整列表參見 [docs/research/README.md](./docs/research/README.md)
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **用戶研究提示** | `docs/user-research-prompt.md` | 用戶研究方法論（建議歸檔） | 🟢 中 |
-| **用戶研究結果** | `docs/user-research-result.md` | 用戶研究原始數據（建議歸檔） | 🟢 中 |
-| **用戶研究洞察** | `docs/user-research-insights.md` | 用戶研究分析與洞察（建議歸檔） | 🟢 中 |
-| **腦力激盪結果** | `docs/brainstorming-session-results.md` | 需求探索會議記錄（建議歸檔） | 🟢 中 |
+| **研究總覽** | `docs/research/README.md` | 用戶研究文檔導航和主要發現摘要（4 個文件索引） | 🟡 高 |
+| **用戶研究洞察** | `docs/research/user-research-insights.md` | 用戶研究分析與洞察（核心痛點和關鍵需求） | 🟡 高 |
+| **用戶研究結果** | `docs/research/user-research-result.md` | 用戶研究原始數據 | 🟢 中 |
+| **用戶研究提示** | `docs/research/user-research-prompt.md` | 用戶研究方法論和問題設計 | 🟢 中 |
+| **腦力激盪結果** | `docs/research/brainstorming-session-results.md` | 需求探索會議記錄 | 🟢 中 |
+
+### 開發指南
+
+> **索引說明**: 兩層索引策略 - 核心文件直接列出，完整列表參見 [docs/development/README.md](./docs/development/README.md)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **開發指南總覽** | `docs/development/README.md` | 開發環境設置和服務管理導航（3 個文件索引） | 🟡 高 |
+| **服務管理指南** | `docs/development/DEVELOPMENT-SERVICE-MANAGEMENT.md` | Docker 服務管理和常用命令（PostgreSQL, Redis, Mailhog） | 🟡 高 |
+| **環境設置驗證** | `docs/development/SETUP-COMPLETE.md` | 環境設置完成檢查清單（配合 DEVELOPMENT-SETUP.md 使用） | 🟡 高 |
+| **安裝命令參考** | `docs/development/INSTALL-COMMANDS.md` | 常用安裝命令快速參考 | 🟢 中 |
+
+### 使用者故事總覽
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **故事總覽** | `docs/stories/README.md` | 10 個 Epic 用戶故事導航和完成統計 | 🔴 極高 |
 
 ### Sample-Docs 範例文檔庫
 
@@ -256,26 +285,73 @@
 
 ### Claude 專用文檔 (claudedocs/)
 
-> **說明**: 這些是 AI 助手生成的分析、計劃和進度追蹤文檔
+> **說明**: AI 助手生成的分析、規劃和實施文檔，已按功能分類整理
+> **結構**: 📂 analysis/ | planning/ | design-system/ | implementation/ | archive/
+> **索引**: 參見 [claudedocs/README.md](./claudedocs/README.md) 完整說明
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **設計系統遷移計劃** | `claudedocs/DESIGN-SYSTEM-MIGRATION-PLAN.md` | 設計系統遷移策略 | 🔴 極高 |
-| **設計系統遷移進度** | `claudedocs/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 遷移進度追蹤（v4.0） | 🔴 極高 |
-| **Phase 4 無障礙性增強** | `claudedocs/PHASE-4-ACCESSIBILITY-ENHANCEMENTS.md` | Phase 4 無障礙性功能詳細說明 | 🔴 極高 |
-| **設計系統細節優化** | `claudedocs/DESIGN-SYSTEM-REFINEMENTS.md` | 設計系統完整優化總結 | 🔴 極高 |
-| **Epic 5 缺失功能** | `claudedocs/EPIC-5-MISSING-FEATURES.md` | Epic 5 功能缺口分析 | 🟡 高 |
-| **Epic 6 測試清單** | `claudedocs/EPIC-6-TESTING-CHECKLIST.md` | Epic 6 測試檢查清單 | 🟡 高 |
-| **Epic 7 實施計劃** | `claudedocs/EPIC-7-IMPLEMENTATION-PLAN.md` | Epic 7 詳細實施計劃 | 🟡 高 |
-| **Git 工作流程** | `claudedocs/GIT-WORKFLOW-AND-BRANCHING-STRATEGY.md` | Git 分支策略和工作流程 | 🟡 高 |
-| **遷移檢查清單** | `claudedocs/MIGRATION-CHECKLIST-AND-ACCEPTANCE-CRITERIA.md` | 遷移驗收標準 | 🟡 高 |
-| **POC 驗證計劃** | `claudedocs/POC-VALIDATION-EXECUTION-PLAN.md` | POC 驗證執行計劃 | 🟡 高 |
-| **Phase 1 詳細任務** | `claudedocs/PHASE-1-DETAILED-TASKS.md` | Phase 1 任務分解 | 🟡 高 |
-| **Phase 2 詳細任務** | `claudedocs/PHASE-2-DETAILED-TASKS.md` | Phase 2 任務分解 | 🟡 高 |
-| **Phase 3 詳細任務** | `claudedocs/PHASE-3-DETAILED-TASKS.md` | Phase 3 任務分解 | 🟡 高 |
-| **Phase 4 詳細任務** | `claudedocs/PHASE-4-DETAILED-TASKS.md` | Phase 4 任務分解 | 🟡 高 |
-| **MD 文件整理報告** | `claudedocs/MD-FILES-ORGANIZATION-REPORT.md` | MD 文件組織分析報告 | 🟡 高 |
-| **用戶反饋增強記錄** | `claudedocs/USER-FEEDBACK-ENHANCEMENTS-2025-10-16-PHASE-2.md` | 用戶反饋 UI/UX 改進實施記錄 | 🔴 極高 |
+| **Claude 文檔索引** | `claudedocs/README.md` | Claude 輔助文檔完整索引與使用說明 | 🔴 極高 |
+| **完整實施計劃** | `claudedocs/COMPLETE-IMPLEMENTATION-PLAN.md` | Post-MVP 階段完整實施計劃（用戶需求澄清版） | 🔴 極高 |
+| **實施進度追蹤** | `claudedocs/COMPLETE-IMPLEMENTATION-PROGRESS.md` | COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤（當前：22%） | 🔴 極高 |
+| **需求缺口分析** | `claudedocs/REQUIREMENT-GAP-ANALYSIS.md` | 需求缺口分析與澄清記錄 | 🟡 高 |
+
+#### 📊 分析報告 (analysis/)
+| **CLAUDE.md 分析報告** | `claudedocs/analysis/CLAUDE-MD-ANALYSIS-REPORT.md` | CLAUDE.md 文件差異分析報告 | 🟡 高 |
+| **MD 文件整理報告** | `claudedocs/analysis/MD-FILES-ORGANIZATION-REPORT.md` | 專案 MD 文件組織分析報告 | 🟡 高 |
+
+#### 📋 規劃文件 (planning/)
+| **Epic 5 缺失功能** | `claudedocs/planning/EPIC-5-MISSING-FEATURES.md` | Epic 5 功能缺口分析 | 🟡 高 |
+| **Epic 6 測試清單** | `claudedocs/planning/EPIC-6-TESTING-CHECKLIST.md` | Epic 6 測試檢查清單 | 🟡 高 |
+| **Epic 7 實施計劃** | `claudedocs/planning/EPIC-7-IMPLEMENTATION-PLAN.md` | Epic 7 詳細實施計劃 | 🟡 高 |
+| **POC 驗證計劃** | `claudedocs/planning/POC-VALIDATION-EXECUTION-PLAN.md` | POC 驗證執行計劃 | 🟡 高 |
+| **Git 工作流程** | `claudedocs/planning/GIT-WORKFLOW-AND-BRANCHING-STRATEGY.md` | Git 分支策略和工作流程 | 🟡 高 |
+
+#### 🎨 設計系統相關 (design-system/)
+| **設計系統遷移計劃** | `claudedocs/design-system/DESIGN-SYSTEM-MIGRATION-PLAN.md` | 設計系統遷移策略 | 🔴 極高 |
+| **設計系統遷移進度** | `claudedocs/design-system/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 遷移進度追蹤（v4.0 完成） | 🔴 極高 |
+| **設計系統細節優化** | `claudedocs/design-system/DESIGN-SYSTEM-REFINEMENTS.md` | 設計系統完整優化總結 | 🔴 極高 |
+| **遷移檢查清單** | `claudedocs/design-system/MIGRATION-CHECKLIST-AND-ACCEPTANCE-CRITERIA.md` | 遷移驗收標準 | 🟡 高 |
+
+#### 🚀 實施記錄 (implementation/)
+| **Phase 1 詳細任務** | `claudedocs/implementation/PHASE-1-DETAILED-TASKS.md` | Phase 1 核心組件遷移任務 | 🟡 高 |
+| **Phase 2 詳細任務** | `claudedocs/implementation/PHASE-2-DETAILED-TASKS.md` | Phase 2 表單組件任務 | 🟡 高 |
+| **Phase 3 詳細任務** | `claudedocs/implementation/PHASE-3-DETAILED-TASKS.md` | Phase 3 反饋組件任務 | 🟡 高 |
+| **Phase 4 詳細任務** | `claudedocs/implementation/PHASE-4-DETAILED-TASKS.md` | Phase 4 進階功能任務 | 🟡 高 |
+| **Phase 4 無障礙性增強** | `claudedocs/implementation/PHASE-4-ACCESSIBILITY-ENHANCEMENTS.md` | Phase 4 無障礙性功能詳細說明 | 🔴 極高 |
+| **用戶反饋增強 Phase 2** | `claudedocs/implementation/USER-FEEDBACK-ENHANCEMENTS-2025-10-16-PHASE-2.md` | 用戶反饋 UI/UX 改進實施記錄 | 🔴 極高 |
+| **用戶反饋問題修復** | `claudedocs/implementation/USER-FEEDBACK-FIXES-2025-10-16.md` | FIX-003, FIX-004, FIX-005 修復記錄 | 🟡 高 |
+
+### 文檔總覽
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **文檔總索引** | `docs/README.md` | docs/ 目錄完整導航（8 個主要類別，70+ 文檔） | 🔴 極高 |
+
+### 歷史歸檔 (archive/)
+
+> **說明**: 已完成階段的歷史記錄歸檔，保留完整可追溯性同時優化當前文檔大小
+> **歸檔策略**: 季度歸檔（每年 1/4/7/10 月 1 日），詳見 [INDEX-MAINTENANCE-GUIDE.md](./INDEX-MAINTENANCE-GUIDE.md#📂-檔案歸檔策略)
+> **當前狀態**: 目錄已創建，Epic 記錄已歸檔（2025-10-26）
+
+| 文件名稱 | 路徑 | 說明 | 狀態 |
+|---------|------|------|------|
+| **Epic 記錄歸檔** | `archive/epic-records/` | 已完成 Epic 詳細開發記錄歸檔 | 📂 已歸檔 3 個文件 |
+| **Epic 1 記錄** | `archive/epic-records/EPIC1-RECORD.md` | Epic 1 詳細開發記錄（認證系統） | ✅ 已歸檔 |
+| **Epic 2 記錄** | `archive/epic-records/EPIC2-RECORD.md` | Epic 2 詳細開發記錄（CI/CD） | ✅ 已歸檔 |
+| **認證系統摘要** | `archive/epic-records/認證系統實現摘要.md` | 認證系統實現總結（中文版） | ✅ 已歸檔 |
+| **開發記錄歸檔** | `archive/development-logs/` | 季度開發記錄歸檔目錄（待季度結束） | 📂 已創建 |
+| **問題修復記錄歸檔** | `archive/fix-logs/` | 季度問題修復記錄歸檔目錄（待季度結束） | 📂 已創建 |
+
+**歸檔時機**：
+- ✅ **Epic 記錄**: MVP 完成後立即歸檔（已完成 2025-10-26）
+- ✅ **季度記錄**: 每季度末（2026-01-01 將歸檔 2025-Q4 記錄）
+- ✅ **大小觸發**: DEVELOPMENT-LOG.md 超過 5,000 行，FIXLOG.md 超過 2,000 行時
+
+**預期效果**：
+- Token 使用減少 80-85%
+- AI 助手載入速度提升 5-10 倍
+- 保留 100% 歷史可追溯性
 
 ---
 
@@ -568,35 +644,60 @@
 
 ## 📊 索引統計
 
-**文件總數**: 250+ 個重要文件（完整索引，已驗證）
+**文件總數**: 280+ 個重要文件（完整索引，已驗證）
 **專案總文件**: 313+ 個 MD 文件（包含 Sample-Docs 和 claudedocs）
 **核心項目文件**: ~80 個（不含範例和第三方框架）
-**最後更新**: 2025-10-16 17:00
+**docs/ 文檔**: 70+ 文檔，按 8 個功能類別組織
+**索引策略**: 兩層索引（L1: PROJECT-INDEX.md 核心文件 + L2: 子目錄 README.md 完整列表）
+**新增 README**: 7 個導航索引文件（docs/README.md + 6 個子目錄索引）
+**核心文件索引**: 21 個 docs/ 核心文件直接索引於 PROJECT-INDEX.md
+**最後更新**: 2025-10-26 19:00
 **維護者**: AI 助手 + 開發團隊
 
-**當前專案狀態**（2025-10-22）:
+**當前專案狀態**（2025-10-26）:
 - 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
 - ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
 - 🌟 **設計系統遷移完成**: Phase 2-4 全部完成 (29 個頁面 + 15+ 新 UI 組件)
 - 🔧 **環境優化完成**: 跨平台設置指引 + 自動化環境檢查
+- 📚 **文檔重組完成**: Method C 深度整理，docs/ 按功能完整分類
 - 📈 **累計代碼**: ~30,000+ 行核心代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
 - 💼 **開發階段**: Post-MVP 增強階段 - 質量提升與開發體驗優化
 
-**本次更新變更**（2025-10-22 14:30）:
-- ✅ **質量修復**: FIX-003 (Webpack 警告)、FIX-004 (GitHub 同步)、FIX-005 (環境部署)
-- ✅ **環境優化**:
-  - DEVELOPMENT-SETUP.md (711 行完整跨平台指引)
-  - check-environment.js (404 行自動化檢查，10 項驗證)
-  - .nvmrc (固定 Node.js 20.11.0)
-  - 便捷指令: `pnpm setup` 和 `pnpm check:env`
-- ✅ **文檔更新**:
-  - FIXLOG.md (新增 FIX-004, FIX-005 詳細記錄)
-  - mvp-implementation-checklist.md (更新為 100% 完成狀態)
-  - mvp-development-plan.md (更新 Post-MVP 增強總結)
-  - PROJECT-INDEX.md (更新最新狀態)
-- ✅ **GitHub 同步**: 合併 feature/design-system-migration 到 main (26 個提交，99 個文件)
-- ✅ **索引維護**: 執行完整同步檢查，0 個嚴重問題，索引狀態良好
+**本次更新變更**（2025-10-26 19:00 - Method C 文檔深度整理 + 索引擴充）:
+- ✅ **文檔重組**:
+  - 創建 4 個新 docs/ 子目錄: design-system/, research/, development/, implementation/
+  - 移動 11 個 docs/ 根目錄散落文件到適當分類
+  - 移動 3 個根目錄開發指南到 docs/development/
+  - 移動 DESIGN-SYSTEM-GUIDE.md 到 docs/design-system/
+  - 歸檔 3 個 Epic 記錄到 archive/epic-records/
+- ✅ **新增導航索引**:
+  - docs/README.md (主索引，70+ 文檔完整導航)
+  - docs/design-system/README.md (設計系統文檔索引)
+  - docs/research/README.md (用戶研究文檔索引)
+  - docs/development/README.md (開發指南索引)
+  - docs/implementation/README.md (實施記錄索引)
+  - docs/infrastructure/README.md (基礎設施索引)
+  - docs/stories/README.md (用戶故事總覽，33 個 stories)
+- ✅ **索引策略優化**（方案 B+C 混合）:
+  - **兩層索引架構**: L1 (PROJECT-INDEX.md 核心文件) + L2 (子目錄 README.md 完整列表)
+  - **核心文件提升**: 21 個高頻使用的 docs/ 文件直接索引於 PROJECT-INDEX.md
+  - **索引說明標註**: 各章節添加「索引說明」，明確兩層索引策略
+  - **詳細說明增強**: 為核心文件添加更詳細的描述（如技術細節、文件大小、關聯信息）
+  - **優先級調整**: 根據實際使用頻率調整部分文件重要性標籤
+- ✅ **索引更新**:
+  - PROJECT-INDEX.md (更新所有移動文件路徑 + 擴充 21 個核心文件索引)
+  - 新增文檔總覽和歸檔記錄索引
+  - 反映完整的目錄重組結構
+  - 更新索引統計（280+ 文件，21 個核心文件直接索引）
+- ✅ **歸檔管理**:
+  - 創建 archive/epic-records/ 目錄
+  - 歸檔 EPIC1-RECORD.md, EPIC2-RECORD.md, 認證系統實現摘要.md
+- ✅ **文檔組織原則**:
+  - 按功能分類: design-system, research, development, implementation
+  - 清晰索引: 每個子目錄包含 README.md 導航
+  - 易於發現: docs/README.md 提供完整導航路徑
+  - 核心優先: 高頻文件直接索引，低頻文件二級導航
 
 **歷史更新**（2025-10-15 22:50）:
 - ✅ 佈局組件改造：Sidebar 和 TopBar 改造為 Source 項目風格

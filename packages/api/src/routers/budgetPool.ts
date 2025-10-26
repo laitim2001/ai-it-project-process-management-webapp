@@ -1,18 +1,33 @@
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
-// Validation schemas
+// ========== Validation Schemas ==========
+
+// BudgetCategory schema
+export const budgetCategorySchema = z.object({
+  id: z.string().uuid().optional(), // 有 id = 更新，無 id = 新增
+  categoryName: z.string().min(1, 'Category name is required'),
+  categoryCode: z.string().optional(),
+  totalAmount: z.number().min(0, 'Amount must be non-negative'),
+  description: z.string().optional(),
+  sortOrder: z.number().int().default(0),
+  isActive: z.boolean().default(true),
+});
+
+// BudgetPool schemas
 export const createBudgetPoolSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
-  totalAmount: z.number().positive('Amount must be positive'),
   financialYear: z.number().int().min(2000).max(2100),
+  description: z.string().optional(),
+  categories: z.array(budgetCategorySchema.omit({ id: true, isActive: true })).min(1, 'At least one category is required'),
 });
 
 export const updateBudgetPoolSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255).optional(),
-  totalAmount: z.number().positive().optional(),
-  financialYear: z.number().int().min(2000).max(2100).optional(),
+  description: z.string().optional(),
+  categories: z.array(budgetCategorySchema).optional(),
 });
 
 export const budgetPoolRouter = createTRPCRouter({
@@ -24,8 +39,8 @@ export const budgetPoolRouter = createTRPCRouter({
           page: z.number().min(1).default(1),
           limit: z.number().min(1).max(100).default(20),
           search: z.string().optional(),
-          year: z.number().int().optional(),
-          sortBy: z.enum(['name', 'year', 'amount']).default('year'),
+          financialYear: z.number().int().optional(),
+          sortBy: z.enum(['name', 'year']).default('year'),
           sortOrder: z.enum(['asc', 'desc']).default('desc'),
         })
         .optional()
@@ -35,7 +50,7 @@ export const budgetPoolRouter = createTRPCRouter({
       const limit = input?.limit ?? 20;
       const skip = (page - 1) * limit;
       const search = input?.search;
-      const year = input?.year;
+      const financialYear = input?.financialYear;
       const sortBy = input?.sortBy ?? 'year';
       const sortOrder = input?.sortOrder ?? 'desc';
 
@@ -49,8 +64,8 @@ export const budgetPoolRouter = createTRPCRouter({
                 },
               }
             : {},
-          year ? { financialYear: year } : {},
-        ],
+          financialYear ? { financialYear } : {},
+        ].filter(obj => Object.keys(obj).length > 0),
       };
 
       const [items, total] = await Promise.all([
@@ -61,10 +76,12 @@ export const budgetPoolRouter = createTRPCRouter({
           orderBy:
             sortBy === 'name'
               ? { name: sortOrder }
-              : sortBy === 'amount'
-              ? { totalAmount: sortOrder }
               : { financialYear: sortOrder },
           include: {
+            categories: {
+              where: { isActive: true },
+              orderBy: { sortOrder: 'asc' },
+            },
             _count: {
               select: {
                 projects: true,
@@ -75,8 +92,20 @@ export const budgetPoolRouter = createTRPCRouter({
         ctx.prisma.budgetPool.count({ where }),
       ]);
 
+      // 計算每個預算池的總預算和已用金額（從 categories 累加）
+      const poolsWithTotals = items.map(pool => {
+        const totalAmount = pool.categories.reduce((sum, cat) => sum + cat.totalAmount, 0);
+        const usedAmount = pool.categories.reduce((sum, cat) => sum + cat.usedAmount, 0);
+        return {
+          ...pool,
+          computedTotalAmount: totalAmount,
+          computedUsedAmount: usedAmount,
+          utilizationRate: totalAmount > 0 ? (usedAmount / totalAmount) * 100 : 0,
+        };
+      });
+
       return {
-        items,
+        items: poolsWithTotals,
         pagination: {
           total,
           page,
@@ -90,14 +119,29 @@ export const budgetPoolRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const budgetPool = await ctx.prisma.budgetPool.findUnique({
+      const pool = await ctx.prisma.budgetPool.findUnique({
         where: { id: input.id },
         include: {
+          categories: {
+            where: { isActive: true },
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              _count: {
+                select: {
+                  projects: true,
+                  expenses: true,
+                },
+              },
+            },
+          },
           projects: {
             select: {
               id: true,
               name: true,
               status: true,
+              budgetCategoryId: true,
+              requestedBudget: true,
+              approvedBudget: true,
               manager: {
                 select: {
                   id: true,
@@ -110,11 +154,14 @@ export const budgetPoolRouter = createTRPCRouter({
         },
       });
 
-      if (!budgetPool) {
-        throw new Error('Budget pool not found');
+      if (!pool) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Budget pool not found',
+        });
       }
 
-      return budgetPool;
+      return pool;
     }),
 
   // Get budget pools by financial year
@@ -131,28 +178,86 @@ export const budgetPoolRouter = createTRPCRouter({
       });
     }),
 
-  // Create new budget pool
+  // Create new budget pool with categories
   create: protectedProcedure
     .input(createBudgetPoolSchema)
     .mutation(async ({ ctx, input }) => {
+      const { categories, ...poolData } = input;
+
       return ctx.prisma.budgetPool.create({
         data: {
-          name: input.name,
-          totalAmount: input.totalAmount,
-          financialYear: input.financialYear,
+          ...poolData,
+          // DEPRECATED fields - kept for backward compatibility
+          totalAmount: categories.reduce((sum, cat) => sum + cat.totalAmount, 0),
+          usedAmount: 0,
+          categories: {
+            create: categories,
+          },
+        },
+        include: {
+          categories: {
+            orderBy: { sortOrder: 'asc' },
+          },
         },
       });
     }),
 
-  // Update budget pool
+  // Update budget pool and categories
   update: protectedProcedure
     .input(updateBudgetPoolSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
+      const { id, categories, ...updateData } = input;
 
-      return ctx.prisma.budgetPool.update({
-        where: { id },
-        data: updateData,
+      // 使用 transaction 確保數據一致性
+      return ctx.prisma.$transaction(async (tx) => {
+        // 更新預算池基本信息
+        const pool = await tx.budgetPool.update({
+          where: { id },
+          data: updateData,
+        });
+
+        // 處理類別更新
+        if (categories) {
+          for (const cat of categories) {
+            if (cat.id) {
+              // 更新現有類別
+              await tx.budgetCategory.update({
+                where: { id: cat.id },
+                data: {
+                  categoryName: cat.categoryName,
+                  categoryCode: cat.categoryCode,
+                  totalAmount: cat.totalAmount,
+                  description: cat.description,
+                  sortOrder: cat.sortOrder,
+                  isActive: cat.isActive,
+                },
+              });
+            } else {
+              // 新增類別
+              await tx.budgetCategory.create({
+                data: {
+                  budgetPoolId: id,
+                  categoryName: cat.categoryName,
+                  categoryCode: cat.categoryCode,
+                  totalAmount: cat.totalAmount,
+                  description: cat.description,
+                  sortOrder: cat.sortOrder ?? 0,
+                },
+              });
+            }
+          }
+        }
+
+        // 返回完整的預算池資料（含類別）
+        return tx.budgetPool.findUnique({
+          where: { id },
+          include: {
+            categories: {
+              where: { isActive: true },
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        });
       });
     }),
 
@@ -300,5 +405,123 @@ export const budgetPoolRouter = createTRPCRouter({
       });
 
       return budgetPools;
+    }),
+
+  // ========== BudgetCategory 操作 ==========
+
+  /**
+   * 獲取類別使用統計
+   */
+  getCategoryStats: protectedProcedure
+    .input(z.object({ categoryId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const category = await ctx.prisma.budgetCategory.findUnique({
+        where: { id: input.categoryId },
+        include: {
+          budgetPool: {
+            select: {
+              id: true,
+              name: true,
+              financialYear: true,
+            },
+          },
+          _count: {
+            select: {
+              projects: true,
+              expenses: true,
+            },
+          },
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              requestedBudget: true,
+              approvedBudget: true,
+            },
+          },
+          expenses: {
+            where: {
+              status: { in: ['Approved', 'Paid'] },
+            },
+            select: {
+              totalAmount: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      if (!category) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Budget category not found',
+        });
+      }
+
+      const utilizationRate = category.totalAmount > 0
+        ? (category.usedAmount / category.totalAmount) * 100
+        : 0;
+      const remainingAmount = category.totalAmount - category.usedAmount;
+
+      return {
+        category,
+        utilizationRate,
+        remainingAmount,
+      };
+    }),
+
+  /**
+   * 更新類別已用金額（內部使用，當費用審批時調用）
+   */
+  updateCategoryUsage: protectedProcedure
+    .input(
+      z.object({
+        categoryId: z.string().uuid(),
+        amount: z.number(), // 正數=增加，負數=減少
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 驗證類別存在
+      const category = await ctx.prisma.budgetCategory.findUnique({
+        where: { id: input.categoryId },
+      });
+
+      if (!category) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Budget category not found',
+        });
+      }
+
+      // 更新已用金額
+      const updated = await ctx.prisma.budgetCategory.update({
+        where: { id: input.categoryId },
+        data: {
+          usedAmount: {
+            increment: input.amount,
+          },
+        },
+      });
+
+      // 驗證不會超過總預算（僅在增加時檢查）
+      if (input.amount > 0 && updated.usedAmount > updated.totalAmount) {
+        // 回滾操作
+        await ctx.prisma.budgetCategory.update({
+          where: { id: input.categoryId },
+          data: {
+            usedAmount: {
+              decrement: input.amount,
+            },
+          },
+        });
+
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Budget exceeded. Available: ${updated.totalAmount - category.usedAmount}, Requested: ${input.amount}`,
+        });
+      }
+
+      return updated;
     }),
 });

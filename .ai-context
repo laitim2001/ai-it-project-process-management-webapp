@@ -1,40 +1,113 @@
 # IT Project Process Management Platform - AI Context
 
-## 🎯 專案身份
-**名稱**: IT Project Process Management Platform
-**類型**: 企業級 IT 專案管理 SaaS
-**技術**: Next.js 14 + Turborepo Monorepo + PostgreSQL + Prisma + tRPC
-**狀態**: MVP Phase 1 開發中
+## 🎯 專案狀態速覽（2025-10-26）
 
-## 📋 核心索引路徑
-- **L1 快速導航**: AI-ASSISTANT-GUIDE.md
-- **L2 完整索引**: PROJECT-INDEX.md
-- **L3 維護指南**: INDEX-MAINTENANCE-GUIDE.md
-- **開發記錄**: DEVELOPMENT-LOG.md
-- **問題記錄**: FIXLOG.md
+**階段**: Post-MVP 增強完成 (Epic 1-8 ✅ 100%)
+**下一階段**: Epic 9-10 (AI 助理 + 外部系統整合)
+**代碼規模**: ~30,000+ 行核心代碼
+**頁面數**: 18 個完整功能頁面
+**組件數**: 46 個 (26 設計系統 + 20 業務)
 
-## 🔴 立即執行（AI助手必讀）
-1. 切換中文對答模式
-2. 讀取 AI-ASSISTANT-GUIDE.md
-3. 制定/更新 todos list
-4. 每個 todo 完成後更新 DEVELOPMENT-LOG.md
+## 🚀 AI 助手 30 秒啟動流程
 
-## 🏗️ 專案結構概覽
+**重要**: 以下流程必須在每次會話開始時執行
+
+1. ✅ **切換繁體中文對答模式**（永遠使用繁體中文，即使 compact 後）
+2. ✅ **讀取 QUICK-START.md**（根據場景選擇對應的啟動流程）
+3. ✅ **讀取 AI-ASSISTANT-GUIDE.md**（5 分鐘快速參考，重點：立即執行區）
+4. ✅ **檢查 DEVELOPMENT-LOG.md 最新記錄**（只讀最新 50-100 行，了解最近進展）
+5. ✅ **制定或更新 todos list**（TodoWrite）
+
+## 📋 核心文件路徑（4 層索引架構）
+
+```
+L0: .ai-context                     # ⚡ 極簡載入（本文件）
+L1: QUICK-START.md                  # 🚀 快速啟動指南（場景化 Prompt）
+L1: AI-ASSISTANT-GUIDE.md           # 📋 AI 助手完整工作流程
+L2: PROJECT-INDEX.md                # 🗂️ 完整文件索引（250+ 文件）
+L3: INDEX-MAINTENANCE-GUIDE.md      # 🔧 索引維護指南
+```
+
+**持續更新記錄**（最新在上）:
+- `DEVELOPMENT-LOG.md` - 開發記錄（當前季度 + 歷史摘要）
+- `FIXLOG.md` - 問題修復記錄（當前季度 + 歷史摘要）
+
+## 🏗️ 技術棧速查
+
+```
+前端: Next.js 14 (App Router) | React 18 | TypeScript 5
+API: tRPC 10 | Zod 驗證
+資料庫: PostgreSQL 16 | Prisma 5
+認證: NextAuth.js + Azure AD B2C
+UI: shadcn/ui + Radix UI + Tailwind CSS
+狀態: Zustand / Jotai
+部署: Azure App Service | Docker | GitHub Actions
+```
+
+## 🔴 強制執行規則（不可妥協）
+
+1. **語言**: 永遠使用繁體中文對答，即使對話 compact 後
+2. **TodoWrite**: >3 步驟任務必須先創建 todos list
+3. **記錄更新**: 每個 todo 完成後更新 DEVELOPMENT-LOG.md（最新在上）
+4. **Bug Fix**: 修復問題後更新 FIXLOG.md（最新在上）
+5. **索引維護**: 新增重要文件後執行索引維護
+6. **Node.js**: 切記不要中止任何 node.js 進程
+7. **完整註釋**: 所有文件加入完整中文註釋說明功能
+
+## 📊 專案結構概覽
+
 ```
 ai-it-project-process-management-webapp/
-├── apps/web/              # Next.js 14 前端應用
+├── apps/web/              # Next.js 14 主應用（18 個頁面）
 ├── packages/
-│   ├── api/               # tRPC 後端路由
-│   ├── db/                # Prisma 資料庫
-│   └── auth/              # Azure AD B2C 認證
-└── docs/                  # 專案文檔
+│   ├── api/               # tRPC 後端路由（10 個 routers）
+│   ├── db/                # Prisma 資料庫（10+ models）
+│   └── auth/              # NextAuth.js + Azure AD B2C
+├── docs/                  # 正式專案文檔（66 個文件）
+├── claudedocs/            # AI 輔助文檔（18 個文件，已分類）
+├── archive/               # 歷史記錄歸檔
+└── scripts/               # 開發工具腳本
 ```
 
 ## 🚫 避免查找目錄
-.bmad-core/, .bmad-infrastructure-devops/, .bmad-creative-writing/, web-bundles/, .claude/, .cursor/, .git/, node_modules/
 
-## 📊 當前進度
-- ✅ Phase 1: 專案初始化完成 (100%)
-- 🔄 MVP Phase 1: 開發中 (5%)
+以下目錄不包含專案業務代碼，請勿搜索：
+```
+.bmad-core/, .bmad-infrastructure-devops/, .bmad-creative-writing/
+web-bundles/, .claude/, .cursor/, .git/, node_modules/, .next/
+Sample-Docs/（範例文檔庫，僅供參考）
+```
 
-**最後更新**: 2025-10-02 23:30
+## 📈 專案里程碑
+
+```
+✅ 2025-Q1: 專案初始化、Monorepo 架構、Budget Pool CRUD
+✅ 2025-Q2: Epic 1-5 完成（認證、專案、提案、採購、費用）
+✅ 2025-Q3: Epic 6-8 完成 + Post-MVP 增強（設計系統遷移、環境優化）
+🔄 2025-Q4: Epic 9-10 規劃中（AI 助理 + 外部系統整合）
+```
+
+## 🔄 快速維護檢查清單
+
+當完成重大任務或準備結束工作時，執行以下檢查：
+
+```bash
+# 1. 記錄更新
+✓ 更新 DEVELOPMENT-LOG.md
+✓ 如有 bug fix，更新 FIXLOG.md
+
+# 2. 索引維護
+pnpm index:check
+
+# 3. 準備同步
+git status
+git add .
+git commit -m "..."
+git push
+```
+
+---
+
+**最後更新**: 2025-10-26
+**維護者**: AI 助手 + 開發團隊
+**下次檢查**: Epic 9-10 開始前
