@@ -619,18 +619,13 @@ async function main() {
     create: {
       id: 'po-erp-001',
       poNumber: 'PO-2024-ERP-001',
+      name: 'ERP 系統升級採購單',
+      description: 'Microsoft ERP 系統升級專案採購單',
       projectId: project1.id,
       vendorId: vendorMS.id,
+      quoteId: quoteERPMS.id, // 關聯到 Microsoft 的報價
       totalAmount: 1200000,
       date: new Date('2024-10-08T10:00:00Z'),
-    },
-  });
-
-  // 更新 Quote 1 關聯到採購單
-  await prisma.quote.update({
-    where: { id: 'quote-erp-ms-001' },
-    data: {
-      purchaseOrderId: purchaseOrderERP.id,
     },
   });
 
@@ -648,9 +643,12 @@ async function main() {
     update: {},
     create: {
       id: 'expense-erp-draft-001',
+      name: 'ERP 軟體授權費用',
+      description: 'ERP 系統升級第一期軟體授權費用',
       purchaseOrderId: purchaseOrderERP.id,
-      amount: 400000,
+      totalAmount: 400000,
       expenseDate: new Date('2024-10-10T00:00:00Z'),
+      invoiceDate: new Date('2024-10-10T00:00:00Z'),
       invoiceFilePath: '/uploads/invoices/erp-invoice-001.pdf',
       status: 'Draft',
     },
@@ -662,9 +660,12 @@ async function main() {
     update: {},
     create: {
       id: 'expense-erp-pending-001',
+      name: 'ERP 技術支援服務費',
+      description: 'ERP 系統升級技術支援與顧問服務費用',
       purchaseOrderId: purchaseOrderERP.id,
-      amount: 600000,
+      totalAmount: 600000,
       expenseDate: new Date('2024-10-12T00:00:00Z'),
+      invoiceDate: new Date('2024-10-12T00:00:00Z'),
       invoiceFilePath: '/uploads/invoices/erp-invoice-002.pdf',
       status: 'PendingApproval',
     },
@@ -676,9 +677,12 @@ async function main() {
     update: {},
     create: {
       id: 'expense-erp-approved-001',
+      name: 'ERP 初始設定費用',
+      description: 'ERP 系統初始設定與配置費用',
       purchaseOrderId: purchaseOrderERP.id,
-      amount: 200000,
+      totalAmount: 200000,
       expenseDate: new Date('2024-10-08T00:00:00Z'),
+      invoiceDate: new Date('2024-10-08T00:00:00Z'),
       invoiceFilePath: '/uploads/invoices/erp-invoice-003.pdf',
       status: 'Approved',
     },
@@ -689,7 +693,7 @@ async function main() {
     where: { id: budgetPool2024.id },
     data: {
       usedAmount: {
-        increment: expenseApproved.amount,
+        increment: expenseApproved.totalAmount,
       },
     },
   });

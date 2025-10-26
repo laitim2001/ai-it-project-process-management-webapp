@@ -108,7 +108,7 @@ export const quoteRouter = createTRPCRouter({
               status: true,
             },
           },
-          purchaseOrder: {
+          purchaseOrders: {
             select: {
               id: true,
               poNumber: true,
@@ -161,7 +161,7 @@ export const quoteRouter = createTRPCRouter({
               phone: true,
             },
           },
-          purchaseOrder: {
+          purchaseOrders: {
             select: {
               id: true,
               poNumber: true,
@@ -193,7 +193,7 @@ export const quoteRouter = createTRPCRouter({
               status: true,
             },
           },
-          purchaseOrder: {
+          purchaseOrders: {
             select: {
               id: true,
               poNumber: true,
@@ -236,7 +236,7 @@ export const quoteRouter = createTRPCRouter({
               },
             },
           },
-          purchaseOrder: true,
+          purchaseOrders: true,
         },
       });
 
@@ -338,7 +338,7 @@ export const quoteRouter = createTRPCRouter({
       const existingQuote = await ctx.prisma.quote.findUnique({
         where: { id },
         include: {
-          purchaseOrder: true,
+          purchaseOrders: true,
         },
       });
 
@@ -350,7 +350,7 @@ export const quoteRouter = createTRPCRouter({
       }
 
       // 如果報價單已被選為採購單，不允許修改
-      if (existingQuote.purchaseOrder) {
+      if (existingQuote.purchaseOrders && existingQuote.purchaseOrders.length > 0) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
           message: '該報價單已被選為採購單，無法修改',
@@ -389,7 +389,7 @@ export const quoteRouter = createTRPCRouter({
       const quote = await ctx.prisma.quote.findUnique({
         where: { id: input.id },
         include: {
-          purchaseOrder: true,
+          purchaseOrders: true,
         },
       });
 
@@ -401,7 +401,7 @@ export const quoteRouter = createTRPCRouter({
       }
 
       // 如果報價單已被選為採購單，不允許刪除
-      if (quote.purchaseOrder) {
+      if (quote.purchaseOrders && quote.purchaseOrders.length > 0) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
           message: '該報價單已被選為採購單，無法刪除',
@@ -431,7 +431,7 @@ export const quoteRouter = createTRPCRouter({
         where: { projectId: input.projectId },
         include: {
           vendor: true,
-          purchaseOrder: {
+          purchaseOrders: {
             select: {
               id: true,
               poNumber: true,
@@ -448,7 +448,7 @@ export const quoteRouter = createTRPCRouter({
         : 0;
       const minAmount = quotes[0]?.amount ?? 0;
       const maxAmount = quotes[quotes.length - 1]?.amount ?? 0;
-      const selectedQuote = quotes.find(q => q.purchaseOrder !== null);
+      const selectedQuote = quotes.find(q => q.purchaseOrders && q.purchaseOrders.length > 0);
 
       return {
         quotes,

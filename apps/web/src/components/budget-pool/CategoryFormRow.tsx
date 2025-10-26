@@ -94,7 +94,7 @@ export function CategoryFormRow({
         <Input
           id={`categoryName-${index}`}
           type="text"
-          value={category.categoryName}
+          value={category.categoryName || ''}
           onChange={(e) => handleChange('categoryName', e.target.value)}
           placeholder="例如：硬體設備"
           className={errors?.categoryName ? 'border-red-500' : ''}
@@ -126,7 +126,7 @@ export function CategoryFormRow({
         <Input
           id={`totalAmount-${index}`}
           type="number"
-          value={category.totalAmount}
+          value={category.totalAmount ?? 0}
           onChange={(e) =>
             handleChange('totalAmount', parseFloat(e.target.value) || 0)
           }

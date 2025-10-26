@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 
 interface BudgetProposalFormProps {
   initialData?: {
@@ -23,7 +23,7 @@ interface BudgetProposalFormProps {
 
 export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProps) {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: initialData?.title ?? '',
     amount: initialData?.amount ?? 0,
@@ -37,23 +37,39 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
 
   const createMutation = api.budgetProposal.create.useMutation({
     onSuccess: () => {
-      showToast('提案建立成功！', 'success');
+      toast({
+        title: '成功',
+        description: '提案建立成功！',
+        variant: 'success',
+      });
       router.push('/proposals');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
   const updateMutation = api.budgetProposal.update.useMutation({
     onSuccess: () => {
-      showToast('提案更新成功！', 'success');
+      toast({
+        title: '成功',
+        description: '提案更新成功！',
+        variant: 'success',
+      });
       router.push(`/proposals/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -147,7 +163,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
             <option value="">選擇專案</option>
-            {projects?.map((project) => (
+            {projects?.items?.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
               </option>

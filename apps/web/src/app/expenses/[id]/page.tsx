@@ -253,7 +253,7 @@ export default function ExpenseDetailPage() {
             <Receipt className="h-8 w-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                ${expense.amount.toLocaleString()}
+                ${expense.totalAmount.toLocaleString()}
               </h1>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
@@ -317,7 +317,7 @@ export default function ExpenseDetailPage() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">費用金額</p>
                     <p className="text-2xl font-bold text-primary">
-                      ${expense.amount.toLocaleString()}
+                      ${expense.totalAmount.toLocaleString()}
                     </p>
                   </div>
                 </div>

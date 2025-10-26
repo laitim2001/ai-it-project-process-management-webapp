@@ -369,7 +369,7 @@ export default function ProjectManagerDashboard() {
                             <div className="flex items-center gap-2 mb-2">
                               <Receipt className="h-5 w-5 text-muted-foreground" />
                               <h4 className="font-semibold text-foreground">
-                                ${expense.amount.toLocaleString()}
+                                ${expense.totalAmount.toLocaleString()}
                               </h4>
                               <Badge variant="secondary">草稿</Badge>
                             </div>

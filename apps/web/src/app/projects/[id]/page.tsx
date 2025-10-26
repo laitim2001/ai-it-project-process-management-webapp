@@ -22,12 +22,12 @@
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 
 /**
@@ -70,7 +70,7 @@ export default function ProjectDetailPage() {
 
   const params = useParams();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const id = params.id as string;
 
   // ============================================================
@@ -90,17 +90,31 @@ export default function ProjectDetailPage() {
   const { data: stats } = api.project.getStats.useQuery({ id });
 
   /**
+   * Module 2: 查詢專案預算使用情況
+   * 包含請求預算、批准預算、實際支出、使用率、剩餘預算
+   */
+  const { data: budgetUsage } = api.project.getBudgetUsage.useQuery({ projectId: id });
+
+  /**
    * 刪除專案 Mutation
    * 成功後跳轉回專案列表頁面
    */
   const deleteMutation = api.project.delete.useMutation({
     onSuccess: () => {
-      showToast('專案已成功刪除！', 'success');
+      toast({
+        title: '成功',
+        description: '專案已成功刪除！',
+        variant: 'success',
+      });
       router.push('/projects');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤：${error.message}`, 'error');
+      toast({
+        title: '刪除失敗',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -482,6 +496,104 @@ export default function ProjectDetailPage() {
                 </Link>
               </CardContent>
             </Card>
+
+            {/* Module 2: 預算使用情況 */}
+            {budgetUsage && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <PieChart className="h-5 w-5" />
+                    預算使用情況
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* 預算類別 */}
+                  {budgetUsage.budgetCategory && (
+                    <div className="pb-3 border-b border-border">
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">預算類別</dt>
+                      <dd className="text-foreground font-medium">{budgetUsage.budgetCategory.name}</dd>
+                    </div>
+                  )}
+
+                  {/* 預算金額資訊 */}
+                  <dl className="space-y-3">
+                    {budgetUsage.requestedBudget > 0 && (
+                      <div className="flex justify-between items-center">
+                        <dt className="text-sm text-muted-foreground">請求預算</dt>
+                        <dd className="font-medium text-foreground">
+                          ${budgetUsage.requestedBudget.toLocaleString()}
+                        </dd>
+                      </div>
+                    )}
+
+                    {budgetUsage.approvedBudget > 0 && (
+                      <div className="flex justify-between items-center">
+                        <dt className="text-sm text-muted-foreground">批准預算</dt>
+                        <dd className="font-semibold text-primary text-lg">
+                          ${budgetUsage.approvedBudget.toLocaleString()}
+                        </dd>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center">
+                      <dt className="text-sm text-muted-foreground">實際支出</dt>
+                      <dd className="font-medium text-foreground">
+                        ${budgetUsage.actualSpent.toLocaleString()}
+                      </dd>
+                    </div>
+
+                    {budgetUsage.approvedBudget > 0 && (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <dt className="text-sm text-muted-foreground">剩餘預算</dt>
+                          <dd className={`font-medium ${budgetUsage.remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            ${budgetUsage.remainingBudget.toLocaleString()}
+                          </dd>
+                        </div>
+
+                        {/* 使用率進度條 */}
+                        <div className="pt-2">
+                          <div className="flex justify-between items-center mb-2">
+                            <dt className="text-sm text-muted-foreground">預算使用率</dt>
+                            <dd className={`font-semibold ${
+                              budgetUsage.utilizationRate > 100 ? 'text-red-600' :
+                              budgetUsage.utilizationRate > 90 ? 'text-orange-500' :
+                              budgetUsage.utilizationRate > 75 ? 'text-yellow-600' :
+                              'text-green-600'
+                            }`}>
+                              {budgetUsage.utilizationRate.toFixed(1)}%
+                            </dd>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                budgetUsage.utilizationRate > 100 ? 'bg-red-600' :
+                                budgetUsage.utilizationRate > 90 ? 'bg-orange-500' :
+                                budgetUsage.utilizationRate > 75 ? 'bg-yellow-500' :
+                                'bg-green-500'
+                              }`}
+                              style={{ width: `${Math.min(budgetUsage.utilizationRate, 100)}%` }}
+                            />
+                          </div>
+                          {budgetUsage.utilizationRate > 90 && (
+                            <div className="flex items-center gap-1 mt-2 text-xs text-orange-600">
+                              <AlertCircle className="h-3 w-3" />
+                              <span>預算使用率較高，請注意控制支出</span>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {budgetUsage.approvedBudget === 0 && budgetUsage.requestedBudget === 0 && (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">尚未設定預算</p>
+                      </div>
+                    )}
+                  </dl>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 專案團隊 */}
             <Card>

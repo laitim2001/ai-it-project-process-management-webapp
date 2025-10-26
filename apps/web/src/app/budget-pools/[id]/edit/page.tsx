@@ -145,8 +145,17 @@ export default function EditBudgetPoolPage() {
               initialData={{
                 id: budgetPool.id,
                 name: budgetPool.name,
-                totalAmount: budgetPool.totalAmount,
+                description: budgetPool.description ?? undefined,
                 financialYear: budgetPool.financialYear,
+                categories: budgetPool.categories?.map((cat) => ({
+                  id: cat.id,
+                  categoryName: cat.categoryName,
+                  categoryCode: cat.categoryCode ?? '',
+                  totalAmount: cat.totalAmount,
+                  description: cat.description ?? '',
+                  sortOrder: cat.sortOrder,
+                  isActive: cat.isActive,
+                })),
               }}
             />
           </CardContent>

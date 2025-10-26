@@ -10,6 +10,7 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2025-10-27 | 🔌 API/前端整合 | ✅ 已解決 | [FIX-006: Toast 系統不一致與 Expense API Schema 同步問題](#fix-006-toast-系統不一致與-expense-api-schema-同步問題) |
 | 2025-10-22 | 🔧 環境/部署 | ✅ 已解決 | [FIX-005: 跨平台環境部署一致性問題](#fix-005-跨平台環境部署一致性問題) |
 | 2025-10-22 | 🔄 版本控制/同步 | ✅ 已解決 | [FIX-004: GitHub 分支同步不一致問題](#fix-004-github-分支同步不一致問題) |
 | 2025-10-22 | 🎨 前端/編譯 | ✅ 已解決 | [FIX-003: 檔案命名大小寫不一致導致 Webpack 編譯警告](#fix-003-檔案命名大小寫不一致導致-webpack-編譯警告) |
@@ -23,10 +24,10 @@
 - **文檔/索引問題**: FIX-001, FIX-002
 - **環境/部署問題**: FIX-005
 - **版本控制問題**: FIX-004
-- **前端問題**: FIX-003
+- **前端問題**: FIX-003, FIX-006
 - **配置問題**:
 - **認證問題**:
-- **API問題**:
+- **API問題**: FIX-006
 - **資料庫問題**:
 - **測試問題**:
 
@@ -42,6 +43,184 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-006: Toast 系統不一致與 Expense API Schema 同步問題
+
+### 📅 **修復日期**: 2025-10-27 00:55
+### 🎯 **問題級別**: 🟡 High
+### ✅ **狀態**: 已解決
+
+### 🔴 **問題描述**
+
+用戶報告了兩個關鍵問題：
+1. **專案刪除錯誤無法在 UI 顯示** - 錯誤訊息只在 console 顯示，用戶看不到
+2. **Expense 創建失敗** - 缺少必填欄位 `name`，導致 Prisma 錯誤
+
+### 🔍 **根本原因分析**
+
+1. **Toast 系統不一致**:
+   - 專案有兩套 Toast 系統：
+     - `Toast.tsx` (簡單版) - API: `showToast(message, type)`
+     - `use-toast.tsx` (shadcn/ui) - API: `toast({ title, description, variant })`
+   - 專案詳情頁使用 `use-toast`，但 layout 中缺少對應的 `Toaster` 組件
+   - 部分頁面混用了兩套 API，導致調用失敗
+
+2. **Expense API Schema 不同步**:
+   - Prisma schema 已更新，添加了 `name`, `invoiceDate`, `invoiceNumber` 欄位
+   - 但 API router 的 Zod schema 和前端表單都未更新
+   - 導致前端無法提供必填欄位，API 驗證失敗
+
+3. **錯誤處理不當**:
+   - 專案刪除 API 使用普通 `Error` 而非 `TRPCError`
+   - 導致錯誤代碼不正確，前端無法正確處理
+
+### ✅ **修復方案**
+
+#### 1. Toast 系統整合
+
+**後端改進** (`packages/api/src/routers/project.ts`):
+```typescript
+// 添加 TRPCError 導入
+import { TRPCError } from '@trpc/server';
+
+// 使用正確的錯誤處理
+if (project._count.proposals > 0) {
+  throw new TRPCError({
+    code: 'PRECONDITION_FAILED',
+    message: `無法刪除專案：此專案有 ${project._count.proposals} 個關聯的提案。請先刪除或重新分配這些提案。`,
+  });
+}
+```
+
+**前端修復** (`apps/web/src/app/projects/[id]/page.tsx`):
+```typescript
+const { toast } = useToast(); // 使用正確的 API
+
+const deleteMutation = api.project.delete.useMutation({
+  onError: (error) => {
+    toast({
+      title: '刪除失敗',
+      description: error.message,
+      variant: 'destructive',
+    });
+  },
+});
+```
+
+**添加 Toaster 組件** (`apps/web/src/app/layout.tsx`):
+```typescript
+import { Toaster } from '@/components/ui/toaster';
+
+<body>
+  <SessionProvider>
+    <TRPCProvider>
+      <ToastProvider>{children}</ToastProvider>
+      <Toaster /> {/* 新添加 */}
+    </TRPCProvider>
+  </SessionProvider>
+</body>
+```
+
+#### 2. Expense API Schema 同步
+
+**後端修復** (`packages/api/src/routers/expense.ts`):
+```typescript
+// 更新 schema
+const createExpenseSchema = z.object({
+  name: z.string().min(1, '費用名稱為必填'),
+  purchaseOrderId: z.string().min(1),
+  amount: z.number().min(0),
+  expenseDate: z.date().or(z.string().transform((str) => new Date(str))),
+  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))), // 新增
+  invoiceNumber: z.string().optional(), // 新增
+  description: z.string().optional(), // 新增
+});
+
+// 更新 create API
+const expense = await ctx.prisma.expense.create({
+  data: {
+    name: input.name,
+    totalAmount: input.amount,
+    invoiceDate: input.invoiceDate,
+    invoiceNumber: input.invoiceNumber,
+    description: input.description,
+    // ...
+  },
+});
+```
+
+**前端修復** (`apps/web/src/components/expense/ExpenseForm.tsx`):
+```typescript
+// 添加新狀態
+const [name, setName] = useState('');
+const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+const [invoiceNumber, setInvoiceNumber] = useState('');
+const [description, setDescription] = useState('');
+
+// 添加表單欄位
+<Input
+  id="name"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  placeholder="例如：伺服器租賃費用、軟體授權費"
+  required
+/>
+```
+
+#### 3. 欄位名稱統一修復
+
+修復了前後端所有使用 `expense.amount` 的地方，統一改為 `expense.totalAmount`：
+- 前端：5 個文件，7 處修改
+- 後端：2 個文件，11 處修改
+
+### 📊 **修改的文件**
+
+**後端 (2 files)**:
+- `packages/api/src/routers/expense.ts` - Schema + API 實作
+- `packages/api/src/routers/project.ts` - 錯誤處理
+
+**前端 (7 files)**:
+- `apps/web/src/app/layout.tsx` - 添加 Toaster
+- `apps/web/src/components/expense/ExpenseForm.tsx` - 完整重寫
+- `apps/web/src/app/projects/[id]/page.tsx` - Toast 修復
+- `apps/web/src/app/expenses/page.tsx` - 欄位修復
+- `apps/web/src/app/expenses/[id]/page.tsx` - 欄位修復
+- `apps/web/src/app/purchase-orders/[id]/page.tsx` - 欄位修復
+- `apps/web/src/app/dashboard/pm/page.tsx` - 欄位修復
+
+### ✨ **測試驗證**
+
+1. ✅ 專案刪除錯誤正確顯示在 UI Toast 中
+2. ✅ Expense 創建成功，所有欄位正確保存
+3. ✅ 兩套 Toast 系統並存，互不干擾
+4. ✅ 所有 Expense 頁面金額顯示正確
+
+### 📚 **經驗教訓**
+
+1. **Toast 系統統一**:
+   - 明確區分兩套系統的使用場景
+   - 確保 layout 包含所有必要的渲染組件
+
+2. **Schema 同步**:
+   - Prisma schema 更新後必須同步更新 API schema
+   - 前端表單必須與 API schema 保持一致
+
+3. **錯誤處理最佳實踐**:
+   - 始終使用 `TRPCError` 而非普通 `Error`
+   - 使用正確的錯誤代碼（PRECONDITION_FAILED, NOT_FOUND 等）
+   - 提供清晰的繁體中文錯誤訊息
+
+4. **欄位命名一致性**:
+   - 建立 API 輸入欄位與資料庫欄位的映射邏輯
+   - 文檔化欄位映射關係（如 `amount` → `totalAmount`）
+
+### 🔗 **相關資源**
+
+- shadcn/ui Toast: https://ui.shadcn.com/docs/components/toast
+- tRPC Error Handling: https://trpc.io/docs/server/error-handling
+- Prisma Schema: packages/db/prisma/schema.prisma (Expense model)
+
+---
 
 ## FIX-005: 跨平台環境部署一致性問題
 

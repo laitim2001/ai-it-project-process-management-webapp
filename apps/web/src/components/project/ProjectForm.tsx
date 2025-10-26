@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ProjectFormProps {
   initialData?: {
@@ -11,6 +11,8 @@ interface ProjectFormProps {
     name: string;
     description: string | null;
     budgetPoolId: string;
+    budgetCategoryId: string | null; // Module 2 新增
+    requestedBudget: number | null;  // Module 2 新增
     managerId: string;
     supervisorId: string;
     startDate: Date;
@@ -21,11 +23,13 @@ interface ProjectFormProps {
 
 export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: initialData?.name ?? '',
     description: initialData?.description ?? '',
     budgetPoolId: initialData?.budgetPoolId ?? '',
+    budgetCategoryId: initialData?.budgetCategoryId ?? '', // Module 2 新增
+    requestedBudget: initialData?.requestedBudget ?? 0,     // Module 2 新增
     managerId: initialData?.managerId ?? '',
     supervisorId: initialData?.supervisorId ?? '',
     startDate: initialData?.startDate ? initialData.startDate.toISOString().split('T')[0] : '',
@@ -38,29 +42,58 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery();
   const budgetPools = budgetPoolsData?.items ?? [];
 
+  // Module 2: 動態載入預算類別列表（當選擇預算池時）
+  const { data: budgetCategories } = api.budgetPool.getCategories.useQuery(
+    { budgetPoolId: formData.budgetPoolId },
+    { enabled: !!formData.budgetPoolId } // 只在有選擇預算池時查詢
+  );
+
+  // Module 2: 當預算池改變時，清空預算類別選擇
+  useEffect(() => {
+    if (initialData?.budgetPoolId !== formData.budgetPoolId) {
+      setFormData((prev) => ({ ...prev, budgetCategoryId: '' }));
+    }
+  }, [formData.budgetPoolId, initialData?.budgetPoolId]);
+
   // Fetch users for manager and supervisor dropdowns
   const { data: managers } = api.user.getManagers.useQuery();
   const { data: supervisors } = api.user.getSupervisors.useQuery();
 
   const createMutation = api.project.create.useMutation({
     onSuccess: () => {
-      showToast('專案創建成功！', 'success');
+      toast({
+        title: '成功',
+        description: '專案創建成功！',
+        variant: 'success',
+      });
       router.push('/projects');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
   const updateMutation = api.project.update.useMutation({
     onSuccess: () => {
-      showToast('專案更新成功！', 'success');
+      toast({
+        title: '成功',
+        description: '專案更新成功！',
+        variant: 'success',
+      });
       router.push(`/projects/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -110,6 +143,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       name: formData.name,
       description: formData.description.trim() === '' ? undefined : formData.description,
       budgetPoolId: formData.budgetPoolId,
+      budgetCategoryId: formData.budgetCategoryId.trim() === '' ? undefined : formData.budgetCategoryId, // Module 2 新增
+      requestedBudget: formData.requestedBudget > 0 ? formData.requestedBudget : undefined,              // Module 2 新增
       managerId: formData.managerId,
       supervisorId: formData.supervisorId,
       startDate: new Date(formData.startDate),
@@ -181,6 +216,56 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         {errors.budgetPoolId && (
           <p className="mt-1 text-sm text-red-600">{errors.budgetPoolId}</p>
         )}
+      </div>
+
+      {/* Module 2: 預算類別和請求預算金額 */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <label htmlFor="budgetCategoryId" className="block text-sm font-medium text-gray-700">
+            預算類別
+          </label>
+          <select
+            id="budgetCategoryId"
+            value={formData.budgetCategoryId}
+            onChange={(e) => setFormData({ ...formData, budgetCategoryId: e.target.value })}
+            disabled={!formData.budgetPoolId}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            <option value="">選擇預算類別（選填）</option>
+            {budgetCategories?.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.categoryName}
+              </option>
+            ))}
+          </select>
+          {!formData.budgetPoolId && (
+            <p className="mt-1 text-sm text-gray-500">請先選擇預算池</p>
+          )}
+          {errors.budgetCategoryId && (
+            <p className="mt-1 text-sm text-red-600">{errors.budgetCategoryId}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="requestedBudget" className="block text-sm font-medium text-gray-700">
+            請求預算金額 ($)
+          </label>
+          <input
+            type="number"
+            id="requestedBudget"
+            value={formData.requestedBudget}
+            onChange={(e) =>
+              setFormData({ ...formData, requestedBudget: parseFloat(e.target.value) || 0 })
+            }
+            min="0"
+            step="0.01"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder="0.00"
+          />
+          {errors.requestedBudget && (
+            <p className="mt-1 text-sm text-red-600">{errors.requestedBudget}</p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

@@ -15,6 +15,7 @@
  */
 
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 // ============================================================
@@ -33,12 +34,14 @@ export const projectStatusEnum = z.enum(['Draft', 'InProgress', 'Completed', 'Ar
 /**
  * 創建專案的驗證 Schema
  * 必填欄位：name（專案名稱）、budgetPoolId（預算池ID）、managerId（專案經理ID）、supervisorId（主管ID）、startDate（開始日期）
- * 可選欄位：description（專案描述）、endDate（結束日期）
+ * 可選欄位：description（專案描述）、endDate（結束日期）、budgetCategoryId（預算類別ID）、requestedBudget（請求預算金額）
  */
 export const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(255),
   description: z.string().optional(),
   budgetPoolId: z.string().min(1, 'Budget pool ID is required'),
+  budgetCategoryId: z.string().uuid('Invalid budget category ID').optional(), // 新增：預算類別ID
+  requestedBudget: z.number().min(0, 'Requested budget must be >= 0').optional(), // 新增：請求預算金額
   managerId: z.string().uuid('Invalid manager ID'),
   supervisorId: z.string().uuid('Invalid supervisor ID'),
   startDate: z.coerce.date(),
@@ -56,6 +59,9 @@ export const updateProjectSchema = z.object({
   description: z.string().optional(),
   status: projectStatusEnum.optional(),
   budgetPoolId: z.string().min(1).optional(),
+  budgetCategoryId: z.string().uuid('Invalid budget category ID').optional(), // 新增：預算類別ID
+  requestedBudget: z.number().min(0, 'Requested budget must be >= 0').optional(), // 新增：請求預算金額
+  approvedBudget: z.number().min(0, 'Approved budget must be >= 0').optional(), // 新增：批准預算金額
   managerId: z.string().uuid().optional(),
   supervisorId: z.string().uuid().optional(),
   startDate: z.coerce.date().optional(),
@@ -321,12 +327,100 @@ export const projectRouter = createTRPCRouter({
     }),
 
   /**
+   * 查詢專案預算使用情況（Module 2 新增）
+   *
+   * 輸入參數：
+   * - projectId: 專案 ID（UUID 格式）
+   *
+   * 回傳：
+   * - requestedBudget: 請求預算金額
+   * - approvedBudget: 批准預算金額
+   * - actualSpent: 實際支出（從 PurchaseOrder 和 Expense 聚合）
+   * - utilizationRate: 預算使用率（百分比）
+   * - remainingBudget: 剩餘預算
+   * - budgetCategory: 預算類別資訊（如果有）
+   *
+   * 業務邏輯：
+   * - 實際支出 = 所有已批准的 Expense 總和
+   * - 使用率 = (實際支出 / 批准預算) * 100%
+   * - 剩餘預算 = 批准預算 - 實際支出
+   */
+  getBudgetUsage: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      // 查詢專案基本資訊
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId },
+        select: {
+          id: true,
+          name: true,
+          requestedBudget: true,
+          approvedBudget: true,
+          budgetCategoryId: true,
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+              budgetPoolId: true,
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到指定的專案',
+        });
+      }
+
+      // 計算實際支出：聚合所有已批准的 Expense
+      const expensesAggregation = await ctx.prisma.expense.aggregate({
+        where: {
+          purchaseOrder: {
+            projectId: input.projectId,
+          },
+          status: {
+            in: ['Approved', 'Paid'], // 只計算已批准和已支付的支出
+          },
+        },
+        _sum: {
+          totalAmount: true,
+        },
+      });
+
+      const actualSpent = expensesAggregation._sum.totalAmount ?? 0;
+      const approvedBudget = project.approvedBudget ?? 0;
+      const requestedBudget = project.requestedBudget ?? 0;
+
+      // 計算使用率和剩餘預算
+      const utilizationRate = approvedBudget > 0
+        ? (actualSpent / approvedBudget) * 100
+        : 0;
+      const remainingBudget = approvedBudget - actualSpent;
+
+      return {
+        projectId: project.id,
+        projectName: project.name,
+        requestedBudget,
+        approvedBudget,
+        actualSpent,
+        utilizationRate: Math.round(utilizationRate * 100) / 100, // 四捨五入到小數點後2位
+        remainingBudget,
+        budgetCategory: project.budgetCategory,
+      };
+    }),
+
+  /**
    * 創建新專案
    *
    * 輸入參數：
    * - name: 專案名稱（必填）
    * - description: 專案描述（可選）
    * - budgetPoolId: 預算池 ID（必填）
+   * - budgetCategoryId: 預算類別 ID（可選，Module 2 新增）
+   * - requestedBudget: 請求預算金額（可選，Module 2 新增）
    * - managerId: 專案經理 ID（必填）
    * - supervisorId: 主管 ID（必填）
    *
@@ -335,15 +429,52 @@ export const projectRouter = createTRPCRouter({
    *
    * 業務邏輯：
    * - 預設狀態為 "Draft"（草稿）
+   * - 如果提供 budgetCategoryId，驗證其屬於選擇的 budgetPoolId
+   * - 如果提供 budgetCategoryId，檢查該類別是否為 active
    */
   create: protectedProcedure
     .input(createProjectSchema)
     .mutation(async ({ ctx, input }) => {
+      // Module 2: 驗證 budgetCategoryId 是否屬於選擇的 budgetPoolId
+      if (input.budgetCategoryId) {
+        const budgetCategory = await ctx.prisma.budgetCategory.findUnique({
+          where: { id: input.budgetCategoryId },
+          select: {
+            id: true,
+            budgetPoolId: true,
+            isActive: true,
+          },
+        });
+
+        if (!budgetCategory) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '找不到指定的預算類別',
+          });
+        }
+
+        if (budgetCategory.budgetPoolId !== input.budgetPoolId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '預算類別不屬於選擇的預算池',
+          });
+        }
+
+        if (!budgetCategory.isActive) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '預算類別已停用',
+          });
+        }
+      }
+
       return ctx.prisma.project.create({
         data: {
           name: input.name,
           description: input.description,
           budgetPoolId: input.budgetPoolId,
+          budgetCategoryId: input.budgetCategoryId, // Module 2 新增
+          requestedBudget: input.requestedBudget,   // Module 2 新增
           managerId: input.managerId,
           supervisorId: input.supervisorId,
           startDate: input.startDate,
@@ -373,6 +504,15 @@ export const projectRouter = createTRPCRouter({
               financialYear: true,
             },
           },
+          budgetCategory: { // Module 2 新增
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+              budgetPoolId: true,
+              isActive: true,
+            },
+          },
         },
       });
     }),
@@ -386,6 +526,9 @@ export const projectRouter = createTRPCRouter({
    * - description: 專案描述（可選）
    * - status: 專案狀態（可選）
    * - budgetPoolId: 預算池 ID（可選）
+   * - budgetCategoryId: 預算類別 ID（可選，Module 2 新增）
+   * - requestedBudget: 請求預算金額（可選，Module 2 新增）
+   * - approvedBudget: 批准預算金額（可選，Module 2 新增）
    * - managerId: 專案經理 ID（可選）
    * - supervisorId: 主管 ID（可選）
    *
@@ -394,11 +537,63 @@ export const projectRouter = createTRPCRouter({
    *
    * 業務邏輯：
    * - 只更新提供的欄位（部分更新）
+   * - 如果更新 budgetCategoryId，驗證其屬於對應的 budgetPoolId
+   * - 如果同時更新 budgetPoolId 和 budgetCategoryId，驗證兩者關聯
    */
   update: protectedProcedure
     .input(updateProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
+
+      // Module 2: 驗證 budgetCategoryId 與 budgetPoolId 的關聯
+      if (input.budgetCategoryId) {
+        // 獲取現有專案的 budgetPoolId（如果沒有在 input 中提供）
+        let targetBudgetPoolId = input.budgetPoolId;
+        if (!targetBudgetPoolId) {
+          const existingProject = await ctx.prisma.project.findUnique({
+            where: { id },
+            select: { budgetPoolId: true },
+          });
+          if (!existingProject) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: '找不到指定的專案',
+            });
+          }
+          targetBudgetPoolId = existingProject.budgetPoolId;
+        }
+
+        // 驗證 budgetCategory
+        const budgetCategory = await ctx.prisma.budgetCategory.findUnique({
+          where: { id: input.budgetCategoryId },
+          select: {
+            id: true,
+            budgetPoolId: true,
+            isActive: true,
+          },
+        });
+
+        if (!budgetCategory) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '找不到指定的預算類別',
+          });
+        }
+
+        if (budgetCategory.budgetPoolId !== targetBudgetPoolId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '預算類別不屬於對應的預算池',
+          });
+        }
+
+        if (!budgetCategory.isActive) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '預算類別已停用',
+          });
+        }
+      }
 
       return ctx.prisma.project.update({
         where: { id },
@@ -424,6 +619,15 @@ export const projectRouter = createTRPCRouter({
               name: true,
               totalAmount: true,
               financialYear: true,
+            },
+          },
+          budgetCategory: { // Module 2 新增
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+              budgetPoolId: true,
+              isActive: true,
             },
           },
         },
@@ -465,21 +669,26 @@ export const projectRouter = createTRPCRouter({
       });
 
       if (!project) {
-        throw new Error('Project not found');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案',
+        });
       }
 
       // 檢查是否有關聯的提案
       if (project._count.proposals > 0) {
-        throw new Error(
-          'Cannot delete project with existing proposals. Please delete or reassign proposals first.'
-        );
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法刪除專案：此專案有 ${project._count.proposals} 個關聯的提案。請先刪除或重新分配這些提案。`,
+        });
       }
 
       // 檢查是否有關聯的採購單
       if (project._count.purchaseOrders > 0) {
-        throw new Error(
-          'Cannot delete project with existing purchase orders. Please delete or reassign purchase orders first.'
-        );
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法刪除專案：此專案有 ${project._count.purchaseOrders} 個關聯的採購單。請先刪除或重新分配這些採購單。`,
+        });
       }
 
       // 執行刪除
@@ -526,7 +735,7 @@ export const projectRouter = createTRPCRouter({
               totalAmount: true,
               expenses: {
                 select: {
-                  amount: true,
+                  totalAmount: true,
                   status: true,
                 },
               },
@@ -563,12 +772,12 @@ export const projectRouter = createTRPCRouter({
       const allExpenses = project.purchaseOrders.flatMap((po) => po.expenses);
       const totalExpenses = allExpenses.length;
       const totalExpenseAmount = allExpenses.reduce(
-        (sum, e) => sum + e.amount,
+        (sum, e) => sum + e.totalAmount,
         0
       );
       const paidExpenseAmount = allExpenses
         .filter((e) => e.status === 'Paid')
-        .reduce((sum, e) => sum + e.amount, 0);
+        .reduce((sum, e) => sum + e.totalAmount, 0);
 
       return {
         totalProposals,

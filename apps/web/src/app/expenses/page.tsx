@@ -321,7 +321,7 @@ export default function ExpensesPage() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="text-lg font-semibold text-foreground">
-                                  ${expense.amount.toLocaleString()}
+                                  ${expense.totalAmount.toLocaleString()}
                                 </h3>
                                 <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
                                   {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
@@ -412,7 +412,7 @@ export default function ExpensesPage() {
                           className="text-primary hover:underline flex items-center justify-end gap-2"
                         >
                           <Receipt className="h-4 w-4" />
-                          ${expense.amount.toLocaleString()}
+                          ${expense.totalAmount.toLocaleString()}
                         </Link>
                       </TableCell>
                       <TableCell>

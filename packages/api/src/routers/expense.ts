@@ -28,12 +28,16 @@ const ExpenseStatusEnum = z.enum(['Draft', 'PendingApproval', 'Approved', 'Paid'
 
 /**
  * 創建費用 Schema (Story 6.1)
+ * 根據更新的 Prisma schema
  */
 const createExpenseSchema = z.object({
+  name: z.string().min(1, '費用名稱為必填'),
   purchaseOrderId: z.string().min(1, '採購單ID為必填'),
   amount: z.number().min(0, '費用金額必須大於等於0'),
   expenseDate: z.date().or(z.string().transform((str) => new Date(str))),
-  invoiceFilePath: z.string().optional(), // 發票文件路徑
+  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))),
+  invoiceNumber: z.string().optional(),
+  invoiceFilePath: z.string().optional(),
   description: z.string().optional(),
 });
 
@@ -42,8 +46,11 @@ const createExpenseSchema = z.object({
  */
 const updateExpenseSchema = z.object({
   id: z.string().min(1, '無效的費用ID'),
+  name: z.string().min(1, '費用名稱為必填').optional(),
   amount: z.number().min(0, '費用金額必須大於等於0').optional(),
   expenseDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
+  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
+  invoiceNumber: z.string().optional(),
   invoiceFilePath: z.string().optional(),
   description: z.string().optional(),
 });
@@ -210,7 +217,7 @@ export const expenseRouter = createTRPCRouter({
       }
 
       // 驗證費用總額不超過採購單金額 (警告，不阻止)
-      const totalExpenses = purchaseOrder.expenses.reduce((sum, e) => sum + e.amount, 0);
+      const totalExpenses = purchaseOrder.expenses.reduce((sum, e) => sum + e.totalAmount, 0);
       const newTotal = totalExpenses + input.amount;
 
       if (newTotal > purchaseOrder.totalAmount) {
@@ -220,10 +227,14 @@ export const expenseRouter = createTRPCRouter({
       // 創建費用記錄
       const expense = await ctx.prisma.expense.create({
         data: {
+          name: input.name,
           purchaseOrderId: input.purchaseOrderId,
-          amount: input.amount,
+          totalAmount: input.amount,
           expenseDate: input.expenseDate,
+          invoiceDate: input.invoiceDate,
+          invoiceNumber: input.invoiceNumber,
           invoiceFilePath: input.invoiceFilePath,
+          description: input.description,
           status: 'Draft', // 初始狀態為草稿
         },
         include: {
@@ -259,7 +270,12 @@ export const expenseRouter = createTRPCRouter({
   update: protectedProcedure
     .input(updateExpenseSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
+      const { id, amount, ...restData } = input;
+
+      // 將 amount 轉換為 totalAmount（API 輸入 -> 資料庫欄位）
+      const updateData = amount !== undefined
+        ? { ...restData, totalAmount: amount }
+        : restData;
 
       // 檢查費用是否存在
       const existingExpense = await ctx.prisma.expense.findUnique({
@@ -476,12 +492,12 @@ export const expenseRouter = createTRPCRouter({
 
       // Story 6.3: 從預算池扣款
       const budgetPool = expense.purchaseOrder.project.budgetPool;
-      const usedAmount = budgetPool.usedAmount + expense.amount;
+      const usedAmount = budgetPool.usedAmount + expense.totalAmount;
 
       if (usedAmount > budgetPool.totalAmount) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: `預算池餘額不足。總預算: ${budgetPool.totalAmount}，已使用: ${budgetPool.usedAmount}，需要: ${expense.amount}`,
+          message: `預算池餘額不足。總預算: ${budgetPool.totalAmount}，已使用: ${budgetPool.usedAmount}，需要: ${expense.totalAmount}`,
         });
       }
 
@@ -522,7 +538,7 @@ export const expenseRouter = createTRPCRouter({
             userId: updatedExpense.purchaseOrder.project.managerId,
             type: 'EXPENSE_APPROVED',
             title: '費用已批准',
-            message: `您的費用記錄（金額 NT$ ${updatedExpense.amount.toLocaleString()}）已被批准並從預算池扣款。`,
+            message: `您的費用記錄（金額 NT$ ${updatedExpense.totalAmount.toLocaleString()}）已被批准並從預算池扣款。`,
             link: `/expenses/${updatedExpense.id}`,
             entityType: 'EXPENSE',
             entityId: updatedExpense.id,
@@ -670,7 +686,7 @@ export const expenseRouter = createTRPCRouter({
 
       const totalAmountResult = await ctx.prisma.expense.aggregate({
         _sum: {
-          amount: true,
+          totalAmount: true,
         },
       });
 
@@ -678,21 +694,21 @@ export const expenseRouter = createTRPCRouter({
         by: ['status'],
         _count: true,
         _sum: {
-          amount: true,
+          totalAmount: true,
         },
       });
 
-      const pendingApprovalAmount = expensesByStatus.find(g => g.status === 'PendingApproval')?._sum.amount || 0;
-      const approvedAmount = expensesByStatus.find(g => g.status === 'Approved')?._sum.amount || 0;
-      const paidAmount = expensesByStatus.find(g => g.status === 'Paid')?._sum.amount || 0;
+      const pendingApprovalAmount = expensesByStatus.find(g => g.status === 'PendingApproval')?._sum.totalAmount || 0;
+      const approvedAmount = expensesByStatus.find(g => g.status === 'Approved')?._sum.totalAmount || 0;
+      const paidAmount = expensesByStatus.find(g => g.status === 'Paid')?._sum.totalAmount || 0;
 
       return {
         totalExpenses,
-        totalAmount: totalAmountResult._sum.amount || 0,
+        totalAmount: totalAmountResult._sum.totalAmount || 0,
         byStatus: expensesByStatus.map(g => ({
           status: g.status,
           count: g._count,
-          totalAmount: g._sum.amount || 0,
+          totalAmount: g._sum.totalAmount || 0,
         })),
         pendingApprovalAmount,
         approvedAmount,

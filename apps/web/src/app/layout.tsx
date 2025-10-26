@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { TRPCProvider } from '@/lib/trpc-provider';
 import { ToastProvider } from '@/components/ui/Toast';
+import { Toaster } from '@/components/ui/toaster';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -24,6 +25,7 @@ export default function RootLayout({
         <SessionProvider>
           <TRPCProvider>
             <ToastProvider>{children}</ToastProvider>
+            <Toaster />
           </TRPCProvider>
         </SessionProvider>
       </body>

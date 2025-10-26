@@ -33,8 +33,12 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
 
   // 表單狀態
   const [purchaseOrderId, setPurchaseOrderId] = useState(defaultPurchaseOrderId || '');
+  const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [invoiceFilePath, setInvoiceFilePath] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -80,8 +84,12 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
   useEffect(() => {
     if (existingExpense) {
       setPurchaseOrderId(existingExpense.purchaseOrderId);
-      setAmount(existingExpense.amount.toString());
+      setName(existingExpense.name || '');
+      setAmount(existingExpense.totalAmount.toString());
       setExpenseDate(new Date(existingExpense.expenseDate).toISOString().split('T')[0]);
+      setInvoiceDate(new Date(existingExpense.invoiceDate).toISOString().split('T')[0]);
+      setInvoiceNumber(existingExpense.invoiceNumber || '');
+      setDescription(existingExpense.description || '');
       setInvoiceFilePath(existingExpense.invoiceFilePath);
     }
   }, [existingExpense]);
@@ -164,6 +172,11 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
     e.preventDefault();
 
     // 驗證表單
+    if (!name.trim()) {
+      showToast('請輸入費用名稱', 'error');
+      return;
+    }
+
     if (!purchaseOrderId) {
       showToast('請選擇採購單', 'error');
       return;
@@ -179,6 +192,11 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
       return;
     }
 
+    if (!invoiceDate) {
+      showToast('請選擇發票日期', 'error');
+      return;
+    }
+
     // 如果有新文件，先上傳
     let finalInvoicePath = invoiceFilePath;
     if (file) {
@@ -191,9 +209,13 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
 
     // 構建數據
     const data = {
+      name: name.trim(),
       purchaseOrderId,
       amount: parseFloat(amount),
       expenseDate: new Date(expenseDate),
+      invoiceDate: new Date(invoiceDate),
+      invoiceNumber: invoiceNumber.trim() || undefined,
+      description: description.trim() || undefined,
       invoiceFilePath: finalInvoicePath || undefined,
     };
 
@@ -238,6 +260,22 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
             )}
           </div>
 
+          {/* 費用名稱 */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              費用名稱 <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例如：伺服器租賃費用、軟體授權費"
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
           {/* 費用金額 */}
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
@@ -266,6 +304,36 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
               type="date"
               value={expenseDate}
               onChange={(e) => setExpenseDate(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* 發票號碼 */}
+          <div>
+            <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">
+              發票號碼
+            </label>
+            <Input
+              id="invoiceNumber"
+              type="text"
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              placeholder="例如：AB12345678"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* 發票日期 */}
+          <div>
+            <label htmlFor="invoiceDate" className="block text-sm font-medium text-gray-700 mb-2">
+              發票日期 <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="invoiceDate"
+              type="date"
+              value={invoiceDate}
+              onChange={(e) => setInvoiceDate(e.target.value)}
               required
               disabled={isSubmitting}
             />
@@ -321,6 +389,22 @@ export function ExpenseForm({ expenseId, defaultPurchaseOrderId }: ExpenseFormPr
                 支援格式: PDF, Word, Excel, 圖片 (.jpg, .png)，最大 10MB
               </p>
             </div>
+          </div>
+
+          {/* 描述 */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              備註說明
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="請輸入費用相關的補充說明"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+              disabled={isSubmitting}
+            />
           </div>
 
           {/* 提示訊息 */}

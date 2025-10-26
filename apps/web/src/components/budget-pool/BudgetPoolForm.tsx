@@ -21,7 +21,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/label';
@@ -42,7 +42,7 @@ interface BudgetPoolFormProps {
 
 export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
 
   // 基本表單數據
   const [formData, setFormData] = useState({
@@ -77,23 +77,39 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
 
   const createMutation = api.budgetPool.create.useMutation({
     onSuccess: () => {
-      showToast('預算池創建成功！', 'success');
+      toast({
+        title: '成功',
+        description: '預算池創建成功！',
+        variant: 'success',
+      });
       router.push('/budget-pools');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤：${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
   const updateMutation = api.budgetPool.update.useMutation({
     onSuccess: () => {
-      showToast('預算池更新成功！', 'success');
+      toast({
+        title: '成功',
+        description: '預算池更新成功！',
+        variant: 'success',
+      });
       router.push(`/budget-pools/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤：${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 

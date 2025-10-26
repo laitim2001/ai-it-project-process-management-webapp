@@ -20,6 +20,83 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-27 00:55 | Bug 修復 | Toast 系統整合與 Expense API 完善
+
+**類型**: 修復 | **負責人**: AI 助手
+
+**修復的問題**:
+本次修復了用戶報告的 8 個問題中的最後 2 個關鍵問題（問題 1 和問題 2），完善了 Toast 通知系統和 Expense API。
+
+**完成的工作**:
+
+1. ✅ **修復 Expense Create API 缺少必填欄位** (問題 2)
+   - **後端修復** (`packages/api/src/routers/expense.ts`):
+     - 更新 `createExpenseSchema` 添加：`name`、`invoiceDate`、`invoiceNumber`、`description`
+     - 更新 `updateExpenseSchema` 添加相同欄位作為選填
+     - 更新 create API 實作，傳遞所有新欄位到 Prisma
+   - **前端修復** (`apps/web/src/components/expense/ExpenseForm.tsx`):
+     - 添加 4 個新狀態變數：`name`, `invoiceDate`, `invoiceNumber`, `description`
+     - 更新 useEffect 初始化邏輯
+     - 添加 4 個新表單輸入欄位（費用名稱、發票號碼、發票日期、備註說明）
+     - 更新表單驗證和提交邏輯
+     - 修復所有 toast 調用（`showToast` API）
+
+2. ✅ **修復專案刪除錯誤處理與 UI 顯示** (問題 1)
+   - **後端改進** (`packages/api/src/routers/project.ts`):
+     - 添加 `TRPCError` 導入
+     - 使用正確的錯誤代碼（`NOT_FOUND`, `PRECONDITION_FAILED`）
+     - 改進錯誤訊息為繁體中文，顯示具體數量
+     - 範例：`無法刪除專案：此專案有 3 個關聯的提案。請先刪除或重新分配這些提案。`
+   - **前端修復** (`apps/web/src/app/projects/[id]/page.tsx`):
+     - 修正 toast API 調用（使用正確的 `toast({ title, description, variant })` 格式）
+   - **Toast 系統整合** (`apps/web/src/app/layout.tsx`):
+     - 添加 shadcn/ui `Toaster` 組件到 layout
+     - 現在支持兩套 Toast 系統並存（ToastProvider + Toaster）
+
+3. ✅ **修復其他 Toast 相關錯誤**
+   - 修復 `ProjectForm.tsx` - 保持 shadcn/ui toast API
+   - 修復 `expenses/page.tsx` - 使用簡單版 showToast API
+   - 修復所有 Expense 相關頁面的欄位名稱（`totalAmount` 取代 `amount`）
+
+4. ✅ **Expense 欄位名稱統一修復** (問題 7)
+   - **前端修復**（5 個文件，7 處修改）:
+     - `expenses/page.tsx`: 卡片視圖 + 列表視圖
+     - `expenses/[id]/page.tsx`: 頁面標題 + 詳情卡片
+     - `purchase-orders/[id]/page.tsx`: 關聯費用顯示
+     - `dashboard/pm/page.tsx`: 草稿費用顯示
+   - **後端修復**（2 個文件，11 處修改）:
+     - `expense.ts`: create, update, approve, getStats API
+     - `project.ts`: getBudgetUsage, getStats API
+   - **欄位映射邏輯**: API 輸入使用 `amount` → 資料庫使用 `totalAmount`
+
+**修改的文件**:
+- `packages/api/src/routers/expense.ts` (schema + create API)
+- `packages/api/src/routers/project.ts` (delete error handling)
+- `apps/web/src/components/expense/ExpenseForm.tsx` (完整重寫)
+- `apps/web/src/app/projects/[id]/page.tsx` (toast 修復)
+- `apps/web/src/app/layout.tsx` (添加 Toaster)
+- `apps/web/src/app/expenses/page.tsx` (欄位名稱修復)
+- `apps/web/src/app/expenses/[id]/page.tsx` (欄位名稱修復)
+- `apps/web/src/app/purchase-orders/[id]/page.tsx` (欄位名稱修復)
+- `apps/web/src/app/dashboard/pm/page.tsx` (欄位名稱修復)
+
+**技術亮點**:
+- ✅ 雙 Toast 系統並存（ToastProvider + Toaster）
+- ✅ 正確的 TRPCError 錯誤處理
+- ✅ 完整的 Expense schema 同步（前後端一致）
+- ✅ 繁體中文錯誤訊息改進
+
+**用戶報告問題進度**:
+- ✅ 問題 1-8：**全部修復完成**
+- ✅ 所有修改已編譯成功，可進行測試
+
+**下一步**:
+- ⏳ 用戶測試 Expense 創建流程
+- ⏳ 用戶測試專案刪除錯誤顯示
+- ⏳ 繼續 Module 2 後續開發
+
+---
+
 ### 2025-10-26 23:30 | Phase A 完成 | Module 1 (BudgetPool) 前端實施完成
 
 **類型**: 功能開發 | **負責人**: AI 助手

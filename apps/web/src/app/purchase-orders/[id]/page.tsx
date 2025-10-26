@@ -301,7 +301,7 @@ export default function PurchaseOrderDetailPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <p className="font-medium text-foreground">
-                            ${expense.amount.toLocaleString()}
+                            ${expense.totalAmount.toLocaleString()}
                           </p>
                           <ExpenseStatusBadge status={expense.status} />
                         </div>

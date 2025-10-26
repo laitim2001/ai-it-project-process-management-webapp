@@ -331,7 +331,7 @@ export const budgetPoolRouter = createTRPCRouter({
                       status: { in: ['Approved', 'Paid'] },
                     },
                     select: {
-                      amount: true,
+                      totalAmount: true,
                     },
                   },
                 },
@@ -362,7 +362,7 @@ export const budgetPoolRouter = createTRPCRouter({
           project.purchaseOrders.reduce(
             (poSum, po) =>
               poSum +
-              po.expenses.reduce((eSum, expense) => eSum + expense.amount, 0),
+              po.expenses.reduce((eSum, expense) => eSum + expense.totalAmount, 0),
             0
           ),
         0
@@ -424,6 +424,35 @@ export const budgetPoolRouter = createTRPCRouter({
     }),
 
   // ========== BudgetCategory 操作 ==========
+
+  /**
+   * 獲取預算池的所有預算類別
+   */
+  getCategories: protectedProcedure
+    .input(z.object({ budgetPoolId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const categories = await ctx.prisma.budgetCategory.findMany({
+        where: {
+          budgetPoolId: input.budgetPoolId,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          categoryName: true,
+          categoryCode: true,
+          totalAmount: true,
+          usedAmount: true,
+          description: true,
+          sortOrder: true,
+          isActive: true,
+        },
+        orderBy: {
+          sortOrder: 'asc',
+        },
+      });
+
+      return categories;
+    }),
 
   /**
    * 獲取類別使用統計
