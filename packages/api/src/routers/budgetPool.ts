@@ -161,7 +161,23 @@ export const budgetPoolRouter = createTRPCRouter({
         });
       }
 
-      return pool;
+      // 計算總預算和已用金額（從 categories 累加）
+      const totalAmount = pool.categories.reduce((sum, cat) => sum + cat.totalAmount, 0);
+      const usedAmount = pool.categories.reduce((sum, cat) => sum + cat.usedAmount, 0);
+
+      // 為每個類別計算使用率
+      const categoriesWithRate = pool.categories.map(cat => ({
+        ...cat,
+        utilizationRate: cat.totalAmount > 0 ? (cat.usedAmount / cat.totalAmount) * 100 : 0,
+      }));
+
+      return {
+        ...pool,
+        categories: categoriesWithRate,
+        computedTotalAmount: totalAmount,
+        computedUsedAmount: usedAmount,
+        utilizationRate: totalAmount > 0 ? (usedAmount / totalAmount) * 100 : 0,
+      };
     }),
 
   // Get budget pools by financial year

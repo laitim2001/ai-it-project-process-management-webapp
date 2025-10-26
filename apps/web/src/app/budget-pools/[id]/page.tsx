@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, Calendar, TrendingUp, Folder, Edit, Trash2, User, AlertCircle } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { DollarSign, Calendar, TrendingUp, Folder, Edit, Trash2, User, AlertCircle, ListTree } from 'lucide-react';
 
 /**
  * 專案狀態顯示配置
@@ -194,12 +195,28 @@ export default function BudgetPoolDetailPage() {
                 <dl className="grid grid-cols-2 gap-6">
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1">財務年度</dt>
-                    <dd className="text-xl font-bold text-foreground">{budgetPool.financialYear}</dd>
+                    <dd className="text-xl font-bold text-foreground">FY {budgetPool.financialYear}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">類別數量</dt>
+                    <dd className="text-xl font-bold text-foreground">{budgetPool.categories.length} 個類別</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1">總預算</dt>
                     <dd className="text-xl font-bold text-foreground">
-                      ${budgetPool.totalAmount.toLocaleString()}
+                      ${(budgetPool.computedTotalAmount ?? budgetPool.totalAmount).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">已使用金額</dt>
+                    <dd className="text-xl font-bold text-orange-600">
+                      ${(budgetPool.computedUsedAmount ?? 0).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </dd>
                   </div>
                   <div>
@@ -217,6 +234,91 @@ export default function BudgetPoolDetailPage() {
                     </dd>
                   </div>
                 </dl>
+              </CardContent>
+            </Card>
+
+            {/* 預算類別詳細資訊 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ListTree className="h-5 w-5" />
+                  預算類別 ({budgetPool.categories.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {budgetPool.categories.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">尚未有任何預算類別</p>
+                ) : (
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">排序</TableHead>
+                          <TableHead>類別名稱</TableHead>
+                          <TableHead>類別代碼</TableHead>
+                          <TableHead className="text-right">總預算</TableHead>
+                          <TableHead className="text-right">已使用</TableHead>
+                          <TableHead className="text-right">使用率</TableHead>
+                          <TableHead className="text-center">專案數</TableHead>
+                          <TableHead className="text-center">支出數</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {budgetPool.categories.map((category) => {
+                          const utilizationRate = category.utilizationRate ?? 0;
+
+                          return (
+                            <TableRow key={category.id}>
+                              <TableCell className="text-center text-muted-foreground">
+                                {category.sortOrder}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                <div>
+                                  <div className="font-medium text-foreground">{category.categoryName}</div>
+                                  {category.description && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {category.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                {category.categoryCode || '-'}
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                ${category.totalAmount.toLocaleString('en-US', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                ${category.usedAmount.toLocaleString('en-US', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className={`font-medium ${
+                                  utilizationRate > 90 ? 'text-destructive' :
+                                  utilizationRate > 75 ? 'text-yellow-600 dark:text-yellow-500' :
+                                  'text-green-600 dark:text-green-500'
+                                }`}>
+                                  {utilizationRate.toFixed(1)}%
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {category._count.projects}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {category._count.expenses}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

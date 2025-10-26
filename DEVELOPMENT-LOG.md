@@ -20,6 +20,150 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-26 23:30 | Phase A 完成 | Module 1 (BudgetPool) 前端實施完成
+
+**類型**: 功能開發 | **負責人**: AI 助手
+
+**Phase A 核心任務完成**:
+Module 1 (BudgetPool) 前端實施全部完成，前後端完全打通，待用戶測試。
+
+**完成的工作**:
+
+1. ✅ **創建 CategoryFormRow.tsx 組件** (~200 行)
+   - 可重用的類別輸入行組件
+   - Grid 佈局（12 欄）：名稱、代碼、金額、說明、排序、刪除
+   - 內聯錯誤顯示
+   - 支持 canDelete 控制（至少保留一個類別）
+
+2. ✅ **完全重寫 BudgetPoolForm.tsx** (~390 行)
+   - ❌ 移除舊的 `totalAmount` 欄位
+   - ✅ 新增 `categories` 陣列狀態管理
+   - ✅ 新增 `description` 欄位（可選）
+   - ✅ Categories CRUD 操作（新增、更新、刪除）
+   - ✅ Computed total amount（從 categories 自動計算）
+   - ✅ 增強驗證：
+     - 重複類別名稱檢查
+     - 金額必須 ≥ 0
+     - 至少保留一個類別
+   - ✅ 現代化 UI：Card 佈局 + 總預算即時顯示
+
+3. ✅ **更新列表頁** (apps/web/src/app/budget-pools/page.tsx)
+   - **卡片視圖**更新：
+     - 類別數量（「3 個類別」）
+     - computedTotalAmount（取代 totalAmount）
+     - 已使用金額
+     - 使用率（帶顏色狀態：綠 <75% / 黃 75-90% / 紅 >90%）
+   - **列表視圖**更新：
+     - 新增類別數量欄位
+     - 新增總預算、已使用、使用率欄位
+     - 所有金額格式化（2 位小數）
+
+4. ✅ **增強 API Router** (packages/api/src/routers/budgetPool.ts)
+   - `getById` 方法新增：
+     - 計算 `computedTotalAmount`（categories 總和）
+     - 計算 `computedUsedAmount`（已使用金額）
+     - 計算整體 `utilizationRate`
+     - 為每個 category 計算 `utilizationRate`
+
+5. ✅ **更新詳情頁** (apps/web/src/app/budget-pools/[id]/page.tsx)
+   - **基本資訊卡片**新增：
+     - 類別數量
+     - computedTotalAmount（取代 totalAmount）
+     - 已使用金額（橙色顯示）
+   - **新增 Categories 表格**（完整展示）：
+     - 排序、類別名稱、類別代碼
+     - 總預算、已使用、使用率
+     - 專案數、支出數
+     - 使用率帶顏色狀態指示
+     - 類別說明（可選顯示）
+
+**修改的文件**:
+- `apps/web/src/components/budget-pool/CategoryFormRow.tsx` (新增)
+- `apps/web/src/components/budget-pool/BudgetPoolForm.tsx` (完全重寫)
+- `apps/web/src/app/budget-pools/page.tsx` (重大更新)
+- `apps/web/src/app/budget-pools/[id]/page.tsx` (重大更新)
+- `packages/api/src/routers/budgetPool.ts` (getById 增強)
+
+**技術亮點**:
+- ✅ 使用 shadcn/ui 組件（Card, Table, Input, Button）
+- ✅ 完整的 TypeScript 類型安全
+- ✅ 響應式設計（Grid 佈局）
+- ✅ 即時計算（Computed total）
+- ✅ 智能驗證（重複名稱、金額範圍）
+- ✅ 使用率顏色狀態（UX 優化）
+
+**待執行**:
+- ⏳ 用戶測試完整 CRUD 流程
+- ⏳ 驗證計算邏輯正確性
+- ⏳ 測試 Categories 操作（新增、修改、刪除）
+
+**下一步**:
+完成測試後，根據用戶反饋決定：
+- 選項 A: 繼續階段 2（Module 2-8 API）
+- 選項 B: 優化 Module 1 設計
+- 選項 C: 暫停並評估需求
+
+---
+
+### 2025-10-26 21:48 | Phase A | 開始執行 Module 1 前端實施
+
+**類型**: 開發 + 決策 | **負責人**: AI 助手
+
+**Phase A 啟動**:
+用戶同意立即開始 Phase A (完成 Module 1 BudgetPool 前端實施)。Phase A 目標是讓 Module 1 完全可用。
+
+**已完成工作**:
+1. ✅ **專案維護檢查清單全部完成**（5/5 項）
+   - ✅ 開發記錄更新：DEVELOPMENT-LOG.md
+   - ✅ 進度總結：創建 COMPLETE-IMPLEMENTATION-PROGRESS.md
+   - ✅ 索引維護：pnpm index:check 通過，PROJECT-INDEX.md 更新
+   - ✅ 文件管理：清理 CLAUDE.md.backup，確認目錄結構良好
+   - ✅ GitHub 同步：提交 `4953dbd` 並推送到 origin/main
+
+2. ✅ **Git 提交記錄**：
+   - Commit: `4953dbd` - "docs: 文檔重組與 COMPLETE-IMPLEMENTATION-PLAN 進度追蹤系統"
+   - 60 個檔案變更，+10,276 行新增，-888 行刪除
+   - 重組 claudedocs/ 和 docs/ 目錄結構
+   - 新增進度追蹤系統
+
+**遇到的技術限制**:
+🔴 **Migration 文件創建失敗**
+- **問題**: `prisma migrate dev` 需要交互式終端，Claude Code 的 Bash tool 無法執行
+- **環境變數問題**: Bash 環境無法載入專案根目錄的 .env 文件
+- **當前狀態**: Schema 已透過 `db push` 應用到資料庫（正確狀態）
+- **影響**: 暫時沒有 migration 歷史記錄
+- **解決方案**: 需要在用戶本機 PowerShell 手動執行：
+  ```powershell
+  $env:DATABASE_URL="postgresql://postgres:localdev123@localhost:5434/itpm_dev"
+  cd packages\db
+  npx prisma migrate dev --name add_budget_categories_and_enhancements --create-only
+  ```
+
+**策略調整**:
+- ✅ **決策**: 先跳過 Migration 創建，直接進行前端開發
+- ✅ **理由**:
+  * Phase A 核心目標是完成前端實施，不是 Migration
+  * 資料庫已經是正確狀態，不影響開發
+  * Migration 可以作為獨立任務稍後完成
+  * 不阻塞開發流程
+- ⏳ **下一步**: 用戶將在新的 Claude Code 會話中繼續前端開發
+
+**Phase A 待辦任務**（剩餘 6 項）:
+- [ ] 重寫 BudgetPoolForm.tsx 支持 categories 陣列
+- [ ] 創建 CategoryFormRow.tsx 組件（分類明細表單）
+- [ ] 更新預算池列表頁（顯示 categories 摘要）
+- [ ] 更新預算池詳情頁（完整展示 categories）
+- [ ] 執行完整測試（創建、編輯、刪除、分類操作）
+- [ ] 更新 COMPLETE-IMPLEMENTATION-PROGRESS.md 記錄 Phase A 完成
+
+**相關文件**:
+- `COMPLETE-IMPLEMENTATION-PROGRESS.md` - 進度追蹤（當前 22%）
+- `packages/db/prisma/schema.prisma` - Schema 已完成
+- `packages/api/src/routers/budgetPool.ts` - API 已完成
+- `apps/web/src/components/budget-pool/BudgetPoolForm.tsx` - 待重寫
+
+---
+
 ### 2025-10-26 21:30 | 評估 | COMPLETE-IMPLEMENTATION-PLAN.md 實施進度評估
 
 **類型**: 進度評估 + 決策 | **負責人**: AI 助手

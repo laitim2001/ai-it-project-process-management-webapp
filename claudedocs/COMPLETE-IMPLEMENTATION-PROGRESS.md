@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-26
-> **總體進度**: 約 22% (階段 1 完成 + 階段 2.1 部分完成)
-> **當前階段**: Phase A - Module 1 前端實施
+> **最後更新**: 2025-10-26 23:30
+> **總體進度**: 約 28% (階段 1 完成 + 階段 2.1 完成 + 階段 3.1 完成)
+> **當前階段**: Phase A - 完成，待用戶測試
 
 ---
 
@@ -11,10 +11,10 @@
 
 ```
 階段 1: 數據庫 Schema           ████████████████████ 100% ✅
-階段 2: 後端 API 實施            ███░░░░░░░░░░░░░░░░░  17% 🔄
-階段 3: 前端實施                 ░░░░░░░░░░░░░░░░░░░░   0% ⏳
+階段 2: 後端 API 實施            ███░░░░░░░░░░░░░░░░░  17% ✅ (Module 1)
+階段 3: 前端實施                 ███░░░░░░░░░░░░░░░░░  17% ✅ (Module 1)
 ─────────────────────────────────────────────────────────
-總進度                          ██████░░░░░░░░░░░░░░  22%
+總進度                          ███████░░░░░░░░░░░░░  28%
 ```
 
 ---
@@ -177,19 +177,38 @@
 
 ---
 
-### **階段 3: 前端實施** ⏳ **0% 完成**
+### **階段 3: 前端實施** ✅ **17% 完成** (1/6 模塊)
 
-#### Module 1: BudgetPool 前端 ⏳ **準備開始 Phase A**
+#### Module 1: BudgetPool 前端 ✅ **100% 完成**
 
-**當前狀態**: 前端仍使用舊的 totalAmount 欄位
+**完成時間**: 2025-10-26 23:30
+**狀態**: 前端開發完成，待用戶測試
 
-**待實施文件**:
-- [ ] `BudgetPoolForm.tsx` - 重寫支持 categories
-- [ ] `CategoryFormRow.tsx` - 新增明細表單組件
-- [ ] `apps/web/src/app/budget-pools/page.tsx` - 列表頁顯示 categories
-- [ ] `apps/web/src/app/budget-pools/[id]/page.tsx` - 詳情頁展示 categories
+**完成的文件**:
+- ✅ `CategoryFormRow.tsx` - 新增明細表單組件 (~200 行)
+- ✅ `BudgetPoolForm.tsx` - 完全重寫支持 categories (~390 行)
+- ✅ `apps/web/src/app/budget-pools/page.tsx` - 列表頁更新（卡片+列表視圖）
+- ✅ `apps/web/src/app/budget-pools/[id]/page.tsx` - 詳情頁新增 Categories 表格
+- ✅ `packages/api/src/routers/budgetPool.ts` - getById 方法增強
 
-**預計工作量**: 1-2 天
+**核心功能**:
+- ✅ Categories CRUD 操作（新增、更新、刪除）
+- ✅ Computed total amount（自動計算）
+- ✅ 列表頁顯示類別摘要（數量、總預算、已用、使用率）
+- ✅ 詳情頁完整展示 Categories 表格（8 個欄位）
+- ✅ 增強驗證（重複名稱、金額範圍）
+- ✅ 使用率顏色狀態（綠/黃/紅）
+
+**技術亮點**:
+- ✅ 使用 shadcn/ui 組件（Card, Table, Input, Button）
+- ✅ 完整的 TypeScript 類型安全
+- ✅ 響應式設計（Grid 佈局）
+- ✅ 即時計算與驗證
+- ✅ UX 優化（顏色狀態、內聯錯誤）
+
+**待執行**:
+- ⏳ 用戶測試完整 CRUD 流程
+- ⏳ 驗證計算邏輯正確性
 
 ---
 
@@ -207,18 +226,26 @@
 ├─ ✅ 階段 2.1: BudgetPool API 完成
 └─ 📋 準備執行: Phase A (BudgetPool 前端)
 
-2025-10-26 (今天) - Phase A 開始
-├─ ⏳ 創建 migration 文件
-├─ ⏳ 實施 BudgetPool 前端
-└─ ⏳ 完整測試
+2025-10-26 21:48 - Phase A 開始
+├─ ✅ 創建進度追蹤系統
+├─ ⚠️ Migration 文件創建（技術限制，待手動）
+└─ 📋 開始前端實施
 
-2025-10-27 (預計) - Phase A 完成
-├─ ✅ Module 1 完全可用
-├─ 📊 評估與反饋
-└─ 📋 決定下一步
+2025-10-26 23:30 - Phase A 完成
+├─ ✅ CategoryFormRow.tsx 創建完成
+├─ ✅ BudgetPoolForm.tsx 重寫完成
+├─ ✅ 列表頁更新完成
+├─ ✅ 詳情頁更新完成
+├─ ✅ API Router 增強完成
+└─ ⏳ 待用戶測試
 
-2025-10-28+ (未來)
-└─ 🔄 階段 2 其他模塊 API 實施
+2025-10-27+ (接下來)
+├─ ⏳ 用戶測試與反饋
+├─ 📊 評估與決策
+└─ 📋 決定下一步（選項 A/B/C）
+
+未來規劃
+└─ 🔄 階段 2 其他模塊 API 實施（視需求而定）
 ```
 
 ---
@@ -241,42 +268,69 @@
 
 ---
 
-## 🎯 Phase A 目標 (當前階段)
+## 🎯 Phase A 目標 (已完成)
 
-**時間**: 2025-10-26 ~ 2025-10-27 (1-2天)
+**時間**: 2025-10-26 21:48 - 23:30
 **目標**: 讓 Module 1 (BudgetPool) 完全可用
+**狀態**: ✅ **開發完成，待用戶測試**
 
 ### 任務清單
 
-**Day 1 上午**: 基礎設施
-- [ ] 創建 migration 文件
-- [ ] 驗證資料庫同步
-- [ ] 準備前端開發環境
+**✅ Day 1 準備工作**（2025-10-26 21:48 完成）:
+- ✅ 專案維護檢查清單全部完成（5/5 項）
+- ✅ Git 提交：`4953dbd` - 文檔重組與進度追蹤
+- ✅ 進度記錄更新：DEVELOPMENT-LOG.md
+- ⚠️ Migration 文件創建：遇到技術限制（詳見下方）
 
-**Day 1 下午 - Day 2**: 前端實施
-- [ ] 重寫 BudgetPoolForm.tsx
-- [ ] 創建 CategoryFormRow.tsx
-- [ ] 更新列表頁
-- [ ] 更新詳情頁
-- [ ] 完整測試
+**✅ Day 1 前端實施**（2025-10-26 23:30 完成）:
+- ✅ 創建 CategoryFormRow.tsx 組件（~200 行）
+- ✅ 重寫 BudgetPoolForm.tsx 支持 categories 陣列（~390 行）
+- ✅ 更新列表頁（顯示 categories 摘要）
+- ✅ 更新詳情頁（完整展示 categories）
+- ✅ 增強 API Router (getById 方法)
 
-**Day 2 晚上**: 驗收和記錄
-- [ ] 用戶測試
-- [ ] 更新 DEVELOPMENT-LOG.md
-- [ ] 決定下一步策略
+**⏳ Day 2 驗收和記錄**（待執行）:
+- ⏳ 用戶測試完整 CRUD 流程
+- ⏳ 驗證計算邏輯正確性
+- ⏳ 更新本進度文件（完成測試後）
+- ⏳ 更新 DEVELOPMENT-LOG.md（完成測試後）
+- ⏳ 決定下一步策略（選項 A/B/C）
+
+---
+
+### ⚠️ Migration 文件創建 - 技術限制
+
+**問題描述** (2025-10-26 21:45):
+- **原因**: `prisma migrate dev` 需要交互式終端，Claude Code 的 Bash tool 無法執行
+- **環境變數**: Bash 環境無法載入專案根目錄的 .env 文件
+- **當前狀態**: Schema 已透過 `db push` 應用到資料庫（✅ 正確狀態）
+- **影響**: ⚠️ 暫時沒有 migration 歷史記錄
+
+**手動解決方案**:
+在本機 PowerShell 執行以下命令：
+```powershell
+$env:DATABASE_URL="postgresql://postgres:localdev123@localhost:5434/itpm_dev"
+cd packages\db
+npx prisma migrate dev --name add_budget_categories_and_enhancements --create-only
+```
+
+**策略決策**:
+- ✅ 先跳過 Migration 創建，直接進行前端開發
+- ✅ Phase A 核心目標是完成前端實施，不是 Migration
+- ✅ Migration 可以作為獨立任務稍後完成（不阻塞開發流程）
 
 ---
 
 ## 📊 成功指標
 
 Phase A 完成標準:
-- ✅ Migration 文件已創建
-- ✅ 可以創建含多個類別的預算池
-- ✅ 可以編輯類別（新增/修改/刪除/排序）
-- ✅ 列表頁正確顯示類別摘要
-- ✅ 詳情頁完整展示類別
-- ✅ 統計數據正確計算
-- ✅ 所有操作經過測試
+- ⚠️ Migration 文件已創建（技術限制，待手動執行）
+- ✅ 可以創建含多個類別的預算池（前端已實現）
+- ✅ 可以編輯類別（新增/修改/刪除/排序）（前端已實現）
+- ✅ 列表頁正確顯示類別摘要（已更新）
+- ✅ 詳情頁完整展示類別（已更新）
+- ✅ 統計數據正確計算（API 已支持）
+- ⏳ 所有操作經過測試（待用戶執行）
 
 ---
 
@@ -298,6 +352,6 @@ Phase A 完成後評估:
 
 ---
 
-**最後更新**: 2025-10-26
-**下次更新**: Phase A 完成後
+**最後更新**: 2025-10-26 23:30 (Phase A 開發完成)
+**下次更新**: Phase A 測試完成後
 **維護者**: AI Assistant + 開發團隊

@@ -502,7 +502,8 @@
 | **StatsCard** | `apps/web/src/components/dashboard/StatsCard.tsx` | Dashboard 統計卡片元件（支援趨勢指標） | 🟡 高 |
 | **StatCard** | `apps/web/src/components/dashboard/StatCard.tsx` | 可復用統計卡片元件（Epic 7） | 🟡 高 |
 | **BudgetPoolOverview** | `apps/web/src/components/dashboard/BudgetPoolOverview.tsx` | 預算池財務概覽元件（Epic 7） | 🟡 高 |
-| **Budget Pool 表單** | `apps/web/src/components/budget-pool/BudgetPoolForm.tsx` | 預算池表單元件 | 🟡 高 |
+| **Budget Pool 表單** | `apps/web/src/components/budget-pool/BudgetPoolForm.tsx` | 預算池表單元件（支持 categories CRUD） | 🔴 極高 |
+| **Category 表單行** | `apps/web/src/components/budget-pool/CategoryFormRow.tsx` | 預算類別輸入行元件 (Phase A) | 🟡 高 |
 | **Budget Pool 過濾器** | `apps/web/src/components/budget-pool/BudgetPoolFilters.tsx` | 預算池篩選器元件 | 🟡 高 |
 | **Project 表單** | `apps/web/src/components/project/ProjectForm.tsx` | 專案表單元件 | 🟡 高 |
 | **User 表單** | `apps/web/src/components/user/UserForm.tsx` | 使用者表單元件 | 🟡 高 |

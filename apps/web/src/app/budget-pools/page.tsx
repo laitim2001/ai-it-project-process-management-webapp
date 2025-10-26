@@ -257,32 +257,63 @@ export default function BudgetPoolsPage() {
           <>
             {/* 卡片視圖 */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {budgetPools.map((pool) => (
-                <Link
-                  key={pool.id}
-                  href={`/budget-pools/${pool.id}`}
-                >
-                  <Card className="p-6 transition hover:border-primary hover:shadow-md h-full">
-                    <h2 className="mb-3 text-xl font-semibold text-foreground">{pool.name}</h2>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">財務年度</span>
-                        <span className="font-medium text-foreground">{pool.financialYear}</span>
+              {budgetPools.map((pool) => {
+                const utilizationRate = pool.utilizationRate ?? 0;
+                const categoryCount = pool.categories?.length ?? 0;
+
+                return (
+                  <Link
+                    key={pool.id}
+                    href={`/budget-pools/${pool.id}`}
+                  >
+                    <Card className="p-6 transition hover:border-primary hover:shadow-md h-full">
+                      <h2 className="mb-3 text-xl font-semibold text-foreground">{pool.name}</h2>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">財務年度</span>
+                          <span className="font-medium text-foreground">FY {pool.financialYear}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">類別數量</span>
+                          <span className="font-medium text-foreground">{categoryCount} 個類別</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">總預算</span>
+                          <span className="font-medium text-foreground">
+                            ${(pool.computedTotalAmount ?? pool.totalAmount).toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">已使用</span>
+                          <span className="font-medium text-foreground">
+                            ${(pool.computedUsedAmount ?? 0).toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">使用率</span>
+                          <span className={`font-medium ${
+                            utilizationRate > 90 ? 'text-destructive' :
+                            utilizationRate > 75 ? 'text-yellow-600 dark:text-yellow-500' :
+                            'text-green-600 dark:text-green-500'
+                          }`}>
+                            {utilizationRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">專案數量</span>
+                          <span className="font-medium text-foreground">{pool._count.projects}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">總預算</span>
-                        <span className="font-medium text-foreground">
-                          ${pool.totalAmount.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">專案數量</span>
-                        <span className="font-medium text-foreground">{pool._count.projects}</span>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Pagination */}
@@ -303,37 +334,64 @@ export default function BudgetPoolsPage() {
                   <TableRow>
                     <TableHead>預算池名稱</TableHead>
                     <TableHead>財務年度</TableHead>
-                    <TableHead className="text-right">總預算金額</TableHead>
-                    <TableHead className="text-center">專案數量</TableHead>
+                    <TableHead className="text-center">類別數量</TableHead>
+                    <TableHead className="text-right">總預算</TableHead>
+                    <TableHead className="text-right">已使用</TableHead>
+                    <TableHead className="text-right">使用率</TableHead>
+                    <TableHead className="text-center">專案數</TableHead>
                     <TableHead className="text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {budgetPools.map((pool) => (
-                    <TableRow key={pool.id} className="hover:bg-muted/50">
-                      <TableCell>
-                        <Link
-                          href={`/budget-pools/${pool.id}`}
-                          className="font-medium text-primary hover:underline"
-                        >
-                          {pool.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell>FY {pool.financialYear}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        ${pool.totalAmount.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-center">{pool._count.projects}</TableCell>
-                      <TableCell className="text-right">
-                        <Link
-                          href={`/budget-pools/${pool.id}`}
-                          className="text-primary hover:underline"
-                        >
-                          查看
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {budgetPools.map((pool) => {
+                    const utilizationRate = pool.utilizationRate ?? 0;
+                    const categoryCount = pool.categories?.length ?? 0;
+
+                    return (
+                      <TableRow key={pool.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <Link
+                            href={`/budget-pools/${pool.id}`}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {pool.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell>FY {pool.financialYear}</TableCell>
+                        <TableCell className="text-center">{categoryCount}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ${(pool.computedTotalAmount ?? pool.totalAmount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${(pool.computedUsedAmount ?? 0).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={`font-medium ${
+                            utilizationRate > 90 ? 'text-destructive' :
+                            utilizationRate > 75 ? 'text-yellow-600 dark:text-yellow-500' :
+                            'text-green-600 dark:text-green-500'
+                          }`}>
+                            {utilizationRate.toFixed(1)}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">{pool._count.projects}</TableCell>
+                        <TableCell className="text-right">
+                          <Link
+                            href={`/budget-pools/${pool.id}`}
+                            className="text-primary hover:underline"
+                          >
+                            查看
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
