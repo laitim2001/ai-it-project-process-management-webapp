@@ -33,6 +33,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import {
   Search,
   Plus,
   Download,
@@ -197,6 +205,19 @@ export default function ProjectsPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8">
+          {/* 麵包屑導航 */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>專案管理</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <div>
             <h1 className="text-3xl font-bold text-foreground">專案管理</h1>
           </div>
@@ -220,6 +241,19 @@ export default function ProjectsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* 麵包屑導航 */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>專案管理</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* 頁面標題和操作按鈕 */}
         <div className="flex items-center justify-between">
           <div>
