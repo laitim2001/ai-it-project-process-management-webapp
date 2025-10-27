@@ -12,6 +12,7 @@ import { dashboardRouter } from './routers/dashboard';
 import { notificationRouter } from './routers/notification';
 import { operatingCompanyRouter } from './routers/operatingCompany';
 import { omExpenseRouter } from './routers/omExpense';
+import { chargeOutRouter } from './routers/chargeOut';
 
 /**
  * This is the primary router for your server.
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   notification: notificationRouter,
   operatingCompany: operatingCompanyRouter,
   omExpense: omExpenseRouter,
+  chargeOut: chargeOutRouter,
 });
 
 // export type definition of API
