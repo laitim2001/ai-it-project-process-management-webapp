@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import DashboardLayout from '@/components/layout/dashboard-layout';
 import OMExpenseForm from '@/components/om-expense/OMExpenseForm';
 import { api } from '@/lib/trpc';
 
