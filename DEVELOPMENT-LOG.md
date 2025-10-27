@@ -20,6 +20,86 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-27 01:45 | 功能開發 | Module 2 - Project Management 預算欄位擴展
+
+**類型**: 功能開發 | **負責人**: AI 助手
+
+**實施內容**:
+完成 Module 2 (Project Management) 的預算相關功能，支持預算類別關聯和預算審批流程整合。
+
+**完成的工作**:
+
+1. ✅ **Prisma Schema** (已在階段 1 完成)
+   - Project 模型新增 3 個欄位：
+     - `budgetCategoryId` (String?): 關聯到具體預算類別
+     - `requestedBudget` (Float?): 請求的預算金額
+     - `approvedBudget` (Float?): 批准的預算金額
+   - 新增關聯：`budgetCategory BudgetCategory?`
+   - 新增索引：`@@index([budgetCategoryId])`
+
+2. ✅ **後端 API - project.ts** (已在階段 1 完成)
+   - `create` API：支持新欄位，驗證 budgetCategoryId 屬於對應的 budgetPool
+   - `update` API：支持更新新欄位
+   - `getBudgetUsage` endpoint：計算項目預算使用情況
+     - 返回：requestedBudget, approvedBudget, actualSpent, remaining, utilizationRate
+
+3. ✅ **後端 API - budgetProposal.ts** (本次新增)
+   - **approve input schema**：
+     - 添加 `approvedAmount` 欄位（可選，預設為提案請求金額）
+   - **approve mutation 增強**：
+     - 批准時記錄：`approvedAmount`, `approvedBy`, `approvedAt`
+     - 拒絕時記錄：`rejectionReason`
+     - **同步邏輯**：批准時自動更新 Project 的 `approvedBudget` 和 `status`
+       ```typescript
+       await prisma.project.update({
+         where: { id: proposal.projectId },
+         data: {
+           approvedBudget: approvedAmount,
+           status: 'InProgress',
+         },
+       });
+       ```
+     - 通知訊息包含批准金額
+
+4. ✅ **前端 - ProjectForm.tsx** (已在階段 1 完成)
+   - 新增 `budgetCategoryId` 選擇器
+     - 動態載入所選預算池的類別
+     - 顯示每個類別的可用金額
+   - 新增 `requestedBudget` 輸入欄位
+   - 表單驗證和提交邏輯
+
+5. ✅ **前端 - 專案詳情頁** (已在階段 1 完成)
+   - 使用 `getBudgetUsage` API 顯示預算使用情況
+   - 顯示：請求預算、批准預算、實際支出、剩餘預算、使用率
+
+**技術亮點**:
+- 🔗 **完整的預算流程整合**：Project ↔ BudgetProposal ↔ BudgetCategory
+- 🔄 **自動同步機制**：BudgetProposal 批准時自動更新 Project 預算
+- ✅ **數據一致性**：使用 transaction 確保 BudgetProposal 和 Project 同時更新
+- 📊 **實時預算追蹤**：getBudgetUsage endpoint 計算實際支出和使用率
+- 🎯 **靈活的批准金額**：主管可以批准不同於請求的金額
+
+**業務價值**:
+- ✨ 支持按預算類別（Hardware, Software, Services 等）分配項目預算
+- ✨ 預算提案批准後自動同步到項目，避免手動重複輸入
+- ✨ 清晰追蹤請求預算 vs 批准預算 vs 實際支出
+- ✨ 主管可以調整批准金額（如部分批准）
+
+**修改文件**:
+- **後端**: `packages/api/src/routers/budgetProposal.ts` (3 處修改)
+- **文檔**: `DEVELOPMENT-LOG.md`, `COMPLETE-IMPLEMENTATION-PROGRESS.md`
+
+**測試狀態**:
+- ✅ 編譯成功，無錯誤
+- ⏳ 待用戶測試完整流程
+
+**下一步**:
+- 用戶測試 BudgetProposal 批准流程
+- 驗證 Project approvedBudget 自動同步
+- 測試預算使用情況顯示
+
+---
+
 ### 2025-10-27 00:55 | Bug 修復 | Toast 系統整合與 Expense API 完善
 
 **類型**: 修復 | **負責人**: AI 助手

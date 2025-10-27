@@ -54,6 +54,7 @@ const budgetProposalApprovalInputSchema = z.object({
   userId: z.string().min(1, '無效的使用者ID'),
   action: z.enum(['Approved', 'Rejected', 'MoreInfoRequired']),
   comment: z.string().optional(),
+  approvedAmount: z.number().min(0, '批准金額必須大於等於0').optional(), // Module 2/3 新增：批准的預算金額
 });
 
 const commentInputSchema = z.object({
@@ -356,6 +357,16 @@ export const budgetProposalRouter = createTRPCRouter({
           },
           data: {
             status: input.action,
+            // Module 2/3: 批准時記錄批准金額、批准者、批准時間
+            ...(input.action === 'Approved' && {
+              approvedAmount: input.approvedAmount || existingProposal.amount,
+              approvedBy: input.userId,
+              approvedAt: new Date(),
+            }),
+            // 拒絕時記錄原因
+            ...(input.action === 'Rejected' && input.comment && {
+              rejectionReason: input.comment,
+            }),
           },
           include: {
             project: {
@@ -396,6 +407,18 @@ export const budgetProposalRouter = createTRPCRouter({
           });
         }
 
+        // Module 2/3: 批准時同步更新 Project 的 approvedBudget 和狀態
+        if (input.action === 'Approved') {
+          const approvedAmount = input.approvedAmount || existingProposal.amount;
+          await prisma.project.update({
+            where: { id: proposal.projectId },
+            data: {
+              approvedBudget: approvedAmount,
+              status: 'InProgress', // 批准後項目變為進行中
+            },
+          });
+        }
+
         // Epic 8: 發送通知給 Project Manager
         const reviewer = await prisma.user.findUnique({
           where: { id: input.userId },
@@ -414,7 +437,7 @@ export const budgetProposalRouter = createTRPCRouter({
         };
 
         const notificationMessageMap = {
-          Approved: `您的預算提案「${proposal.title}」已被批准。`,
+          Approved: `您的預算提案「${proposal.title}」已被批准${input.approvedAmount ? `，批准金額：$${input.approvedAmount.toLocaleString()}` : ''}。`,
           Rejected: `您的預算提案「${proposal.title}」已被駁回。${input.comment ? `原因：${input.comment}` : ''}`,
           MoreInfoRequired: `您的預算提案「${proposal.title}」需要補充更多資訊。${input.comment ? `說明：${input.comment}` : ''}`,
         };

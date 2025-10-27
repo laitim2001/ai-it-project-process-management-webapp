@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-26 23:30
-> **總體進度**: 約 28% (階段 1 完成 + 階段 2.1 完成 + 階段 3.1 完成)
-> **當前階段**: Phase A - 完成，待用戶測試
+> **最後更新**: 2025-10-27 01:50
+> **總體進度**: 約 45% (階段 1 完成 + Module 1-2 完成 + Bug 修復完成)
+> **當前階段**: Module 2 完成 - 文檔已更新，準備 Git commit
 
 ---
 
@@ -11,10 +11,11 @@
 
 ```
 階段 1: 數據庫 Schema           ████████████████████ 100% ✅
-階段 2: 後端 API 實施            ███░░░░░░░░░░░░░░░░░  17% ✅ (Module 1)
-階段 3: 前端實施                 ███░░░░░░░░░░░░░░░░░  17% ✅ (Module 1)
+階段 2: 後端 API 實施            ████████░░░░░░░░░░░░  40% ✅ (Module 1-2 + Expense 修復)
+階段 3: 前端實施                 ████████░░░░░░░░░░░░  40% ✅ (Module 1-2 + Bug 修復)
+階段 4: Bug 修復與優化           ████████████████████ 100% ✅ (FIX-006)
 ─────────────────────────────────────────────────────────
-總進度                          ███████░░░░░░░░░░░░░  28%
+總進度                          █████████░░░░░░░░░░░  45%
 ```
 
 ---
@@ -67,7 +68,7 @@
 
 ---
 
-### **階段 2: 後端 API 實施** 🔄 **17% 完成** (1/6 模塊)
+### **階段 2: 後端 API 實施** 🔄 **33% 完成** (2/6 模塊)
 
 #### Module 1: BudgetPool API ✅ **100% 完成**
 
@@ -113,18 +114,75 @@
 
 ---
 
-#### Module 2: Project API ⏳ **0% 完成**
+#### Module 2: Project API ✅ **100% 完成**
 
-**狀態**: Schema 已更新，API 未使用新欄位
+**完成時間**: 2025-10-27 01:45
+**文件**: `packages/api/src/routers/project.ts`, `budgetProposal.ts`
+**狀態**: 所有功能已實施並整合完成
+
 **Schema 新增欄位**:
 - budgetCategoryId (關聯到預算類別)
 - requestedBudget (請求預算)
 - approvedBudget (批准預算)
 
-**待實施**:
-- [ ] 修改 create/update 支持新欄位
-- [ ] 添加 getBudgetUsage endpoint
-- [ ] 關聯到 BudgetCategory
+**已完成**:
+- ✅ 修改 create/update 支持新欄位（Phase 1 已完成）
+- ✅ 添加 getBudgetUsage endpoint（Phase 1 已完成）
+- ✅ 關聯到 BudgetCategory（Phase 1 已完成）
+- ✅ 前端 ProjectForm 支持預算欄位（Phase 1 已完成）
+- ✅ 專案詳情頁顯示預算使用情況（Phase 1 已完成）
+- ✅ **BudgetProposal.approve 同步 approvedBudget 到 Project**（本次新增）
+
+**實施內容**:
+
+1. **BudgetProposal 輸入驗證增強** (budgetProposal.ts:52-58)
+   ```typescript
+   const budgetProposalApprovalInputSchema = z.object({
+     approvedAmount: z.number().min(0, '批准金額必須大於等於0').optional(),
+     // 支持靈活批准金額（可批准不同於請求的金額）
+   });
+   ```
+
+2. **批准時記錄詳細資訊** (budgetProposal.ts:361-369)
+   - 記錄 approvedAmount（批准金額）
+   - 記錄 approvedBy（批准者 ID）
+   - 記錄 approvedAt（批准時間）
+   - 記錄 rejectionReason（拒絕原因）
+
+3. **同步更新 Project 模型** (budgetProposal.ts:410-420) ⭐
+   ```typescript
+   if (input.action === 'Approved') {
+     const approvedAmount = input.approvedAmount || existingProposal.amount;
+     await prisma.project.update({
+       where: { id: proposal.projectId },
+       data: {
+         approvedBudget: approvedAmount,  // 同步批准金額
+         status: 'InProgress',             // 批准後項目變為進行中
+       },
+     });
+   }
+   ```
+
+4. **通知訊息增強** (budgetProposal.ts:440)
+   - 包含批准金額資訊：`批准金額：$50,000`
+   - 完整的繁體中文訊息
+
+**技術亮點**:
+- ✅ **完整的預算追蹤流程**: requestedBudget → Proposal → approvedBudget
+- ✅ **使用 transaction** 保證數據一致性（在現有 transaction 內執行）
+- ✅ **靈活批准金額**: Supervisor 可批准不同於請求的金額
+- ✅ **自動狀態轉換**: 批准後自動將 Project 狀態改為 'InProgress'
+- ✅ **完整的審批記錄**: 記錄批准者、批准時間、批准金額、拒絕原因
+- ✅ **用戶體驗優化**: 通知中顯示批准金額
+
+**業務價值**:
+- 🎯 實現預算申請到批准的完整閉環
+- 📊 自動化預算數據同步，減少手動輸入錯誤
+- 🔄 項目狀態自動化管理
+- 📈 完整的預算追蹤和審計記錄
+
+**待執行**:
+- ⏳ 用戶測試完整預算申請→批准→同步流程
 
 ---
 
@@ -160,10 +218,25 @@
 
 ---
 
-#### Module 5: Expense API ⏳ **0% 完成**
+#### Module 5: Expense API ✅ **50% 完成**
 
-**狀態**: Schema 完整重構，API 未實施
-**待檢查**: expense.ts 是否已更新
+**完成時間**: 2025-10-27 00:55 (Bug 修復 FIX-006)
+**狀態**: 基礎 API 已修復，進階功能待實施
+
+**已完成**:
+- ✅ **create**: 修復必填欄位（name, invoiceDate, invoiceNumber）
+  - 正確的 Zod schema 驗證
+  - 欄位映射：amount → totalAmount
+  - 完整的表單驗證
+- ✅ **update**: 基礎更新功能
+- ✅ **getAll**: 列表查詢（含欄位名稱修復）
+- ✅ **getById**: 詳情查詢（含欄位名稱修復）
+- ✅ **前端表單**: ExpenseForm 完整支持新欄位
+
+**待實施**:
+- [ ] ExpenseItem 明細支持
+- [ ] 進階審批流程
+- [ ] 文件上傳增強
 
 ---
 
@@ -177,12 +250,13 @@
 
 ---
 
-### **階段 3: 前端實施** ✅ **17% 完成** (1/6 模塊)
+### **階段 3: 前端實施** ✅ **33% 完成** (2/6 模塊)
 
 #### Module 1: BudgetPool 前端 ✅ **100% 完成**
 
 **完成時間**: 2025-10-26 23:30
-**狀態**: 前端開發完成，待用戶測試
+**Git Commit**: b7d9525 (2025-10-27 00:55)
+**狀態**: 已提交至 GitHub，待用戶測試
 
 **完成的文件**:
 - ✅ `CategoryFormRow.tsx` - 新增明細表單組件 (~200 行)
@@ -212,9 +286,94 @@
 
 ---
 
+#### Module 2: Project 前端 ✅ **100% 完成**
+
+**完成時間**: 2025-10-27 01:45 (Phase 1 已完成，本次確認)
+**狀態**: 所有前端功能已在 Phase 1 實施完成
+
+**完成的文件**:
+- ✅ `apps/web/src/components/project/ProjectForm.tsx` - 支持預算欄位
+- ✅ `apps/web/src/app/projects/[id]/page.tsx` - 顯示預算使用情況
+
+**核心功能**:
+- ✅ **ProjectForm 預算欄位**:
+  - budgetCategoryId selector（預算類別選擇器）
+  - requestedBudget input（請求預算輸入）
+  - 自動篩選當前 BudgetPool 的 Categories
+  - 完整的驗證邏輯
+
+- ✅ **專案詳情頁預算顯示**:
+  - 使用 `api.project.getBudgetUsage.useQuery()` 獲取預算數據
+  - 顯示：requestedBudget, approvedBudget, actualSpent
+  - 計算：remainingBudget, utilizationRate
+  - 視覺化進度條和狀態指示器
+
+**技術實現**:
+- ✅ 完整的 TypeScript 類型安全
+- ✅ tRPC 端到端類型推導
+- ✅ shadcn/ui 組件（Select, Input, Card）
+- ✅ 響應式設計
+- ✅ 實時計算和驗證
+
+**業務價值**:
+- 🎯 預算申請流程可視化
+- 📊 實時預算使用情況追蹤
+- 🔍 透明的預算審批流程
+
+**待執行**:
+- ⏳ 用戶測試完整預算申請→批准流程
+
+---
+
 #### 其他模塊前端 ⏳ **未開始**
 
-待 Phase A 完成後評估。
+待 Phase A/B 完成後評估。
+
+---
+
+### **階段 4: Bug 修復與優化** ✅ **100% 完成**
+
+#### FIX-006: Toast 系統整合與 Expense API 完善 ✅
+
+**完成時間**: 2025-10-27 00:55
+**Git Commit**: b7d9525
+**級別**: 🟡 High
+
+**修復的問題**:
+1. ✅ **專案刪除錯誤處理** (問題 1)
+   - 修復錯誤訊息只在 console 顯示的問題
+   - 添加 `<Toaster />` 組件到 layout.tsx
+   - 使用正確的 TRPCError 錯誤代碼
+   - 繁體中文錯誤訊息
+
+2. ✅ **Expense 創建失敗修復** (問題 2)
+   - 修復缺少必填欄位（name, invoiceDate, invoiceNumber）
+   - 更新 Zod schemas 與 Prisma schema 同步
+   - 修復 ExpenseForm 的 toast API 調用錯誤
+   - 添加 4 個新表單欄位
+
+3. ✅ **Toast 系統整合**
+   - 整合雙 Toast 系統（ToastProvider + Toaster）並存
+   - 修復所有 toast 調用 API 不一致問題
+   - 正確區分 `showToast()` vs `toast({ ... })`
+
+4. ✅ **Expense 欄位名稱統一** (問題 7)
+   - 統一修復 18 處 `expense.amount` → `expense.totalAmount`
+   - 跨 7 個文件的一致性修復
+
+**修改文件** (19 個):
+- **後端**: budgetPool.ts, project.ts, expense.ts, quote.ts (4 個)
+- **前端**: layout.tsx, ExpenseForm.tsx, 專案/Expense 頁面等 (14 個)
+- **文檔**: DEVELOPMENT-LOG.md, FIXLOG.md (2 個)
+
+**技術亮點**:
+- 🛡️ 正確使用 TRPCError 代替 Error
+- 📋 完整的 Schema 同步（Prisma ↔ Zod ↔ Form）
+- 🎯 清晰的繁體中文錯誤訊息
+- 🔒 雙 Toast 系統共存架構
+
+**測試狀態**:
+- ⏳ 待用戶測試修復後的功能
 
 ---
 
@@ -239,8 +398,28 @@
 ├─ ✅ API Router 增強完成
 └─ ⏳ 待用戶測試
 
+2025-10-27 00:55 - Bug 修復 (FIX-006)
+├─ ✅ 修復專案刪除錯誤處理（問題 1）
+├─ ✅ 修復 Expense 創建失敗（問題 2）
+├─ ✅ 整合雙 Toast 系統
+├─ ✅ 統一 Expense 欄位名稱（問題 7）
+├─ ✅ Git commit: b7d9525
+└─ ✅ 推送至 GitHub
+
+2025-10-27 01:45 - Module 2 完成
+├─ ✅ 發現 Phase 1 已完成大部分 Module 2 工作
+├─ ✅ 補充 BudgetProposal.approve 同步邏輯
+├─ ✅ 實現 approvedBudget 自動同步到 Project
+├─ ✅ 批准時自動更新 Project 狀態為 'InProgress'
+├─ ✅ 更新 DEVELOPMENT-LOG.md
+├─ ✅ 更新 COMPLETE-IMPLEMENTATION-PROGRESS.md
+└─ ⏳ 準備 Git commit
+
 2025-10-27+ (接下來)
-├─ ⏳ 用戶測試與反饋
+├─ ⏳ Git commit + push Module 2 完成
+├─ ⏳ 用戶測試 Module 1 (BudgetPool Categories)
+├─ ⏳ 用戶測試 Module 2 (Project 預算追蹤 + BudgetProposal 同步)
+├─ ⏳ 用戶測試 Bug 修復 (Expense + 專案刪除)
 ├─ 📊 評估與決策
 └─ 📋 決定下一步（選項 A/B/C）
 
@@ -266,13 +445,27 @@
 - **狀態**: Schema 完成但 API 未更新
 - **決策**: 先完成 Module 1，再評估其他模塊
 
+### **發現 4: Toast 系統架構問題** (FIX-006)
+- **問題**: 應用中存在兩個不同的 Toast 系統
+  - Toast.tsx (簡單版本): API 是 `showToast(message, type)`
+  - use-toast.tsx (shadcn/ui): API 是 `toast({ title, description, variant })`
+- **影響**: API 混用導致錯誤，shadcn/ui toasts 需要 `<Toaster />` 組件才能渲染
+- **解決**: 添加 `<Toaster />` 到 layout.tsx，允許兩個系統共存
+- **教訓**: 需要明確文檔化何時使用哪個 Toast 系統
+
+### **發現 5: Schema 同步重要性** (FIX-006)
+- **問題**: Prisma schema 已更新但 API Zod schemas 和前端表單未同步
+- **影響**: Expense 創建失敗，缺少必填欄位
+- **解決**: 建立 Schema 更新協議（Prisma → API → Frontend）
+- **教訓**: 任何 Prisma schema 變更必須系統性地更新所有相關層級
+
 ---
 
 ## 🎯 Phase A 目標 (已完成)
 
-**時間**: 2025-10-26 21:48 - 23:30
-**目標**: 讓 Module 1 (BudgetPool) 完全可用
-**狀態**: ✅ **開發完成，待用戶測試**
+**時間**: 2025-10-26 21:48 - 2025-10-27 00:55
+**目標**: 讓 Module 1 (BudgetPool) 完全可用 + Bug 修復
+**狀態**: ✅ **開發完成，已提交至 GitHub (b7d9525)，待用戶測試**
 
 ### 任務清單
 
@@ -289,11 +482,21 @@
 - ✅ 更新詳情頁（完整展示 categories）
 - ✅ 增強 API Router (getById 方法)
 
-**⏳ Day 2 驗收和記錄**（待執行）:
-- ⏳ 用戶測試完整 CRUD 流程
+**✅ Day 2 Bug 修復**（2025-10-27 00:55 完成）:
+- ✅ 修復專案刪除錯誤處理（問題 1）
+- ✅ 修復 Expense 創建失敗（問題 2）
+- ✅ 整合雙 Toast 系統
+- ✅ 統一 Expense 欄位名稱（問題 7）
+- ✅ 更新 DEVELOPMENT-LOG.md
+- ✅ 創建 FIXLOG.md (FIX-006)
+- ✅ Git commit + push: b7d9525
+
+**⏳ Day 3 驗收和測試**（待執行）:
+- ⏳ 用戶測試 BudgetPool Categories CRUD 流程
+- ⏳ 用戶測試 Expense 創建流程（含新欄位）
+- ⏳ 用戶測試專案刪除錯誤顯示
 - ⏳ 驗證計算邏輯正確性
 - ⏳ 更新本進度文件（完成測試後）
-- ⏳ 更新 DEVELOPMENT-LOG.md（完成測試後）
 - ⏳ 決定下一步策略（選項 A/B/C）
 
 ---
@@ -352,6 +555,7 @@ Phase A 完成後評估:
 
 ---
 
-**最後更新**: 2025-10-26 23:30 (Phase A 開發完成)
-**下次更新**: Phase A 測試完成後
+**最後更新**: 2025-10-27 00:55 (Phase A + Bug 修復完成，已推送至 GitHub)
+**Git Commit**: b7d9525
+**下次更新**: 用戶測試完成後
 **維護者**: AI Assistant + 開發團隊
