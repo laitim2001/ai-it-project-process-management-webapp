@@ -337,20 +337,19 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>關聯採購單 <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇採購單" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">選擇採購單</option>
                       {purchaseOrders?.items.map((po) => (
-                        <SelectItem key={po.id} value={po.id}>
+                        <option key={po.id} value={po.id}>
                           {po.name}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -363,20 +362,19 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>關聯專案 <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇專案" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">選擇專案</option>
                       {projects?.items.map((proj) => (
-                        <SelectItem key={proj.id} value={proj.id}>
+                        <option key={proj.id} value={proj.id}>
                           {proj.name}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -419,21 +417,19 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>供應商（可選）</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇供應商（可選）" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">無</SelectItem>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">無</option>
                       {vendors?.items.map((vendor) => (
-                        <SelectItem key={vendor.id} value={vendor.id}>
+                        <option key={vendor.id} value={vendor.id}>
                           {vendor.name}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -446,21 +442,19 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>預算類別（可選）</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇預算類別（可選）" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">無</SelectItem>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">無</option>
                       {budgetCategories?.items.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
+                        <option key={category.id} value={category.id}>
                           {category.name}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
