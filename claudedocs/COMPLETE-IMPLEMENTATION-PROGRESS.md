@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-27 04:15
-> **總體進度**: 約 50% (階段 1 完成 + Module 1-3 完成 + Bug 修復完成)
-> **當前階段**: Module 3 完成 - 準備 Git commit 並同步至 GitHub
+> **最後更新**: 2025-10-27 16:00
+> **總體進度**: 約 55% (階段 1 完成 + Module 1-4 後端完成 + Module 1-3 前端完成)
+> **當前階段**: Module 4 後端完成 - 準備 Module 4 前端實施
 
 ---
 
@@ -11,11 +11,11 @@
 
 ```
 階段 1: 數據庫 Schema           ████████████████████ 100% ✅
-階段 2: 後端 API 實施            ██████████░░░░░░░░░░  50% ✅ (Module 1-3 + Expense 修復)
-階段 3: 前端實施                 ██████████░░░░░░░░░░  50% ✅ (Module 1-3 + Bug 修復)
+階段 2: 後端 API 實施            ███████████░░░░░░░░░  55% ✅ (Module 1-4)
+階段 3: 前端實施                 ██████████░░░░░░░░░░  50% ✅ (Module 1-3)
 階段 4: Bug 修復與優化           ████████████████████ 100% ✅ (FIX-006)
 ─────────────────────────────────────────────────────────
-總進度                          ██████████░░░░░░░░░░  50%
+總進度                          ███████████░░░░░░░░░  55%
 ```
 
 ---
@@ -292,18 +292,51 @@
 
 ---
 
-#### Module 4: PurchaseOrder API ⏳ **0% 完成**
+#### Module 4: PurchaseOrder API ✅ **50% 完成** (後端完成)
 
-**狀態**: Schema 已新增 PurchaseOrderItem，API 未實施
-**Schema 新增**:
-- PurchaseOrderItem 模型 (明細)
-- PurchaseOrder 新增欄位 (name, description, status)
+**完成時間**: 2025-10-27 16:00 (後端 API 完成)
+**文件**: `packages/api/src/routers/purchaseOrder.ts`
 
-**待實施**:
-- [ ] 重構 create/update 支持明細
-- [ ] 添加 submit/approve endpoints
-- [ ] 自動計算 totalAmount
-- [ ] 前端明細表格組件
+**已完成（後端 API）**:
+- ✅ **create**: 統一創建端點，支持明細陣列
+  - 使用 **transaction** 保證一致性 ⭐
+  - 自動計算 totalAmount from items
+  - 創建 PurchaseOrder + PurchaseOrderItem
+  - 移除舊的 createFromQuote/createManual
+
+- ✅ **update**: 重構支持明細 CRUD
+  - 使用 **transaction** 處理表頭+明細
+  - 支持明細新增/更新/刪除（_delete 標記）
+  - 自動重算 totalAmount
+  - 僅 Draft 狀態可更新
+
+- ✅ **getById**: 包含明細資料
+  - include items (sorted by sortOrder)
+  - 完整關聯資料 (project, vendor, quote, expenses)
+
+- ✅ **delete**: 同時刪除關聯明細
+  - 先刪除 items，再刪除 header
+  - 檢查是否有關聯 expenses
+
+- ✅ **submit**: 狀態工作流
+  - Draft → Submitted
+  - 驗證至少有一個 item
+
+- ✅ **approve**: 主管審批
+  - Submitted → Approved
+  - **supervisorProcedure** 保護 ⭐
+  - 記錄 approvedDate
+
+**Schema 定義**:
+- purchaseOrderItemSchema (id, itemName, description, quantity, unitPrice, sortOrder, _delete)
+- createPOSchema (name, description, projectId, vendorId, quoteId, date, items[])
+- updatePOSchema (支持部分更新 + items 陣列)
+
+**待實施（前端）**:
+- [ ] PurchaseOrderForm 明細表格組件
+- [ ] 明細 CRUD 交互（新增行、刪除行、編輯）
+- [ ] 提交/審批按鈕與工作流
+- [ ] 明細小計與總計計算顯示
 
 ---
 
