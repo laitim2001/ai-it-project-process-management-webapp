@@ -32,13 +32,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { Plus, Loader2, Package, Trash2 } from 'lucide-react';
 
@@ -319,20 +312,19 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>關聯項目 <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇項目" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">選擇項目</option>
                       {projects?.items.map((proj) => (
-                        <SelectItem key={proj.id} value={proj.id}>
+                        <option key={proj.id} value={proj.id}>
                           {proj.name}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -345,20 +337,19 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>供應商 <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇供應商" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">選擇供應商</option>
                       {vendors?.items.map((vendor) => (
-                        <SelectItem key={vendor.id} value={vendor.id}>
+                        <option key={vendor.id} value={vendor.id}>
                           {vendor.name}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -371,21 +362,19 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
                   <FormLabel>關聯報價（可選）</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="選擇報價（可選）" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">無</SelectItem>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">選擇報價（可選）</option>
                       {quotes?.items.map((quote) => (
-                        <SelectItem key={quote.id} value={quote.id}>
+                        <option key={quote.id} value={quote.id}>
                           Quote #{quote.id} - {formatCurrency(quote.amount)}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

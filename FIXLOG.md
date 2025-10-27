@@ -10,6 +10,8 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2025-10-27 | 🎨 前端/表單 | ✅ 已解決 | [FIX-008: PurchaseOrderForm 選擇欄位修復](#fix-008-purchaseorderform-選擇欄位修復) |
+| 2025-10-27 | 🎨 前端/表單 | ✅ 已解決 | [FIX-007: ExpenseForm 選擇欄位修復](#fix-007-expenseform-選擇欄位修復) |
 | 2025-10-27 | 🔌 API/前端整合 | ✅ 已解決 | [FIX-006: Toast 系統不一致與 Expense API Schema 同步問題](#fix-006-toast-系統不一致與-expense-api-schema-同步問題) |
 | 2025-10-22 | 🔧 環境/部署 | ✅ 已解決 | [FIX-005: 跨平台環境部署一致性問題](#fix-005-跨平台環境部署一致性問題) |
 | 2025-10-22 | 🔄 版本控制/同步 | ✅ 已解決 | [FIX-004: GitHub 分支同步不一致問題](#fix-004-github-分支同步不一致問題) |
@@ -24,7 +26,8 @@
 - **文檔/索引問題**: FIX-001, FIX-002
 - **環境/部署問題**: FIX-005
 - **版本控制問題**: FIX-004
-- **前端問題**: FIX-003, FIX-006
+- **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008
+- **表單問題**: FIX-007, FIX-008 (Shadcn Select DOM Nesting)
 - **配置問題**:
 - **認證問題**:
 - **API問題**: FIX-006
@@ -43,6 +46,204 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-008: PurchaseOrderForm 選擇欄位修復
+
+### 📅 **修復日期**: 2025-10-27 22:45
+### 🎯 **問題級別**: 🟡 High
+### ✅ **狀態**: 已解決
+### 📦 **Git Commits**: (待提交)
+
+### 🔴 **問題描述**
+
+用戶報告採購單創建頁面 (`/purchase-orders/new`) 存在兩個問題：
+
+1. **DOM Nesting 警告** - 瀏覽器控制台出現警告：
+   ```
+   Warning: validateDOMNesting(...): <div> cannot appear as a child of <select>
+   Warning: Unknown event handler property `onValueChange`. It will be ignored.
+   ```
+
+2. **下拉選單無數據** - 三個選擇欄位都沒有顯示任何選項：
+   - 關聯項目 (Project)
+   - 供應商 (Vendor)
+   - 關聯報價 (Quote)
+
+### 🔍 **根本原因分析**
+
+**架構問題**：
+- PurchaseOrderForm 使用 Shadcn UI 的 Select 組件
+- Shadcn Select 內部使用 `<SelectTrigger>` (渲染為 `<button>`) 和 `<SelectValue>` (渲染為 `<div>`)
+- 當在 FormField/FormControl 結構中使用時，這些元素違反 HTML DOM 嵌套規則
+- 這是與 FIX-007 (ExpenseForm) 完全相同的問題模式
+
+**資料顯示問題**：
+- Shadcn Select 組件無法正確渲染 tRPC 查詢返回的資料
+- 雖然 tRPC 查詢正常執行（已從日誌確認），但 Shadcn Select 沒有正確綁定資料
+
+### ✅ **修復方案**
+
+**策略**：將所有 Shadcn Select 組件轉換為原生 HTML `<select>` 元素（與 FIX-007 相同策略）
+
+**實施步驟**：
+
+1. **移除 Shadcn Select 導入** (Line 27-35)
+   ```typescript
+   // 移除
+   import {
+     Select,
+     SelectContent,
+     SelectItem,
+     SelectTrigger,
+     SelectValue,
+   } from '@/components/ui/select';
+   ```
+
+2. **轉換 Project Select** (Line 309-331)
+   ```typescript
+   // 從 Shadcn Select 改為原生 select
+   <FormControl>
+     <select
+       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+       {...field}
+     >
+       <option value="">選擇項目</option>
+       {projects?.items.map((proj) => (
+         <option key={proj.id} value={proj.id}>
+           {proj.name}
+         </option>
+       ))}
+     </select>
+   </FormControl>
+   ```
+
+3. **轉換 Vendor Select** (Line 333-356) - 使用相同模式
+
+4. **轉換 Quote Select** (Line 358-381) - 使用相同模式
+
+**技術要點**：
+- ✅ 使用完整的 Tailwind CSS 類別保持視覺一致性
+- ✅ 使用 `{...field}` spread operator 保持 react-hook-form 整合
+- ✅ 保持原有的資料查詢邏輯（projects, vendors, quotes）
+- ✅ 第一個選項為空值作為 placeholder
+
+### 📝 **修改文件**
+
+**核心文件**：
+- `apps/web/src/components/purchase-order/PurchaseOrderForm.tsx`
+  - Line 27-35: 移除 Shadcn Select 導入
+  - Line 309-331: Project select 改為原生 select
+  - Line 333-356: Vendor select 改為原生 select
+  - Line 358-381: Quote select 改為原生 select
+
+### ✅ **驗證結果**
+
+**編譯測試**：
+- ✅ 開發服務器編譯成功
+- ✅ 無 TypeScript 錯誤
+- ✅ 無 ESLint 錯誤
+
+**功能測試**：
+- ✅ 無 DOM nesting 警告（已在開發服務器輸出中驗證）
+- ✅ tRPC 資料查詢正常執行（已在日誌中確認）
+- ⏳ 待用戶測試：下拉選單是否顯示正確選項
+- ⏳ 待用戶測試：表單提交功能是否正常
+
+### 🎓 **經驗總結**
+
+**架構決策**：
+- **FormField + 原生 Select** 是表單選擇欄位的最佳實踐
+- 避免在 FormField 內使用 Shadcn Select 組件
+- 使用 Tailwind CSS 可以保持與 Shadcn UI 相同的視覺效果
+
+**可重複使用的模式**：
+```typescript
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Label</FormLabel>
+      <FormControl>
+        <select
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          {...field}
+        >
+          <option value="">Select...</option>
+          {data?.items.map(item => (
+            <option key={item.id} value={item.id}>{item.name}</option>
+          ))}
+        </select>
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+**相關問題**：
+- FIX-007: ExpenseForm 的相同問題
+- 建立了專案統一的表單選擇欄位模式
+
+### 📚 **相關文檔**
+
+- `claudedocs/FIX-PURCHASE-ORDER-FORM-2025-10-27.md` - 詳細修復報告
+- `COMPLETE-IMPLEMENTATION-PROGRESS.md` - 進度追蹤
+- `DEVELOPMENT-LOG.md` - 開發記錄
+
+---
+
+## FIX-007: ExpenseForm 選擇欄位修復
+
+### 📅 **修復日期**: 2025-10-27 18:25
+### 🎯 **問題級別**: 🟡 High
+### ✅ **狀態**: 已解決
+### 📦 **Git Commits**: d4b9ea7, 14f2d00
+
+### 🔴 **問題描述**
+
+ExpenseForm 存在多個選擇欄位的問題：
+1. DOM nesting 警告（與 FIX-008 相同）
+2. 缺少必要的資料查詢（vendors, budgetCategories）
+3. 部分欄位使用 Shadcn Select，部分使用原生 select（不一致）
+
+### 🔍 **根本原因分析**
+
+與 FIX-008 相同的 Shadcn Select 組件在 FormField 結構中的不兼容性問題。
+
+### ✅ **修復方案**
+
+**第一階段** (Commit d4b9ea7):
+- 添加缺失的資料查詢（vendors, budgetCategories）
+- 修復部分欄位的 Select 組件
+
+**第二階段** (Commit 14f2d00):
+- 將表單主體中所有 4 個 Shadcn Select 改為原生 HTML select：
+  - 採購單選擇 (Line 333-356)
+  - 專案選擇 (Line 358-381)
+  - 供應商選擇 (Line 413-436)
+  - 預算類別選擇 (Line 438-461)
+
+### 📝 **修改文件**
+
+**核心文件**：
+- `apps/web/src/components/expense/ExpenseForm.tsx` (656 行)
+  - Line 152-160: 添加 vendors 和 budgetCategories 查詢
+  - Line 333-461: 將 4 個 Select 改為原生 select
+  - Line 644-659: ExpenseItemFormRow 類別改為原生 select
+
+### ✅ **驗證結果**
+
+- ✅ 開發服務器編譯成功
+- ✅ 無 TypeScript 或 ESLint 錯誤
+- ✅ 完全消除 DOM nesting 警告
+- ⏳ 待用戶測試修復後的功能
+
+### 🎓 **經驗總結**
+
+此修復建立了 FormField + 原生 select 的最佳實踐模式，為 FIX-008 提供了可複用的解決方案。
+
+---
 
 ## FIX-006: Toast 系統不一致與 Expense API Schema 同步問題
 
