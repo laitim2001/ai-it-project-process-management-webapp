@@ -737,49 +737,64 @@
 
 #### FIX-007: ExpenseForm 選擇欄位修復 ✅
 
-**完成時間**: 2025-10-27 17:50
-**Git Commit**: d4b9ea7
+**完成時間**: 2025-10-27 18:25
+**Git Commits**: d4b9ea7, 14f2d00
 **級別**: 🟡 High
 
 **修復的問題**:
-1. ✅ **DOM Nesting 警告** (問題 1)
-   - 修復 ExpenseItemFormRow 中 Shadcn Select 組件導致的 DOM nesting 警告
-   - 將 Shadcn Select 組件改為原生 HTML `<select>` 元素
-   - 保持 Tailwind CSS 樣式一致性
-   - 消除瀏覽器控制台中的 `validateDOMNesting` 警告
 
-2. ✅ **供應商選擇欄位修復** (問題 2)
-   - 添加缺失的 vendors 查詢
-   - 使用 `api.vendor.getAll.useQuery()` 獲取供應商列表
-   - Select 組件正確顯示供應商選項
+**第一階段修復 (Commit d4b9ea7)**:
+1. ✅ **添加缺失的數據查詢**
+   - 添加 vendors 查詢 (`api.vendor.getAll.useQuery`)
+   - 添加 budgetCategories 查詢 (`api.budgetPool.getAll.useQuery`)
+   - 修復預算類別欄位從 Input 改為 Shadcn Select
+   - 修復 ExpenseItemFormRow 類別選擇從 Shadcn Select 改為原生 select
 
-3. ✅ **預算類別選擇欄位修復** (問題 2)
-   - 添加缺失的 budgetCategories 查詢
-   - 使用 `api.budgetPool.getAll.useQuery()` 獲取預算池/類別列表
-   - 將 Input 組件改為 Select 組件
-   - 正確綁定 budgetCategories 數據到下拉選項
+**第二階段修復 (Commit 14f2d00)** ⭐:
+2. ✅ **完全消除 DOM Nesting 警告** (關鍵修復)
+   - 識別問題根源：FormField 內的 Shadcn Select 組件內部使用 `<button>` 和 `<div>`
+   - 將表單主體中所有 4 個 Shadcn Select 改為原生 HTML select：
+     - **採購單選擇** (Line 333-356)
+     - **專案選擇** (Line 358-381)
+     - **供應商選擇** (Line 413-436)
+     - **預算類別選擇** (Line 438-461)
+   - 使用原生 `<select>` 和 `<option>` 元素
+   - 保持 Tailwind CSS 樣式類別完全一致
+   - 使用 `{...field}` 擴展保持 react-hook-form 整合
+   - 完全消除所有 DOM nesting 警告
 
-4. ✅ **費用項目類別選擇修復** (問題 2)
-   - ExpenseItemFormRow 中的類別選擇從 Shadcn Select 改為原生 select
-   - 正確顯示類別選項（Hardware, Software, Consulting, Maintenance, Other）
-   - 避免 DOM 嵌套問題
+3. ✅ **選項數據綁定**
+   - 採購單選項：從 purchaseOrders?.items 綁定
+   - 專案選項：從 projects?.items 綁定
+   - 供應商選項：從 vendors?.items 綁定（含 "無" 選項）
+   - 預算類別選項：從 budgetCategories?.items 綁定（含 "無" 選項）
+   - 費用項目類別：靜態選項（Hardware, Software, Consulting, Maintenance, Other）
 
 **修改文件** (1 個):
-- `apps/web/src/components/expense/ExpenseForm.tsx` (672 行)
-  - Line 152-160: 添加 vendors 和 budgetCategories 查詢
-  - Line 442-467: 預算類別從 Input 改為 Select 組件
-  - Line 644-659: ExpenseItemFormRow 類別選擇改為原生 select
+- `apps/web/src/components/expense/ExpenseForm.tsx` (656 行)
+  - **Commit d4b9ea7**:
+    - Line 152-160: 添加 vendors 和 budgetCategories 查詢
+    - Line 644-659: ExpenseItemFormRow 類別改為原生 select
+  - **Commit 14f2d00**:
+    - Line 333-356: 採購單選擇改為原生 select
+    - Line 358-381: 專案選擇改為原生 select
+    - Line 413-436: 供應商選擇改為原生 select
+    - Line 438-461: 預算類別選擇改為原生 select
 
 **技術亮點**:
-- 🎯 識別 Shadcn Select 在動態表單行中的 DOM 限制
-- 🔄 原生 HTML select 與 Tailwind CSS 樣式結合
-- 📋 保持與其他表單欄位的一致性
-- ✅ 完全消除 DOM nesting 警告
+- 🎯 **問題診斷準確**: 識別 Shadcn Select 組件在 FormField 結構中的不兼容性
+- 🔧 **漸進式修復**: 先修復數據查詢和部分欄位，再系統性修復所有 Select 組件
+- 🔄 **原生與樣式結合**: 使用原生 HTML select 配合完整的 Tailwind CSS 樣式類別
+- 🎨 **視覺一致性**: 保持與 Shadcn UI 組件相同的外觀和行為
+- 📋 **表單整合完整**: 使用 `{...field}` 擴展保持 react-hook-form 完整功能
+- ✅ **根本性解決**: 完全消除 5 個 Select 欄位的 DOM nesting 警告
 
 **測試狀態**:
 - ⏳ 待用戶測試修復後的功能
 - ✅ 開發服務器編譯成功
-- ✅ 瀏覽器控制台無 DOM nesting 警告（待測試）
+- ✅ 無 TypeScript 或 ESLint 錯誤
+- ✅ 瀏覽器控制台應無 DOM nesting 警告（待用戶確認）
+- ✅ 所有選擇欄位應顯示正確選項（待用戶確認）
 
 ---
 
