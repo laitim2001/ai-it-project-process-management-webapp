@@ -5,7 +5,7 @@ import { ArrowLeft, Edit, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import DashboardLayout from '@/components/layout/dashboard-layout';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseMonthlyGrid from '@/components/om-expense/OMExpenseMonthlyGrid';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/trpc';
