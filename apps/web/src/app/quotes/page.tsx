@@ -21,7 +21,7 @@ import { Pagination, useToast } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileCheck, Building2, FolderKanban, DollarSign, Calendar, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { FileCheck, Building2, FolderKanban, DollarSign, Calendar, AlertCircle, LayoutGrid, List, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -136,26 +136,35 @@ export default function QuotesPage() {
             <h1 className="text-3xl font-bold text-foreground">報價單管理</h1>
             <p className="mt-2 text-muted-foreground">查看和管理所有供應商報價</p>
           </div>
-          {/* 視圖切換按鈕 */}
-          <div className="flex border border-input rounded-md">
-            <Button
-              variant={viewMode === 'card' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('card')}
-              className="rounded-r-none"
-              aria-label="卡片視圖"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="rounded-l-none"
-              aria-label="列表視圖"
-            >
-              <List className="h-4 w-4" />
-            </Button>
+          <div className="flex gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+                aria-label="卡片視圖"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+                aria-label="列表視圖"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* 新增報價單按鈕 */}
+            <Link href="/quotes/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                新增報價單
+              </Button>
+            </Link>
           </div>
         </div>
 
