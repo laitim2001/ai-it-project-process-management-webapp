@@ -3,16 +3,19 @@
  *
  * 功能說明：
  * - 採購單 CRUD 操作：創建、查詢、更新、刪除
+ * - 表頭-明細結構 (PurchaseOrder + PurchaseOrderItem)
  * - 自動從選定的 Quote 生成 PO
  * - 與 Project、Vendor、Quote 的關聯管理
- * - 採購單狀態管理
+ * - 採購單狀態管理（Draft → Submitted → Approved）
+ * - 明細自動計算總金額
  *
+ * Module 4: PurchaseOrder 表頭明細重構
  * Epic 4 - Story 5.3: 選擇最終供應商並記錄採購決策
  * Epic 4 - Story 5.4: 生成採購單 (Purchase Order) 記錄
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
 // ========================================
@@ -20,30 +23,41 @@ import { TRPCError } from '@trpc/server';
 // ========================================
 
 /**
- * 從 Quote 創建 PO Schema
+ * 採購品項明細 Schema
  */
-const createPOFromQuoteSchema = z.object({
-  quoteId: z.string().min(1, '報價單ID為必填'),
-  projectId: z.string().min(1, '專案ID為必填'),
+const purchaseOrderItemSchema = z.object({
+  id: z.string().optional(), // 有 id = 更新，無 id = 新增
+  itemName: z.string().min(1, '品項名稱為必填'),
+  description: z.string().optional(),
+  quantity: z.number().int().min(1, '數量必須至少為 1'),
+  unitPrice: z.number().min(0, '單價必須大於等於 0'),
+  sortOrder: z.number().int().default(0),
+  _delete: z.boolean().optional(), // true = 刪除此品項
 });
 
 /**
- * 手動創建 PO Schema（如果需要不通過 Quote 創建）
+ * 創建 PO Schema（統一版本，支持明細）
  */
-const createPOManualSchema = z.object({
+const createPOSchema = z.object({
+  name: z.string().min(1, 'PO 名稱為必填'),
+  description: z.string().optional(),
   projectId: z.string().min(1, '專案ID為必填'),
   vendorId: z.string().min(1, '供應商ID為必填'),
-  totalAmount: z.number().min(0, 'PO 總金額必須大於等於0'),
-  description: z.string().optional(),
+  quoteId: z.string().optional(),
+  date: z.string().optional(),
+  items: z.array(purchaseOrderItemSchema).min(1, '至少需要一個採購品項'),
 });
 
 /**
- * 更新 PO Schema
+ * 更新 PO Schema（支持明細）
  */
 const updatePOSchema = z.object({
   id: z.string().min(1, '無效的PO ID'),
-  totalAmount: z.number().min(0, 'PO 總金額必須大於等於0').optional(),
+  name: z.string().min(1).optional(),
   description: z.string().optional(),
+  vendorId: z.string().optional(),
+  date: z.string().optional(),
+  items: z.array(purchaseOrderItemSchema).optional(),
 });
 
 /**
@@ -136,7 +150,7 @@ export const purchaseOrderRouter = createTRPCRouter({
     }),
 
   /**
-   * 根據 ID 查詢單一採購單
+   * 根據 ID 查詢單一採購單（含明細）
    * @param id - 採購單 ID
    * @returns PurchaseOrder 完整資訊
    */
@@ -173,6 +187,9 @@ export const purchaseOrderRouter = createTRPCRouter({
           },
           vendor: true,
           quote: true,
+          items: {
+            orderBy: { sortOrder: 'asc' },
+          },
           expenses: {
             orderBy: { createdAt: 'desc' },
           },
@@ -190,106 +207,15 @@ export const purchaseOrderRouter = createTRPCRouter({
     }),
 
   /**
-   * 從選定的 Quote 自動生成 PO
-   * @param quoteId - 報價單 ID
-   * @param projectId - 專案 ID
+   * 創建採購單（含明細）- Module 4 新版本
+   * @param name - PO 名稱
+   * @param items - 採購品項明細
    * @returns 新創建的 PurchaseOrder
    *
-   * Epic 4 - Story 5.3 & 5.4: 核心功能
+   * Module 4: 支持表頭-明細結構
    */
-  createFromQuote: protectedProcedure
-    .input(createPOFromQuoteSchema)
-    .mutation(async ({ ctx, input }) => {
-      // 驗證 Quote 是否存在
-      const quote = await ctx.prisma.quote.findUnique({
-        where: { id: input.quoteId },
-        include: {
-          vendor: true,
-          project: true,
-          purchaseOrder: true,
-        },
-      });
-
-      if (!quote) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: '找不到該報價單',
-        });
-      }
-
-      // 檢查 Quote 的 projectId 是否匹配
-      if (quote.projectId !== input.projectId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: '報價單不屬於該專案',
-        });
-      }
-
-      // 檢查該 Quote 是否已經生成過 PO
-      if (quote.purchaseOrder) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: `該報價單已被用於生成採購單 (PO#: ${quote.purchaseOrder.poNumber})`,
-        });
-      }
-
-      // 檢查該專案是否已有 PO（一個專案只能有一個 PO）
-      const existingPO = await ctx.prisma.purchaseOrder.findFirst({
-        where: { projectId: input.projectId },
-      });
-
-      if (existingPO) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: `該專案已有採購單 (PO#: ${existingPO.poNumber})`,
-        });
-      }
-
-      // 創建 PurchaseOrder（Transaction 確保資料一致性）
-      const purchaseOrder = await ctx.prisma.$transaction(async (prisma) => {
-        // 1. 創建 PO
-        const newPO = await prisma.purchaseOrder.create({
-          data: {
-            projectId: input.projectId,
-            vendorId: quote.vendorId,
-            totalAmount: quote.amount,
-          },
-          include: {
-            project: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            vendor: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        });
-
-        // 2. 更新 Quote 關聯到新的 PO
-        await prisma.quote.update({
-          where: { id: input.quoteId },
-          data: {
-            purchaseOrderId: newPO.id,
-          },
-        });
-
-        return newPO;
-      });
-
-      return purchaseOrder;
-    }),
-
-  /**
-   * 手動創建 PO（不通過 Quote）
-   * @returns 新創建的 PurchaseOrder
-   */
-  createManual: protectedProcedure
-    .input(createPOManualSchema)
+  create: protectedProcedure
+    .input(createPOSchema)
     .mutation(async ({ ctx, input }) => {
       // 驗證專案是否存在
       const project = await ctx.prisma.project.findUnique({
@@ -315,54 +241,85 @@ export const purchaseOrderRouter = createTRPCRouter({
         });
       }
 
-      // 檢查該專案是否已有 PO
-      const existingPO = await ctx.prisma.purchaseOrder.findFirst({
-        where: { projectId: input.projectId },
-      });
-
-      if (existingPO) {
+      // 驗證至少要有一個品項
+      if (input.items.length === 0) {
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: `該專案已有採購單 (PO#: ${existingPO.poNumber})`,
+          code: 'BAD_REQUEST',
+          message: '至少需要一個採購品項',
         });
       }
 
-      // 創建 PO
-      const purchaseOrder = await ctx.prisma.purchaseOrder.create({
-        data: {
-          projectId: input.projectId,
-          vendorId: input.vendorId,
-          totalAmount: input.totalAmount,
-        },
-        include: {
-          project: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          vendor: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
+      // 計算總金額
+      const totalAmount = input.items.reduce((sum, item) => {
+        return sum + (item.quantity * item.unitPrice);
+      }, 0);
 
-      return purchaseOrder;
+      return await ctx.prisma.$transaction(async (tx) => {
+        // 創建採購單表頭
+        const po = await tx.purchaseOrder.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            projectId: input.projectId,
+            vendorId: input.vendorId,
+            quoteId: input.quoteId,
+            date: input.date ? new Date(input.date) : new Date(),
+            totalAmount,
+            status: 'Draft',
+          },
+        });
+
+        // 創建明細
+        await tx.purchaseOrderItem.createMany({
+          data: input.items.map((item, index) => ({
+            purchaseOrderId: po.id,
+            itemName: item.itemName,
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            subtotal: item.quantity * item.unitPrice,
+            sortOrder: item.sortOrder ?? index,
+          })),
+        });
+
+        // 返回完整的 PO（含明細）
+        return await tx.purchaseOrder.findUnique({
+          where: { id: po.id },
+          include: {
+            items: {
+              orderBy: { sortOrder: 'asc' },
+            },
+            project: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
+      });
     }),
 
+  // Module 4 重構：createFromQuote 和 createManual 已移除，請使用統一的 create endpoint
+
   /**
-   * 更新採購單資訊
+   * 更新採購單（含明細）- Module 4 新版本
    * @param id - PO ID
-   * @param totalAmount - 更新後的總金額（選填）
+   * @param items - 更新的明細（支持新增、更新、刪除）
    * @returns 更新後的 PurchaseOrder
+   *
+   * Module 4: 支持明細的新增、更新、刪除
    */
   update: protectedProcedure
     .input(updatePOSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
+      const { id, items, ...headerUpdate } = input;
 
       // 檢查 PO 是否存在
       const existingPO = await ctx.prisma.purchaseOrder.findUnique({
@@ -379,35 +336,101 @@ export const purchaseOrderRouter = createTRPCRouter({
         });
       }
 
-      // 如果 PO 已有 Expense 記錄，不允許修改總金額
-      if (updateData.totalAmount && existingPO.expenses.length > 0) {
+      // 如果狀態不是 Draft，不允許修改
+      if (existingPO.status !== 'Draft') {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: '該採購單已有費用記錄，無法修改總金額',
+          message: '只有草稿狀態的採購單才能修改',
         });
       }
 
-      // 更新 PO
-      const updatedPO = await ctx.prisma.purchaseOrder.update({
-        where: { id },
-        data: updateData,
-        include: {
-          project: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          vendor: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
+      return await ctx.prisma.$transaction(async (tx) => {
+        // 準備表頭更新數據
+        const updateData: any = {};
+        if (headerUpdate.name) updateData.name = headerUpdate.name;
+        if (headerUpdate.description !== undefined) updateData.description = headerUpdate.description;
+        if (headerUpdate.vendorId) updateData.vendorId = headerUpdate.vendorId;
+        if (headerUpdate.date) updateData.date = new Date(headerUpdate.date);
 
-      return updatedPO;
+        // 處理明細更新
+        if (items) {
+          // 1. 刪除標記為刪除的品項
+          const itemsToDelete = items.filter(item => item._delete && item.id);
+          if (itemsToDelete.length > 0) {
+            await tx.purchaseOrderItem.deleteMany({
+              where: {
+                id: { in: itemsToDelete.map(item => item.id!) },
+              },
+            });
+          }
+
+          // 2. 處理更新和新增
+          const itemsToProcess = items.filter(item => !item._delete);
+          for (const item of itemsToProcess) {
+            const subtotal = item.quantity * item.unitPrice;
+
+            if (item.id) {
+              // 更新現有品項
+              await tx.purchaseOrderItem.update({
+                where: { id: item.id },
+                data: {
+                  itemName: item.itemName,
+                  description: item.description,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  subtotal,
+                  sortOrder: item.sortOrder,
+                },
+              });
+            } else {
+              // 新增品項
+              await tx.purchaseOrderItem.create({
+                data: {
+                  purchaseOrderId: id,
+                  itemName: item.itemName,
+                  description: item.description,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  subtotal,
+                  sortOrder: item.sortOrder,
+                },
+              });
+            }
+          }
+
+          // 3. 重新計算總金額
+          const allItems = await tx.purchaseOrderItem.findMany({
+            where: { purchaseOrderId: id },
+          });
+          const totalAmount = allItems.reduce((sum, item) => sum + item.subtotal, 0);
+          updateData.totalAmount = totalAmount;
+        }
+
+        // 更新表頭
+        const po = await tx.purchaseOrder.update({
+          where: { id },
+          data: updateData,
+          include: {
+            items: {
+              orderBy: { sortOrder: 'asc' },
+            },
+            project: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
+
+        return po;
+      });
     }),
 
   /**
@@ -450,17 +473,12 @@ export const purchaseOrderRouter = createTRPCRouter({
 
       // 刪除 PO（Transaction 確保資料一致性）
       await ctx.prisma.$transaction(async (prisma) => {
-        // 1. 如果有關聯的 Quote，先解除關聯
-        if (purchaseOrder.quote) {
-          await prisma.quote.update({
-            where: { id: purchaseOrder.quote.id },
-            data: {
-              purchaseOrderId: null,
-            },
-          });
-        }
+        // 1. 先刪除所有關聯的明細
+        await prisma.purchaseOrderItem.deleteMany({
+          where: { purchaseOrderId: input.id },
+        });
 
-        // 2. 刪除 PO
+        // 2. 刪除 PO（Quote 關聯會自動解除，因為是 optional foreign key）
         await prisma.purchaseOrder.delete({
           where: { id: input.id },
         });
@@ -500,6 +518,106 @@ export const purchaseOrderRouter = createTRPCRouter({
       });
 
       return purchaseOrder;
+    }),
+
+  /**
+   * 提交採購單（狀態變更：Draft → Submitted）
+   * @param id - PO ID
+   * @returns 更新後的 PurchaseOrder
+   *
+   * Module 4: 採購單狀態工作流
+   */
+  submit: protectedProcedure
+    .input(z.object({ id: z.string().min(1, '無效的PO ID') }))
+    .mutation(async ({ ctx, input }) => {
+      // 檢查 PO 是否存在
+      const po = await ctx.prisma.purchaseOrder.findUnique({
+        where: { id: input.id },
+        include: {
+          items: true,
+        },
+      });
+
+      if (!po) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該採購單',
+        });
+      }
+
+      // 驗證狀態
+      if (po.status !== 'Draft') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: '只有草稿狀態的採購單才能提交',
+        });
+      }
+
+      // 驗證至少有一個品項
+      if (po.items.length === 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '無法提交空的採購單，請至少添加一個品項',
+        });
+      }
+
+      // 更新狀態
+      return await ctx.prisma.purchaseOrder.update({
+        where: { id: input.id },
+        data: {
+          status: 'Submitted',
+        },
+        include: {
+          items: {
+            orderBy: { sortOrder: 'asc' },
+          },
+        },
+      });
+    }),
+
+  /**
+   * 批准採購單（主管）- Module 4
+   * @param id - PO ID
+   * @returns 更新後的 PurchaseOrder
+   *
+   * Module 4: 主管批准工作流
+   */
+  approve: supervisorProcedure
+    .input(z.object({ id: z.string().min(1, '無效的PO ID') }))
+    .mutation(async ({ ctx, input }) => {
+      // 檢查 PO 是否存在
+      const po = await ctx.prisma.purchaseOrder.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!po) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該採購單',
+        });
+      }
+
+      // 驗證狀態
+      if (po.status !== 'Submitted') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: '只有已提交的採購單才能批准',
+        });
+      }
+
+      // 更新狀態和批准日期
+      return await ctx.prisma.purchaseOrder.update({
+        where: { id: input.id },
+        data: {
+          status: 'Approved',
+          approvedDate: new Date(),
+        },
+        include: {
+          items: {
+            orderBy: { sortOrder: 'asc' },
+          },
+        },
+      });
     }),
 
   /**
