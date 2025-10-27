@@ -20,6 +20,179 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-28 00:15 | 修復 | FIX-009 - Module 6 前端錯誤修復（三次迭代）
+
+**類型**: 修復 | **負責人**: AI 助手
+
+**問題概述**:
+Module 6 (OMExpense) 前端實施後出現三類錯誤，經過三次迭代修復，最終實現完整功能和一致的 UI 風格。
+
+**修復過程**:
+
+**第一次迭代 (commit 20356a3)**:
+- ❌ **錯誤**: `Module not found: Can't resolve '@/components/layout/DashboardLayout'`
+- 🔍 **原因**: 文件路徑大小寫錯誤（DashboardLayout vs dashboard-layout）
+- ✅ **解決**: 統一使用 kebab-case 文件名 `dashboard-layout`
+- 📂 **影響**: 4 個頁面文件
+
+**第二次迭代 (commit 5b38713)**:
+- ❌ **錯誤**: `Error: Element type is invalid... mixed up default and named imports`
+- 🔍 **原因**: `dashboard-layout.tsx` 使用 named export，頁面使用 default import
+- ✅ **解決**: 改用 named import `import { DashboardLayout }`
+- 📂 **影響**: 4 個頁面文件
+
+**第三次迭代 (commit db42b84)**:
+- ❌ **錯誤 1**: `Module not found: Can't resolve '@/hooks/use-toast'`
+  - 🔍 **原因**: `useToast` 實際位於 `@/components/ui/Toast`，非 hooks 目錄
+  - ✅ **解決**: 修正導入路徑為 `@/components/ui/Toast`
+  - 📂 **影響**: 3 個文件（[id]/page.tsx, OMExpenseForm.tsx, OMExpenseMonthlyGrid.tsx）
+
+- ❌ **錯誤 2**: UI 風格不一致（用戶發現）
+  - 🔍 **原因 1**: 缺少 Breadcrumb 導航（其他頁面都有）
+  - 🔍 **原因 2**: Button 導入大小寫混用（`Button` vs `button`）
+  - ✅ **解決 1**: 添加標準 Breadcrumb 導航到列表頁
+  - ✅ **解決 2**: 統一使用小寫 `@/components/ui/button`
+  - 📂 **影響**: 6 個文件（4 頁面 + 2 組件）
+
+**修復統計**:
+- Git Commits: 3 次迭代
+- 修改文件: 6 個（4 頁面 + 2 組件）
+- 修改代碼行數: ~30 行
+- 新增功能: Breadcrumb 導航組件
+
+**經驗教訓**:
+1. ✅ 檔案命名標準: 使用 kebab-case（dashboard-layout）
+2. ✅ Import/Export 模式: 檢查 named export vs default export
+3. ✅ 項目特定路徑: useToast 位於 `@/components/ui/Toast`
+4. ✅ UI 一致性檢查: 所有列表頁都應包含 Breadcrumb
+5. ✅ Button 導入標準: 統一使用小寫路徑
+
+**驗證結果**:
+- ✅ http://localhost:3000/om-expenses - 正常顯示
+- ✅ http://localhost:3000/om-expenses/new - 正常顯示
+- ✅ http://localhost:3000/om-expenses/[id] - 正常顯示
+- ✅ http://localhost:3000/om-expenses/[id]/edit - 正常顯示
+- ✅ 開發服務器持續運行（未中斷）
+
+**修改文件**:
+- `apps/web/src/app/om-expenses/page.tsx` (列表頁)
+- `apps/web/src/app/om-expenses/new/page.tsx` (創建頁)
+- `apps/web/src/app/om-expenses/[id]/page.tsx` (詳情頁)
+- `apps/web/src/app/om-expenses/[id]/edit/page.tsx` (編輯頁)
+- `apps/web/src/components/om-expense/OMExpenseForm.tsx` (表單組件)
+- `apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx` (月度網格組件)
+
+**相關文檔更新**:
+- `claudedocs/COMPLETE-IMPLEMENTATION-PROGRESS.md` (新增 FIX-009 章節)
+- `FIXLOG.md` (待更新)
+
+---
+
+### 2025-10-27 23:45 | 功能開發 | Module 6 - OMExpense 前端實施完成
+
+**類型**: 功能開發 | **負責人**: AI 助手
+
+**實施內容**:
+完成 Module 6 (O&M Expense Management) 的完整前端實施，包括 4 個頁面和 2 個核心組件，實現營運公司（OpCo）管理和 OM 費用的表頭-明細模式前端界面。
+
+**完成的工作**:
+
+1. ✅ **OM 費用列表頁** (`apps/web/src/app/om-expenses/page.tsx` - 313 行)
+   - 年度/OpCo/類別三維過濾器
+   - 卡片式列表展示（預算、實際支出、增長率）
+   - 月度記錄進度顯示（X / 12）
+   - 使用率顏色指示（綠色 < 90% < 黃色 < 100% < 紅色）
+   - 創建新 OM 費用按鈕
+   - 分頁控制（12 項/頁）
+
+2. ✅ **OM 費用詳情頁** (`apps/web/src/app/om-expenses/[id]/page.tsx` - 216 行)
+   - 基本資訊顯示（OpCo、供應商、預算、實際支出）
+   - **嵌入月度網格編輯器**（核心功能）
+   - 增長率顯示和計算按鈕
+   - 刪除功能（含二次確認）
+   - 編輯按鈕導航
+
+3. ✅ **OM 費用表單頁面** (`apps/web/src/app/om-expenses/new/page.tsx` - 37 行)
+   - 創建新 OM 費用頁面
+   - 嵌入 OMExpenseForm 組件
+
+4. ✅ **OM 費用編輯頁面** (`apps/web/src/app/om-expenses/[id]/edit/page.tsx` - 81 行)
+   - 編輯現有 OM 費用頁面
+   - 嵌入 OMExpenseForm 組件（edit 模式）
+
+5. ✅ **OMExpenseForm 組件** (`apps/web/src/components/om-expense/OMExpenseForm.tsx` - 443 行)
+   - 創建/編輯表單（mode: 'create' | 'edit'）
+   - React Hook Form + Zod 驗證
+   - **基本資訊卡片**:
+     - OM 費用名稱（必填）
+     - 描述（可選）
+     - 財務年度（必填，2000-2100）
+     - OM 類別（必填，支持自動完成）
+   - **OpCo 和供應商卡片**:
+     - OpCo 選擇器（必填，下拉選單）
+     - Vendor 選擇器（可選，下拉選單）
+   - **預算和日期卡片**:
+     - 預算金額（必填，HKD）
+     - 開始日期（必填）
+     - 結束日期（必填，驗證 > 開始日期）
+   - 完整的錯誤處理和提示訊息
+   - 創建後自動初始化 12 個月度記錄
+
+6. ✅ **OMExpenseMonthlyGrid 組件** (`apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx` - 247 行)
+   - **12 個月的輸入網格**（Excel 風格）
+   - 即時計算總額和使用率
+   - **預算概覽面板**:
+     - 年度預算
+     - 實際支出（顏色指示）
+     - 剩餘預算
+     - 使用率（百分比）
+   - 批量保存月度記錄
+   - 使用 tRPC `updateMonthlyRecords` mutation
+   - 完整的 Toast 提示（成功/失敗）
+   - 使用提示面板
+
+**技術亮點**:
+- ✅ **Excel 風格編輯**: 月度網格提供類似試算表的編輯體驗
+- ✅ **即時計算**: 輸入時自動更新總額、剩餘預算、使用率
+- ✅ **視覺化指示**: 使用率顏色（綠/黃/紅）、增長率 Badge
+- ✅ **完整驗證**: React Hook Form + Zod schema
+- ✅ **類型安全**: tRPC 提供端到端類型推導
+- ✅ **用戶體驗**: Toast 通知、Loading 狀態、二次確認
+- ✅ **卡片式設計**: 符合 shadcn/ui 設計系統
+- ✅ **自動完成**: 類別選擇器支持歷史數據
+
+**代碼統計**:
+- 頁面文件: 4 個（647 行）
+  - page.tsx: 313 行
+  - [id]/page.tsx: 216 行
+  - new/page.tsx: 37 行
+  - [id]/edit/page.tsx: 81 行
+- 組件文件: 2 個（690 行）
+  - OMExpenseForm.tsx: 443 行
+  - OMExpenseMonthlyGrid.tsx: 247 行
+- **總計**: ~1,337 行前端代碼
+
+**修改/新增文件**:
+- `apps/web/src/app/om-expenses/page.tsx` (新增)
+- `apps/web/src/app/om-expenses/new/page.tsx` (新增)
+- `apps/web/src/app/om-expenses/[id]/page.tsx` (新增)
+- `apps/web/src/app/om-expenses/[id]/edit/page.tsx` (新增)
+- `apps/web/src/components/om-expense/OMExpenseForm.tsx` (新增)
+- `apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx` (新增)
+
+**業務價值**:
+- 🎯 完整的前端 UI，支持完整的 CRUD 操作
+- 📊 直觀的月度記錄編輯（類似 Excel）
+- 📈 視覺化的預算使用率監控
+- 🏢 多 OpCo 和供應商支持
+- 📋 與後端 API 完全整合（tRPC）
+- 🔢 增長率計算和顯示
+
+**後續計劃**:
+- ⏳ Module 7-8: ChargeOut 模組（費用分攤）
+
+---
+
 ### 2025-10-27 23:30 | 功能開發 | Module 6 - OMExpense API 實施（後端）
 
 **類型**: 功能開發 | **負責人**: AI 助手
@@ -4669,28 +4842,28 @@ feat: Initial commit of the AI IT project process management webapp
 
 ---
 
-### 2025-10-27 22:00 | �\��}�o | Module 6 - OMExpense �e�ݧ����I
+### 2025-10-27 22:00 | �\��}�o | Module 6 - OMExpense �e�ݧ����I
 
-**����**: �\��}�o | **�t�d�H**: AI �U��
+**����**: �\��}�o | **�t�d�H**: AI �U��
 
-**�ܧ󤺮e**:
-���� Module 6 (OMExpense) ������e�ݹ�I�A�]�A�C�����B�Ա����B����ե�B��׺���s�边�M�ɯ��X�C
+**�ܧ󤺮e**:
+���� Module 6 (OMExpense) ������e�ݹ�I�A�]�A�C�����B�Ա����B����ե�B��׺���s�边�M�ɯ��X�C
 
-**��I���e**:
+**��I���e**:
 
-1. ? **OM �O�ΦC������** (apps/web/src/app/om-expenses/page.tsx - 335 ��)
-2. ? **OMExpenseForm ����ե�** (apps/web/src/components/om-expense/OMExpenseForm.tsx - 405 ��)
-3. ? **��׺���s�边�ե�** (apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx - 220 ��)
-4. ? **OM �O�θԱ�����** (apps/web/src/app/om-expenses/[id]/page.tsx - 375 ��)
-5. ? **�ЫةM�s�譶��** (new/page.tsx 38 �� + [id]/edit/page.tsx 75 ��)
-6. ? **�ɯ��X** (apps/web/src/components/layout/Sidebar.tsx)
+1. ? **OM �O�ΦC������** (apps/web/src/app/om-expenses/page.tsx - 335 ��)
+2. ? **OMExpenseForm ����ե�** (apps/web/src/components/om-expense/OMExpenseForm.tsx - 405 ��)
+3. ? **��׺���s�边�ե�** (apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx - 220 ��)
+4. ? **OM �O�θԱ�����** (apps/web/src/app/om-expenses/[id]/page.tsx - 375 ��)
+5. ? **�ЫةM�s�譶��** (new/page.tsx 38 �� + [id]/edit/page.tsx 75 ��)
+6. ? **�ɯ��X** (apps/web/src/components/layout/Sidebar.tsx)
 
-**�N�X�έp**:
-- �e�ݭ���: 823 ��
-- �e�ݲե�: 625 ��
-- Module 6 �e���`�p: ~1,458 ��
-- Module 6 ���� (��� + �e��): ~2,276 ��
+**�N�X�έp**:
+- �e�ݭ���: 823 ��
+- �e�ݲե�: 625 ��
+- Module 6 �e���`�p: ~1,458 ��
+- Module 6 ���� (��� + �e��): ~2,276 ��
 
-**�`��i�ק�s**: 75% (6/8 �Ҷ�����)
+**�`��i�ק�s**: 75% (6/8 �Ҷ�����)
 
 ---
