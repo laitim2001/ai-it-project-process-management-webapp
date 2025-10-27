@@ -804,23 +804,44 @@ Phase A 完成標準:
 
 ## 🔄 下一步計劃
 
-Phase A 完成後評估:
+**當前階段**: Module 4 完成 ✅ (2025-10-27 20:30)
 
-**選項 A**: 繼續階段 2 (Module 2-8 API)
-- 預計工作量: 1-2 週
-- 風險: 較大工作量
+### 已完成模塊 (4/6)
+- ✅ Module 1: BudgetPool (預算池 + 類別) - 100%
+- ✅ Module 2: Project (專案) - 100%
+- ✅ Module 3: BudgetProposal (預算提案) - 100%
+- ✅ Module 4: PurchaseOrder (採購單表頭明細) - 100% 🎉
 
-**選項 B**: 調整 Module 1 設計
-- 根據測試反饋優化
-- 再決定其他模塊
+### 待實施模塊 (2/6)
+- ⏳ Module 5: Expense (費用記錄表頭明細)
+  - 後端 API: 50% (基礎 CRUD 完成，明細功能待實施)
+  - 前端實施: 0%
+  - 預計工作量: 3-4 小時
 
-**選項 C**: 暫停並評估需求
-- 重新評估其他模塊必要性
-- 可能調整計劃
+- ⏳ Module 6: ChargeOut (成本分攤)
+  - 後端 API: 0%
+  - 前端實施: 0%
+  - 預計工作量: 4-5 小時
+
+### 建議執行順序
+1. **優先**: Module 5 (Expense 表頭明細重構)
+   - 理由: 與 Module 4 類似模式，可複用設計
+   - 前端組件: ExpenseForm, ExpenseActions
+   - 工作流: Draft → Submitted → Approved
+
+2. **次要**: Module 6 (ChargeOut 成本分攤)
+   - 理由: 需要前述模塊完成才能測試
+   - 複雜度較高，涉及多專案分攤邏輯
+
+3. **最終**: 整合測試與優化
+   - 完整工作流測試
+   - 性能優化
+   - UI/UX 調整
 
 ---
 
-**最後更新**: 2025-10-27 00:55 (Phase A + Bug 修復完成，已推送至 GitHub)
-**Git Commit**: b7d9525
-**下次更新**: 用戶測試完成後
+**最後更新**: 2025-10-27 20:30 (Module 4 前端完成，已推送至 GitHub)
+**Git Commit**: 21f242b (feat: Module 4 前端實施完成)
+**總體進度**: 60% (4/6 模塊完成)
+**下次更新**: Module 5 實施完成後
 **維護者**: AI Assistant + 開發團隊
