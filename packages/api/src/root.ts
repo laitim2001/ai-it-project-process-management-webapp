@@ -10,6 +10,8 @@ import { purchaseOrderRouter } from './routers/purchaseOrder';
 import { expenseRouter } from './routers/expense';
 import { dashboardRouter } from './routers/dashboard';
 import { notificationRouter } from './routers/notification';
+import { operatingCompanyRouter } from './routers/operatingCompany';
+import { omExpenseRouter } from './routers/omExpense';
 
 /**
  * This is the primary router for your server.
@@ -28,6 +30,8 @@ export const appRouter = createTRPCRouter({
   expense: expenseRouter,
   dashboard: dashboardRouter,
   notification: notificationRouter,
+  operatingCompany: operatingCompanyRouter,
+  omExpense: omExpenseRouter,
 });
 
 // export type definition of API
