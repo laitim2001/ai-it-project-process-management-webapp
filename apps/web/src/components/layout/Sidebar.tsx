@@ -98,6 +98,12 @@ export function Sidebar() {
           icon: Receipt,
           description: "費用發票與核銷"
         },
+        {
+          name: "OM 費用",
+          href: "/om-expenses",
+          icon: Target,
+          description: "操作與維護費用管理"
+        },
       ]
     },
     {
