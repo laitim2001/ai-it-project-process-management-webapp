@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-27 01:50
-> **總體進度**: 約 45% (階段 1 完成 + Module 1-2 完成 + Bug 修復完成)
-> **當前階段**: Module 2 完成 - 文檔已更新，準備 Git commit
+> **最後更新**: 2025-10-27 04:15
+> **總體進度**: 約 50% (階段 1 完成 + Module 1-3 完成 + Bug 修復完成)
+> **當前階段**: Module 3 完成 - 準備 Git commit 並同步至 GitHub
 
 ---
 
@@ -11,11 +11,11 @@
 
 ```
 階段 1: 數據庫 Schema           ████████████████████ 100% ✅
-階段 2: 後端 API 實施            ████████░░░░░░░░░░░░  40% ✅ (Module 1-2 + Expense 修復)
-階段 3: 前端實施                 ████████░░░░░░░░░░░░  40% ✅ (Module 1-2 + Bug 修復)
+階段 2: 後端 API 實施            ██████████░░░░░░░░░░  50% ✅ (Module 1-3 + Expense 修復)
+階段 3: 前端實施                 ██████████░░░░░░░░░░  50% ✅ (Module 1-3 + Bug 修復)
 階段 4: Bug 修復與優化           ████████████████████ 100% ✅ (FIX-006)
 ─────────────────────────────────────────────────────────
-總進度                          █████████░░░░░░░░░░░  45%
+總進度                          ██████████░░░░░░░░░░  50%
 ```
 
 ---
@@ -68,7 +68,7 @@
 
 ---
 
-### **階段 2: 後端 API 實施** 🔄 **33% 完成** (2/6 模塊)
+### **階段 2: 後端 API 實施** 🔄 **50% 完成** (3/6 模塊)
 
 #### Module 1: BudgetPool API ✅ **100% 完成**
 
@@ -186,20 +186,109 @@
 
 ---
 
-#### Module 3: BudgetProposal API ⏳ **0% 完成**
+#### Module 3: BudgetProposal API ✅ **100% 完成**
 
-**狀態**: Schema 已更新，API 未使用新欄位
-**Schema 新增欄位**:
+**完成時間**: 2025-10-27 04:15
+**文件**: `packages/api/src/routers/budgetProposal.ts`, 前端組件 3 個 + API route 1 個
+**狀態**: 所有功能已實施並整合完成
+
+**Schema 已有欄位**:
 - proposalFilePath, proposalFileName, proposalFileSize (文件上傳)
 - meetingDate, meetingNotes, presentedBy (會議記錄)
-- approvedAmount, approvedBy, approvedAt (批准追蹤)
-- rejectionReason (拒絕原因)
+- approvedAmount, approvedBy, approvedAt (批准追蹤) - Module 2 已實施
+- rejectionReason (拒絕原因) - Module 2 已實施
 
-**待實施**:
-- [ ] 添加 uploadProposalFile endpoint
-- [ ] 添加 updateMeetingNotes endpoint
-- [ ] 修改 approve 使用 approvedAmount
-- [ ] 前端文件上傳組件
+**已完成**:
+- ✅ 添加 uploadProposalFile endpoint (budgetProposal.ts:487-533)
+- ✅ 添加 updateMeetingNotes endpoint (budgetProposal.ts:539-585)
+- ✅ 創建文件上傳 API route (/api/upload/proposal/route.ts)
+- ✅ 創建 ProposalFileUpload 組件 (314 行)
+- ✅ 創建 ProposalMeetingNotes 組件 (280 行)
+- ✅ 整合 Tabs 結構到提案詳情頁
+- ✅ 顯示批准金額在基本資訊 Tab
+
+**實施內容**:
+
+1. **uploadProposalFile endpoint** (budgetProposal.ts:487-533)
+   ```typescript
+   uploadProposalFile: protectedProcedure
+     .input(z.object({
+       proposalId: z.string().min(1),
+       filePath: z.string().min(1),
+       fileName: z.string().min(1),
+       fileSize: z.number().int().positive(),
+     }))
+     .mutation(async ({ ctx, input }) => {
+       // 更新提案的文件信息
+       // 返回更新後的 proposal 含 project 完整關聯
+     });
+   ```
+
+2. **updateMeetingNotes endpoint** (budgetProposal.ts:539-585)
+   ```typescript
+   updateMeetingNotes: protectedProcedure
+     .input(z.object({
+       proposalId: z.string().min(1),
+       meetingDate: z.string().min(1),
+       meetingNotes: z.string().min(1),
+       presentedBy: z.string().optional(),
+     }))
+     .mutation(async ({ ctx, input }) => {
+       // 更新會議記錄資訊
+       // 自動轉換 meetingDate 為 Date 對象
+     });
+   ```
+
+3. **文件上傳 API Route** (/api/upload/proposal/route.ts, 108 行)
+   - 支持 PDF/PPT/Word 文件類型
+   - 文件大小限制：20MB
+   - 文件類型驗證和大小驗證
+   - 保存到 `public/uploads/proposals/` 目錄
+   - 生成唯一文件名：`proposal_{proposalId}_{timestamp}.{ext}`
+   - 返回 filePath 供前端更新數據庫
+
+4. **ProposalFileUpload 組件** (314 行)
+   - 拖放式文件上傳界面
+   - 文件預覽（顯示文件名和大小）
+   - 已上傳文件顯示和下載
+   - 替換文件功能
+   - 完整的錯誤處理和 toast 提示
+   - formatFileSize 工具函數
+
+5. **ProposalMeetingNotes 組件** (280 行)
+   - 顯示/編輯雙模式
+   - 會議日期選擇器（必填）
+   - 介紹人員輸入（選填）
+   - 會議記錄 Textarea（8 行，必填）
+   - 空狀態提示
+   - 保存/取消功能
+   - 完整的表單驗證
+
+6. **提案詳情頁 Tabs 整合** (apps/web/src/app/proposals/[id]/page.tsx)
+   - 4 個 Tab 標籤：基本資訊、相關專案、項目計劃書、會議記錄
+   - 基本資訊 Tab 顯示批准金額（綠色高亮）
+   - 項目計劃書 Tab 整合 ProposalFileUpload
+   - 會議記錄 Tab 整合 ProposalMeetingNotes
+   - 響應式設計
+
+**技術亮點**:
+- ✅ **完整的文件上傳流程**: Client → API Route → Database → Display
+- ✅ **組件化設計**: 可重用的獨立組件
+- ✅ **完整的驗證**: 前端 + 後端雙重驗證
+- ✅ **用戶體驗優化**: Toast 提示、loading 狀態、錯誤處理
+- ✅ **Tabs 導航**: 清晰的信息組織
+- ✅ **批准金額可視化**: 綠色高亮顯示
+
+**業務價值**:
+- 🎯 完整的提案文檔管理（上傳、下載、替換）
+- 📋 會議記錄追蹤和歷史查詢
+- 💰 批准金額透明展示
+- 🔍 信息組織清晰（Tabs 結構）
+
+**待執行**:
+- ⏳ 用戶測試文件上傳功能
+- ⏳ 用戶測試會議記錄功能
+- ⏳ 驗證 Tabs 導航體驗
 
 ---
 
@@ -250,7 +339,7 @@
 
 ---
 
-### **階段 3: 前端實施** ✅ **33% 完成** (2/6 模塊)
+### **階段 3: 前端實施** ✅ **50% 完成** (3/6 模塊)
 
 #### Module 1: BudgetPool 前端 ✅ **100% 完成**
 
@@ -322,6 +411,69 @@
 
 **待執行**:
 - ⏳ 用戶測試完整預算申請→批准流程
+
+---
+
+#### Module 3: BudgetProposal 前端 ✅ **100% 完成**
+
+**完成時間**: 2025-10-27 04:15
+**狀態**: 所有前端功能已實施並整合完成
+
+**完成的文件**:
+- ✅ `ProposalFileUpload.tsx` - 文件上傳組件 (~314 行)
+- ✅ `ProposalMeetingNotes.tsx` - 會議記錄組件 (~280 行)
+- ✅ `/api/upload/proposal/route.ts` - 文件上傳 API route (~108 行)
+- ✅ `apps/web/src/app/proposals/[id]/page.tsx` - 詳情頁 Tabs 整合
+
+**核心功能**:
+- ✅ **文件上傳功能** (ProposalFileUpload):
+  - 拖放式文件選擇界面
+  - 支持 PDF/PPT/Word 文件類型
+  - 文件大小限制 20MB
+  - 文件預覽（名稱、大小）
+  - 已上傳文件顯示和下載
+  - 替換文件功能
+  - 完整的錯誤處理和驗證
+  - Toast 提示（成功/失敗）
+
+- ✅ **會議記錄功能** (ProposalMeetingNotes):
+  - 顯示/編輯雙模式切換
+  - 會議日期選擇器（必填）
+  - 介紹人員輸入（選填）
+  - 會議記錄 Textarea（8 行，必填）
+  - 空狀態提示
+  - 保存/取消功能
+  - 表單驗證（日期、內容必填）
+  - Toast 提示和錯誤處理
+
+- ✅ **Tabs 導航結構** (提案詳情頁):
+  - 4 個 Tab 標籤：基本資訊、相關專案、項目計劃書、會議記錄
+  - 基本資訊 Tab 顯示批准金額（綠色高亮）和批准時間
+  - 項目計劃書 Tab 整合 ProposalFileUpload
+  - 會議記錄 Tab 整合 ProposalMeetingNotes
+  - 評論系統保持在 Tabs 外部
+  - 響應式設計
+
+**技術實現**:
+- ✅ 使用 shadcn/ui 組件（Tabs, Card, Input, Textarea, Button）
+- ✅ 完整的 TypeScript 類型安全
+- ✅ tRPC 端到端類型推導
+- ✅ File API 和 FormData 文件上傳
+- ✅ 狀態管理（useState）
+- ✅ 表單驗證和錯誤處理
+- ✅ Toast 通知系統整合
+
+**業務價值**:
+- 🎯 完整的提案文檔管理流程
+- 📋 會議記錄數字化追蹤
+- 💰 批准金額透明化展示
+- 🔍 信息組織清晰（Tabs 結構）
+- 📂 文件集中管理（上傳、下載、替換）
+
+**待執行**:
+- ⏳ 用戶測試文件上傳功能
+- ⏳ 用戶測試會議記錄功能
+- ⏳ 驗證 Tabs 導航用戶體驗
 
 ---
 
@@ -413,12 +565,24 @@
 ├─ ✅ 批准時自動更新 Project 狀態為 'InProgress'
 ├─ ✅ 更新 DEVELOPMENT-LOG.md
 ├─ ✅ 更新 COMPLETE-IMPLEMENTATION-PROGRESS.md
-└─ ⏳ 準備 Git commit
+└─ ✅ Git commit 準備中
+
+2025-10-27 04:15 - Module 3 完成 ⭐
+├─ ✅ 實施 uploadProposalFile endpoint
+├─ ✅ 實施 updateMeetingNotes endpoint
+├─ ✅ 創建文件上傳 API route
+├─ ✅ 創建 ProposalFileUpload 組件 (314 行)
+├─ ✅ 創建 ProposalMeetingNotes 組件 (280 行)
+├─ ✅ 整合 Tabs 結構到提案詳情頁
+├─ ✅ 添加批准金額顯示（綠色高亮）
+├─ ✅ 更新 COMPLETE-IMPLEMENTATION-PROGRESS.md
+└─ ⏳ 準備 Git commit + push
 
 2025-10-27+ (接下來)
-├─ ⏳ Git commit + push Module 2 完成
+├─ ⏳ Git commit + push Module 3 完成
 ├─ ⏳ 用戶測試 Module 1 (BudgetPool Categories)
 ├─ ⏳ 用戶測試 Module 2 (Project 預算追蹤 + BudgetProposal 同步)
+├─ ⏳ 用戶測試 Module 3 (BudgetProposal 文件上傳 + 會議記錄)
 ├─ ⏳ 用戶測試 Bug 修復 (Expense + 專案刪除)
 ├─ 📊 評估與決策
 └─ 📋 決定下一步（選項 A/B/C）

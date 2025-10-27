@@ -10,11 +10,14 @@
 
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import { ProposalActions } from '@/components/proposal/ProposalActions';
 import { CommentSection } from '@/components/proposal/CommentSection';
+import { ProposalFileUpload } from '@/components/proposal/ProposalFileUpload';
+import { ProposalMeetingNotes } from '@/components/proposal/ProposalMeetingNotes';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +25,11 @@ import { Button } from '@/components/ui/Button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
+import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X } from 'lucide-react';
 
 /**
  * 提案狀態顯示配置
@@ -186,102 +193,154 @@ export default function ProposalDetailPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* 左側主要內容 */}
           <div className="space-y-6 lg:col-span-2">
-            {/* 基本資訊 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  提案資訊
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">預算金額</dt>
-                    <dd className="text-2xl font-bold text-foreground flex items-center gap-1">
-                      <DollarSign className="h-5 w-5" />
-                      ${proposal.amount.toLocaleString()}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">狀態</dt>
-                    <dd>
-                      <Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].variant}>
-                        {PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].label}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">建立時間</dt>
-                    <dd className="text-sm text-foreground flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(proposal.createdAt).toLocaleString('zh-TW')}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">最後更新</dt>
-                    <dd className="text-sm text-foreground flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(proposal.updatedAt).toLocaleString('zh-TW')}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            {/* Tabs 導航 */}
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="basic">基本資訊</TabsTrigger>
+                <TabsTrigger value="project">相關專案</TabsTrigger>
+                <TabsTrigger value="file">項目計劃書</TabsTrigger>
+                <TabsTrigger value="meeting">會議記錄</TabsTrigger>
+              </TabsList>
 
-            {/* 專案資訊 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  相關專案
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">專案名稱：</span>
-                  <Link
-                    href={`/projects/${proposal.project.id}`}
-                    className="ml-2 text-primary hover:text-primary font-medium"
-                  >
-                    {proposal.project.name}
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground block mb-2">專案管理者</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-primary" />
+              {/* Tab 1: 基本資訊 */}
+              <TabsContent value="basic" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      提案資訊
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">預算金額</dt>
+                        <dd className="text-2xl font-bold text-foreground flex items-center gap-1">
+                          <DollarSign className="h-5 w-5" />
+                          ${proposal.amount.toLocaleString()}
+                        </dd>
                       </div>
-                      <span className="text-sm text-foreground">
-                        {proposal.project.manager.name || proposal.project.manager.email}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground block mb-2">監督者</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-green-600" />
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">狀態</dt>
+                        <dd>
+                          <Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].variant}>
+                            {PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].label}
+                          </Badge>
+                        </dd>
                       </div>
-                      <span className="text-sm text-foreground">
-                        {proposal.project.supervisor.name || proposal.project.supervisor.email}
-                      </span>
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">建立時間</dt>
+                        <dd className="text-sm text-foreground flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(proposal.createdAt).toLocaleString('zh-TW')}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">最後更新</dt>
+                        <dd className="text-sm text-foreground flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(proposal.updatedAt).toLocaleString('zh-TW')}
+                        </dd>
+                      </div>
+                      {proposal.approvedAmount && (
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground mb-1">批准金額</dt>
+                          <dd className="text-2xl font-bold text-green-600 flex items-center gap-1">
+                            <DollarSign className="h-5 w-5" />
+                            ${proposal.approvedAmount.toLocaleString()}
+                          </dd>
+                        </div>
+                      )}
+                      {proposal.approvedAt && (
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground mb-1">批准時間</dt>
+                          <dd className="text-sm text-foreground flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {new Date(proposal.approvedAt).toLocaleString('zh-TW')}
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab 2: 相關專案 */}
+              <TabsContent value="project" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      相關專案
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">專案名稱：</span>
+                      <Link
+                        href={`/projects/${proposal.project.id}`}
+                        className="ml-2 text-primary hover:text-primary font-medium"
+                      >
+                        {proposal.project.name}
+                      </Link>
                     </div>
-                  </div>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">預算池：</span>
-                  <Link
-                    href={`/budget-pools/${proposal.project.budgetPool.id}`}
-                    className="ml-2 text-primary hover:text-primary font-medium"
-                  >
-                    {proposal.project.budgetPool.name}
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground block mb-2">專案管理者</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <User className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="text-sm text-foreground">
+                            {proposal.project.manager.name || proposal.project.manager.email}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground block mb-2">監督者</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <User className="h-4 w-4 text-green-600" />
+                          </div>
+                          <span className="text-sm text-foreground">
+                            {proposal.project.supervisor.name || proposal.project.supervisor.email}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">預算池：</span>
+                      <Link
+                        href={`/budget-pools/${proposal.project.budgetPool.id}`}
+                        className="ml-2 text-primary hover:text-primary font-medium"
+                      >
+                        {proposal.project.budgetPool.name}
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab 3: 項目計劃書文件 */}
+              <TabsContent value="file" className="mt-6">
+                <ProposalFileUpload
+                  proposalId={proposal.id}
+                  proposalFilePath={proposal.proposalFilePath}
+                  proposalFileName={proposal.proposalFileName}
+                  proposalFileSize={proposal.proposalFileSize}
+                />
+              </TabsContent>
+
+              {/* Tab 4: 會議記錄 */}
+              <TabsContent value="meeting" className="mt-6">
+                <ProposalMeetingNotes
+                  proposalId={proposal.id}
+                  meetingDate={proposal.meetingDate}
+                  meetingNotes={proposal.meetingNotes}
+                  presentedBy={proposal.presentedBy}
+                />
+              </TabsContent>
+            </Tabs>
 
             {/* 評論區 */}
             <CommentSection

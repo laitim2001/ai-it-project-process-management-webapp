@@ -2581,6 +2581,11 @@ function POItemFormRow({ item, index, onUpdate, onRemove }) {
   - 明細欄位: 費用項目名稱、描述、金額、費用類別
   - 審批工作流
   - 自動更新預算池使用金額
+
+重要設計決策:
+  - ✅ Expense 直接關聯 Project (projectId)
+    理由: 提升查詢效率，支持項目級別的費用統計和報表生成
+    驗證: expense.projectId 必須與 expense.purchaseOrder.projectId 一致
 ```
 
 ### 數據庫 Schema 設計
@@ -2609,6 +2614,7 @@ model Expense {
   isOperationMaint  Boolean @default(false)  // 是否為運維費用
 
   // 關聯
+  projectId       String    // ✅ 新增：直接關聯項目（提升查詢效率）
   purchaseOrderId String
   budgetCategoryId String?  // ✅ 新增：關聯預算類別
   vendorId        String?   // ✅ 新增：直接關聯供應商
@@ -2620,12 +2626,14 @@ model Expense {
   updatedAt       DateTime  @updatedAt
 
   // 關聯
+  project        Project         @relation(fields: [projectId], references: [id])  // ✅ 新增
   purchaseOrder  PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
   budgetCategory BudgetCategory? @relation(fields: [budgetCategoryId], references: [id])
   vendor         Vendor?         @relation(fields: [vendorId], references: [id])
   items          ExpenseItem[]   // ✅ 新增：明細項目
   chargeOuts     ChargeOut[]     // ✅ 新增：關聯的費用轉嫁
 
+  @@index([projectId])           // ✅ 新增索引
   @@index([purchaseOrderId])
   @@index([budgetCategoryId])
   @@index([vendorId])
@@ -2671,6 +2679,22 @@ model Vendor {
 }
 ```
 
+#### Project 模型需要新增關聯
+
+```prisma
+model Project {
+  // ... 現有欄位 ...
+
+  expenses Expense[]  // ✅ 新增：直接關聯費用記錄
+}
+```
+
+**設計說明**：
+- **雙重關聯**：Expense 同時關聯 Project 和 PurchaseOrder
+- **查詢效率**：可直接查詢 `project.expenses` 獲取所有費用，無需通過 PurchaseOrder
+- **業務邏輯**：支持項目級別的費用統計和報表生成
+- **數據一致性**：驗證 `expense.projectId` 必須與 `expense.purchaseOrder.projectId` 一致
+
 ### 後端 API 設計 (tRPC)
 
 ```typescript
@@ -2685,6 +2709,7 @@ export const expenseRouter = createTRPCRouter({
     .input(z.object({
       name: z.string().min(1),
       description: z.string().optional(),
+      projectId: z.string().min(1),          // ✅ 新增：直接指定項目
       purchaseOrderId: z.string().min(1),
       budgetCategoryId: z.string().optional(),
       vendorId: z.string().optional(),
@@ -2732,12 +2757,21 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
+      // ✅ 驗證 projectId 與 PO 的 projectId 一致
+      if (input.projectId !== po.projectId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '費用的項目必須與採購單的項目一致',
+        });
+      }
+
       return await ctx.prisma.$transaction(async (tx) => {
         // 創建費用表頭
         const expense = await tx.expense.create({
           data: {
             name: input.name,
             description: input.description,
+            projectId: input.projectId,  // ✅ 新增
             purchaseOrderId: input.purchaseOrderId,
             budgetCategoryId: input.budgetCategoryId || po.project.budgetCategoryId,
             vendorId: input.vendorId,
@@ -2934,8 +2968,49 @@ export const expenseRouter = createTRPCRouter({
 
 由於費用管理的前端設計與採購管理非常相似（都是表頭-明細模式），這裡僅列出關鍵差異：
 
-#### 費用表單特殊欄位
+#### 費用表單新增欄位
 
+**1. 項目選擇器** (✅ 新增)
+```typescript
+// 在 ExpenseForm 中新增項目選擇欄位
+
+<FormField
+  control={form.control}
+  name="projectId"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>關聯項目 *</FormLabel>
+      <FormControl>
+        <Select
+          value={field.value}
+          onValueChange={field.onChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="請選擇項目" />
+          </SelectTrigger>
+          <SelectContent>
+            {projects?.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormControl>
+      <FormDescription>
+        費用將直接關聯到此項目
+      </FormDescription>
+    </FormItem>
+  )}
+/>
+```
+
+**設計說明**：
+- **自動填充**：選擇採購單後，自動填入對應的項目（可手動調整）
+- **數據一致性**：前端驗證確保選擇的項目與採購單的項目一致
+- **查詢優化**：項目選擇器僅顯示當前用戶有權限查看的項目
+
+**2. 分類標記欄位** (✅ 新增)
 ```typescript
 // 在 ExpenseForm 中新增的特殊欄位
 

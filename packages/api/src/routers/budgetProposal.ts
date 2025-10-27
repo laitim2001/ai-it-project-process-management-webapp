@@ -481,6 +481,110 @@ export const budgetProposalRouter = createTRPCRouter({
     }),
 
   /**
+   * Module 3: 上傳提案文件
+   * 用於上傳項目計劃書 PDF/PPT 文件
+   */
+  uploadProposalFile: protectedProcedure
+    .input(
+      z.object({
+        proposalId: z.string().min(1, '無效的提案ID'),
+        filePath: z.string().min(1, '文件路徑為必填'),
+        fileName: z.string().min(1, '文件名稱為必填'),
+        fileSize: z.number().int().positive('文件大小必須為正整數'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 檢查提案是否存在
+      const existingProposal = await ctx.prisma.budgetProposal.findUnique({
+        where: {
+          id: input.proposalId,
+        },
+      });
+
+      if (!existingProposal) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
+      }
+
+      // 更新提案文件資訊
+      const proposal = await ctx.prisma.budgetProposal.update({
+        where: {
+          id: input.proposalId,
+        },
+        data: {
+          proposalFilePath: input.filePath,
+          proposalFileName: input.fileName,
+          proposalFileSize: input.fileSize,
+        },
+        include: {
+          project: {
+            include: {
+              manager: true,
+              supervisor: true,
+              budgetPool: true,
+            },
+          },
+        },
+      });
+
+      return proposal;
+    }),
+
+  /**
+   * Module 3: 更新會議記錄
+   * 用於記錄提案介紹會議的日期、記錄和介紹人員
+   */
+  updateMeetingNotes: protectedProcedure
+    .input(
+      z.object({
+        proposalId: z.string().min(1, '無效的提案ID'),
+        meetingDate: z.string().min(1, '會議日期為必填'),
+        meetingNotes: z.string().min(1, '會議記錄為必填'),
+        presentedBy: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 檢查提案是否存在
+      const existingProposal = await ctx.prisma.budgetProposal.findUnique({
+        where: {
+          id: input.proposalId,
+        },
+      });
+
+      if (!existingProposal) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
+      }
+
+      // 更新會議記錄
+      const proposal = await ctx.prisma.budgetProposal.update({
+        where: {
+          id: input.proposalId,
+        },
+        data: {
+          meetingDate: new Date(input.meetingDate),
+          meetingNotes: input.meetingNotes,
+          presentedBy: input.presentedBy,
+        },
+        include: {
+          project: {
+            include: {
+              manager: true,
+              supervisor: true,
+              budgetPool: true,
+            },
+          },
+        },
+      });
+
+      return proposal;
+    }),
+
+  /**
    * 刪除預算提案（僅 Draft 狀態可刪除）
    */
   delete: protectedProcedure
