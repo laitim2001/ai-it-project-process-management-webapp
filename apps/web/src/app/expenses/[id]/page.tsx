@@ -1,188 +1,119 @@
 'use client';
 
 /**
- * 費用詳情頁面
+ * 費用記錄詳情頁面 - Module 5 表頭明細實施
  *
  * 功能說明:
- * - 顯示費用完整資訊
- * - 顯示關聯的採購單和專案
- * - 審批操作（提交、批准、拒絕、標記已支付）
- * - 編輯和刪除操作
+ * - 顯示費用記錄完整資訊（表頭+明細）
+ * - 顯示關聯的專案、採購單
+ * - 顯示費用項目明細表格
+ * - 編輯操作（僅 Draft 狀態）
+ * - 提交/審批工作流按鈕
  *
- * Epic 6 - Story 6.1 & 6.2: 費用記錄與審批
+ * Epic 6 - Story 6.1: 針對採購單記錄發票與費用
+ * Module 5: Expense 表頭明細重構 - 前端實施
  */
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Receipt, FileText, ShoppingCart, Calendar, DollarSign, Edit, Trash2, Send, CheckCircle, XCircle, Banknote, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import {
+  Receipt,
+  FileText,
+  Calendar,
+  DollarSign,
+  Edit,
+  AlertCircle,
+  ShoppingCart,
+  Package,
+} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExpenseActions } from '@/components/expense/ExpenseActions';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 /**
- * 費用狀態配置
+ * 費用記錄狀態徽章組件
  */
-const EXPENSE_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const },
-  PendingApproval: { label: '待審批', variant: 'default' as const },
-  Approved: { label: '已批准', variant: 'secondary' as const },
-  Paid: { label: '已支付', variant: 'default' as const },
-};
+function StatusBadge({ status }: { status: string }) {
+  const statusConfig = {
+    Draft: { label: '草稿', variant: 'outline' as const },
+    Submitted: { label: '已提交', variant: 'default' as const },
+    Approved: { label: '已批准', variant: 'secondary' as const },
+    Paid: { label: '已支付', variant: 'default' as const },
+  };
+
+  const config = statusConfig[status as keyof typeof statusConfig] || {
+    label: status,
+    variant: 'outline' as const,
+  };
+
+  return <Badge variant={config.variant}>{config.label}</Badge>;
+}
+
+/**
+ * 格式化貨幣顯示
+ */
+function formatCurrency(amount: number): string {
+  return `$${amount.toLocaleString('zh-TW', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 export default function ExpenseDetailPage() {
   const params = useParams();
-  const router = useRouter();
-  const { showToast } = useToast();
   const id = params.id as string;
 
-  const [rejectComment, setRejectComment] = useState('');
-  const [showRejectDialog, setShowRejectDialog] = useState(false);
-
-  // 查詢費用詳情
-  const { data: expense, isLoading, refetch } = api.expense.getById.useQuery({ id });
-
-  // 刪除 Mutation
-  const deleteMutation = api.expense.delete.useMutation({
-    onSuccess: () => {
-      showToast('費用已成功刪除！', 'success');
-      router.push('/expenses');
-      router.refresh();
-    },
-    onError: (error) => {
-      showToast(`刪除失敗: ${error.message}`, 'error');
-    },
-  });
-
-  // 提交審批 Mutation
-  const submitMutation = api.expense.submit.useMutation({
-    onSuccess: () => {
-      showToast('費用已提交審批！', 'success');
-      refetch();
-      router.refresh();
-    },
-    onError: (error) => {
-      showToast(`提交失敗: ${error.message}`, 'error');
-    },
-  });
-
-  // 批准 Mutation
-  const approveMutation = api.expense.approve.useMutation({
-    onSuccess: () => {
-      showToast('費用已批准！預算池已扣款。', 'success');
-      refetch();
-      router.refresh();
-    },
-    onError: (error) => {
-      showToast(`批准失敗: ${error.message}`, 'error');
-    },
-  });
-
-  // 拒絕 Mutation
-  const rejectMutation = api.expense.reject.useMutation({
-    onSuccess: () => {
-      showToast('費用已拒絕', 'success');
-      setShowRejectDialog(false);
-      setRejectComment('');
-      refetch();
-      router.refresh();
-    },
-    onError: (error) => {
-      showToast(`拒絕失敗: ${error.message}`, 'error');
-    },
-  });
-
-  // 標記已支付 Mutation
-  const markAsPaidMutation = api.expense.markAsPaid.useMutation({
-    onSuccess: () => {
-      showToast('費用已標記為已支付！', 'success');
-      refetch();
-      router.refresh();
-    },
-    onError: (error) => {
-      showToast(`操作失敗: ${error.message}`, 'error');
-    },
-  });
-
-  /**
-   * 操作處理函數
-   */
-  const handleDelete = () => {
-    if (confirm('確定要刪除此費用嗎？\n\n注意: 只有草稿狀態的費用才能刪除。')) {
-      deleteMutation.mutate({ id });
-    }
-  };
-
-  const handleSubmit = () => {
-    if (confirm('確定要提交此費用審批嗎？')) {
-      submitMutation.mutate({ id });
-    }
-  };
-
-  const handleApprove = () => {
-    if (confirm('確定要批准此費用嗎？\n\n批准後將從預算池扣款。')) {
-      approveMutation.mutate({ id });
-    }
-  };
-
-  const handleReject = () => {
-    if (!rejectComment.trim()) {
-      showToast('請輸入拒絕原因', 'error');
-      return;
-    }
-    rejectMutation.mutate({ id, comment: rejectComment });
-  };
-
-  const handleMarkAsPaid = () => {
-    if (confirm('確定要標記此費用為已支付嗎？')) {
-      markAsPaidMutation.mutate({ id });
-    }
-  };
+  // 查詢費用記錄詳情
+  const { data: expense, isLoading } = api.expense.getById.useQuery({ id });
 
   // 載入狀態
   if (isLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-8">
-          <Skeleton className="h-5 w-[420px]" />
+          <Skeleton className="h-5 w-[480px]" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Skeleton className="h-8 w-8 rounded" />
               <div className="space-y-2">
-                <Skeleton className="h-9 w-32" />
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-6 w-20" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
+                <Skeleton className="h-9 w-48" />
+                <Skeleton className="h-4 w-32" />
               </div>
             </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-            </div>
+            <Skeleton className="h-10 w-24" />
           </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-              <Skeleton className="h-64" />
-              <Skeleton className="h-48" />
-            </div>
-            <div className="space-y-6">
-              <Skeleton className="h-48" />
-              <Skeleton className="h-32" />
-            </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
           </div>
+          <Skeleton className="h-96" />
         </div>
       </DashboardLayout>
     );
   }
 
-  // 找不到費用
+  // 找不到費用記錄
   if (!expense) {
     return (
       <DashboardLayout>
@@ -194,7 +125,7 @@ export default function ExpenseDetailPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/expenses">費用管理</BreadcrumbLink>
+                <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -207,11 +138,11 @@ export default function ExpenseDetailPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到費用記錄。此費用可能不存在或已被刪除。
+                  找不到費用記錄。此費用記錄可能不存在或已被刪除。
                 </AlertDescription>
               </Alert>
               <Link href="/expenses">
-                <Button>返回費用列表</Button>
+                <Button>返回費用記錄列表</Button>
               </Link>
             </div>
           </div>
@@ -219,13 +150,6 @@ export default function ExpenseDetailPage() {
       </DashboardLayout>
     );
   }
-
-  const canEdit = expense.status === 'Draft';
-  const canDelete = expense.status === 'Draft';
-  const canSubmit = expense.status === 'Draft';
-  const canApprove = expense.status === 'PendingApproval';
-  const canReject = expense.status === 'PendingApproval';
-  const canMarkAsPaid = expense.status === 'Approved';
 
   return (
     <DashboardLayout>
@@ -238,11 +162,11 @@ export default function ExpenseDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/expenses">費用管理</BreadcrumbLink>
+              <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>費用詳情</BreadcrumbPage>
+              <BreadcrumbPage>{expense.name}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -252,268 +176,274 @@ export default function ExpenseDetailPage() {
           <div className="flex items-center gap-3">
             <Receipt className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                ${expense.totalAmount.toLocaleString()}
-              </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
-                  {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  創建於 {new Date(expense.createdAt).toLocaleDateString('zh-TW')}
-                </span>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground">
+                  {expense.name}
+                </h1>
+                <StatusBadge status={expense.status} />
               </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                費用日期：{new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
+              </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            {canEdit && (
-              <Link href={`/expenses/${id}/edit`}>
-                <Button variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
-                  編輯
-                </Button>
-              </Link>
-            )}
-            {canDelete && (
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleteMutation.isLoading}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {deleteMutation.isLoading ? '刪除中...' : '刪除'}
+          {/* 編輯按鈕 - 僅 Draft 狀態可見 */}
+          {expense.status === 'Draft' && (
+            <Link href={`/expenses/${expense.id}/edit`}>
+              <Button>
+                <Edit className="h-4 w-4 mr-2" />
+                編輯
               </Button>
-            )}
-          </div>
+            </Link>
+          )}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* 左側 2/3: 費用資訊 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 基本資訊卡片 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>費用資訊</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* 費用日期 */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* 基本資訊卡片 */}
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>費用資訊</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 費用記錄名稱 */}
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    費用記錄名稱
+                  </p>
+                  <p className="text-base text-foreground font-medium">
+                    {expense.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* 描述 */}
+              {expense.description && (
                 <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">費用日期</p>
-                    <p className="text-base text-foreground">
-                      {new Date(expense.expenseDate).toLocaleDateString('zh-TW', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </p>
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground">描述</p>
+                    <p className="text-base text-foreground">{expense.description}</p>
                   </div>
                 </div>
+              )}
 
-                {/* 費用金額 */}
+              {/* 發票信息 */}
+              <div className="flex items-start gap-3">
+                <Receipt className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    發票號碼
+                  </p>
+                  <p className="text-base text-foreground">{expense.invoiceNumber}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    發票日期
+                  </p>
+                  <p className="text-base text-foreground">
+                    {new Date(expense.invoiceDate).toLocaleDateString('zh-TW', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* 費用日期 */}
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    費用日期
+                  </p>
+                  <p className="text-base text-foreground">
+                    {new Date(expense.expenseDate).toLocaleDateString('zh-TW', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* 總金額 */}
+              <div className="flex items-start gap-3">
+                <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">總金額</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatCurrency(expense.totalAmount)}
+                  </p>
+                </div>
+              </div>
+
+              {/* 額外屬性 */}
+              {(expense.requiresChargeOut || expense.isOperationMaint) && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {expense.requiresChargeOut && (
+                    <Badge variant="outline">需要 Charge-Out</Badge>
+                  )}
+                  {expense.isOperationMaint && (
+                    <Badge variant="outline">營運維護費用</Badge>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 操作按鈕卡片 - Module 5 工作流 */}
+          <ExpenseActions
+            expenseId={expense.id}
+            status={expense.status}
+            itemsCount={expense.items?.length || 0}
+          />
+
+          {/* 關聯資訊卡片 */}
+          <Card className="md:col-span-3">
+            <CardHeader>
+              <CardTitle>關聯資訊</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-6 md:grid-cols-3">
+              {/* 專案 */}
+              {expense.project && (
                 <div className="flex items-start gap-3">
-                  <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">費用金額</p>
-                    <p className="text-2xl font-bold text-primary">
-                      ${expense.totalAmount.toLocaleString()}
-                    </p>
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground">專案</p>
+                    <Link
+                      href={`/projects/${expense.project.id}`}
+                      className="text-base text-primary hover:underline"
+                    >
+                      {expense.project.name}
+                    </Link>
                   </div>
                 </div>
+              )}
 
-                {/* 發票文件 */}
-                {expense.invoiceFilePath && (
-                  <div className="flex items-start gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">發票文件</p>
-                      <a
-                        href={expense.invoiceFilePath}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-base text-primary hover:underline"
-                      >
-                        {expense.invoiceFilePath.split('/').pop()}
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 關聯資訊卡片 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>關聯資訊</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* 採購單 */}
+              {/* 採購單 */}
+              {expense.purchaseOrder && (
                 <div className="flex items-start gap-3">
                   <ShoppingCart className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">採購單</p>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      採購單
+                    </p>
                     <Link
                       href={`/purchase-orders/${expense.purchaseOrder.id}`}
                       className="text-base text-primary hover:underline"
                     >
-                      {expense.purchaseOrder.poNumber}
+                      {expense.purchaseOrder.name}
                     </Link>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      金額: ${expense.purchaseOrder.totalAmount.toLocaleString()}
+                    <p className="text-sm text-muted-foreground">
+                      {formatCurrency(expense.purchaseOrder.totalAmount)}
                     </p>
                   </div>
                 </div>
+              )}
 
-                {/* 專案 */}
+              {/* 供應商 */}
+              {expense.vendor && (
                 <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">專案</p>
+                  <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      供應商
+                    </p>
                     <Link
-                      href={`/projects/${expense.purchaseOrder.project.id}`}
+                      href={`/vendors/${expense.vendor.id}`}
                       className="text-base text-primary hover:underline"
                     >
-                      {expense.purchaseOrder.project.name}
+                      {expense.vendor.name}
                     </Link>
                   </div>
                 </div>
-
-                {/* 供應商 */}
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">供應商</p>
-                    <Link
-                      href={`/vendors/${expense.purchaseOrder.vendor.id}`}
-                      className="text-base text-primary hover:underline"
-                    >
-                      {expense.purchaseOrder.vendor.name}
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 右側 1/3: 操作區 */}
-          <div className="space-y-6">
-            {/* 審批操作卡片 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>審批操作</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {canSubmit && (
-                  <Button
-                    className="w-full"
-                    onClick={handleSubmit}
-                    disabled={submitMutation.isLoading}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    {submitMutation.isLoading ? '提交中...' : '提交審批'}
-                  </Button>
-                )}
-
-                {canApprove && (
-                  <Button
-                    className="w-full"
-                    variant="default"
-                    onClick={handleApprove}
-                    disabled={approveMutation.isLoading}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    {approveMutation.isLoading ? '批准中...' : '批准費用'}
-                  </Button>
-                )}
-
-                {canReject && (
-                  <Button
-                    className="w-full"
-                    variant="destructive"
-                    onClick={() => setShowRejectDialog(true)}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    拒絕費用
-                  </Button>
-                )}
-
-                {canMarkAsPaid && (
-                  <Button
-                    className="w-full"
-                    onClick={handleMarkAsPaid}
-                    disabled={markAsPaidMutation.isLoading}
-                  >
-                    <Banknote className="h-4 w-4 mr-2" />
-                    {markAsPaidMutation.isLoading ? '處理中...' : '標記已支付'}
-                  </Button>
-                )}
-
-                {!canSubmit && !canApprove && !canReject && !canMarkAsPaid && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    當前狀態下無可用操作
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 狀態說明卡片 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">狀態說明</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p><strong>草稿:</strong> 可編輯、提交審批</p>
-                <p><strong>待審批:</strong> 等待主管批准或拒絕</p>
-                <p><strong>已批准:</strong> 已從預算池扣款，可標記已支付</p>
-                <p><strong>已支付:</strong> 費用流程完成</p>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* 拒絕對話框 */}
-        {showRejectDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>拒絕費用</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    拒絕原因 <span className="text-destructive">*</span>
-                  </label>
-                  <textarea
-                    value={rejectComment}
-                    onChange={(e) => setRejectComment(e.target.value)}
-                    className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:border-ring"
-                    rows={4}
-                    placeholder="請輸入拒絕原因..."
-                  />
+        {/* 費用項目明細 - Module 5 表頭明細實施 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                費用項目明細
+              </CardTitle>
+              <Badge variant="outline">
+                共 {expense.items?.length || 0} 項
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {expense.items && expense.items.length > 0 ? (
+              <div className="space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">#</TableHead>
+                      <TableHead>費用項目名稱</TableHead>
+                      <TableHead>描述</TableHead>
+                      <TableHead>類別</TableHead>
+                      <TableHead className="text-right w-[140px]">金額</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expense.items
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .map((item, index) => {
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="font-medium text-muted-foreground">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {item.itemName}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {item.description || '-'}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {item.category || '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatCurrency(item.amount)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+
+                {/* 總計 */}
+                <div className="flex justify-end pt-4 border-t border-border">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-8">
+                      <span className="text-base font-medium text-muted-foreground">
+                        總計
+                      </span>
+                      <span className="text-2xl font-bold text-primary">
+                        {formatCurrency(expense.totalAmount)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowRejectDialog(false);
-                      setRejectComment('');
-                    }}
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleReject}
-                    disabled={rejectMutation.isLoading || !rejectComment.trim()}
-                  >
-                    {rejectMutation.isLoading ? '處理中...' : '確認拒絕'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">尚無費用項目</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

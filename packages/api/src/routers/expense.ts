@@ -14,7 +14,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
 // ========================================
@@ -23,36 +23,57 @@ import { TRPCError } from '@trpc/server';
 
 /**
  * 費用狀態枚舉
+ * Module 5: 更新為與 PurchaseOrder 一致的狀態流
  */
-const ExpenseStatusEnum = z.enum(['Draft', 'PendingApproval', 'Approved', 'Paid']);
+const ExpenseStatusEnum = z.enum(['Draft', 'Submitted', 'Approved', 'Paid']);
 
 /**
- * 創建費用 Schema (Story 6.1)
+ * 費用明細項目 Schema
+ * Module 5: 支持表頭-明細結構
+ */
+const expenseItemSchema = z.object({
+  id: z.string().optional(), // 有 id = 更新，無 id = 新增
+  itemName: z.string().min(1, '費用項目名稱為必填'),
+  description: z.string().optional(),
+  amount: z.number().min(0, '金額必須大於等於 0'),
+  category: z.string().optional(), // 費用類別（如: Hardware, Software, Consulting）
+  sortOrder: z.number().int().default(0),
+  _delete: z.boolean().optional(), // true = 刪除此項目
+});
+
+/**
+ * 創建費用 Schema (Module 5 - 支持明細)
  * 根據更新的 Prisma schema
  */
 const createExpenseSchema = z.object({
   name: z.string().min(1, '費用名稱為必填'),
-  purchaseOrderId: z.string().min(1, '採購單ID為必填'),
-  amount: z.number().min(0, '費用金額必須大於等於0'),
-  expenseDate: z.date().or(z.string().transform((str) => new Date(str))),
-  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))),
-  invoiceNumber: z.string().optional(),
-  invoiceFilePath: z.string().optional(),
   description: z.string().optional(),
+  purchaseOrderId: z.string().min(1, '採購單ID為必填'),
+  projectId: z.string().min(1, '專案ID為必填'), // Module 5: 新增
+  budgetCategoryId: z.string().optional(),
+  vendorId: z.string().optional(),
+  invoiceNumber: z.string().min(1, '發票號碼為必填'),
+  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))),
+  invoiceFilePath: z.string().optional(),
+  expenseDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
+  requiresChargeOut: z.boolean().default(false),
+  isOperationMaint: z.boolean().default(false),
+  items: z.array(expenseItemSchema).min(1, '至少需要一個費用項目'),
 });
 
 /**
- * 更新費用 Schema
+ * 更新費用 Schema (Module 5 - 支持明細)
  */
 const updateExpenseSchema = z.object({
   id: z.string().min(1, '無效的費用ID'),
-  name: z.string().min(1, '費用名稱為必填').optional(),
-  amount: z.number().min(0, '費用金額必須大於等於0').optional(),
-  expenseDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
-  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
-  invoiceNumber: z.string().optional(),
-  invoiceFilePath: z.string().optional(),
+  name: z.string().min(1).optional(),
   description: z.string().optional(),
+  vendorId: z.string().optional(),
+  invoiceNumber: z.string().optional(),
+  invoiceDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
+  invoiceFilePath: z.string().optional(),
+  expenseDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
+  items: z.array(expenseItemSchema).optional(),
 });
 
 /**
@@ -191,21 +212,36 @@ export const expenseRouter = createTRPCRouter({
     }),
 
   /**
-   * 創建新費用記錄 (Story 6.1)
-   * @param purchaseOrderId - 採購單 ID
-   * @param amount - 費用金額
-   * @param expenseDate - 費用日期
-   * @param invoiceFilePath - 發票文件路徑（選填）
-   * @returns 新創建的 Expense
+   * 創建新費用記錄 (Module 5 - 支持明細)
+   * @param name - 費用名稱
+   * @param items - 費用項目明細
+   * @returns 新創建的 Expense（含明細）
+   *
+   * Module 5: 表頭-明細重構
    */
   create: protectedProcedure
     .input(createExpenseSchema)
     .mutation(async ({ ctx, input }) => {
+      // 驗證專案是否存在
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId },
+        include: {
+          budgetCategory: true,
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案',
+        });
+      }
+
       // 驗證採購單是否存在
       const purchaseOrder = await ctx.prisma.purchaseOrder.findUnique({
         where: { id: input.purchaseOrderId },
         include: {
-          expenses: true,
+          project: true,
         },
       });
 
@@ -216,66 +252,102 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 驗證費用總額不超過採購單金額 (警告，不阻止)
-      const totalExpenses = purchaseOrder.expenses.reduce((sum, e) => sum + e.totalAmount, 0);
-      const newTotal = totalExpenses + input.amount;
-
-      if (newTotal > purchaseOrder.totalAmount) {
-        console.warn(`警告：採購單 ${purchaseOrder.poNumber} 費用總額 (${newTotal}) 超過採購單金額 (${purchaseOrder.totalAmount})`);
+      // 驗證 projectId 與 PO 的 projectId 一致
+      if (input.projectId !== purchaseOrder.projectId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '費用的專案必須與採購單的專案一致',
+        });
       }
 
-      // 創建費用記錄
-      const expense = await ctx.prisma.expense.create({
-        data: {
-          name: input.name,
-          purchaseOrderId: input.purchaseOrderId,
-          totalAmount: input.amount,
-          expenseDate: input.expenseDate,
-          invoiceDate: input.invoiceDate,
-          invoiceNumber: input.invoiceNumber,
-          invoiceFilePath: input.invoiceFilePath,
-          description: input.description,
-          status: 'Draft', // 初始狀態為草稿
-        },
-        include: {
-          purchaseOrder: {
-            include: {
-              project: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+      // 驗證至少要有一個費用項目
+      if (input.items.length === 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '至少需要一個費用項目',
+        });
+      }
+
+      // 計算總金額
+      const totalAmount = input.items.reduce((sum, item) => {
+        return sum + item.amount;
+      }, 0);
+
+      return await ctx.prisma.$transaction(async (tx) => {
+        // 創建費用表頭
+        const expense = await tx.expense.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            projectId: input.projectId,
+            purchaseOrderId: input.purchaseOrderId,
+            budgetCategoryId: input.budgetCategoryId || purchaseOrder.project.budgetCategoryId,
+            vendorId: input.vendorId,
+            invoiceNumber: input.invoiceNumber,
+            invoiceDate: input.invoiceDate,
+            invoiceFilePath: input.invoiceFilePath,
+            expenseDate: input.expenseDate || new Date(),
+            requiresChargeOut: input.requiresChargeOut,
+            isOperationMaint: input.isOperationMaint,
+            totalAmount,
+            status: 'Draft',
+          },
+        });
+
+        // 創建費用明細
+        await tx.expenseItem.createMany({
+          data: input.items.map((item, index) => ({
+            expenseId: expense.id,
+            itemName: item.itemName,
+            description: item.description,
+            amount: item.amount,
+            category: item.category,
+            sortOrder: item.sortOrder ?? index,
+          })),
+        });
+
+        // 返回完整的 Expense（含明細）
+        return await tx.expense.findUnique({
+          where: { id: expense.id },
+          include: {
+            items: {
+              orderBy: { sortOrder: 'asc' },
+            },
+            project: {
+              select: {
+                id: true,
+                name: true,
               },
-              vendor: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+            },
+            purchaseOrder: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
-        },
+        });
       });
-
-      return expense;
     }),
 
   /**
-   * 更新費用資訊
+   * 更新費用資訊 (Module 5 - 支持明細)
    * @param id - 費用 ID
-   * @returns 更新後的 Expense
+   * @param items - 更新的明細（支持新增、更新、刪除）
+   * @returns 更新後的 Expense（含明細）
    *
-   * 注意：只有 Draft 狀態的費用才能修改
+   * Module 5: 支持明細的新增、更新、刪除
    */
   update: protectedProcedure
     .input(updateExpenseSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, amount, ...restData } = input;
-
-      // 將 amount 轉換為 totalAmount（API 輸入 -> 資料庫欄位）
-      const updateData = amount !== undefined
-        ? { ...restData, totalAmount: amount }
-        : restData;
+      const { id, items, ...headerUpdate } = input;
 
       // 檢查費用是否存在
       const existingExpense = await ctx.prisma.expense.findUnique({
@@ -289,7 +361,7 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 只有 Draft 狀態才能修改
+      // 如果狀態不是 Draft，不允許修改
       if (existingExpense.status !== 'Draft') {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
@@ -297,31 +369,98 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 更新費用
-      const updatedExpense = await ctx.prisma.expense.update({
-        where: { id },
-        data: updateData,
-        include: {
-          purchaseOrder: {
-            include: {
-              project: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+      return await ctx.prisma.$transaction(async (tx) => {
+        // 準備表頭更新數據
+        const updateData: any = {};
+        if (headerUpdate.name) updateData.name = headerUpdate.name;
+        if (headerUpdate.description !== undefined) updateData.description = headerUpdate.description;
+        if (headerUpdate.vendorId) updateData.vendorId = headerUpdate.vendorId;
+        if (headerUpdate.invoiceNumber) updateData.invoiceNumber = headerUpdate.invoiceNumber;
+        if (headerUpdate.invoiceDate) updateData.invoiceDate = headerUpdate.invoiceDate;
+        if (headerUpdate.invoiceFilePath !== undefined) updateData.invoiceFilePath = headerUpdate.invoiceFilePath;
+        if (headerUpdate.expenseDate) updateData.expenseDate = headerUpdate.expenseDate;
+
+        // 處理明細更新
+        if (items) {
+          // 1. 刪除標記為刪除的項目
+          const itemsToDelete = items.filter(item => item._delete && item.id);
+          if (itemsToDelete.length > 0) {
+            await tx.expenseItem.deleteMany({
+              where: {
+                id: { in: itemsToDelete.map(item => item.id!) },
               },
-              vendor: {
-                select: {
-                  id: true,
-                  name: true,
+            });
+          }
+
+          // 2. 處理更新和新增
+          const itemsToProcess = items.filter(item => !item._delete);
+          for (const item of itemsToProcess) {
+            if (item.id) {
+              // 更新現有項目
+              await tx.expenseItem.update({
+                where: { id: item.id },
+                data: {
+                  itemName: item.itemName,
+                  description: item.description,
+                  amount: item.amount,
+                  category: item.category,
+                  sortOrder: item.sortOrder,
                 },
+              });
+            } else {
+              // 新增項目
+              await tx.expenseItem.create({
+                data: {
+                  expenseId: id,
+                  itemName: item.itemName,
+                  description: item.description,
+                  amount: item.amount,
+                  category: item.category,
+                  sortOrder: item.sortOrder,
+                },
+              });
+            }
+          }
+
+          // 3. 重新計算總金額
+          const allItems = await tx.expenseItem.findMany({
+            where: { expenseId: id },
+          });
+          const totalAmount = allItems.reduce((sum, item) => sum + item.amount, 0);
+          updateData.totalAmount = totalAmount;
+        }
+
+        // 更新表頭
+        const expense = await tx.expense.update({
+          where: { id },
+          data: updateData,
+          include: {
+            items: {
+              orderBy: { sortOrder: 'asc' },
+            },
+            project: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            purchaseOrder: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
-        },
-      });
+        });
 
-      return updatedExpense;
+        return expense;
+      });
     }),
 
   /**
@@ -367,7 +506,7 @@ export const expenseRouter = createTRPCRouter({
    * @param id - 費用 ID
    * @returns 更新後的 Expense
    *
-   * 狀態轉換: Draft → PendingApproval
+   * Module 5: 狀態轉換 Draft → Submitted
    */
   submit: protectedProcedure
     .input(z.object({ id: z.string().min(1, '無效的費用ID') }))
@@ -375,6 +514,7 @@ export const expenseRouter = createTRPCRouter({
       const expense = await ctx.prisma.expense.findUnique({
         where: { id: input.id },
         include: {
+          items: true,
           purchaseOrder: {
             include: {
               project: {
@@ -404,15 +544,24 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
+      // Module 5: 驗證至少有一個費用項目
+      if (!expense.items || expense.items.length === 0) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: '費用記錄至少需要一個費用項目才能提交',
+        });
+      }
+
       // Transaction: 更新狀態 + 發送通知
       const updatedExpense = await ctx.prisma.$transaction(async (prisma) => {
-        // 更新狀態為 PendingApproval
+        // Module 5: 更新狀態為 Submitted
         const updated = await prisma.expense.update({
           where: { id: input.id },
           data: {
-            status: 'PendingApproval',
+            status: 'Submitted',
           },
           include: {
+            items: { orderBy: { sortOrder: 'asc' } },
             purchaseOrder: {
               include: {
                 project: {
@@ -433,7 +582,7 @@ export const expenseRouter = createTRPCRouter({
             userId: updated.purchaseOrder.project.supervisorId,
             type: 'EXPENSE_SUBMITTED',
             title: '新的費用待審批',
-            message: `${updated.purchaseOrder.project.manager.name || '專案經理'} 提交了金額為 NT$ ${updated.amount.toLocaleString()} 的費用記錄，請審核。`,
+            message: `${updated.purchaseOrder.project.manager.name || '專案經理'} 提交了金額為 NT$ ${updated.totalAmount.toLocaleString()} 的費用記錄，請審核。`,
             link: `/expenses/${updated.id}`,
             entityType: 'EXPENSE',
             entityId: updated.id,
@@ -451,10 +600,11 @@ export const expenseRouter = createTRPCRouter({
    * @param id - 費用 ID
    * @returns 更新後的 Expense
    *
-   * 狀態轉換: PendingApproval → Approved
+   * Module 5: 狀態轉換 Submitted → Approved
    * 業務邏輯: 從預算池扣款
+   * 權限: 僅 Supervisor 可執行
    */
-  approve: protectedProcedure
+  approve: supervisorProcedure
     .input(z.object({
       id: z.string().min(1, '無效的費用ID'),
       comment: z.string().optional(),
@@ -468,6 +618,7 @@ export const expenseRouter = createTRPCRouter({
               project: {
                 include: {
                   budgetPool: true,
+                  budgetCategory: true,
                 },
               },
             },
@@ -482,11 +633,11 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 只有 PendingApproval 狀態才能批准
-      if (expense.status !== 'PendingApproval') {
+      // Module 5: 只有 Submitted 狀態才能批准
+      if (expense.status !== 'Submitted') {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: '只有待審批狀態的費用才能批准',
+          message: '只有已提交審批狀態的費用才能批准',
         });
       }
 
@@ -557,9 +708,10 @@ export const expenseRouter = createTRPCRouter({
    * @param comment - 拒絕原因
    * @returns 更新後的 Expense
    *
-   * 狀態轉換: PendingApproval → Draft (允許重新提交)
+   * Module 5: 狀態轉換 Submitted → Draft (允許重新提交)
+   * 權限: 僅 Supervisor 可執行
    */
-  reject: protectedProcedure
+  reject: supervisorProcedure
     .input(z.object({
       id: z.string().min(1, '無效的費用ID'),
       comment: z.string().min(1, '請提供拒絕原因'),
@@ -567,6 +719,17 @@ export const expenseRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const expense = await ctx.prisma.expense.findUnique({
         where: { id: input.id },
+        include: {
+          purchaseOrder: {
+            include: {
+              project: {
+                include: {
+                  manager: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!expense) {
@@ -576,31 +739,54 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 只有 PendingApproval 狀態才能拒絕
-      if (expense.status !== 'PendingApproval') {
+      // Module 5: 只有 Submitted 狀態才能拒絕
+      if (expense.status !== 'Submitted') {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: '只有待審批狀態的費用才能拒絕',
+          message: '只有已提交審批狀態的費用才能拒絕',
         });
       }
 
-      // 更新狀態回 Draft，允許重新提交
-      const updatedExpense = await ctx.prisma.expense.update({
-        where: { id: input.id },
-        data: {
-          status: 'Draft',
-        },
-        include: {
-          purchaseOrder: {
-            include: {
-              project: true,
-              vendor: true,
+      // Transaction: 更新狀態 + 發送通知
+      const result = await ctx.prisma.$transaction(async (prisma) => {
+        // 更新狀態回 Draft，允許重新提交
+        const updatedExpense = await prisma.expense.update({
+          where: { id: input.id },
+          data: {
+            status: 'Draft',
+          },
+          include: {
+            items: { orderBy: { sortOrder: 'asc' } },
+            purchaseOrder: {
+              include: {
+                project: {
+                  include: {
+                    manager: true,
+                  },
+                },
+                vendor: true,
+              },
             },
           },
-        },
+        });
+
+        // Epic 8: 發送通知給 Project Manager
+        await prisma.notification.create({
+          data: {
+            userId: updatedExpense.purchaseOrder.project.managerId,
+            type: 'EXPENSE_REJECTED',
+            title: '費用被退回',
+            message: `您的費用記錄（金額 NT$ ${updatedExpense.totalAmount.toLocaleString()}）已被退回，拒絕原因：${input.comment}`,
+            link: `/expenses/${updatedExpense.id}`,
+            entityType: 'EXPENSE',
+            entityId: updatedExpense.id,
+          },
+        });
+
+        return updatedExpense;
       });
 
-      return updatedExpense;
+      return result;
     }),
 
   /**

@@ -1,24 +1,32 @@
 'use client';
 
 /**
- * 新增費用頁面
+ * 創建新費用記錄頁面
  *
- * Epic 6 - Story 6.1: 針對採購單記錄發票與費用
+ * 功能說明：
+ * - 使用 ExpenseForm 組件創建新費用記錄
+ * - 支持表頭-明細結構
+ * - 自動計算總金額
+ *
+ * Module 5: Expense 表頭明細重構 - 前端實施
  */
 
-import { useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { ExpenseForm } from '@/components/expense/ExpenseForm';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
 
 export default function NewExpensePage() {
-  const searchParams = useSearchParams();
-  const purchaseOrderId = searchParams.get('purchaseOrderId') || undefined;
-
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* 麵包屑導航 */}
+        {/* Breadcrumb */}
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -26,23 +34,25 @@ export default function NewExpensePage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/expenses">費用管理</BreadcrumbLink>
+              <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新增費用</BreadcrumbPage>
+              <BreadcrumbPage>新建</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">新增費用</h1>
-          <p className="mt-2 text-muted-foreground">記錄新的費用和發票</p>
+          <h1 className="text-3xl font-bold text-foreground">創建新費用記錄</h1>
+          <p className="text-muted-foreground mt-2">
+            填寫費用記錄基本信息並添加費用項目明細
+          </p>
         </div>
 
         {/* 表單 */}
-        <ExpenseForm defaultPurchaseOrderId={purchaseOrderId} />
+        <ExpenseForm />
       </div>
     </DashboardLayout>
   );

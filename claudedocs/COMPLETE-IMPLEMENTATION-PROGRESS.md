@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-27 20:30
-> **總體進度**: 約 60% (階段 1 完成 + Module 1-4 後端+前端完成 + FIX-006)
-> **當前階段**: Module 4 完成 ✅ - 準備 Module 5 前端實施
+> **最後更新**: 2025-10-27 21:00
+> **總體進度**: 約 65% (階段 1 完成 + Module 1-5 後端+前端完成 + FIX-006)
+> **當前階段**: Module 5 完成 ✅ - 準備 Module 6-8 (OM/ChargeOut)
 
 ---
 
@@ -11,11 +11,11 @@
 
 ```
 階段 1: 數據庫 Schema           ████████████████████ 100% ✅
-階段 2: 後端 API 實施            ████████████░░░░░░░░  60% ✅ (Module 1-4 完成)
-階段 3: 前端實施                 ████████████░░░░░░░░  60% ✅ (Module 1-4 完成)
+階段 2: 後端 API 實施            █████████████░░░░░░░  65% ✅ (Module 1-5 完成)
+階段 3: 前端實施                 █████████████░░░░░░░  65% ✅ (Module 1-5 完成)
 階段 4: Bug 修復與優化           ████████████████████ 100% ✅ (FIX-006)
 ─────────────────────────────────────────────────────────
-總進度                          ████████████░░░░░░░░  60%
+總進度                          █████████████░░░░░░░  65%
 ```
 
 ---
@@ -408,25 +408,130 @@
 
 ---
 
-#### Module 5: Expense API ✅ **50% 完成**
+#### Module 5: Expense API ✅ **100% 完成** (後端 + 前端)
 
-**完成時間**: 2025-10-27 00:55 (Bug 修復 FIX-006)
-**狀態**: 基礎 API 已修復，進階功能待實施
+**完成時間**:
+- 後端: 2025-10-27 17:30
+- 前端: 2025-10-27 21:00
 
-**已完成**:
-- ✅ **create**: 修復必填欄位（name, invoiceDate, invoiceNumber）
-  - 正確的 Zod schema 驗證
-  - 欄位映射：amount → totalAmount
-  - 完整的表單驗證
-- ✅ **update**: 基礎更新功能
-- ✅ **getAll**: 列表查詢（含欄位名稱修復）
-- ✅ **getById**: 詳情查詢（含欄位名稱修復）
-- ✅ **前端表單**: ExpenseForm 完整支持新欄位
+**文件**:
+- 後端: `packages/api/src/routers/expense.ts` (857 行)
+- 前端組件: `apps/web/src/components/expense/`
+  - `ExpenseForm.tsx` (668 行) - 表頭明細表單組件
+  - `ExpenseActions.tsx` (232 行) - 提交/審批按鈕
+- 前端頁面: `apps/web/src/app/expenses/`
+  - `new/page.tsx` (60 行) - 創建新費用記錄
+  - `[id]/edit/page.tsx` (169 行) - 編輯費用記錄（僅 Draft）
+  - `[id]/page.tsx` (451 行) - 詳情頁（含項目明細表格）
 
-**待實施**:
-- [ ] ExpenseItem 明細支持
-- [ ] 進階審批流程
-- [ ] 文件上傳增強
+**已完成（後端 API）**:
+- ✅ **create**: 統一創建端點，支持明細陣列
+  - 使用 **transaction** 保證一致性 ⭐
+  - 自動計算 totalAmount from items
+  - 創建 Expense + ExpenseItem
+  - 驗證 projectId 與 purchaseOrder 一致性
+  - 支持 budgetCategoryId、vendorId、requiresChargeOut、isOperationMaint
+
+- ✅ **update**: 重構支持明細 CRUD
+  - 使用 **transaction** 處理表頭+明細
+  - 支持明細新增/更新/刪除（_delete 標記）
+  - 自動重算 totalAmount
+  - 僅 Draft 狀態可更新
+
+- ✅ **getById**: 包含明細資料
+  - include items (sorted by sortOrder)
+  - 完整關聯資料 (project, purchaseOrder, vendor)
+
+- ✅ **submit**: 狀態工作流
+  - Draft → Submitted ⭐ (從 PendingApproval 更名)
+  - 驗證至少有一個 item
+  - 發送通知給主管
+
+- ✅ **approve**: 主管審批
+  - Submitted → Approved
+  - **supervisorProcedure** 保護 ⭐
+  - 從預算池扣款
+  - 發送批准通知
+
+- ✅ **reject**: 拒絕費用
+  - **supervisorProcedure** 保護
+  - Submitted → Draft
+  - 記錄拒絕原因
+  - 發送拒絕通知
+
+**已完成（前端實施）**:
+- ✅ **ExpenseForm**: 表頭明細表單組件 (668 行)
+  - 使用 react-hook-form + Zod 驗證
+  - 動態費用項目明細管理（useState 陣列）
+  - 項目操作：新增、更新、刪除
+  - 自動計算總金額
+  - ExpenseItemFormRow 子組件（費用項目行）
+  - 支持創建/編輯兩種模式
+  - 完整的表單驗證（至少一個項目、必填欄位）
+  - 支持所有 Module 5 新欄位（requiresChargeOut, isOperationMaint 等）
+
+- ✅ **創建頁面** (`new/page.tsx`): 新建費用記錄
+  - Breadcrumb 導航
+  - 頁面標題和說明
+  - 集成 ExpenseForm（創建模式）
+
+- ✅ **編輯頁面** (`[id]/edit/page.tsx`): 編輯費用記錄
+  - 僅 Draft 狀態可訪問
+  - 狀態驗證與錯誤提示
+  - Loading 骨架屏
+  - 集成 ExpenseForm（編輯模式，傳入 initialData）
+
+- ✅ **詳情頁面** (`[id]/page.tsx`): 費用記錄詳情 (451 行)
+  - 狀態徽章（Draft/Submitted/Approved/Paid）
+  - 編輯按鈕（僅 Draft 狀態顯示）
+  - 基本資訊卡片（name, description, invoiceNumber, invoiceDate, expenseDate, totalAmount）
+  - 額外屬性標籤（requiresChargeOut, isOperationMaint）
+  - 關聯資訊卡片（project, purchaseOrder, vendor）
+  - **費用項目明細表格** ⭐
+    - Table 組件顯示所有費用項目
+    - 欄位：#, 費用項目名稱, 描述, 類別, 金額
+    - 按 sortOrder 排序
+    - 總計顯示
+  - 集成 ExpenseActions 組件（右側欄）
+
+- ✅ **ExpenseActions**: 工作流按鈕組件 (232 行)
+  - **Draft 狀態**: 顯示「提交審批」按鈕
+    - 驗證至少一個費用項目
+    - AlertDialog 確認對話框
+    - 提交後無法再編輯的警告
+  - **Submitted 狀態**: 顯示「批准費用記錄」按鈕（僅 Supervisor）
+    - supervisorProcedure 權限保護
+    - AlertDialog 確認對話框
+    - 批准操作無法撤銷的警告
+  - **Approved 狀態**: 顯示「已批准」綠色狀態
+  - 使用 tRPC mutations (submit, approve)
+  - 完整的錯誤處理與 Toast 提示
+  - 樂觀更新（cache invalidation）
+
+**技術特點**:
+- ✅ React Hook Form + Zod 表單驗證
+- ✅ 動態陣列狀態管理（費用項目明細）
+- ✅ Transaction 保證資料一致性
+- ✅ 自動計算功能（總金額）
+- ✅ 狀態機工作流（Draft → Submitted → Approved）
+- ✅ 角色權限控制（Supervisor 批准/拒絕）
+- ✅ 完整的錯誤處理與用戶反饋
+- ✅ projectId 一致性驗證
+
+**Schema 定義**:
+- expenseItemSchema (id, itemName, description, amount, category, sortOrder, _delete)
+- createExpenseSchema (name, description, purchaseOrderId, projectId, budgetCategoryId, vendorId, invoiceNumber, invoiceDate, expenseDate, requiresChargeOut, isOperationMaint, items[])
+- updateExpenseSchema (支持部分更新 + items 陣列)
+
+**狀態流更新** ⭐:
+- ExpenseStatusEnum: ['Draft', 'Submitted', 'Approved', 'Paid']
+- 從 'PendingApproval' 更名為 'Submitted'（與 Module 4 保持一致）
+
+**代碼統計**:
+- 後端代碼: 857 行
+- 前端組件: 900 行（ExpenseForm 668 + ExpenseActions 232）
+- 前端頁面: 680 行（new 60 + edit 169 + detail 451）
+- **總計**: 2437 行
 
 ---
 
