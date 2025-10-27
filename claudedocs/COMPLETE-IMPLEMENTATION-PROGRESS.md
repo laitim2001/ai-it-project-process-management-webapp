@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-27 16:00
-> **總體進度**: 約 55% (階段 1 完成 + Module 1-4 後端完成 + Module 1-3 前端完成)
-> **當前階段**: Module 4 後端完成 - 準備 Module 4 前端實施
+> **最後更新**: 2025-10-27 20:30
+> **總體進度**: 約 60% (階段 1 完成 + Module 1-4 後端+前端完成 + FIX-006)
+> **當前階段**: Module 4 完成 ✅ - 準備 Module 5 前端實施
 
 ---
 
@@ -11,11 +11,11 @@
 
 ```
 階段 1: 數據庫 Schema           ████████████████████ 100% ✅
-階段 2: 後端 API 實施            ███████████░░░░░░░░░  55% ✅ (Module 1-4)
-階段 3: 前端實施                 ██████████░░░░░░░░░░  50% ✅ (Module 1-3)
+階段 2: 後端 API 實施            ████████████░░░░░░░░  60% ✅ (Module 1-4 完成)
+階段 3: 前端實施                 ████████████░░░░░░░░  60% ✅ (Module 1-4 完成)
 階段 4: Bug 修復與優化           ████████████████████ 100% ✅ (FIX-006)
 ─────────────────────────────────────────────────────────
-總進度                          ███████████░░░░░░░░░  55%
+總進度                          ████████████░░░░░░░░  60%
 ```
 
 ---
@@ -292,10 +292,21 @@
 
 ---
 
-#### Module 4: PurchaseOrder API ✅ **50% 完成** (後端完成)
+#### Module 4: PurchaseOrder API ✅ **100% 完成** (後端 + 前端)
 
-**完成時間**: 2025-10-27 16:00 (後端 API 完成)
-**文件**: `packages/api/src/routers/purchaseOrder.ts`
+**完成時間**:
+- 後端: 2025-10-27 16:00
+- 前端: 2025-10-27 20:30
+
+**文件**:
+- 後端: `packages/api/src/routers/purchaseOrder.ts` (658 行)
+- 前端組件: `apps/web/src/components/purchase-order/`
+  - `PurchaseOrderForm.tsx` (667 行) - 表頭明細表單組件
+  - `PurchaseOrderActions.tsx` (230 行) - 提交/審批按鈕
+- 前端頁面: `apps/web/src/app/purchase-orders/`
+  - `new/page.tsx` (60 行) - 創建新採購單
+  - `[id]/edit/page.tsx` (169 行) - 編輯採購單（僅 Draft）
+  - `[id]/page.tsx` (388 行) - 詳情頁（含品項明細表格）
 
 **已完成（後端 API）**:
 - ✅ **create**: 統一創建端點，支持明細陣列
@@ -327,16 +338,73 @@
   - **supervisorProcedure** 保護 ⭐
   - 記錄 approvedDate
 
+**已完成（前端實施）**:
+- ✅ **PurchaseOrderForm**: 表頭明細表單組件 (667 行)
+  - 使用 react-hook-form + Zod 驗證
+  - 動態品項明細管理（useState 陣列）
+  - 品項操作：新增、更新、刪除
+  - 自動計算小計與總金額
+  - POItemFormRow 子組件（品項行）
+  - 支持創建/編輯兩種模式
+  - 完整的表單驗證（至少一個品項、必填欄位）
+
+- ✅ **創建頁面** (`new/page.tsx`): 新建採購單
+  - Breadcrumb 導航
+  - 頁面標題和說明
+  - 集成 PurchaseOrderForm（創建模式）
+
+- ✅ **編輯頁面** (`[id]/edit/page.tsx`): 編輯採購單
+  - 僅 Draft 狀態可訪問
+  - 狀態驗證與錯誤提示
+  - Loading 骨架屏
+  - 集成 PurchaseOrderForm（編輯模式，傳入 initialData）
+
+- ✅ **詳情頁面** (`[id]/page.tsx`): 採購單詳情 (388 行)
+  - 狀態徽章（Draft/Submitted/Approved）
+  - 編輯按鈕（僅 Draft 狀態顯示）
+  - 基本資訊卡片（name, description, date, totalAmount）
+  - 關聯資訊卡片（project, vendor, quote）
+  - **品項明細表格** ⭐
+    - Table 組件顯示所有品項
+    - 欄位：#, 品項名稱, 描述, 數量, 單價, 小計
+    - 按 sortOrder 排序
+    - 總計顯示
+  - 費用記錄列表（expense 關聯）
+  - 集成 PurchaseOrderActions 組件（右側欄）
+
+- ✅ **PurchaseOrderActions**: 工作流按鈕組件 (230 行)
+  - **Draft 狀態**: 顯示「提交審批」按鈕
+    - 驗證至少一個品項
+    - AlertDialog 確認對話框
+    - 提交後無法再編輯的警告
+  - **Submitted 狀態**: 顯示「批准採購單」按鈕（僅 Supervisor）
+    - supervisorProcedure 權限保護
+    - AlertDialog 確認對話框
+    - 批准操作無法撤銷的警告
+  - **Approved 狀態**: 顯示「已批准」綠色狀態
+  - 使用 tRPC mutations (submit, approve)
+  - 完整的錯誤處理與 Toast 提示
+  - 樂觀更新（cache invalidation）
+
+**技術特點**:
+- ✅ React Hook Form + Zod 表單驗證
+- ✅ 動態陣列狀態管理（品項明細）
+- ✅ Transaction 保證資料一致性
+- ✅ 自動計算功能（小計、總金額）
+- ✅ 狀態機工作流（Draft → Submitted → Approved）
+- ✅ 角色權限控制（Supervisor 批准）
+- ✅ 完整的錯誤處理與用戶反饋
+
 **Schema 定義**:
 - purchaseOrderItemSchema (id, itemName, description, quantity, unitPrice, sortOrder, _delete)
 - createPOSchema (name, description, projectId, vendorId, quoteId, date, items[])
 - updatePOSchema (支持部分更新 + items 陣列)
 
-**待實施（前端）**:
-- [ ] PurchaseOrderForm 明細表格組件
-- [ ] 明細 CRUD 交互（新增行、刪除行、編輯）
-- [ ] 提交/審批按鈕與工作流
-- [ ] 明細小計與總計計算顯示
+**代碼統計**:
+- 後端代碼: 658 行
+- 前端組件: 897 行（PurchaseOrderForm 667 + PurchaseOrderActions 230）
+- 前端頁面: 617 行（new 60 + edit 169 + detail 388）
+- **總計**: 2172 行
 
 ---
 
