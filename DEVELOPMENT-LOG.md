@@ -20,6 +20,127 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-28 01:30 | 功能開發 | Module 7-8 後端 API 實施完成
+
+**類型**: 功能開發 | **負責人**: AI 助手
+
+**實施內容**:
+完成 Module 7-8 (ChargeOut - 費用轉嫁) 的完整後端 API 實施，包括 11 個端點，實現費用轉嫁的表頭-明細模式、完整狀態機工作流、交易性數據一致性保證。
+
+**完成的工作**:
+
+1. ✅ **ChargeOut Router** (`packages/api/src/routers/chargeOut.ts` - 1028 行)
+   - 11 個 tRPC 端點：create, update, updateItems, submit, confirm, reject, markAsPaid, getById, getAll, delete, getEligibleExpenses
+   - 完整的表頭-明細模式（ChargeOut + ChargeOutItem[]）
+   - 交易性操作保證數據一致性
+   - 自動計算 totalAmount
+   - 狀態機工作流驗證
+
+2. ✅ **Root Router 註冊** (`packages/api/src/root.ts` - +2 行)
+   - 導入 chargeOutRouter
+   - 註冊到 appRouter
+
+**技術亮點**:
+
+1. **表頭-明細模式**:
+   - ChargeOut (表頭): name, description, projectId, opCoId, totalAmount, status
+   - ChargeOutItem[] (明細): expenseId, amount, description, sortOrder
+   - Cascade delete: 刪除表頭自動刪除所有明細
+
+2. **狀態機工作流**:
+   - Draft: 可編輯、可刪除
+   - Submitted: 可確認、可拒絕（僅 Supervisor）
+   - Confirmed: 可標記為已付款
+   - Paid: 終態
+   - Rejected: 可刪除
+
+3. **交易性操作**:
+   - create: Transaction 創建表頭 + 批量創建明細
+   - updateItems: Transaction 更新明細 + 重算總額
+   - 保證數據一致性，防止部分失敗
+
+4. **業務邏輯驗證**:
+   - 只允許 requiresChargeOut = true 的費用
+   - 費用必須為 Approved 或 Paid 狀態
+   - Project 和 OpCo 存在性驗證
+   - Status 狀態轉換驗證
+   - Supervisor 權限檢查（confirm, reject）
+
+5. **智能數據查詢**:
+   - getEligibleExpenses: 篩選可用於 ChargeOut 的費用
+   - 自動 include 關聯資料（Project, OpCo, Items, Expense details）
+   - 分頁支持（getAll endpoint）
+   - 過濾器支持（status, opCoId, projectId）
+
+**端點詳情**:
+
+| 端點 | 方法 | 用途 | 特殊功能 |
+|------|------|------|----------|
+| create | mutation | 創建 ChargeOut | Transaction, 批量創建明細 |
+| update | mutation | 更新基本資訊 | 僅 Draft 狀態 |
+| updateItems | mutation | 批量更新明細 | Upsert 邏輯, Transaction, 重算總額 |
+| submit | mutation | 提交審核 | Draft → Submitted |
+| confirm | mutation | 確認 | Submitted → Confirmed, supervisorProcedure |
+| reject | mutation | 拒絕 | Submitted → Rejected, supervisorProcedure |
+| markAsPaid | mutation | 標記已付款 | Confirmed → Paid |
+| getById | query | 獲取詳情 | Include all relations |
+| getAll | query | 分頁列表 | 過濾器, 排序, 分頁 |
+| delete | mutation | 刪除 | 僅 Draft/Rejected, Cascade items |
+| getEligibleExpenses | query | 可用費用 | requiresChargeOut = true |
+
+**代碼統計**:
+- 總代碼行數: 1028 行
+- Zod Schemas: 9 個（Status, Item, Create, Update, UpdateItems, GetAll, etc.）
+- tRPC 端點: 11 個
+- 文件修改: 2 個（chargeOut.ts 新增, root.ts 更新）
+
+**技術決策**:
+
+1. **Transaction 使用**:
+   - 決策: create 和 updateItems 使用 Prisma transaction
+   - 理由: 保證表頭和明細數據一致性，防止部分創建/更新失敗
+
+2. **supervisorProcedure**:
+   - 決策: confirm 和 reject 使用 supervisorProcedure
+   - 理由: 只有 Supervisor 可以確認或拒絕 ChargeOut
+
+3. **Upsert 邏輯**:
+   - 決策: updateItems 使用 upsert 而非單純 update
+   - 理由: 支持新增明細、更新現有明細、刪除明細的靈活操作
+
+4. **狀態驗證**:
+   - 決策: 所有狀態操作前驗證當前狀態
+   - 理由: 防止非法狀態轉換，確保工作流正確性
+
+**驗證結果**:
+- ✅ TypeScript 編譯成功（無類型錯誤）
+- ✅ 開發服務器正常運行（未中斷）
+- ✅ tRPC router 成功註冊
+- ⏳ 待前端實施後進行端到端測試
+
+**相關 Prisma Models**:
+- ChargeOut (表頭)
+- ChargeOutItem (明細)
+- Expense (關聯: requiresChargeOut boolean)
+- Project (關聯)
+- OperatingCompany (關聯)
+- User (關聯: confirmedBy)
+
+**下一步計劃**:
+1. ⏳ 更新 DEVELOPMENT-LOG.md (本記錄)
+2. ⏳ 更新 COMPLETE-IMPLEMENTATION-PROGRESS.md
+3. ⏳ Git commit 文檔更新
+4. ⏳ 實施 ChargeOut 前端 UI（預計 4-5 小時，~1500 行代碼）
+
+**相關文檔**:
+- `claudedocs/COMPLETE-IMPLEMENTATION-PROGRESS.md` (Module 7-8 章節)
+- `docs/stories/epic-6.../story-6.4-perform-charge-out-and-archive-project.md` (業務需求)
+
+**Git Commit**: d670667
+**推送狀態**: ✅ 已推送至 GitHub (origin/main)
+
+---
+
 ### 2025-10-28 00:15 | 修復 | FIX-009 - Module 6 前端錯誤修復（三次迭代）
 
 **類型**: 修復 | **負責人**: AI 助手
