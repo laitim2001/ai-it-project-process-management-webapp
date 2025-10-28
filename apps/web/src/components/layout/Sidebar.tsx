@@ -16,6 +16,7 @@ import {
   Settings,
   HelpCircle,
   Target,
+  ArrowRightLeft,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -72,7 +73,7 @@ export function Sidebar() {
       ]
     },
     {
-      title: "採購管理",
+      title: "採購管理", // 包含費用轉嫁
       items: [
         {
           name: "供應商",
@@ -103,6 +104,12 @@ export function Sidebar() {
           href: "/om-expenses",
           icon: Target,
           description: "操作與維護費用管理"
+        },
+        {
+          name: "費用轉嫁",
+          href: "/charge-outs",
+          icon: ArrowRightLeft,
+          description: "ChargeOut 費用轉嫁管理"
         },
       ]
     },
