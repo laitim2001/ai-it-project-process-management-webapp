@@ -71,3 +71,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   )
 }
+
+// 同時支持 named export 和 default export
+export default DashboardLayout
