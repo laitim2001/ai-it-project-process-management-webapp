@@ -23,12 +23,12 @@ test.describe('應用程式基本功能', () => {
 
   test('應該能夠以 ProjectManager 身份登入', async ({ managerPage }) => {
     await expect(managerPage).toHaveURL('/dashboard');
-    await expect(managerPage.locator('h1', { hasText: 'Dashboard' })).toBeVisible();
+    await expect(managerPage.locator('h1', { hasText: '儀表板' })).toBeVisible();
   });
 
   test('應該能夠以 Supervisor 身份登入', async ({ supervisorPage }) => {
     await expect(supervisorPage).toHaveURL('/dashboard');
-    await expect(supervisorPage.locator('h1', { hasText: 'Dashboard' })).toBeVisible();
+    await expect(supervisorPage.locator('h1', { hasText: '儀表板' })).toBeVisible();
   });
 
   test('應該能夠導航到預算池頁面', async ({ managerPage }) => {
@@ -38,9 +38,9 @@ test.describe('應用程式基本功能', () => {
   });
 
   test('應該能夠導航到項目頁面', async ({ managerPage }) => {
-    await managerPage.click('text=項目');
+    await managerPage.click('a[href="/projects"]');
     await expect(managerPage).toHaveURL(/\/projects/);
-    await expect(managerPage.locator('h1')).toContainText(/項目/i);
+    await expect(managerPage.locator('h1')).toContainText(/專案管理/i);
   });
 
   test('應該能夠導航到費用轉嫁頁面', async ({ managerPage }) => {

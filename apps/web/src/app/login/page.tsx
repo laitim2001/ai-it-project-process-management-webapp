@@ -40,15 +40,33 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // 使用 redirect: true 讓 NextAuth 自動處理重定向
-      // 這樣可以確保 session 正確設置後再重定向
-      await signIn('credentials', {
+      console.log('🔐 開始登入流程', { email, callbackUrl });
+
+      // 使用 redirect: false 先獲取結果，然後手動重定向
+      const result = await signIn('credentials', {
         email,
         password,
         callbackUrl,
-        redirect: true,
+        redirect: false,
       });
+
+      console.log('📊 signIn 結果:', result);
+
+      if (result?.error) {
+        console.error('❌ 登入錯誤:', result.error);
+        setError(result.error === 'CredentialsSignin' ? 'Email 或密碼錯誤' : result.error);
+        setIsLoading(false);
+      } else if (result?.ok) {
+        console.log('✅ 登入成功');
+        console.log('📍 result.url:', result.url);
+        console.log('📍 callbackUrl:', callbackUrl);
+
+        // 登入成功，使用 router.push 重定向到 callbackUrl（忽略 result.url）
+        console.log('🔄 重定向到:', callbackUrl);
+        router.push(callbackUrl);
+      }
     } catch (err) {
+      console.error('💥 登入異常:', err);
       setError('登入失敗，請稍後再試');
       setIsLoading(false);
     }

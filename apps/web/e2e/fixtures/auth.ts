@@ -30,10 +30,14 @@ export async function login(page: Page, email: string, password: string): Promis
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
 
-  // 設置控制台日誌監聽（調試用）
+  // 設置控制台日誌監聽（調試用）- 捕獲所有 console 消息
   page.on('console', (msg) => {
-    if (msg.type() === 'error') {
-      console.log('瀏覽器控制台錯誤:', msg.text());
+    const type = msg.type();
+    const text = msg.text();
+    if (type === 'error') {
+      console.log('❌ 瀏覽器控制台錯誤:', text);
+    } else if (type === 'log' && (text.includes('🔐') || text.includes('📊') || text.includes('✅') || text.includes('💥'))) {
+      console.log('🔍 瀏覽器控制台日誌:', text);
     }
   });
 

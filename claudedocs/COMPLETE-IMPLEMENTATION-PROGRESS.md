@@ -1,9 +1,9 @@
 # COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤
 
 > **創建日期**: 2025-10-26
-> **最後更新**: 2025-10-28 14:00
-> **總體進度**: 約 95% (階段 1-4 完成 + E2E 測試框架完成)
-> **當前階段**: ChargeOut 前端 100% 完成 ✅ | E2E 測試框架 100% 完成 ✅
+> **最後更新**: 2025-10-28 18:30
+> **總體進度**: 約 96% (階段 1-5 完成 + E2E 測試 100% 通過)
+> **當前階段**: ChargeOut 前端 100% 完成 ✅ | E2E 測試 100% 通過 ✅ | FIX-010 完成 ✅
 
 ---
 
@@ -826,6 +826,269 @@ import { Button } from '@/components/ui/button';
 - Git commits: 3 次迭代修復
 
 **測試狀態**: ✅ 開發服務器正常運行，無編譯/運行時錯誤
+
+---
+
+#### **FIX-010: E2E 測試登入流程修復與驗證** ✅ **100% 完成**
+
+**完成時間**: 2025-10-28 18:00
+**測試結果**: **7/7 (100%)** 通過率 ✅
+**Git Commits**: (待提交)
+- E2E 測試修復與完整驗證
+- 測試配置優化與文檔更新
+
+**問題背景**:
+在前次對話中，E2E 測試的登入流程存在嚴重問題，導致測試通過率僅為 **2/7 (28.6%)**。5 個需要認證的測試全部失敗，但問題根源並未完全解決。本次修復完成了以下工作：
+1. 識別並修復 NextAuth 配置的根本衝突
+2. 解決 Turborepo workspace 緩存問題
+3. 修復測試斷言語言不匹配問題
+4. 達成 **100% 測試通過率**
+
+**測試通過率提升時間線**:
+
+| 階段 | 通過率 | 改善 | 關鍵修復 |
+|------|--------|------|----------|
+| 初始狀態 | 2/7 (28.6%) | - | 只有公開頁面測試通過 |
+| 修復 NextAuth 配置 | 4/7 (57.1%) | +28.5% | 認證系統修復，登入測試通過 |
+| 修復 Dashboard 斷言 | 6/7 (85.7%) | +28.6% | Dashboard 測試通過 |
+| 修復項目頁面斷言 | **7/7 (100%)** | **+14.3%** | **全部基本功能測試通過** ✅ |
+
+**最終測試結果**:
+```
+Running 7 tests using 1 worker
+
+✓  1 應該能夠訪問首頁 (570ms)
+✓  2 應該能夠訪問登入頁面 (485ms)
+✓  3 應該能夠以 ProjectManager 身份登入 (2.6s)
+✓  4 應該能夠以 Supervisor 身份登入 (2.6s)
+✓  5 應該能夠導航到預算池頁面 (3.0s)
+✓  6 應該能夠導航到項目頁面 (3.5s)
+✓  7 應該能夠導航到費用轉嫁頁面 (2.7s)
+
+7 passed (16.3s)
+```
+
+**問題 1: NextAuth JWT + PrismaAdapter 配置衝突** ❌ → ✅
+
+**錯誤現象**:
+- credentials provider 的 authorize 函數從未被調用
+- 無法創建有效的 JWT session
+- 用戶登入後立即被重定向回登入頁面
+- 服務器日誌中無任何 authorize 輸出
+
+**根本原因**:
+NextAuth.js 中，**JWT session strategy 不應該使用 PrismaAdapter**。PrismaAdapter 是為 **database session strategy** 設計的。兩者混用會導致：
+- authorize 函數被靜默忽略（無錯誤提示）
+- session 創建流程異常
+- JWT callback 無法正確設置 token
+
+**受影響文件**: `packages/auth/src/index.ts`
+
+**解決方案**:
+```typescript
+// 修復前 ❌ (Line 62-63)
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),  // 與 JWT strategy 衝突！
+  session: { strategy: 'jwt' },
+};
+
+// 修復後 ✅
+export const authOptions: NextAuthOptions = {
+  // 注意：JWT strategy 不應該使用 adapter
+  // PrismaAdapter 用於 database session strategy
+  // adapter: PrismaAdapter(prisma),
+  session: { strategy: 'jwt' },
+};
+```
+
+**調試日誌添加** (Lines 109-219):
+為了驗證修復效果，在關鍵流程添加了詳細日誌：
+- authorize 函數 (Lines 109-152)
+- JWT callback (Lines 158-200)
+- session callback (Lines 204-219)
+
+**驗證結果**:
+```
+🔐 Authorize 函數執行 { email: 'test-manager@example.com' }
+✅ Authorize: 用戶存在 { userId: 'd518385b...', hasPassword: true }
+✅ Authorize: 密碼正確，返回用戶對象 { userId: 'd518385b...', email: '...', roleId: 2 }
+🔐 JWT callback 執行 { hasUser: true, hasAccount: true, provider: 'credentials' }
+✅ JWT callback: 用戶存在，設置 token
+🔐 Session callback 執行 { hasToken: true }
+✅ Session callback: 設置 session.user
+```
+
+**問題 2: Turborepo Workspace 包更新未生效** ⚠️ → ✅
+
+**錯誤現象**:
+- 代碼修改已正確保存（包含所有調試日誌）
+- 但測試服務器仍使用舊代碼
+- 執行 `turbo clean` 清除緩存無效
+- 重新生成 Prisma Client 無效
+
+**根本原因**:
+在 Turborepo monorepo 中，workspace 包（packages/auth）的代碼更新需要**重啟開發服務器**才能生效。Next.js 熱重載主要針對 apps/web 內的文件，packages/* 的更新不會自動重載。
+
+**解決方案**:
+在新端口 (3006) 啟動新的開發服務器，加載更新後的代碼：
+
+**創建測試環境配置** `.env.test.local`:
+```bash
+PORT=3006
+NEXTAUTH_URL=http://localhost:3006
+NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA=
+NEXT_PUBLIC_APP_URL=http://localhost:3006
+```
+
+**創建測試專用配置** `playwright.config.test.ts`:
+```typescript
+export default defineConfig({
+  testDir: './e2e',
+  use: {
+    baseURL: 'http://localhost:3006',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
+  },
+  // 不啟動 webServer，使用已運行的服務器
+});
+```
+
+**創建獨立測試腳本** `scripts/test-login-3006.ts`:
+直接測試登入功能，繞過複雜的測試環境：
+```typescript
+import { chromium } from 'playwright';
+
+async function testLogin() {
+  const browser = await chromium.launch({ headless: true });
+  const page = await context.newPage();
+
+  await page.goto('http://localhost:3006/login', { waitUntil: 'load' });
+  await page.waitForTimeout(2000); // 等待 React hydration
+
+  await page.fill('input[name="email"]', 'test-manager@example.com');
+  await page.fill('input[name="password"]', 'testpassword123');
+
+  await Promise.all([
+    page.waitForNavigation({ timeout: 10000 }).catch(() => null),
+    page.click('button[type="submit"]')
+  ]);
+
+  const currentURL = page.url();
+  return currentURL.includes('/dashboard');
+}
+```
+
+**驗證結果**: ✅ 測試通過 - "登入功能正常工作，NextAuth 修復已生效"
+
+**問題 3: 測試斷言語言不匹配** ⚠️ → ✅
+
+**錯誤現象**:
+```
+Error: expect(locator).toBeVisible() failed
+Locator: locator('h1').filter({ hasText: 'Dashboard' })
+Expected: visible
+Received: <not found>
+```
+
+**根本原因**:
+1. 測試尋找英文 "Dashboard"，但頁面使用中文 "儀表板"
+2. 測試尋找 "項目"，但實際文字是 "專案管理"
+3. 文字選擇器匹配到多個元素（例如 breadcrumb）
+
+**受影響文件**: `apps/web/e2e/example.spec.ts`
+
+**修復 1 - Dashboard 標題** (Lines 26, 31):
+```typescript
+// 修復前 ❌
+await expect(managerPage.locator('h1', { hasText: 'Dashboard' })).toBeVisible();
+
+// 修復後 ✅
+await expect(managerPage.locator('h1', { hasText: '儀表板' })).toBeVisible();
+```
+
+**修復 2 - 項目頁面導航** (Lines 41-43):
+```typescript
+// 修復前 ❌
+await managerPage.click('text=項目');
+await expect(managerPage.locator('h1')).toContainText(/項目/i);
+
+// 修復後 ✅
+await managerPage.click('a[href="/projects"]');
+await expect(managerPage.locator('h1')).toContainText(/專案管理/i);
+```
+
+**技術改進**: 使用精確的 href 屬性選擇器，避免多個元素匹配
+
+**創建的文件**:
+1. `.env.test.local` - 測試環境配置 (PORT=3006)
+2. `playwright.config.test.ts` - 測試專用 Playwright 配置
+3. `scripts/test-login-3006.ts` - 獨立登入測試腳本
+4. `claudedocs/E2E-TESTING-FINAL-REPORT.md` - 完整測試報告 (374 行)
+
+**修改的文件**:
+1. `packages/auth/src/index.ts` - 移除 PrismaAdapter，添加調試日誌
+2. `apps/web/e2e/example.spec.ts` - 修復測試斷言
+
+**經驗教訓**:
+
+**1. NextAuth.js 配置陷阱**:
+- **教訓**: JWT strategy 和 PrismaAdapter 不能混用
+- **原因**: PrismaAdapter 設計用於 database session strategy
+- **最佳實踐**:
+  - JWT strategy: 不使用 adapter
+  - Database strategy: 使用 PrismaAdapter
+
+**2. Turborepo Workspace 熱重載限制**:
+- **教訓**: workspace 包的代碼更新不會自動熱重載
+- **解決方案**: 修改 packages/* 後需要重啟服務器
+- **最佳實踐**: 使用獨立測試環境（不同端口）驗證修復
+
+**3. E2E 測試選擇器策略**:
+- **教訓**: 文字選擇器在多語言環境下容易失敗
+- **解決方案**:
+  - 使用 href 屬性選擇器：`a[href="/projects"]`
+  - 使用 data-testid 屬性（推薦）
+  - 使用 role 和 name 組合
+- **最佳實踐**: 優先使用語義化選擇器，避免依賴純文字內容
+
+**4. 調試策略有效性**:
+- 添加詳細的 console.log 到關鍵流程
+- 創建獨立測試腳本繞過複雜環境
+- 使用不同端口隔離測試環境
+- 檢查服務器端和瀏覽器端日誌確認流程執行
+
+**下一步建議**:
+
+**1. 創建工作流測試** (優先級：高):
+需要創建以下測試文件：
+- `budget-proposal-workflow.spec.ts` - 預算提案完整流程
+- `procurement-workflow.spec.ts` - 採購流程
+- `expense-chargeout-workflow.spec.ts` - 費用轉嫁流程
+
+**2. 清理測試配置** (優先級：中):
+- 將 playwright.config.test.ts 合併到主配置
+- 標準化所有測試使用主端口（3000）
+- 清理臨時測試文件和配置
+
+**3. 提升測試覆蓋率** (優先級：中):
+- 錯誤處理測試（無效登入、權限不足）
+- 表單驗證測試
+- 文件上傳測試
+- 分頁和搜尋功能測試
+
+**測試環境**:
+- 開發服務器: http://localhost:3000
+- 測試服務器: http://localhost:3006
+- 數據庫: PostgreSQL localhost:5434
+- 測試用戶: test-manager@example.com / testpassword123
+
+**文檔記錄**:
+- [E2E-TESTING-FINAL-REPORT.md](./E2E-TESTING-FINAL-REPORT.md) - 完整測試報告
+- [E2E-LOGIN-FIX-SUCCESS-SUMMARY.md](./E2E-LOGIN-FIX-SUCCESS-SUMMARY.md) - 修復成功總結
+- [E2E-LOGIN-ISSUE-ANALYSIS.md](./E2E-LOGIN-ISSUE-ANALYSIS.md) - 問題分析
 
 ---
 

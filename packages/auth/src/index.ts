@@ -59,8 +59,8 @@ declare module 'next-auth/jwt' {
  * NextAuth.js 配置選項
  */
 export const authOptions: NextAuthOptions = {
-  // 使用 Prisma Adapter 管理會話（未來可切換到資料庫會話）
-  adapter: PrismaAdapter(prisma),
+  // 注意：JWT strategy 不應該使用 adapter
+  // adapter: PrismaAdapter(prisma),
 
   // 會話策略：使用 JWT（無需資料庫會話表）
   session: {
@@ -106,7 +106,10 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('🔐 Authorize 函數執行', { email: credentials?.email });
+
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Authorize: 缺少 email 或 password');
           throw new Error('請提供 Email 和密碼');
         }
 
@@ -117,19 +120,26 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
+          console.log('❌ Authorize: 用戶不存在', { email: credentials.email });
           throw new Error('Email 或密碼錯誤');
         }
 
+        console.log('✅ Authorize: 用戶存在', { userId: user.id, hasPassword: !!user.password });
+
         // 驗證密碼
         if (!user.password) {
+          console.log('❌ Authorize: 用戶無密碼');
           throw new Error('此帳號未設定密碼，請使用其他登入方式');
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
+          console.log('❌ Authorize: 密碼錯誤');
           throw new Error('Email 或密碼錯誤');
         }
+
+        console.log('✅ Authorize: 密碼正確，返回用戶對象', { userId: user.id, email: user.email, roleId: user.roleId });
 
         // 返回用戶信息
         return {
@@ -146,12 +156,17 @@ export const authOptions: NextAuthOptions = {
   // JWT 回調：將用戶信息添加到 JWT
   callbacks: {
     async jwt({ token, user, account }) {
+      console.log('🔐 JWT callback 執行', { hasUser: !!user, hasAccount: !!account, provider: account?.provider });
+
       if (user) {
+        console.log('✅ JWT callback: 用戶存在，設置 token', { userId: user.id, email: user.email, roleId: user.roleId });
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.roleId = user.roleId;
         token.role = user.role;
+      } else {
+        console.log('⚠️ JWT callback: 用戶不存在');
       }
 
       // Azure AD B2C 登入時，確保用戶在資料庫中存在
@@ -181,11 +196,14 @@ export const authOptions: NextAuthOptions = {
         token.role = dbUser.role;
       }
 
+      console.log('📊 JWT callback 返回 token', { id: token.id, email: token.email });
       return token;
     },
 
     // Session 回調：將 JWT 信息添加到 Session
     async session({ session, token }) {
+      console.log('🔐 Session callback 執行', { hasToken: !!token, tokenId: token?.id });
+
       if (token) {
         session.user = {
           id: token.id,
@@ -193,7 +211,11 @@ export const authOptions: NextAuthOptions = {
           name: token.name,
           role: token.role,
         };
+        console.log('✅ Session callback: 設置 session.user', { userId: session.user.id });
+      } else {
+        console.log('⚠️ Session callback: token 不存在');
       }
+
       return session;
     },
   },
