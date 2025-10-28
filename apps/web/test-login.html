@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入測試</title>
+</head>
+<body>
+    <h1>手動登入測試</h1>
+    <div>
+        <label>Email: <input type="email" id="email" value="test-manager@example.com"></label><br><br>
+        <label>Password: <input type="password" id="password" value="testpassword123"></label><br><br>
+        <button onclick="testLogin()">測試登入</button>
+    </div>
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.innerHTML = '正在測試登入...';
+
+            try {
+                // 調用 NextAuth credentials 登入
+                const response = await fetch('/api/auth/callback/credentials', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        email: email,
+                        password: password,
+                        redirect: 'false',
+                        csrfToken: await getCSRFToken(),
+                        callbackUrl: '/dashboard',
+                        json: 'true'
+                    }),
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <h3>響應結果:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <h3>HTTP Status: ${response.status}</h3>
+                `;
+
+                // 如果登入成功，嘗試獲取 session
+                if (response.ok && !data.error) {
+                    const sessionResponse = await fetch('/api/auth/session');
+                    const session = await sessionResponse.json();
+                    resultDiv.innerHTML += `
+                        <h3>Session:</h3>
+                        <pre>${JSON.stringify(session, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3 style="color: red;">錯誤:</h3>
+                    <pre>${error.message}\n${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function getCSRFToken() {
+            try {
+                const response = await fetch('/api/auth/csrf');
+                const data = await response.json();
+                return data.csrfToken;
+            } catch (e) {
+                console.error('獲取 CSRF token 失敗:', e);
+                return '';
+            }
+        }
+    </script>
+</body>
+</html>

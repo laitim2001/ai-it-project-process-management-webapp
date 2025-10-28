@@ -40,21 +40,16 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const result = await signIn('credentials', {
+      // 使用 redirect: true 讓 NextAuth 自動處理重定向
+      // 這樣可以確保 session 正確設置後再重定向
+      await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        callbackUrl,
+        redirect: true,
       });
-
-      if (result?.error) {
-        setError(result.error);
-      } else if (result?.ok) {
-        router.push(callbackUrl);
-        router.refresh();
-      }
     } catch (err) {
       setError('登入失敗，請稍後再試');
-    } finally {
       setIsLoading(false);
     }
   };

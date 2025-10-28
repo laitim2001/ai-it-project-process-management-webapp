@@ -20,6 +20,124 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-28 08:00 | 調試 + 配置 | E2E 測試登入流程深入調試
+
+**類型**: 調試 + 配置 | **負責人**: AI 助手
+
+**調試內容**:
+深入調試 E2E 測試登入流程問題，進行多輪配置修復和測試驗證，識別 NextAuth credentials provider 的 session 設置問題。
+
+**完成的調試工作**:
+
+1. ✅ **Playwright 配置優化** (`apps/web/playwright.config.ts`)
+   - 添加 env 對象設置環境變數（PORT, NEXTAUTH_URL, NEXT_PUBLIC_APP_URL）
+   - 優化 webServer 命令設置 NEXTAUTH_SECRET
+   - 確保測試服務器使用正確的環境配置
+
+2. ✅ **登入 Fixture 增強調試** (`apps/web/e2e/fixtures/auth.ts` - 85 行)
+   - 添加瀏覽器控制台錯誤監聽
+   - 添加 API 響應攔截和日誌輸出
+   - 添加錯誤信息檢測（檢查頁面上的 .text-destructive 元素）
+   - 添加詳細的調試輸出（當前 URL、頁面內容）
+   - 延長超時時間至 15 秒
+
+3. ✅ **登入頁面邏輯修改** (`apps/web/src/app/login/page.tsx`)
+   - 修改 signIn 調用從 `redirect: false` 改為 `redirect: true`
+   - 讓 NextAuth 自動處理重定向而非手動處理
+   - 簡化錯誤處理邏輯
+
+4. ✅ **測試用戶驗證** (`scripts/verify-test-user.ts` - 74 行)
+   - 創建密碼驗證腳本
+   - 驗證測試用戶存在性和密碼正確性
+   - 結果：2/2 測試用戶密碼驗證 100% 通過
+
+5. ✅ **多輪測試運行與分析**
+   - 運行 6+ 次 E2E 測試
+   - 捕獲詳細的調試日誌和截圖
+   - 系統分析錯誤模式
+
+**調試發現**:
+
+**症狀**:
+- ✅ 2/7 基本功能測試通過（首頁訪問、登入頁面顯示）
+- ❌ 5/7 登入流程測試失敗（所有需要認證的測試）
+- ❌ 頁面停留在 `http://localhost:3005/login?callbackUrl=...`
+- ❌ 沒有重定向到 dashboard
+
+**調試證據**:
+1. **API 響應**:
+   - 狀態: 200 OK
+   - URL: `http://localhost:3005/api/auth/session`
+   - 結論: API 端點可訪問，返回成功
+
+2. **未調用的端點**:
+   - 未調用: `/api/auth/callback/credentials`
+   - 結論: Credentials provider 可能未被觸發
+
+3. **頁面狀態**:
+   - 無錯誤信息顯示
+   - 頁面內容顯示正常登入表單
+   - 沒有 JavaScript 錯誤
+
+4. **測試用戶驗證**:
+   - test-manager@example.com: ✅ 存在、✅ 密碼正確、✅ roleId 正確
+   - test-supervisor@example.com: ✅ 存在、✅ 密碼正確、✅ roleId 正確
+
+**根本原因推測**:
+1. **NextAuth Session 問題**:
+   - `signIn('credentials')` 調用可能成功，但 session 沒有正確設置
+   - JWT callback 或 session callback 可能沒有正確執行
+
+2. **環境變數問題**:
+   - 雖然已設置，但測試服務器可能未正確讀取
+   - NEXTAUTH_URL 可能影響 callback URL 處理
+
+3. **Credentials Provider 配置**:
+   - Provider 可能未被正確註冊或觸發
+   - Authorize 函數可能返回 null
+
+**已嘗試的修復**:
+1. ✅ 設置 Playwright env 對象
+2. ✅ 修改 signIn redirect 參數
+3. ✅ 延長測試超時時間
+4. ✅ 添加詳細調試日誌
+5. ⏳ 問題依然存在
+
+**測試結果統計**:
+- 運行次數: 6+
+- 通過測試: 2/7 (28.6%)
+- 失敗測試: 5/7 (71.4%)
+- 失敗原因: 登入後無法重定向到 dashboard
+
+**代碼統計**:
+- 新增代碼: ~200 行（調試和配置）
+- 修改文件: 3 個（playwright.config.ts, auth.ts, page.tsx）
+- 新增腳本: 1 個（verify-test-user.ts）
+
+**建議的下一步**:
+1. **檢查 NextAuth 配置**: 驗證 JWT callback 和 session callback 是否正確執行
+2. **服務器日誌分析**: 檢查測試服務器的詳細日誌，查看 authorize 函數返回值
+3. **簡化測試**: 創建最小化的登入測試，排除 fixture 的影響
+4. **環境隔離**: 使用獨立的 .env.test 文件，確保環境變數正確加載
+5. **手動測試**: 手動訪問測試服務器進行登入測試
+
+**相關文檔**:
+- `apps/web/playwright.config.ts` (測試配置)
+- `apps/web/e2e/fixtures/auth.ts` (認證 fixtures)
+- `apps/web/src/app/login/page.tsx` (登入頁面)
+- `scripts/verify-test-user.ts` (測試用戶驗證)
+
+**Git Commit**: (待提交)
+**狀態**: 🔄 調試進行中，E2E 測試框架完整實施，登入流程問題待解決
+
+**備註**:
+- E2E 測試框架已 100% 實施完成
+- 基礎設施（Playwright、Fixtures、測試數據）全部就緒
+- 唯一障礙是 NextAuth credentials provider 的 session 設置問題
+- 建議安排專門的 NextAuth 配置調試會議
+
+---
+
 ### 2025-10-28 03:00 | 功能開發 + 配置 | E2E 測試框架完整實施
 
 **類型**: 功能開發 + 配置 | **負責人**: AI 助手
