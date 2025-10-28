@@ -828,11 +828,16 @@ import { Button } from '@/components/ui/button';
 
 ---
 
-#### Module 7-8: ChargeOut API ✅ **50% 完成** (後端完成)
+#### Module 7-8: ChargeOut 完整實施 ✅ **100% 完成**
 
-**完成時間**: 2025-10-28 01:30 (後端)
-**Git Commit**: d670667
-**狀態**: 後端 API 完成 ✅ | 前端待實施 ⏳
+**完成時間**:
+- 後端: 2025-10-28 01:30
+- 前端: 2025-10-28 09:30
+**Git Commits**:
+- 後端 API: d670667 (1028 行)
+- 前端 UI: e5715ce (1802 行)
+- Sidebar 修復: 6c35c6c
+**狀態**: 後端 API ✅ | 前端 UI ✅ | 完全集成 ✅
 
 **文件**:
 - ✅ `packages/api/src/routers/chargeOut.ts` (1026 行)
@@ -933,34 +938,99 @@ Draft → Submitted → Confirmed → Paid
 **代碼統計**:
 - 後端代碼: 1026 行（chargeOut.ts）
 - Root Router 更新: +2 行
-- **總計**: 1028 行
+- 前端代碼: 1802 行（組件 + 頁面）
+- Sidebar 更新: +8 行
+- **總計**: 2838 行
 
-**待實施（前端）** ⏳:
-- [ ] ChargeOut 列表頁面 (`/charge-outs/page.tsx`)
-  - 卡片式列表展示
-  - 狀態/OpCo/項目過濾器
-  - 分頁功能
-- [ ] ChargeOut 詳情頁面 (`/charge-outs/[id]/page.tsx`)
-  - 表頭信息顯示
-  - 明細表格（關聯的 Expense）
-  - 狀態操作按鈕
-- [ ] ChargeOut 表單頁面 (`/charge-outs/new`, `/charge-outs/[id]/edit`)
-  - 創建/編輯表單
-  - 動態明細管理
-- [ ] ChargeOutForm 組件
-  - React Hook Form + Zod 驗證
-  - OpCo 選擇器
-  - 費用選擇器（getEligibleExpenses）
-  - 動態明細編輯
-- [ ] ChargeOutActions 組件
-  - Submit, Confirm, Reject, MarkAsPaid 按鈕
-  - 狀態流程驗證
-- [ ] Sidebar 導航更新
-  - 添加「費用轉嫁」鏈接
+**已完成（前端）** ✅:
+
+**核心組件（2 個）**:
+
+1. ✅ **ChargeOutForm** (`components/charge-out/ChargeOutForm.tsx`, 500 行)
+   - React Hook Form + Zod 完整驗證
+   - 表頭-明細表格設計
+   - Project 和 OpCo 下拉選擇器
+   - **動態費用列表**: getEligibleExpenses 查詢
+   - **自動金額填充**: 選擇費用時自動填充金額
+   - **即時總額計算**: 明細 amount 自動加總
+   - 明細管理: 新增、編輯、刪除行
+   - Draft 狀態編輯支持
+
+2. ✅ **ChargeOutActions** (`components/charge-out/ChargeOutActions.tsx`, 380 行)
+   - 完整狀態機操作: submit, confirm, reject, markAsPaid, delete
+   - **權限控制**: confirm/reject 僅 Supervisor 可用
+   - AlertDialog 確認對話框（所有操作）
+   - 條件渲染: 基於狀態和用戶角色
+   - 5 個獨立對話框組件
+   - tRPC mutation 集成 + 樂觀更新
+
+**頁面（4 個）**:
+
+3. ✅ **ChargeOut 列表頁** (`app/charge-outs/page.tsx`, 310 行)
+   - 卡片式展示布局
+   - **三級過濾器**: 狀態、OpCo、項目
+   - **分頁支持**: 12 items/頁
+   - **狀態徽章**: 顏色編碼（Draft/Submitted/Confirmed/Paid/Rejected）
+   - Breadcrumb 導航
+   - Empty state 處理
+   - 響應式設計
+
+4. ✅ **ChargeOut 詳情頁** (`app/charge-outs/[id]/page.tsx`, 420 行)
+   - **三欄佈局**: 基本信息 + 費用明細 + 相關信息
+   - 完整費用明細表格（含排序）
+   - Project 和 OpCo 關聯信息顯示
+   - **時間軸追蹤**: createdAt, updatedAt, confirmedAt
+   - ChargeOutActions 組件集成
+   - use() API 處理異步 params
+
+5. ✅ **新增頁面** (`app/charge-outs/new/page.tsx`, 70 行)
+   - ChargeOutForm 包裝器
+   - Breadcrumb 導航
+   - 簡潔的頁面結構
+
+6. ✅ **編輯頁面** (`app/charge-outs/[id]/edit/page.tsx`, 110 行)
+   - **Draft 狀態驗證**: 僅 Draft 可編輯
+   - ChargeOutForm 集成 (isEdit mode)
+   - Breadcrumb 導航
+   - 狀態檢查和錯誤處理
+
+**導航集成** ✅:
+
+7. ✅ **Sidebar 更新** (`components/layout/Sidebar.tsx`)
+   - 添加 ArrowRightLeft 圖標
+   - 在「採購管理」區塊添加「費用轉嫁」導航項目
+   - href: `/charge-outs`
+   - 位於「OM 費用」之後
+
+**技術特點（前端）**:
+- ✅ **表頭-明細模式 UI**: ChargeOut (表頭) + ChargeOutItem[] (明細表格)
+- ✅ **React Hook Form + Zod**: 完整的表單驗證和類型安全
+- ✅ **tRPC 端到端類型安全**: 所有 API 調用完全類型化
+- ✅ **動態數據加載**: getEligibleExpenses 基於選定項目
+- ✅ **自動計算邏輯**: 明細金額即時加總
+- ✅ **狀態機 UI**: 基於狀態和角色的條件渲染
+- ✅ **權限驅動 UI**: Supervisor 特殊操作按鈕
+- ✅ **Shadcn/ui 組件**: Button, Card, Badge, AlertDialog, Select
+- ✅ **完整的 CRUD**: 列表、詳情、新增、編輯、刪除
+- ✅ **錯誤處理**: Toast 通知 + 錯誤狀態顯示
+
+**前端文件清單**:
+- ✅ `components/charge-out/ChargeOutForm.tsx` (500 行)
+- ✅ `components/charge-out/ChargeOutActions.tsx` (380 行)
+- ✅ `app/charge-outs/page.tsx` (310 行)
+- ✅ `app/charge-outs/[id]/page.tsx` (420 行)
+- ✅ `app/charge-outs/new/page.tsx` (70 行)
+- ✅ `app/charge-outs/[id]/edit/page.tsx` (110 行)
+- ✅ `components/layout/Sidebar.tsx` (+8 行)
+
+**問題與解決**:
+- ❌ **問題**: Sidebar "費用轉嫁" 未顯示
+  - 原因: Next.js 構建緩存 + 瀏覽器緩存
+  - 解決: 端口切換策略（3001 啟動新服務 → 停止 3000 舊服務）
 
 ---
 
-### **階段 3: 前端實施** ✅ **75% 完成** (6/8 模塊)
+### **階段 3: 前端實施** ✅ **87.5% 完成** (7/8 模塊)
 
 #### Module 1: BudgetPool 前端 ✅ **100% 完成**
 

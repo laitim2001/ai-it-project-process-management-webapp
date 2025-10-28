@@ -399,6 +399,10 @@
 | **Notifications 頁面** | `apps/web/src/app/notifications/page.tsx` | 通知中心完整列表頁面（Epic 8） | 🔴 極高 |
 | **Quotes 頁面** | `apps/web/src/app/quotes/page.tsx` | 報價單列表頁面（卡片/列表視圖切換）| 🔴 極高 |
 | **Settings 頁面** | `apps/web/src/app/settings/page.tsx` | 系統設定頁面（個人資料、通知、偏好、安全） | 🔴 極高 |
+| **ChargeOut 列表** | `apps/web/src/app/charge-outs/page.tsx` | ChargeOut 費用轉嫁列表頁面（卡片式展示 + 三級過濾器） | 🔴 極高 |
+| **ChargeOut 詳情** | `apps/web/src/app/charge-outs/[id]/page.tsx` | ChargeOut 詳情頁面（三欄佈局 + 費用明細表格） | 🟡 高 |
+| **ChargeOut 編輯** | `apps/web/src/app/charge-outs/[id]/edit/page.tsx` | ChargeOut 編輯頁面（僅 Draft 狀態可編輯） | 🟡 高 |
+| **ChargeOut 新增** | `apps/web/src/app/charge-outs/new/page.tsx` | ChargeOut 新增頁面 | 🟡 高 |
 
 #### API 路由
 
@@ -507,6 +511,8 @@
 | **Budget Pool 過濾器** | `apps/web/src/components/budget-pool/BudgetPoolFilters.tsx` | 預算池篩選器元件 | 🟡 高 |
 | **Project 表單** | `apps/web/src/components/project/ProjectForm.tsx` | 專案表單元件 | 🟡 高 |
 | **User 表單** | `apps/web/src/components/user/UserForm.tsx` | 使用者表單元件 | 🟡 高 |
+| **ChargeOut 表單** | `apps/web/src/components/charge-out/ChargeOutForm.tsx` | ChargeOut 表單元件（表頭-明細設計 + 動態費用列表）| 🔴 極高 |
+| **ChargeOut 操作** | `apps/web/src/components/charge-out/ChargeOutActions.tsx` | ChargeOut 狀態機操作元件（submit/confirm/reject/markAsPaid/delete）| 🔴 極高 |
 | **BudgetProposal 表單** | `apps/web/src/components/proposal/BudgetProposalForm.tsx` | 預算提案表單元件 | 🟡 高 |
 | **ProposalActions** | `apps/web/src/components/proposal/ProposalActions.tsx` | 提案審批操作元件 | 🔴 極高 |
 | **CommentSection** | `apps/web/src/components/proposal/CommentSection.tsx` | 提案評論元件 | 🟡 高 |
@@ -539,6 +545,7 @@
 | **BudgetProposal 路由** | `packages/api/src/routers/budgetProposal.ts` | 預算提案審批 API 路由 | 🔴 極高 |
 | **Dashboard 路由** | `packages/api/src/routers/dashboard.ts` | 儀表板數據聚合 API 路由（PM/Supervisor） | 🔴 極高 |
 | **Notification 路由** | `packages/api/src/routers/notification.ts` | 通知系統 API 路由（Epic 8） | 🔴 極高 |
+| **ChargeOut 路由** | `packages/api/src/routers/chargeOut.ts` | ChargeOut 費用轉嫁 API 路由（完整狀態機 + 權限控制）| 🔴 極高 |
 | **EmailService 服務** | `packages/api/src/lib/email.ts` | 郵件發送服務模組（Epic 8） | 🔴 極高 |
 | **健康檢查路由** | `packages/api/src/routers/health.ts` | 健康檢查 API | 🟡 高 |
 | **Package 配置** | `packages/api/package.json` | API 套件依賴配置 | 🟡 高 |
