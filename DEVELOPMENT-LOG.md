@@ -4958,14 +4958,81 @@ feat: Initial commit of the AI IT project process management webapp
 
 ---
 
-**最後更新**: 2025-10-03 18:30
+**最後更新**: 2025-10-28 12:00
 
 
 ---
 
-### 2025-10-27 22:00 | �\��}�o | Module 6 - OMExpense �e�ݧ����I
+## 📅 2025-10-28 開發記錄
 
-**����**: �\��}�o | **�t�d�H**: AI �U��
+### 🐛 API 測試修復與 E2E 測試框架設置
+
+**時間**: 12:00 | **類型**: Bug 修復 + 測試框架設置 | **執行人**: AI Assistant
+
+#### 完成工作
+
+**1. API 測試全面修復（6 個關鍵問題）**
+- ✅ **Expense API projectId 不一致**: 移除不存在的 projectId 字段賦值
+- ✅ **Expense getById 缺少 items**: 添加完整關聯數據
+- ✅ **Expense approve 未更新分類預算**: 添加 BudgetCategory.usedAmount 自動更新
+- ✅ **ChargeOut 外鍵錯誤**: 創建真實測試用戶系統
+- ✅ **測試清理外鍵錯誤**: 正確的清理順序（Notification → User）
+- ✅ **requiresChargeOut 標記**: 修正測試數據
+
+**2. API 測試結果**
+- ✅ **29/29 測試通過（100%）**
+- ✅ **8/8 模塊覆蓋（100%）**
+- ✅ 執行時間: 0.34 秒
+- ✅ 0 個已知 bug
+
+**3. Playwright E2E 測試框架設置**
+- ✅ 安裝 Playwright 1.56.1 + Chromium + Firefox
+- ✅ 創建 playwright.config.ts（多瀏覽器、自動啟動）
+- ✅ 創建認證 fixtures（authenticatedPage, managerPage, supervisorPage）
+- ✅ 創建測試數據工廠（7+ 生成函數）
+- ✅ 創建範例測試（基本功能 + 導航）
+- ✅ 添加 5 個測試命令
+
+**4. 文檔更新**
+- ✅ API-HEALTH-CHECK-REPORT.md（100% 測試通過）
+- ✅ E2E-TESTING-SETUP.md（完整設置指南）
+- ✅ COMPLETE-IMPLEMENTATION-PROGRESS.md（進度更新）
+
+#### 修改的文件
+```
+packages/api/src/routers/expense.ts         # 3 處修復
+scripts/test-helpers.ts                      # 真實用戶系統 + 清理邏輯
+scripts/test-data.ts                         # requiresChargeOut 修正
+apps/web/playwright.config.ts               # 新建
+apps/web/e2e/fixtures/auth.ts               # 新建
+apps/web/e2e/fixtures/test-data.ts          # 新建
+apps/web/e2e/example.spec.ts                # 新建
+apps/web/package.json                        # 添加測試命令
+claudedocs/API-HEALTH-CHECK-REPORT.md       # 更新
+claudedocs/E2E-TESTING-SETUP.md             # 新建
+claudedocs/COMPLETE-IMPLEMENTATION-PROGRESS.md # 更新
+```
+
+#### 技術決策
+1. **真實用戶測試**: 從假用戶 ID 升級為真實數據庫用戶
+2. **Playwright 選擇**: 最現代的 E2E 測試框架，支持多瀏覽器
+3. **Fixtures 設計**: 簡化測試編寫，提供已認證的測試上下文
+4. **測試數據工廠**: 確保測試數據一致性和可維護性
+
+#### 總體進度
+- ✅ 階段 1: 數據庫 Schema - 100%
+- ✅ 階段 2: 後端 API 實施 - 100%
+- ✅ 階段 3: 前端實施 - 75%
+- ✅ 階段 4: API 測試覆蓋 - 100% ⭐
+- ✅ 階段 5: E2E 測試框架 - 100% ⭐
+- **總進度**: 約 90%
+
+#### 下一步
+- ⏳ ChargeOut 前端實施（2-3 小時）
+- ⏳ E2E 工作流測試實施（4-6 小時）
+
+
+---
 
 **�ܧ󤺮e**:
 ���� Module 6 (OMExpense) ������e�ݹ�I�A�]�A�C�����B�Ա����B����ե�B��׺���s�边�M�ɯ��X�C

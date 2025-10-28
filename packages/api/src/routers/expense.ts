@@ -167,6 +167,9 @@ export const expenseRouter = createTRPCRouter({
       const expense = await ctx.prisma.expense.findUnique({
         where: { id: input.id },
         include: {
+          items: {
+            orderBy: { sortOrder: 'asc' },
+          },
           purchaseOrder: {
             include: {
               project: {
@@ -196,6 +199,18 @@ export const expenseRouter = createTRPCRouter({
                   filePath: true,
                 },
               },
+            },
+          },
+          vendor: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
             },
           },
         },
@@ -275,11 +290,13 @@ export const expenseRouter = createTRPCRouter({
 
       return await ctx.prisma.$transaction(async (tx) => {
         // 創建費用表頭
+        // 注意：projectId 僅用於驗證，不儲存在 Expense model 中
+        // Expense 通過 purchaseOrder 間接關聯到 project
         const expense = await tx.expense.create({
           data: {
             name: input.name,
             description: input.description,
-            projectId: input.projectId,
+            // projectId 不存在於 Expense model，已移除
             purchaseOrderId: input.purchaseOrderId,
             budgetCategoryId: input.budgetCategoryId || purchaseOrder.project.budgetCategoryId,
             vendorId: input.vendorId,
@@ -313,16 +330,16 @@ export const expenseRouter = createTRPCRouter({
             items: {
               orderBy: { sortOrder: 'asc' },
             },
-            project: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
             purchaseOrder: {
               select: {
                 id: true,
-                name: true,
+                poNumber: true,
+                project: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
               },
             },
             vendor: {
@@ -682,6 +699,18 @@ export const expenseRouter = createTRPCRouter({
             usedAmount: usedAmount,
           },
         });
+
+        // 2.5. 更新 BudgetCategory.usedAmount（如果 expense 有 budgetCategoryId）
+        if (expense.budgetCategoryId) {
+          await prisma.budgetCategory.update({
+            where: { id: expense.budgetCategoryId },
+            data: {
+              usedAmount: {
+                increment: expense.totalAmount,
+              },
+            },
+          });
+        }
 
         // 3. Epic 8: 發送通知給 Project Manager
         await prisma.notification.create({
