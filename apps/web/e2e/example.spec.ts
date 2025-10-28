@@ -14,7 +14,11 @@ test.describe('應用程式基本功能', () => {
 
   test('應該能夠訪問登入頁面', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.locator('h1')).toContainText(/登入/i);
+    // 檢查登入頁面的標題文字
+    await expect(page.locator('h3')).toContainText(/IT 專案流程管理平台/i);
+    // 檢查是否有登入表單
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
   });
 
   test('應該能夠以 ProjectManager 身份登入', async ({ managerPage }) => {

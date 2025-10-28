@@ -34,8 +34,8 @@ export default defineConfig({
 
   // 共享設置
   use: {
-    // 基礎 URL
-    baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    // 基礎 URL（E2E 測試專用端口）
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005',
 
     // 首次重試時記錄 trace
     trace: 'on-first-retry',
@@ -72,9 +72,11 @@ export default defineConfig({
 
   // Web 伺服器配置
   webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    command: process.platform === 'win32'
+      ? 'set PORT=3005 && set NEXTAUTH_URL=http://localhost:3005 && pnpm dev'
+      : 'PORT=3005 NEXTAUTH_URL=http://localhost:3005 pnpm dev',
+    url: 'http://localhost:3005',
+    reuseExistingServer: false, // 總是啟動新的測試服務器
     timeout: 120 * 1000, // 2 分鐘啟動超時
   },
 });
