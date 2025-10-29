@@ -1092,6 +1092,98 @@ await expect(managerPage.locator('h1')).toContainText(/專案管理/i);
 
 ---
 
+#### **E2E 工作流測試配置階段** 🔄 **70% 完成 - 阻塞中**
+
+**完成時間**: 2025-10-29 (進行中)
+**狀態**: Playwright 配置更新完成 | 環境變數修復完成 | ⚠️ 認證重定向失敗阻塞測試
+
+**背景說明**:
+在 FIX-010 完成基本 E2E 測試修復後，開始實施工作流測試（預算申請、採購、費用轉嫁）。發現測試配置和環境設置存在多個問題，需要進行配置整合和修復。
+
+**已完成工作** (70%):
+
+1. **✅ Playwright 配置更新** (`apps/web/playwright.config.ts`)
+   - 更新 baseURL: 3005 → 3006
+   - 設置 `reuseExistingServer: true` 避免端口衝突
+   - 添加環境變數支持 (`BASE_URL`, `NEXT_PUBLIC_APP_URL`)
+   - 配置 webServer 環境變數注入 (PORT, NEXTAUTH_URL)
+
+2. **✅ 環境變數配置修復** (`apps/web/.env`)
+   - 發現 NEXTAUTH_URL 指向錯誤端口 (3001)
+   - 修復為正確端口: 3001 → 3006
+   - 確保 NextAuth 重定向使用正確端口
+
+3. **✅ 測試環境配置創建** (`apps/web/.env.test`)
+   - 創建統一的測試環境配置文件
+   - 配置端口 3006
+   - 配置數據庫、Redis、SMTP
+   - 設置功能標誌
+
+4. **✅ 進程清理**
+   - 清理 20+ 個舊的 Playwright 測試進程
+   - 終止佔用端口 3006 的舊進程 (PID 37728)
+   - 重啟開發服務器使用新配置
+
+**當前阻塞問題** (30% 未完成):
+
+**🔴 問題: 認證重定向失敗** ⚠️ 阻塞測試運行
+
+**症狀**:
+```
+✅ 登入請求成功 (status: 200, ok: true)
+❌ 頁面停留在 /login?callbackUrl=...
+⚠️ 服務器日誌中沒有認證流程記錄 ("🔐 Authorize 函數執行" 未出現)
+```
+
+**可能原因**:
+1. **Next.js 緩存問題** (最可能)
+   - `.env` 更改未被 Next.js 完全重新載入
+   - `.next` 建構緩存包含舊的環境變數配置
+
+2. **多進程干擾**
+   - 雖已清理 20+ 個進程，但可能仍有進程在使用舊配置
+
+3. **Session/Cookie 緩存**
+   - 瀏覽器緩存了舊的 session
+   - Cookie 指向錯誤的端口
+
+4. **認證流程未觸發**
+   - signIn 返回成功但實際認證未執行
+   - NextAuth 回調函數未被調用
+
+**建議解決方案** (待執行):
+1. 🔴 完全刪除 `apps/web/.next` 緩存目錄
+2. 🔴 完全終止所有 Node.js 開發進程（保留 VS Code/Claude Code）
+3. 🔴 完全清理並重啟開發服務器
+4. 🔴 使用無痕模式或清除瀏覽器緩存測試
+5. 🔴 檢查 NextAuth 日誌確認認證流程被觸發
+
+**影響**:
+- ⚠️ 阻塞 3 個工作流測試的運行和驗證
+- ⚠️ 無法驗證測試 fixtures (managerPage, supervisorPage) 是否正常工作
+- ⚠️ Stage 2 (測試配置整合) 進度停滯在 70%
+
+**相關文檔**:
+- [E2E-WORKFLOW-TESTING-PROGRESS.md](./E2E-WORKFLOW-TESTING-PROGRESS.md) - 詳細進度追蹤
+- [E2E-WORKFLOW-SESSION-SUMMARY.md](./E2E-WORKFLOW-SESSION-SUMMARY.md) - 本次會話完整總結 (645 行)
+
+**測試文件準備情況**:
+- ✅ `budget-proposal-workflow.spec.ts` (292 行) - Stage 1 已創建
+- ✅ `procurement-workflow.spec.ts` (328 行) - Stage 1 已創建
+- ✅ `expense-chargeout-workflow.spec.ts` (404 行) - Stage 1 已創建
+- ✅ `fixtures/auth.ts` (127 行) - 認證 fixtures
+- ✅ `fixtures/test-data.ts` (116 行) - 測試數據生成
+- ✅ `e2e/README.md` (453 行) - 測試文檔
+
+**下一步行動**:
+1. 🔴 解決認證重定向問題（優先級：HIGH）
+2. ⏳ 驗證 3 個工作流測試通過
+3. ⏳ 創建 `scripts/test-data-setup.ts`
+4. ⏳ 清理臨時測試文件
+5. ⏳ 更新測試文檔
+
+---
+
 #### Module 7-8: ChargeOut 完整實施 ✅ **100% 完成**
 
 **完成時間**:

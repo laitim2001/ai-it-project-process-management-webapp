@@ -34,8 +34,8 @@ export default defineConfig({
 
   // 共享設置
   use: {
-    // 基礎 URL（E2E 測試專用端口）
-    baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005',
+    // 基礎 URL（支持環境變數配置）
+    baseURL: process.env.BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3006',
 
     // 首次重試時記錄 trace
     trace: 'on-first-retry',
@@ -73,16 +73,16 @@ export default defineConfig({
   // Web 伺服器配置
   webServer: {
     command: process.platform === 'win32'
-      ? 'set PORT=3005&& set NEXTAUTH_URL=http://localhost:3005&& set NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA=&& pnpm dev'
-      : 'PORT=3005 NEXTAUTH_URL=http://localhost:3005 NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA= pnpm dev',
-    url: 'http://localhost:3005',
-    reuseExistingServer: false, // 總是啟動新的測試服務器
+      ? 'set PORT=3006&& set NEXTAUTH_URL=http://localhost:3006&& set NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA=&& set NEXT_PUBLIC_APP_URL=http://localhost:3006&& pnpm dev'
+      : 'PORT=3006 NEXTAUTH_URL=http://localhost:3006 NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA= NEXT_PUBLIC_APP_URL=http://localhost:3006 pnpm dev',
+    url: 'http://localhost:3006',
+    reuseExistingServer: true, // 復用已運行的測試服務器（避免端口衝突）
     timeout: 120 * 1000, // 2 分鐘啟動超時
     // 環境變數（確保測試服務器使用正確的配置）
     env: {
-      PORT: '3005',
-      NEXTAUTH_URL: 'http://localhost:3005',
-      NEXT_PUBLIC_APP_URL: 'http://localhost:3005',
+      PORT: '3006',
+      NEXTAUTH_URL: 'http://localhost:3006',
+      NEXT_PUBLIC_APP_URL: 'http://localhost:3006',
     },
   },
 });
