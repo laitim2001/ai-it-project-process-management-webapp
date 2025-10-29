@@ -322,6 +322,20 @@
 | **用戶反饋增強 Phase 2** | `claudedocs/implementation/USER-FEEDBACK-ENHANCEMENTS-2025-10-16-PHASE-2.md` | 用戶反饋 UI/UX 改進實施記錄 | 🔴 極高 |
 | **用戶反饋問題修復** | `claudedocs/implementation/USER-FEEDBACK-FIXES-2025-10-16.md` | FIX-003, FIX-004, FIX-005 修復記錄 | 🟡 高 |
 
+#### 🧪 E2E 測試文檔
+
+> **更新日期**: 2025-10-29
+> **狀態**: Stage 2 測試配置整合 70% 完成，認證重定向問題待解決
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **E2E 測試增強計劃** | `claudedocs/E2E-TESTING-ENHANCEMENT-PLAN.md` | 完整 E2E 測試增強計劃（4 階段實施策略） | 🔴 極高 |
+| **工作流測試進度** | `claudedocs/E2E-WORKFLOW-TESTING-PROGRESS.md` | E2E 工作流測試詳細進度追蹤（Stage 1-4） | 🔴 極高 |
+| **工作流會話總結** | `claudedocs/E2E-WORKFLOW-SESSION-SUMMARY.md` | 測試配置會話完整總結（645 行，問題診斷與解決方案） | 🔴 極高 |
+| **E2E 測試最終報告** | `claudedocs/E2E-TESTING-FINAL-REPORT.md` | 基本功能測試最終報告（7/7 測試通過） | 🟡 高 |
+| **登入修復成功總結** | `claudedocs/E2E-LOGIN-FIX-SUCCESS-SUMMARY.md` | FIX-010 登入流程修復成功總結 | 🟡 高 |
+| **登入問題分析** | `claudedocs/E2E-LOGIN-ISSUE-ANALYSIS.md` | 登入認證問題深度分析 | 🟡 高 |
+
 ### 文檔總覽
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
