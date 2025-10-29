@@ -9,9 +9,13 @@ const nextConfig = {
     cpus: 1,
   },
   // Configure webpack to handle Prisma properly
-  webpack: (config, { isServer }) => {
-    if (isServer) {
+  webpack: (config, { isServer, nextRuntime }) => {
+    // Prisma Client 需要在所有 server-side 和 middleware contexts 中標記為 external
+    // 這包括：Node.js runtime (isServer=true) 和 Edge runtime (nextRuntime='edge')
+    if (isServer || nextRuntime === 'edge' || nextRuntime === 'nodejs') {
       config.externals.push('@prisma/client');
+      config.externals.push('@itpm/db');
+      config.externals.push('bcryptjs');
     }
     return config;
   },

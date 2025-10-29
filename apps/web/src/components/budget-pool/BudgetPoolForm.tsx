@@ -275,6 +275,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
             </Label>
             <Input
               id="name"
+              name="name"
               type="text"
               value={formData.name}
               onChange={(e) =>
@@ -295,6 +296,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
             </Label>
             <Input
               id="financialYear"
+              name="financialYear"
               type="number"
               value={formData.financialYear}
               onChange={(e) =>
@@ -320,6 +322,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
             </Label>
             <Input
               id="description"
+              name="description"
               type="text"
               value={formData.description}
               onChange={(e) =>

@@ -494,6 +494,7 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
       <div className="col-span-4">
         <Label>品項名稱 <span className="text-destructive">*</span></Label>
         <Input
+          name={`items[${index}].itemName`}
           value={item.itemName}
           onChange={(e) => onUpdate(index, 'itemName', e.target.value)}
           placeholder="如: Dell Server R740"
@@ -504,6 +505,7 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
       <div className="col-span-2">
         <Label>數量 <span className="text-destructive">*</span></Label>
         <Input
+          name={`items[${index}].quantity`}
           type="number"
           value={item.quantity}
           onChange={(e) => onUpdate(index, 'quantity', parseInt(e.target.value) || 1)}
@@ -515,6 +517,7 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
       <div className="col-span-2">
         <Label>單價 <span className="text-destructive">*</span></Label>
         <Input
+          name={`items[${index}].unitPrice`}
           type="number"
           step="0.01"
           value={item.unitPrice}
@@ -542,6 +545,7 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
       <div className="col-span-12">
         <Label>描述（可選）</Label>
         <Textarea
+          name={`items[${index}].description`}
           value={item.description || ''}
           onChange={(e) => onUpdate(index, 'description', e.target.value)}
           placeholder="品項描述..."

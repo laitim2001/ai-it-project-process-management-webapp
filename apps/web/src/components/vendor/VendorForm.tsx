@@ -133,6 +133,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
         <input
           type="text"
           id="name"
+          name="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -152,6 +153,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
         <input
           type="text"
           id="contactPerson"
+          name="contactPerson"
           value={formData.contactPerson}
           onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -168,6 +170,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
         <input
           type="email"
           id="contactEmail"
+          name="contactEmail"
           value={formData.contactEmail}
           onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -187,6 +190,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
         <input
           type="tel"
           id="phone"
+          name="phone"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"

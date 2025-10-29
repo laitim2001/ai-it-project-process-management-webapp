@@ -84,16 +84,20 @@ export const generateChargeOutData = () => ({
 });
 
 /**
- * 測試用戶憑證
+ * 測試用戶憑證（匹配 Prisma seed 數據）
  */
 export const testUsers = {
   manager: {
-    email: 'test-manager@example.com',
-    password: 'testpassword123',
+    email: 'pm@itpm.local',
+    password: 'pm123',
   },
   supervisor: {
-    email: 'test-supervisor@example.com',
-    password: 'testpassword123',
+    email: 'supervisor@itpm.local',
+    password: 'supervisor123',
+  },
+  admin: {
+    email: 'admin@itpm.local',
+    password: 'admin123',
   },
 };
 

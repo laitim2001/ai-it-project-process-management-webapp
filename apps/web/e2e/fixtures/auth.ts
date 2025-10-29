@@ -96,7 +96,7 @@ export const test = base.extend<AuthFixtures>({
    * 通用認證 Page（使用 ProjectManager）
    */
   authenticatedPage: async ({ page }, use) => {
-    await login(page, 'test-manager@example.com', 'testpassword123');
+    await login(page, 'pm@itpm.local', 'pm123');
     await use(page);
   },
 
@@ -106,7 +106,7 @@ export const test = base.extend<AuthFixtures>({
   managerPage: async ({ browser }, use) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    await login(page, 'test-manager@example.com', 'testpassword123');
+    await login(page, 'pm@itpm.local', 'pm123');
     await use(page);
     await context.close();
   },
@@ -117,7 +117,7 @@ export const test = base.extend<AuthFixtures>({
   supervisorPage: async ({ browser }, use) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    await login(page, 'test-supervisor@example.com', 'testpassword123');
+    await login(page, 'supervisor@itpm.local', 'supervisor123');
     await use(page);
     await context.close();
   },

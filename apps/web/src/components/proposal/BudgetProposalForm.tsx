@@ -121,6 +121,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
         <input
           type="text"
           id="title"
+          name="title"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -138,6 +139,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
         <input
           type="number"
           id="amount"
+          name="amount"
           value={formData.amount}
           onChange={(e) =>
             setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
@@ -158,6 +160,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
           </label>
           <select
             id="projectId"
+            name="projectId"
             value={formData.projectId}
             onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"

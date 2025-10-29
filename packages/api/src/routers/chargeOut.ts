@@ -862,7 +862,7 @@ export const chargeOutRouter = createTRPCRouter({
           budgetCategory: {
             select: {
               id: true,
-              name: true,
+              categoryName: true,
             },
           },
           items: {

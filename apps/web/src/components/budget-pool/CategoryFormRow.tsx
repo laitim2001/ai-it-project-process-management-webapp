@@ -93,6 +93,7 @@ export function CategoryFormRow({
         </Label>
         <Input
           id={`categoryName-${index}`}
+          name={`categories.${index}.categoryName`}
           type="text"
           value={category.categoryName || ''}
           onChange={(e) => handleChange('categoryName', e.target.value)}
@@ -111,6 +112,7 @@ export function CategoryFormRow({
         </Label>
         <Input
           id={`categoryCode-${index}`}
+          name={`categories.${index}.categoryCode`}
           type="text"
           value={category.categoryCode || ''}
           onChange={(e) => handleChange('categoryCode', e.target.value)}
@@ -125,6 +127,7 @@ export function CategoryFormRow({
         </Label>
         <Input
           id={`totalAmount-${index}`}
+          name={`categories.${index}.totalAmount`}
           type="number"
           value={category.totalAmount ?? 0}
           onChange={(e) =>

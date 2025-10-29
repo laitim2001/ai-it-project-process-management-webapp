@@ -14,10 +14,8 @@ import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 
 // 使用 Edge-compatible 配置初始化 NextAuth
-// 這樣可以避免 Prisma 被打包到 middleware 中
-const { auth } = NextAuth(authConfig);
-
-export default auth;
+// 直接導出 auth middleware（不解構）
+export default NextAuth(authConfig).auth;
 
 /**
  * 配置需要保護的路徑

@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@/lib/trpc';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -440,6 +440,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                             <td className="p-2 text-sm">{index + 1}</td>
                             <td className="p-2">
                               <select
+                                name={`items[${index}].expenseId`}
                                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                                 value={item.expenseId}
                                 onChange={(e) =>
@@ -461,6 +462,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                             </td>
                             <td className="p-2">
                               <Input
+                                name={`items[${index}].amount`}
                                 type="number"
                                 min={0}
                                 step={0.01}
@@ -477,6 +479,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                             </td>
                             <td className="p-2">
                               <Input
+                                name={`items[${index}].description`}
                                 value={item.description || ''}
                                 onChange={(e) =>
                                   handleUpdateItem(index, 'description', e.target.value)

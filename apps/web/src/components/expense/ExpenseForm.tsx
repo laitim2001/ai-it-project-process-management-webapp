@@ -617,6 +617,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove }: ExpenseItemForm
       <div className="col-span-4">
         <Label>費用項目名稱 <span className="text-destructive">*</span></Label>
         <Input
+          name={`items[${index}].itemName`}
           value={item.itemName}
           onChange={(e) => onUpdate(index, 'itemName', e.target.value)}
           placeholder="如: 伺服器維護費"
@@ -627,6 +628,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove }: ExpenseItemForm
       <div className="col-span-3">
         <Label>金額 <span className="text-destructive">*</span></Label>
         <Input
+          name={`items[${index}].amount`}
           type="number"
           step="0.01"
           value={item.amount}
@@ -639,6 +641,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove }: ExpenseItemForm
       <div className="col-span-4">
         <Label>類別（可選）</Label>
         <select
+          name={`items[${index}].category`}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           value={item.category || ''}
           onChange={(e) => onUpdate(index, 'category', e.target.value)}
@@ -663,6 +666,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove }: ExpenseItemForm
       <div className="col-span-12">
         <Label>描述（可選）</Label>
         <Textarea
+          name={`items[${index}].description`}
           value={item.description || ''}
           onChange={(e) => onUpdate(index, 'description', e.target.value)}
           placeholder="費用項目描述..."

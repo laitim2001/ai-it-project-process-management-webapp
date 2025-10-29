@@ -1,16 +1,15 @@
 /**
  * This file contains the tRPC initialization and context creation
+ *
+ * NOTE: With NextAuth v5, session management is now handled in the route handler
+ * (apps/web/src/app/api/trpc/[trpc]/route.ts), which calls auth() and passes the
+ * session to createInnerTRPCContext().
  */
 import { initTRPC, TRPCError } from '@trpc/server';
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
-import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
-import { cookies } from 'next/headers';
 
 import { prisma } from '@itpm/db';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@itpm/auth';
 import type { Session } from 'next-auth';
 
 /**
@@ -43,35 +42,21 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
 };
 
 /**
- * This is the actual context you will use in your router for Pages Router API routes.
- * It will be used to process every request that goes through your tRPC endpoint.
+ * NOTE (NextAuth v5 Migration):
  *
- * @see https://trpc.io/docs/context
+ * The old createTRPCContext and createTRPCContextFetch functions have been removed.
+ * They used NextAuth v4 API (getServerSession) which is deprecated.
+ *
+ * In NextAuth v5, session management is handled in the App Router route handler:
+ * - apps/web/src/app/api/trpc/[trpc]/route.ts calls auth() from NextAuth v5
+ * - It passes the session to createInnerTRPCContext()
+ *
+ * For Pages Router (if needed), create context in the Pages API route similarly.
  */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
 
-  // Get the session from NextAuth.js
-  const session = await getServerSession(req, res, authOptions);
-
-  return createInnerTRPCContext({
-    session,
-  });
-};
-
-/**
- * Context creation for App Router (fetch adapter)
- * This is used in the App Router API routes
- */
-export const createTRPCContextFetch = async (opts: FetchCreateContextFnOptions) => {
-  // Get the session from NextAuth.js using cookies
-  // In App Router, we can use the getServerSession with the request headers
-  const session = await getServerSession(authOptions);
-
-  return createInnerTRPCContext({
-    session,
-  });
-};
+// Removed: createTRPCContext (Pages Router) - used NextAuth v4 API
+// Removed: createTRPCContextFetch (App Router) - used NextAuth v4 API
+// Use createInnerTRPCContext() directly from route handlers with NextAuth v5
 
 /**
  * 2. INITIALIZATION

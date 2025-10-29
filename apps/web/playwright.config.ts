@@ -76,7 +76,7 @@ export default defineConfig({
       ? 'set PORT=3006&& set NEXTAUTH_URL=http://localhost:3006&& set NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA=&& set NEXT_PUBLIC_APP_URL=http://localhost:3006&& pnpm dev'
       : 'PORT=3006 NEXTAUTH_URL=http://localhost:3006 NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA= NEXT_PUBLIC_APP_URL=http://localhost:3006 pnpm dev',
     url: 'http://localhost:3006',
-    reuseExistingServer: false, // 不復用現有服務器，確保使用最新配置
+    reuseExistingServer: true, // 復用現有服務器（開發時使用）
     timeout: 120 * 1000, // 2 分鐘啟動超時
     // 環境變數（確保測試服務器使用正確的配置）
     env: {

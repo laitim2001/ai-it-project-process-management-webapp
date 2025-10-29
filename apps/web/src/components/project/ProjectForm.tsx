@@ -172,6 +172,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         <input
           type="text"
           id="name"
+          name="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -188,6 +189,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         </label>
         <textarea
           id="description"
+          name="description"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
@@ -202,6 +204,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         </label>
         <select
           id="budgetPoolId"
+          name="budgetPoolId"
           value={formData.budgetPoolId}
           onChange={(e) => setFormData({ ...formData, budgetPoolId: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -226,6 +229,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           </label>
           <select
             id="budgetCategoryId"
+            name="budgetCategoryId"
             value={formData.budgetCategoryId}
             onChange={(e) => setFormData({ ...formData, budgetCategoryId: e.target.value })}
             disabled={!formData.budgetPoolId}
@@ -253,6 +257,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           <input
             type="number"
             id="requestedBudget"
+            name="requestedBudget"
             value={formData.requestedBudget}
             onChange={(e) =>
               setFormData({ ...formData, requestedBudget: parseFloat(e.target.value) || 0 })
@@ -275,6 +280,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           </label>
           <select
             id="managerId"
+            name="managerId"
             value={formData.managerId}
             onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -297,6 +303,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           </label>
           <select
             id="supervisorId"
+            name="supervisorId"
             value={formData.supervisorId}
             onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -322,6 +329,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           <input
             type="date"
             id="startDate"
+            name="startDate"
             value={formData.startDate}
             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -338,6 +346,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           <input
             type="date"
             id="endDate"
+            name="endDate"
             value={formData.endDate}
             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
