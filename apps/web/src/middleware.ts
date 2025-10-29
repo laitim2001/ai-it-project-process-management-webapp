@@ -1,11 +1,23 @@
 /**
- * Next.js Middleware - 認證保護
+ * Next.js Middleware - 認證保護 (NextAuth v5)
  *
  * 此中間件保護需要認證的路由
  * 未登入的用戶將被重定向到登入頁面
+ *
+ * 重要：
+ * - 此文件只 import auth.config.ts（Edge-compatible）
+ * - 不 import auth.ts（包含 Prisma，無法在 Edge Runtime 運行）
+ * - 使用 NextAuth(authConfig) 來初始化，不是 import { auth }
  */
 
-export { default } from 'next-auth/middleware';
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
+
+// 使用 Edge-compatible 配置初始化 NextAuth
+// 這樣可以避免 Prisma 被打包到 middleware 中
+const { auth } = NextAuth(authConfig);
+
+export default auth;
 
 /**
  * 配置需要保護的路徑
@@ -14,6 +26,10 @@ export { default } from 'next-auth/middleware';
  * - 字串路徑: '/dashboard'
  * - 萬用字元: '/dashboard/:path*'
  * - 正則表達式: '/((?!api|_next/static|_next/image|favicon.ico).*)'
+ *
+ * 注意：
+ * - 不再需要 runtime: 'nodejs'，因為使用 Edge-compatible 配置
+ * - 路由保護邏輯在 auth.config.ts 的 authorized callback 中定義
  */
 export const config = {
   matcher: [

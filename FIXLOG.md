@@ -10,6 +10,7 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2025-10-29 | 🔐 認證/架構 | ✅ 已解決 | [FIX-009: NextAuth v5 升級與 Middleware Edge Runtime 兼容性修復](#fix-009-nextauth-v5-升級與-middleware-edge-runtime-兼容性修復) |
 | 2025-10-27 | 🎨 前端/表單 | ✅ 已解決 | [FIX-008: PurchaseOrderForm 選擇欄位修復](#fix-008-purchaseorderform-選擇欄位修復) |
 | 2025-10-27 | 🎨 前端/表單 | ✅ 已解決 | [FIX-007: ExpenseForm 選擇欄位修復](#fix-007-expenseform-選擇欄位修復) |
 | 2025-10-27 | 🔌 API/前端整合 | ✅ 已解決 | [FIX-006: Toast 系統不一致與 Expense API Schema 同步問題](#fix-006-toast-系統不一致與-expense-api-schema-同步問題) |
@@ -29,7 +30,8 @@
 - **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008
 - **表單問題**: FIX-007, FIX-008 (Shadcn Select DOM Nesting)
 - **配置問題**:
-- **認證問題**:
+- **認證問題**: FIX-009 (NextAuth v5 升級)
+- **架構問題**: FIX-009 (Edge Runtime 兼容性)
 - **API問題**: FIX-006
 - **資料庫問題**:
 - **測試問題**:
@@ -46,6 +48,84 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-009: NextAuth v5 升級與 Middleware Edge Runtime 兼容性修復
+
+**日期**: 2025-10-29
+**狀態**: ✅ 已解決
+**問題級別**: 🔴 Critical
+**影響範圍**: 認證系統、Middleware、E2E 測試
+**修復文檔**: `claudedocs/FIX-009-NEXTAUTH-V5-UPGRADE-COMPLETE.md`
+
+### 問題描述
+
+**症狀**:
+```
+⨯ Error [SyntaxError]: Invalid or unexpected token
+   at .next/server/src/middleware.js:19
+
+編譯後代碼:
+module.exports = @itpm/db;  // 無效語法
+```
+
+**根本原因**:
+1. `middleware.ts` 導入 `auth.ts`
+2. `auth.ts` 導入 `prisma` from `@itpm/db`
+3. **Next.js middleware 運行在 Edge Runtime，無法執行 Prisma Client**
+4. Webpack externals 配置無法解決（生成無效語法）
+
+### 解決方案
+
+**採用 Auth.js v5 官方三檔案架構**:
+
+1. **創建 `auth.config.ts`** (Edge 兼容配置):
+   - 不包含 Prisma 依賴
+   - 明確聲明 `providers: []`（必須）
+   - 包含 `pages`, `session`, `callbacks.authorized`
+
+2. **修改 `auth.ts`** (完整配置):
+   - 繼承 `baseAuthConfig` 配置
+   - 添加完整 Providers (可使用 Prisma)
+   - 合併 callbacks
+
+3. **重寫 `middleware.ts`**:
+   ```typescript
+   import NextAuth from 'next-auth';
+   import { authConfig } from './auth.config';
+   const { auth } = NextAuth(authConfig);
+   export default auth;
+   ```
+
+### 變更檔案
+
+| 檔案 | 操作 | 行數 | 說明 |
+|------|------|------|------|
+| `apps/web/src/auth.config.ts` | 新增 | 96 | Edge 兼容配置 |
+| `apps/web/src/auth.ts` | 修改 | ~30 | 添加配置繼承 |
+| `apps/web/src/middleware.ts` | 重寫 | 64 | 改用 Edge 配置 |
+
+### 測試結果
+
+**最終測試** (2025-10-29):
+- ✅ 認證功能: 100% 正常 (14/14 登入成功)
+- ✅ 基本測試: 100% 通過 (7/7)
+- ✅ Middleware 編譯: 無錯誤
+- ⚠️ 工作流測試: 0/7 (tRPC API 500 錯誤 - 非 NextAuth 問題)
+
+### 預防措施
+
+1. **架構原則**: Middleware 只用於輕量級路由保護
+2. **Edge Runtime 限制**: 不可使用 Node.js 原生模組（Prisma、fs、path等）
+3. **配置分離**: 分離 Edge 兼容和 Node.js 專屬配置
+4. **官方模式**: 遵循 Auth.js v5 官方推薦架構
+
+### 相關資源
+
+- **官方文檔**: https://authjs.dev/getting-started/migrating-to-v5
+- **Prisma Issue**: #23710 (Edge Runtime 兼容性)
+- **詳細報告**: `claudedocs/FIX-009-NEXTAUTH-V5-UPGRADE-COMPLETE.md`
+
+---
 
 ## FIX-008: PurchaseOrderForm 選擇欄位修復
 

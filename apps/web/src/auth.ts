@@ -1,7 +1,13 @@
 /**
- * NextAuth.js v5 認證配置
+ * Auth.js v5 完整配置文件（包含 Prisma）
  *
- * 提供簡化版的本地憑證認證，可輕鬆升級到 Azure AD B2C
+ * 此文件合併 auth.config.ts 的 Edge-compatible 配置
+ * 並添加完整的 Providers 和 Prisma 訪問
+ *
+ * 文件結構：
+ * - auth.config.ts: Edge-compatible 基本配置（用於 middleware）
+ * - auth.ts: 完整配置 + Providers + Prisma（用於 API routes）
+ * - middleware.ts: 使用 NextAuth(authConfig)（避免 Prisma）
  *
  * @module apps/web/src/auth
  */
@@ -12,6 +18,7 @@ import Credentials from 'next-auth/providers/credentials';
 import AzureADB2C from 'next-auth/providers/azure-ad-b2c';
 import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
+import { authConfig as baseAuthConfig } from './auth.config';
 
 console.log('🚀 NextAuth v5 配置文件正在載入...');
 
@@ -57,16 +64,15 @@ declare module '@auth/core/jwt' {
 }
 
 /**
- * NextAuth.js v5 配置選項
+ * NextAuth.js v5 完整配置選項
+ *
+ * 合併 auth.config.ts 的基本配置 + 完整的 Providers + Prisma
  */
 export const authConfig: NextAuthConfig = {
-  // 會話策略：使用 JWT（NextAuth v5 預設）
-  session: {
-    strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 小時
-  },
+  // 繼承基本配置
+  ...baseAuthConfig,
 
-  // 認證提供者
+  // 認證提供者（包含 Prisma 訪問）
   providers: [
     // Azure AD B2C Provider (Epic 1 - Story 1.3)
     ...(process.env.AUTH_AZURE_AD_B2C_ID && process.env.AUTH_AZURE_AD_B2C_SECRET
@@ -152,8 +158,12 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
 
-  // JWT 回調：將用戶信息添加到 JWT
+  // 合併 callbacks（繼承 authorized + 添加 jwt, session）
   callbacks: {
+    // 繼承 Edge-compatible 的 authorized callback
+    ...(baseAuthConfig.callbacks || {}),
+
+    // 完整的 JWT callback（包含 Prisma 訪問）
     async jwt({ token, user, account }) {
       console.log('🔐 JWT callback 執行', { hasUser: !!user, hasAccount: !!account, provider: account?.provider });
 
@@ -221,13 +231,7 @@ export const authConfig: NextAuthConfig = {
     },
   },
 
-  // 自定義頁面路由
-  pages: {
-    signIn: '/login',
-  },
-
-  // 調試模式（僅在開發環境）
-  debug: process.env.NODE_ENV === 'development',
+  // pages 和 debug 已從 baseAuthConfig 繼承，無需重複定義
 };
 
 // 導出 NextAuth v5 handlers 和 auth 函數
