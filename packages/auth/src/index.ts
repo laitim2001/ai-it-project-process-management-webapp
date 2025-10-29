@@ -6,6 +6,8 @@
  * @module packages/auth
  */
 
+console.log('🚀 NextAuth 配置文件正在載入...');
+
 import type { NextAuthOptions, User as NextAuthUser } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -106,6 +108,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        // 最優先的日誌 - 確認函數被調用
+        console.log('=' + '='.repeat(60));
+        console.log('🔐🔐🔐 AUTHORIZE 函數被調用！！！');
+        console.log('📥 Received credentials:', JSON.stringify(credentials, null, 2));
+        console.log('=' + '='.repeat(60));
+
         console.log('🔐 Authorize 函數執行', { email: credentials?.email });
 
         if (!credentials?.email || !credentials?.password) {

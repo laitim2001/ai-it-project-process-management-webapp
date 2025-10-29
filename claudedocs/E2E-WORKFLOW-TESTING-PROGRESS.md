@@ -56,45 +56,76 @@
 
 ---
 
-### 🔄 Stage 2: 测试配置整合 (70% 完成 - 阻塞中)
+### 🔄 Stage 2: 测试配置整合 (70% 完成 - 深度診斷中)
 
-**预计时间**: 1-2 天
-**优先级**: 🔴 HIGH (因阻塞問題提升)
-**当前状态**: ⚠️ 配置完成但認證重定向失敗
+**预计时间**: 1-2 天 → **實際**: 2+ 天（因複雜認證問題）
+**优先级**: 🔴 CRITICAL (認證是測試的前置條件)
+**当前状态**: ⚠️ 認證問題深度診斷完成，根本原因已識別
 
 **已完成的工作**:
 
 1. **✅ Playwright 配置更新** (完成)
    - ✅ 更新 baseURL 为 3006
-   - ✅ 设置 `reuseExistingServer: true`
+   - ✅ 設置 `reuseExistingServer: false` (確保使用最新配置)
    - ✅ 添加环境变量支持 (BASE_URL)
    - ✅ 配置 webServer 環境變數注入
 
 2. **✅ 環境配置修復** (完成)
-   - ✅ 修復 `.env` 文件 (NEXTAUTH_URL: 3001 → 3006)
-   - ✅ 創建 `.env.test` 統一測試環境配置
-   - ✅ 清理 20+ 個舊的測試進程
+   - ✅ 修復 `.env` 文件：`NEXTAUTH_URL: 3000 → 3006` (匹配測試端口)
+   - ✅ 清理 Next.js `.next` 緩存目錄
+   - ✅ 驗證所有環境變數正確設置
+   - ✅ 確認開發服務器使用新配置
 
-3. **❌ 當前阻塞問題** (未解決)
-   - ❌ 認證重定向失敗 - 登入成功但無法跳轉到 dashboard
-   - ❌ 服務器日誌中沒有認證流程記錄
-   - ❌ 可能是 Next.js .next 緩存問題
+3. **✅ 系統性診斷完成** (2025-10-29)
+   - ✅ NextAuth 配置驗證（JWT/session callbacks 正確）
+   - ✅ Middleware 和 Next.js 配置檢查（無衝突）
+   - ✅ 創建手動 API 測試腳本 (`scripts/test-auth-manually.ts`)
+   - ✅ 繞過 signIn() 直接測試 NextAuth endpoints
+   - ✅ 添加大量調試日誌追蹤認證流程
+
+**🔍 根本原因識別** (FIX-009):
+
+**問題**: NextAuth authorize 函數**完全未被調用**
+
+**診斷證據**:
+```
+✅ API 請求成功（200 OK）
+✅ NextAuth 配置文件正確載入
+✅ CSRF token 正確獲取和傳遞
+✅ 所有環境變量正確設置
+❌ authorize 函數從未被觸發（添加了明顯的調試日誌但無輸出）
+❌ JWT callback 和 session callback 也未執行
+❌ 頁面無法重定向到 dashboard
+```
+
+**測試結果**:
+- 手動測試：POST `/api/auth/signin/credentials`
+- 響應：`{"url":"http://localhost:3006/api/auth/signin?csrf=true"}`
+- 服務器端：配置文件重新編譯 4 次，但 authorize 函數零次調用
+
+**可能原因**:
+1. NextAuth 內部路由未將請求導向 credentials provider
+2. Credentials provider 配置方式不正確
+3. Next.js 14 App Router 與 NextAuth 兼容性問題
+4. 缺少特殊的 provider 配置參數
 
 **待完成任務**:
 
-1. **🔴 解決認證重定向問題** (阻塞)
-   - 刪除 `.next` 緩存目錄
-   - 完全重啟開發服務器
-   - 清除瀏覽器 Cookie/Session
-   - 驗證測試通過
+1. **🔴 修復 NextAuth 路由問題** (阻塞 - 最高優先級)
+   - 📚 查閱 NextAuth 文檔中 credentials provider 正確配置
+   - 🧪 測試簡化版本的 credentials provider
+   - 🔍 檢查 Next.js 14 + NextAuth 的已知問題
+   - 🛠️ 可能需要調整 provider 配置或 API 路由結構
 
-2. **⏳ 其他待完成任務**:
+2. **⏳ 其他待完成任務** (優先級較低):
    - ❌ 創建 `scripts/test-data-setup.ts`
-   - ❌ 清理临时文件
-     - `playwright.config.test.ts`
-     - `.env.test.local`
-     - `scripts/test-login-3006.ts`
-     - `scripts/test-nextauth-direct.ts`
+   - ✅ 清理临时文件（部分完成）
+     - ✅ 創建新的診斷工具: `scripts/test-auth-manually.ts`, `scripts/check-test-users.ts`
+     - ❌ 待清理: `playwright.config.test.ts`, `.env.test.local`
+
+**📝 診斷工具**:
+- `scripts/test-auth-manually.ts` (154 行) - 手動 NextAuth API 測試
+- `scripts/check-test-users.ts` (48 行) - 測試用戶驗證（待修復導入）
 
 ---
 

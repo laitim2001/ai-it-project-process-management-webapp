@@ -20,6 +20,79 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-29 09:10 | 調試 | E2E 測試認證問題系統性診斷（FIX-009 進行中）
+
+**類型**: 調試 | **負責人**: AI 助手 | **狀態**: 🔴 問題識別，待修復
+
+**問題描述**:
+E2E 測試中登入流程失敗，頁面停留在 `/login?callbackUrl=...` 無法重定向到 dashboard。測試通過率：2/7 (28.6%)。
+
+**系統性診斷過程**:
+
+1. ✅ **環境配置驗證**
+   - 清理 Next.js .next 緩存目錄
+   - 更新 `.env` 文件：`NEXTAUTH_URL` 從 3000 改為 3006（匹配 E2E 測試端口）
+   - 修改 `playwright.config.ts`：設置 `reuseExistingServer: false` 確保使用最新配置
+
+2. ✅ **NextAuth 配置檢查** (`packages/auth/src/index.ts`)
+   - JWT callback 和 session callback 配置正確
+   - Credentials provider 配置完整
+   - 所有日誌語句已就位
+
+3. ✅ **手動測試腳本創建** (`scripts/test-auth-manually.ts`)
+   - 繞過 `signIn()` 函數，直接測試 NextAuth API endpoints
+   - 測試步驟：獲取 CSRF token → POST 到 `/api/auth/signin/credentials`
+   - 結果：API 返回 200 成功，但 authorize 函數**完全未被調用**
+
+4. ✅ **Middleware 和 Next.js 配置檢查**
+   - `apps/web/src/middleware.ts`：配置正常
+   - `apps/web/next.config.mjs`：無問題
+   - 無 CORS 相關配置衝突
+
+**🔍 關鍵發現**:
+
+```
+症狀彙總：
+✅ API 請求成功（200 OK）
+✅ NextAuth 配置文件被正確載入（服務器日誌顯示 "🚀 NextAuth 配置文件正在載入..."）
+✅ CSRF token 正確獲取和傳遞
+✅ 所有環境變量設置正確（NEXTAUTH_URL, NEXTAUTH_SECRET, DATABASE_URL）
+❌ **authorize 函數從未被觸發**（即使添加了明顯的調試日誌）
+❌ JWT callback 和 session callback 也未執行
+❌ 頁面無法重定向到 dashboard
+
+測試證據：
+- 手動測試腳本請求：POST /api/auth/signin/credentials
+- 響應：{"url":"http://localhost:3006/api/auth/signin?csrf=true"}
+- 服務器端完全沒有任何 authorize 日誌輸出
+- 配置文件被重新編譯 4 次，但 authorize 函數零次調用
+```
+
+**🎯 問題定位**:
+NextAuth **未將請求路由到 credentials provider 的 authorize 函數**。這可能是：
+1. NextAuth 內部路由問題
+2. Provider 配置方式問題
+3. Next.js 14 App Router 與 NextAuth 的兼容性問題
+4. Credentials provider 的特殊配置需求
+
+**📝 已創建的診斷工具**:
+- `scripts/test-auth-manually.ts`: 手動 API 測試腳本
+- `scripts/check-test-users.ts`: 測試用戶驗證腳本（待修復導入問題）
+
+**⏭️ 下一步行動**:
+1. 檢查 NextAuth 文檔中 credentials provider 的正確配置方式
+2. 驗證是否需要額外的 provider 配置（例如 `type` 參數）
+3. 測試簡化版本的 credentials provider 配置
+4. 考慮檢查 Next.js 14 + NextAuth.js 的已知問題
+
+**相關文件**:
+- `.env` - NEXTAUTH_URL 更新
+- `apps/web/playwright.config.ts` - reuseExistingServer: false
+- `packages/auth/src/index.ts` - NextAuth 配置（添加調試日誌）
+- `scripts/test-auth-manually.ts` - 新增診斷工具
+
+---
+
 ### 2025-10-28 08:00 | 調試 + 配置 | E2E 測試登入流程深入調試
 
 **類型**: 調試 + 配置 | **負責人**: AI 助手
