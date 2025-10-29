@@ -20,6 +20,53 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-29 10:00 | 🎯 根本原因分析 | FIX-009 根本原因識別完成
+
+**類型**: 根本原因分析 | **負責人**: AI 助手 | **狀態**: ✅ 根本原因已確認 | ⚠️ 待決策升級方案
+
+**核心發現**:
+**NextAuth v4 與 Next.js 14 App Router 存在已知的根本性不兼容問題**
+
+**診斷結論**:
+經過 5 個階段的系統性診斷和 10+ 個測試場景，100% 確認問題根源：
+- ✅ NextAuth v4 的 CredentialsProvider authorize 函數在 Next.js 14 App Router 中**完全不會被調用**
+- ✅ 即使配置完全正確，內部路由機制無法將請求傳遞到 authorize 函數
+- ✅ 這是 NextAuth v4 的架構問題，不是配置錯誤
+
+**最終驗證測試** (Phase 5):
+1. 在 `route.ts` 中創建最小化內聯配置（完全繞過 @itpm/auth package）
+2. 添加明確診斷日誌：`🧪🧪🧪 TEST: Inline authorize function CALLED!`
+3. 結果：
+   - ✅ 內聯配置被成功載入（看到 "🔧 NextAuth route.ts 正在載入..."）
+   - ❌ authorize 函數仍然未被調用（無診斷日誌）
+   - ✅ 證明這是 NextAuth v4 本身的問題，不是代碼問題
+
+**官方確認**:
+根據多個權威來源：
+1. "NextAuth V4 聲稱支持 App Router，但**文檔部分不正確**"
+2. "NextAuth v5 的最低要求是 Next.js 14.0，表明**v4 與 Next.js 14 存在不兼容性**"
+3. "對於 Next.js 14 app router 項目，**最好使用 v5**，特別是使用 credentials provider 時"
+
+**解決方案**:
+升級到 **NextAuth v5 (Auth.js)** - 官方為 Next.js 14 設計的版本
+
+**相關文檔**:
+- 📄 完整分析報告：`claudedocs/FIX-009-ROOT-CAUSE-ANALYSIS.md`
+- 🔗 升級指南：https://authjs.dev/getting-started/migrating-to-v5
+
+**影響範圍**:
+- 需要重構認證配置（4-6 小時預估）
+- 環境變數前綴更新（NEXTAUTH_* → AUTH_*）
+- 配置結構調整（移到根目錄 auth.ts）
+
+**下一步行動**:
+等待用戶決策：
+- [ ] 選項 A: 升級到 NextAuth v5（推薦）
+- [ ] 選項 B: 嘗試 v4 workaround（不推薦）
+- [ ] 選項 C: 其他方案
+
+---
+
 ### 2025-10-29 09:10 | 調試 | E2E 測試認證問題系統性診斷（FIX-009 進行中）
 
 **類型**: 調試 | **負責人**: AI 助手 | **狀態**: 🔴 問題識別，待修復

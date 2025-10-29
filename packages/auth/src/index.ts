@@ -100,20 +100,14 @@ export const authOptions: NextAuthOptions = {
       : []),
 
     // Credentials Provider (本地開發與測試)
+    // 注意：不設置 id，使用默認值 'credentials'
     CredentialsProvider({
-      id: 'credentials',
-      name: 'Email and Password',
+      name: 'Credentials',
       credentials: {
         email: { label: 'Email', type: 'email', placeholder: 'user@example.com' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
-        // 最優先的日誌 - 確認函數被調用
-        console.log('=' + '='.repeat(60));
-        console.log('🔐🔐🔐 AUTHORIZE 函數被調用！！！');
-        console.log('📥 Received credentials:', JSON.stringify(credentials, null, 2));
-        console.log('=' + '='.repeat(60));
-
+      async authorize(credentials, req) {
         console.log('🔐 Authorize 函數執行', { email: credentials?.email });
 
         if (!credentials?.email || !credentials?.password) {
