@@ -7,7 +7,7 @@
  * @see https://authjs.dev/reference/nextjs
  */
 
-import { handlers } from '../../../auth';
+import { handlers } from '../../../../auth';
 
 /**
  * NextAuth v5 Handler
