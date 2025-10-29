@@ -20,6 +20,71 @@
 
 ## 🚀 開發記錄
 
+### 2025-10-29 18:30 | 🔧 修復 | NextAuth v5 升級繼續 - 修正導入路徑和環境配置
+
+**類型**: 修復 | **負責人**: AI 助手 | **狀態**: ✅ 路徑修正完成 | ⚠️ CSRF 錯誤待解決
+
+**主要工作**:
+1. ✅ **修正 route.ts 導入路徑錯誤**
+   - 錯誤：Module not found: Can't resolve '../../../auth'
+   - 修正：將導入路徑從 `../../../auth` 改為 `../../../../auth`
+   - 原因：route.ts 位於 `src/app/api/auth/[...nextauth]/`，需要 4 層向上到達 `src/auth.ts`
+
+2. ✅ **解決 NextRequest Constructor TypeError**
+   - 錯誤：`TypeError: next_dist_server_web_exports_next_request__WEBPACK_IMPORTED_MODULE_0__ is not a constructor`
+   - 解決方案：移除 `.env` 文件中的 `AUTH_URL` 環境變數
+   - 根本原因：NextAuth v5.0.0-beta.30 與 Next.js 14.1.0 的兼容性問題（GitHub Issue #9922）
+   - 結果：API 端點成功返回 200，CSRF endpoint 正常工作
+
+3. ✅ **成功啟動 NextAuth v5 服務器**
+   - 服務器編譯成功，無 TypeScript 錯誤
+   - CSRF token 可以正常獲取：`curl http://localhost:3006/api/auth/csrf`
+   - NextAuth v5 配置文件被正確載入
+
+4. ⚠️ **新問題發現：MissingCSRF 錯誤**
+   - 問題：使用測試腳本登入時出現 "MissingCSRF: CSRF token was missing during an action signin"
+   - 影響：authorize 函數從未被調用（無 "🔐 Authorize 函數執行" 日誌）
+   - 狀態：待調查和解決
+
+**技術細節**:
+- NextAuth v5 API route handler 路徑計算：
+  - 文件位置：`apps/web/src/app/api/auth/[...nextauth]/route.ts`
+  - 目標文件：`apps/web/src/auth.ts`
+  - 路徑層級：`[...nextauth]/ → auth/ → api/ → app/ → src/ → auth.ts` = 4 層向上
+
+- AUTH_URL 環境變數問題：
+  - NextAuth v5 beta.30 在設置 AUTH_URL 時嘗試使用 NextRequest 構造函數
+  - Next.js 14.1.0 的導出方式與此不兼容
+  - 本地開發環境不需要 AUTH_URL（自動檢測）
+
+**相關文件**:
+- `apps/web/src/app/api/auth/[...nextauth]/route.ts` - 路徑修正
+- `apps/web/.env` - 移除 AUTH_URL
+- `claudedocs/FIX-009-V5-UPGRADE-PROGRESS.md` - 進度記錄（新增）
+- `scripts/test-auth-manually.ts` - 測試腳本
+
+**Git 提交**:
+- Commit: `e225d47` - "fix(auth): 修正 NextAuth v5 導入路徑並解決 constructor 錯誤"
+- 推送到：GitHub main branch
+
+**進度評估**:
+- NextAuth v5 升級：85% 完成
+- 已完成：套件升級、配置遷移、API 啟動、環境配置
+- 待完成：解決 MissingCSRF 錯誤、驗證完整認證流程、更新 E2E 測試
+
+**下一步行動**:
+1. 研究 NextAuth v5 的 CSRF 驗證機制
+2. 測試瀏覽器直接登入流程（繞過測試腳本）
+3. 檢查是否需要調整 CSRF token 傳遞方式（Cookie vs Body）
+4. 驗證 authorize 函數被調用
+5. 更新 E2E 測試 fixtures
+
+**參考資源**:
+- GitHub Issue: nextauthjs/next-auth#9922
+- NextAuth v5 Migration Guide: https://authjs.dev/getting-started/migrating-to-v5
+
+---
+
 ### 2025-10-29 10:00 | 🎯 根本原因分析 | FIX-009 根本原因識別完成
 
 **類型**: 根本原因分析 | **負責人**: AI 助手 | **狀態**: ✅ 根本原因已確認 | ⚠️ 待決策升級方案
