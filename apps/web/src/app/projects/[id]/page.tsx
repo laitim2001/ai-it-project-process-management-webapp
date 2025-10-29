@@ -511,7 +511,7 @@ export default function ProjectDetailPage() {
                   {budgetUsage.budgetCategory && (
                     <div className="pb-3 border-b border-border">
                       <dt className="text-sm font-medium text-muted-foreground mb-1">預算類別</dt>
-                      <dd className="text-foreground font-medium">{budgetUsage.budgetCategory.name}</dd>
+                      <dd className="text-foreground font-medium">{budgetUsage.budgetCategory.categoryName}</dd>
                     </div>
                   )}
 

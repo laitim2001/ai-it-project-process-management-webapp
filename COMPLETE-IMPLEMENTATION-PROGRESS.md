@@ -19,8 +19,8 @@
 | **UI 組件** | 46 個 (26 設計系統 + 20 業務) | ✅ |
 | **API 路由器** | 10 個 | ✅ |
 | **資料模型** | 10+ Prisma models | ✅ |
-| **E2E 測試** | 14 個 (7 基本 + 7 工作流) | 🔄 50% 可用 |
-| **修復記錄** | FIX-001 至 FIX-012 | ✅ 12 個修復完成 |
+| **E2E 測試** | 14 個 (7 基本 + 7 工作流) | ⚠️ 0% 可用 (ENV-001 阻塞) |
+| **修復記錄** | FIX-001 至 FIX-013B | ✅ 14 個修復完成 + 1 個環境問題 |
 
 ### 技術棧
 
@@ -280,31 +280,114 @@ budgetCategory: { select: { id: true, categoryName: true } }
 **修復日期**: 2025-10-28
 **完成度**: 100%
 
-### 🔍 FIX-013: Workflow Test Form Rendering 🔍 30%
-**問題**: 所有 7 個工作流測試在第一步失敗（表單未渲染）
+### ✅ FIX-013B: BudgetPoolForm Runtime Error ✅ 100%
+**問題**: BudgetPoolForm 組件中 `showToast` 函數未定義導致運行時錯誤
 
-**錯誤模式**:
+**影響範圍**:
+- `apps/web/src/components/budget-pool/BudgetPoolForm.tsx:158`
+
+**根本原因**:
+- 組件導入了 shadcn/ui 的 `useToast` hook
+- `useToast` 返回 `{ toast }` 函數
+- 代碼錯誤地調用了 `showToast()` 函數（不存在）
+- 導致運行時錯誤，阻止表單渲染
+
+**修復方案**:
 ```typescript
-await managerPage.click('text=新增預算池');  // ← 點擊成功
-await managerPage.waitForSelector('input[name="name"]');  // ← ❌ 超時
-// 表單頁面完全沒有載入
+// 修復前:
+showToast('至少需要保留一個類別', 'error');
+
+// 修復後:
+toast({
+  title: '錯誤',
+  description: '至少需要保留一個類別',
+  variant: 'destructive',
+});
 ```
 
-**可能原因分析**:
-1. **按鈕選擇器不匹配** (30%) - 實際文字可能不同
-2. **路由配置問題** (40%) - `/budget-pools/new` 可能不存在
-3. **權限問題** (20%) - PM 角色可能缺少權限
-4. **測試數據缺失** (10%) - 下拉選項需要預先存在數據
+**驗證結果**:
+- ✅ 代碼修復完成
+- ✅ 符合 shadcn/ui toast API 模式
+- ⏳ 運行驗證 - 等待環境修復 (ENV-001)
 
-**診斷狀態**: ✅ 根本原因已識別（獨立的測試基礎設施問題）
+**預期影響**:
+- 修復表單運行時錯誤
+- 允許 BudgetPoolForm 正常渲染
+- 工作流測試應該能夠找到表單元素
 
-**下一步行動**:
-1. 🔍 使用 Playwright UI mode 檢查按鈕文字
-2. 🔍 驗證路由結構 (`apps/web/src/app/`)
-3. 🔍 檢查 RBAC 權限配置
-4. 🔍 確認測試數據完整性
+**修復日期**: 2025-10-30
+**完成度**: 100% (代碼修復完成)
 
-**當前完成度**: 30% (診斷完成，待修復)
+### ✅ FIX-011C: BudgetCategory Field Name Error (前端層) ✅ 100%
+**問題**: 項目詳情頁使用錯誤的 BudgetCategory 字段名稱
+
+**影響範圍**:
+- `apps/web/src/app/projects/[id]/page.tsx:514`
+
+**根本原因**:
+- 前端代碼使用 `budgetCategory.name`
+- Prisma schema 定義的字段是 `categoryName`
+- 導致 Prisma 查詢失敗
+
+**修復方案**:
+```typescript
+// 修復前:
+{budgetUsage.budgetCategory.name}
+
+// 修復後:
+{budgetUsage.budgetCategory.categoryName}
+```
+
+**驗證方法**:
+```bash
+grep -r "budgetCategory\.name" apps/web/src/
+# 結果：只找到已修復的 line 514
+```
+
+**驗證結果**:
+- ✅ 代碼修復完成
+- ✅ 搜索確認無其他實例
+- ⏳ 運行驗證 - 等待環境修復 (ENV-001)
+
+**修復日期**: 2025-10-30
+**完成度**: 100% (代碼修復完成)
+
+### 🔴 ENV-001: App Router 環境損壞 🔍 已識別
+**問題**: `.next/server/app-paths-manifest.json` 路由映射錯誤導致所有頁面返回 404
+
+**影響範圍**:
+- ❌ 首頁 (/) - 404
+- ❌ 登入頁 (/login) - 404
+- ❌ Dashboard (/dashboard) - 404
+- ❌ 所有其他 App Router 頁面 - 404
+- ❌ 阻塞所有測試運行 (14/14 測試失敗)
+
+**根本原因**:
+```json
+// 實際配置（錯誤）
+{
+  "/page": "app/page.js",           // ❌ 應該是 "/"
+  "/login/page": "app/login/page.js" // ❌ 應該是 "/login"
+}
+
+// 預期配置（正確）
+{
+  "/": "app/page.js",
+  "/login": "app/login/page.js"
+}
+```
+
+**建議解決方案**:
+```bash
+# 需要終止進程（違反用戶約束）
+rm -rf apps/web/.next
+cd apps/web && PORT=3006 pnpm dev
+```
+
+**當前狀態**: 等待用戶批准重啟或提供替代方案
+
+**診斷日期**: 2025-10-30
+**完成度**: 🔍 已識別但未修復（受用戶約束限制）
 
 ---
 

@@ -155,7 +155,11 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
    */
   const handleDeleteCategory = (index: number) => {
     if (categories.length <= 1) {
-      showToast('至少需要保留一個類別', 'error');
+      toast({
+        title: '錯誤',
+        description: '至少需要保留一個類別',
+        variant: 'destructive',
+      });
       return;
     }
     const newCategories = categories.filter((_, i) => i !== index);

@@ -355,9 +355,9 @@ signIn 結果: {ok: true, url: http://localhost:3001/api/auth/signin}
 
 ---
 
-## 📊 FIX-011/FIX-012 完成状态 (2025-10-29 更新)
+## 📊 FIX-011/FIX-012/FIX-013B/FIX-011C 完成状态 (2025-10-30 更新)
 
-### ✅ FIX-011: BudgetCategory Schema Field Mismatch
+### ✅ FIX-011: BudgetCategory Schema Field Mismatch (API層)
 
 **状态**: ✅ 100% 完成并验证
 
@@ -369,6 +369,26 @@ signIn 結果: {ok: true, url: http://localhost:3001/api/auth/signin}
 - ✅ 全面代码搜索确认无遗漏
 - ✅ 无编译错误
 - ✅ 数据库查询正常工作
+
+---
+
+### ✅ FIX-011C: BudgetCategory Field Name Error (前端層)
+
+**状态**: ✅ 100% 代码修复完成（等待环境修复以验证）
+
+**修复内容**:
+- projects/[id]/page.tsx line 514: `budgetCategory.name` → `budgetCategory.categoryName`
+
+**验证方法**:
+```bash
+grep -r "budgetCategory\.name" apps/web/src/
+# 结果：只找到已修复的 line 514
+```
+
+**验证结果**:
+- ✅ 代码修复完成
+- ✅ 搜索确认无其他实例
+- ⏳ 运行验证 - 等待环境修复 (ENV-001)
 
 ---
 
@@ -404,30 +424,127 @@ signIn 結果: {ok: true, url: http://localhost:3001/api/auth/signin}
 
 ---
 
-### 🔍 FIX-013: Workflow Test Form Rendering Issue
+### ✅ FIX-013B: BudgetPoolForm Runtime Error
 
-**状态**: 🔍 30% 完成（根本原因已识别）
+**状态**: ✅ 100% 代码修复完成（等待环境修复以验证）
 
-**问题**: 所有 7 个工作流测试在第一步失败（表单未渲染）
+**问题**: BudgetPoolForm 组件中 `showToast` 函数未定义导致运行时错误
 
-**错误模式**:
+**根本原因**:
+- 组件导入了 shadcn/ui 的 `useToast` hook
+- `useToast` 返回 `{ toast }` 函数
+- 代码错误地调用了 `showToast()` 函数（不存在）
+- 导致运行时错误，阻止表单渲染
+
+**错误位置**: `apps/web/src/components/budget-pool/BudgetPoolForm.tsx:158`
+
+**修复内容**:
+```typescript
+// 修复前:
+showToast('至少需要保留一個類別', 'error');
+
+// 修复后:
+toast({
+  title: '錯誤',
+  description: '至少需要保留一個類別',
+  variant: 'destructive',
+});
+```
+
+**验证结果**:
+- ✅ 代码修复完成
+- ✅ 符合 shadcn/ui toast API 模式
+- ⏳ 运行验证 - 等待环境修复 (ENV-001)
+
+**预期影响**:
+- 修复表单运行时错误
+- 允许 BudgetPoolForm 正常渲染
+- 工作流测试应该能够找到表单元素
+
+---
+
+### 🔍 FIX-013 (原问题): Workflow Test Form Rendering Issue
+
+**状态**: 🔍 已被 FIX-013B 和 ENV-001 取代
+
+**发现**: 原 FIX-013 实际包含两个独立问题:
+1. **FIX-013B**: BudgetPoolForm 代码错误 ✅ 已修复
+2. **ENV-001**: App Router 环境损坏 🔍 已识别
+
+**原错误模式**:
 ```typescript
 await managerPage.click('text=新增预算池');  // ← 点击成功
 await managerPage.waitForSelector('input[name="name"]');  // ← ❌ 超时
 // 表单页面完全没有载入
 ```
 
-**可能原因分析**:
-1. **按钮选择器不匹配** (30%) - 实际文字可能不同
-2. **路由配置问题** (40%) - `/budget-pools/new` 可能不存在
-3. **权限问题** (20%) - PM 角色可能缺少权限
-4. **测试数据缺失** (10%) - 下拉选项需要预先存在数据
+**根本原因已识别**:
+- 不是按钮选择器问题
+- 不是权限问题
+- 不是测试数据问题
+- **是环境问题**: App Router 路由配置损坏 (ENV-001)
 
-**下一步行动**:
-1. 🔍 使用 Playwright UI mode 检查按钮文字
-2. 🔍 验证路由结构 (`apps/web/src/app/`)
-3. 🔍 检查 RBAC 权限配置
-4. 🔍 确认测试数据完整性
+---
+
+### 🔴 ENV-001: App Router 环境损坏 (新发现)
+
+**状态**: 🔍 已识别但未修复（受用户约束限制）
+
+**问题描述**:
+- `.next/server/app-paths-manifest.json` 路由映射错误
+- 所有 App Router 页面无法访问（返回 404）
+- 阻塞所有测试运行
+- 阻塞 FIX-013B 和 FIX-011C 的验证
+
+**影响范围**:
+- ❌ 首页 (/) - 404
+- ❌ 登入页 (/login) - 404
+- ❌ Dashboard (/dashboard) - 404
+- ❌ 所有其他 App Router 页面 - 404
+
+**根本原因**:
+```json
+// 实际配置（错误）
+{
+  "/page": "app/page.js",           // ❌ 应该是 "/"
+  "/login/page": "app/login/page.js" // ❌ 应该是 "/login"
+}
+
+// 预期配置（正确）
+{
+  "/": "app/page.js",
+  "/login": "app/login/page.js"
+}
+```
+
+**建议解决方案**:
+```bash
+# 需要终止进程（违反用户约束）
+rm -rf apps/web/.next
+cd apps/web && PORT=3006 pnpm dev
+```
+
+**当前状态**: 等待用户批准重启或提供替代方案
+
+---
+
+## Playwright 配置优化 (2025-10-30)
+
+### 新建文件: playwright.config.test.ts
+
+**目的**: 避免 EADDRINUSE 端口冲突错误
+
+**配置特点**:
+- ❌ 移除 `webServer` 配置区块
+- ✅ 依赖 `BASE_URL` 环境变量
+- ✅ 避免端口冲突
+- ✅ 测试可成功执行（虽然所有测试因 ENV-001 失败）
+
+**使用方法**:
+```bash
+cd apps/web
+BASE_URL=http://localhost:3006 pnpm exec playwright test --config playwright.config.test.ts
+```
 
 ---
 
@@ -436,12 +553,35 @@ await managerPage.waitForSelector('input[name="name"]');  // ← ❌ 超时
 | 阶段 | 测试数量 | 覆盖率 | 状态 | 最后更新 |
 |------|---------|--------|------|---------|
 | **基本功能** | 7 | ~20% | ✅ 完成 | 2025-10-28 |
-| **工作流** | 7 (新增) | ~40% | ⚠️ 50% 可用 | 2025-10-29 |
+| **工作流** | 7 (新增) | ~40% | ⚠️ 0% 可用 | 2025-10-30 |
 | **错误处理** | 8 (计划) | ~50% | ⏳ 待开始 | TBD |
 | **表单验证** | 6 (计划) | ~55% | ⏳ 待开始 | TBD |
 | **边界条件** | 7 (计划) | ~60% | ⏳ 待开始 | TBD |
 | **完整覆盖** | 40+ (目标) | 80%+ | 🎯 长期 | TBD |
 
-**当前可运行测试**: 7/14 (50%)
-**待修复测试**: 7/14 (50%) - 受 FIX-013 阻塞
+**当前可运行测试**: 0/14 (0%) - 受 ENV-001 阻塞
+**待修复测试**: 14/14 (100%) - 等待环境修复
+
+**注**: 测试覆盖率从 50% 降至 0% 是因为发现环境问题影响所有测试（包括之前通过的 7 个基本测试）
+
+---
+
+## 🔗 修改的文件总结 (2025-10-30)
+
+### 代码修复 (2 个文件)
+
+1. **apps/web/src/components/budget-pool/BudgetPoolForm.tsx**
+   - Line 158: `showToast(...)` → `toast({ title, description, variant })`
+   - 影响: 修复运行时错误
+
+2. **apps/web/src/app/projects/[id]/page.tsx**
+   - Line 514: `budgetCategory.name` → `budgetCategory.categoryName`
+   - 影响: 修复 Prisma 查询错误
+
+### 测试配置 (1 个新文件)
+
+3. **apps/web/playwright.config.test.ts** (新建 - 37 lines)
+   - 无 webServer 配置
+   - 避免 EADDRINUSE 错误
+   - 依赖 BASE_URL 环境变量
 
