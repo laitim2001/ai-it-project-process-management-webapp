@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Building2, FolderOpen, DollarSign, Calendar, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -26,15 +25,17 @@ import { ChargeOutActions } from '@/components/charge-out/ChargeOutActions';
  * 2. 顯示費用明細列表
  * 3. 狀態操作（submit, confirm, reject, markAsPaid, delete）
  * 4. 相關信息（項目、OpCo、確認人）
+ *
+ * Fixed: params is already unwrapped in Client Components (not Promise)
+ * Trigger: Force recompilation after fix
  */
 
-export default function ChargeOutDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
+export default function ChargeOutDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
   // 獲取 ChargeOut 詳情
   const { data: chargeOut, isLoading } = api.chargeOut.getById.useQuery({
-    id: resolvedParams.id,
+    id: params.id,
   });
 
   // 格式化金額

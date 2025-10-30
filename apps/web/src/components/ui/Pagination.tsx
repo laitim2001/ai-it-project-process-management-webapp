@@ -1,9 +1,11 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "./button"
+import { Button } from "./Button"
 
-const Pagination: React.FC<React.ComponentProps<"nav">> = ({
+interface PaginationProps extends Omit<React.ComponentProps<"nav">, 'currentPage' | 'totalPages' | 'onPageChange'> {}
+
+const Pagination: React.FC<PaginationProps> = ({
   className,
   ...props
 }) => (

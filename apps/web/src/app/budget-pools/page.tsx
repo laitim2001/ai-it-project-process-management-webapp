@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Pagination, BudgetPoolListSkeleton, useToast } from '@/components/ui';
+import { PaginationControls, BudgetPoolListSkeleton, useToast } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -318,7 +318,7 @@ export default function BudgetPoolsPage() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}
@@ -398,7 +398,7 @@ export default function BudgetPoolsPage() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}

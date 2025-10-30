@@ -60,13 +60,13 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const { data: supervisors } = api.user.getSupervisors.useQuery();
 
   const createMutation = api.project.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (project) => {
       toast({
         title: '成功',
         description: '專案創建成功！',
         variant: 'success',
       });
-      router.push('/projects');
+      router.push(`/projects/${project.id}`);
       router.refresh();
     },
     onError: (error) => {

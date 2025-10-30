@@ -5,6 +5,7 @@ import {
   generateExpenseData,
   wait,
 } from '../fixtures/test-data';
+import { waitForEntityPersisted, extractIdFromURL, waitForEntityWithFields } from '../helpers/waitForEntity';
 
 /**
  * 採購工作流 E2E 測試
@@ -63,6 +64,9 @@ test.describe('採購工作流', () => {
       // 驗證供應商創建成功
       await expect(managerPage.locator('h1')).toContainText(vendorData.name);
 
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      await waitForEntityPersisted(managerPage, 'vendor', vendorId);
+
       console.log(`✅ 供應商已創建: ${vendorId}`);
     });
 
@@ -98,13 +102,28 @@ test.describe('採購工作流', () => {
       // 提交表單
       await managerPage.click('button[type="submit"]:has-text("創建報價單")');
 
-      // 等待重定向或成功消息
-      await wait(1000);
+      // 等待重定向到詳情頁或列表頁
+      await managerPage.waitForURL(/\/quotes/);
 
-      // 從列表中找到剛創建的報價單
-      await managerPage.goto('/quotes');
-      const firstQuote = managerPage.locator('tr').first();
-      quoteId = await firstQuote.getAttribute('data-quote-id') || 'quote-id';
+      // 提取報價單 ID（假設重定向到詳情頁）
+      const url = managerPage.url();
+      if (url.includes('/quotes/')) {
+        const parts = url.split('/quotes/');
+        if (parts[1] && parts[1] !== '') {
+          quoteId = parts[1];
+        }
+      }
+
+      // 如果無法從 URL 提取，從列表頁查找
+      if (!quoteId || quoteId === '') {
+        const firstQuote = managerPage.locator('tr').first();
+        quoteId = (await firstQuote.getAttribute('data-quote-id')) || 'quote-id';
+      }
+
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      if (quoteId && quoteId !== 'quote-id') {
+        await waitForEntityPersisted(managerPage, 'quote', quoteId);
+      }
 
       console.log(`✅ 報價單已創建: ${quoteId}`);
     });
@@ -155,6 +174,9 @@ test.describe('採購工作流', () => {
       // 驗證採購訂單創建成功
       await expect(managerPage.locator('h1')).toContainText(poData.poNumber);
 
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      await waitForEntityPersisted(managerPage, 'purchaseOrder', purchaseOrderId);
+
       console.log(`✅ 採購訂單已創建: ${purchaseOrderId}`);
     });
 
@@ -203,6 +225,9 @@ test.describe('採購工作流', () => {
       // 驗證狀態為 Draft
       await expect(managerPage.locator('text=草稿')).toBeVisible();
 
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      await waitForEntityPersisted(managerPage, 'expense', expenseId);
+
       console.log(`✅ 費用已記錄: ${expenseId}`);
     });
 
@@ -219,8 +244,10 @@ test.describe('採購工作流', () => {
       // 確認對話框
       await managerPage.click('button:has-text("確認提交")');
 
-      // 等待狀態更新
-      await wait(1000);
+      // 等待狀態更新並驗證（選項 C 修復）
+      await waitForEntityWithFields(managerPage, 'expense', expenseId, {
+        status: 'Submitted'
+      });
       await managerPage.reload();
 
       // 驗證狀態變為 Submitted
@@ -245,8 +272,10 @@ test.describe('採購工作流', () => {
       // 確認對話框
       await supervisorPage.click('button:has-text("確認批准")');
 
-      // 等待狀態更新
-      await wait(1000);
+      // 等待狀態更新並驗證（選項 C 修復）
+      await waitForEntityWithFields(supervisorPage, 'expense', expenseId, {
+        status: 'Approved'
+      });
       await supervisorPage.reload();
 
       // 驗證狀態變為 Approved

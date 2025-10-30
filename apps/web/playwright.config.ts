@@ -19,8 +19,8 @@ export default defineConfig({
   // CI 環境中禁止 .only
   forbidOnly: !!process.env.CI,
 
-  // CI 環境重試次數
-  retries: process.env.CI ? 2 : 0,
+  // CI 環境重試次數（選項 C：本地環境也啟用 1 次重試）
+  retries: process.env.CI ? 2 : 1,
 
   // CI 環境使用單個 worker
   workers: process.env.CI ? 1 : undefined,

@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -23,15 +22,16 @@ import { api } from '@/lib/trpc';
  * - 編輯現有的 ChargeOut 記錄
  * - 僅 Draft 狀態可編輯
  * - 使用 ChargeOutForm 組件
+ *
+ * Fixed: params is already unwrapped in Client Components (not Promise)
  */
 
-export default function EditChargeOutPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
+export default function EditChargeOutPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
   // 獲取 ChargeOut 詳情
   const { data: chargeOut, isLoading } = api.chargeOut.getById.useQuery({
-    id: resolvedParams.id,
+    id: params.id,
   });
 
   // Loading state

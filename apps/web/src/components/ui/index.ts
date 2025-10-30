@@ -1,6 +1,6 @@
 // Base Components (Design System)
-export { Button, buttonVariants } from "./button"
-export type { ButtonProps } from "./button"
+export { Button, buttonVariants } from "./Button"
+export type { ButtonProps } from "./Button"
 
 export { Input } from "./input"
 export type { InputProps } from "./input"

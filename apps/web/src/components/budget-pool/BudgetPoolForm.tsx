@@ -76,13 +76,13 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   // ========== API Mutations ==========
 
   const createMutation = api.budgetPool.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (budgetPool) => {
       toast({
         title: '成功',
         description: '預算池創建成功！',
         variant: 'success',
       });
-      router.push('/budget-pools');
+      router.push(`/budget-pools/${budgetPool.id}`);
       router.refresh();
     },
     onError: (error) => {

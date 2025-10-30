@@ -18,7 +18,7 @@ import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/select';
-import { Pagination, useToast } from '@/components/ui';
+import { PaginationControls, useToast } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -380,7 +380,7 @@ export default function ExpensesPage() {
 
             {/* 分頁 */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}
@@ -450,7 +450,7 @@ export default function ExpensesPage() {
 
             {/* 分頁 */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}

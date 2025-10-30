@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Pagination, useToast } from '@/components/ui';
+import { PaginationControls, useToast } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
@@ -309,7 +309,7 @@ export default function PurchaseOrdersPage() {
 
             {/* 分頁 */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}
@@ -371,7 +371,7 @@ export default function PurchaseOrdersPage() {
 
             {/* 分頁 */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}

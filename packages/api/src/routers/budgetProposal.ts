@@ -160,7 +160,10 @@ export const budgetProposalRouter = createTRPCRouter({
       });
 
       if (!proposal) {
-        throw new Error('找不到該預算提案');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
       }
 
       return proposal;
@@ -180,7 +183,10 @@ export const budgetProposalRouter = createTRPCRouter({
       });
 
       if (!project) {
-        throw new Error('找不到該專案');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案',
+        });
       }
 
       const proposal = await ctx.prisma.budgetProposal.create({
@@ -220,14 +226,20 @@ export const budgetProposalRouter = createTRPCRouter({
       });
 
       if (!existingProposal) {
-        throw new Error('找不到該預算提案');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
       }
 
       if (
         existingProposal.status !== 'Draft' &&
         existingProposal.status !== 'MoreInfoRequired'
       ) {
-        throw new Error('只有草稿或需要更多資訊狀態的提案可以編輯');
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '只有草稿或需要更多資訊狀態的提案可以編輯',
+        });
       }
 
       const proposal = await ctx.prisma.budgetProposal.update({
@@ -263,14 +275,20 @@ export const budgetProposalRouter = createTRPCRouter({
       });
 
       if (!existingProposal) {
-        throw new Error('找不到該預算提案');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
       }
 
       if (
         existingProposal.status !== 'Draft' &&
         existingProposal.status !== 'MoreInfoRequired'
       ) {
-        throw new Error('只有草稿或需要更多資訊狀態的提案可以提交');
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '只有草稿或需要更多資訊狀態的提案可以提交',
+        });
       }
 
       // 使用 transaction 確保資料一致性
@@ -341,11 +359,17 @@ export const budgetProposalRouter = createTRPCRouter({
       });
 
       if (!existingProposal) {
-        throw new Error('找不到該預算提案');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
       }
 
       if (existingProposal.status !== 'PendingApproval') {
-        throw new Error('只有待審批狀態的提案可以進行審批');
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '只有待審批狀態的提案可以進行審批',
+        });
       }
 
       // 使用 transaction 確保資料一致性
@@ -602,11 +626,17 @@ export const budgetProposalRouter = createTRPCRouter({
       });
 
       if (!existingProposal) {
-        throw new Error('找不到該預算提案');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該預算提案',
+        });
       }
 
       if (existingProposal.status !== 'Draft') {
-        throw new Error('只有草稿狀態的提案可以刪除');
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: '只有草稿狀態的提案可以刪除',
+        });
       }
 
       await ctx.prisma.budgetProposal.delete({

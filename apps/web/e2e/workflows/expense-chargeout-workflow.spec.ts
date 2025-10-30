@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/auth';
 import { generateExpenseData, generateChargeOutData, wait } from '../fixtures/test-data';
+import { waitForEntityPersisted, extractIdFromURL, waitForEntityWithFields } from '../helpers/waitForEntity';
 
 /**
  * 費用轉嫁工作流 E2E 測試
@@ -79,6 +80,9 @@ test.describe('費用轉嫁工作流', () => {
       const url = managerPage.url();
       expenseId = url.split('/expenses/')[1];
 
+      // 等待費用持久化
+      await waitForEntityPersisted(managerPage, 'expense', expenseId);
+
       // 驗證費用創建成功
       await expect(managerPage.locator('h1')).toContainText(expenseData.name);
       await expect(managerPage.locator('text=需要轉嫁')).toBeVisible();
@@ -93,8 +97,9 @@ test.describe('費用轉嫁工作流', () => {
       // ProjectManager 提交
       await managerPage.click('button:has-text("提交審核")');
       await managerPage.click('button:has-text("確認提交")');
-      await wait(1000);
-      await managerPage.reload();
+
+      // 等待狀態更新為 PendingApproval
+      await waitForEntityWithFields(managerPage, 'expense', expenseId, { status: 'PendingApproval' });
       await expect(managerPage.locator('text=已提交')).toBeVisible();
 
       console.log(`✅ 費用已提交審核`);
@@ -103,8 +108,9 @@ test.describe('費用轉嫁工作流', () => {
       await supervisorPage.goto(`/expenses/${expenseId}`);
       await supervisorPage.click('button:has-text("批准")');
       await supervisorPage.click('button:has-text("確認批准")');
-      await wait(1000);
-      await supervisorPage.reload();
+
+      // 等待狀態更新為 Approved
+      await waitForEntityWithFields(supervisorPage, 'expense', expenseId, { status: 'Approved' });
       await expect(supervisorPage.locator('text=已批准')).toBeVisible();
 
       console.log(`✅ 費用已批准`);
@@ -177,6 +183,9 @@ test.describe('費用轉嫁工作流', () => {
       const url = managerPage.url();
       chargeOutId = url.split('/charge-outs/')[1];
 
+      // 等待 ChargeOut 持久化
+      await waitForEntityPersisted(managerPage, 'chargeOut', chargeOutId);
+
       // 驗證 ChargeOut 創建成功
       await expect(managerPage.locator('h1')).toContainText('E2E_ChargeOut');
       await expect(managerPage.locator('text=草稿')).toBeVisible();
@@ -203,9 +212,8 @@ test.describe('費用轉嫁工作流', () => {
       // 確認對話框
       await managerPage.click('button:has-text("確認提交")');
 
-      // 等待狀態更新
-      await wait(1000);
-      await managerPage.reload();
+      // 等待狀態更新為 PendingConfirmation
+      await waitForEntityWithFields(managerPage, 'chargeOut', chargeOutId, { status: 'PendingConfirmation' });
 
       // 驗證狀態變為 Submitted
       await expect(managerPage.locator('text=已提交')).toBeVisible();
@@ -236,9 +244,8 @@ test.describe('費用轉嫁工作流', () => {
       // 確認對話框
       await supervisorPage.click('button:has-text("確認"):last-child'); // 使用 last-child 選擇對話框中的確認按鈕
 
-      // 等待狀態更新
-      await wait(1000);
-      await supervisorPage.reload();
+      // 等待狀態更新為 Confirmed
+      await waitForEntityWithFields(supervisorPage, 'chargeOut', chargeOutId, { status: 'Confirmed' });
 
       // 驗證狀態變為 Confirmed
       await expect(supervisorPage.locator('text=已確認')).toBeVisible();
@@ -262,9 +269,8 @@ test.describe('費用轉嫁工作流', () => {
       // 確認對話框
       await managerPage.click('button:has-text("確認標記")');
 
-      // 等待狀態更新
-      await wait(1000);
-      await managerPage.reload();
+      // 等待狀態更新為 Paid
+      await waitForEntityWithFields(managerPage, 'chargeOut', chargeOutId, { status: 'Paid' });
 
       // 驗證狀態變為 Paid
       await expect(managerPage.locator('text=已付款')).toBeVisible();
@@ -322,9 +328,8 @@ test.describe('費用轉嫁工作流', () => {
       // 確認拒絕
       await supervisorPage.click('button:has-text("確認"):last-child');
 
-      // 等待狀態更新
-      await wait(1000);
-      await supervisorPage.reload();
+      // 等待狀態更新為 Rejected
+      await waitForEntityWithFields(supervisorPage, 'chargeOut', chargeOutId, { status: 'Rejected' });
 
       // 驗證狀態變為 Rejected
       await expect(supervisorPage.locator('text=已拒絕')).toBeVisible();

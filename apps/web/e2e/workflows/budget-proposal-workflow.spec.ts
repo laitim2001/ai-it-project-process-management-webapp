@@ -5,6 +5,7 @@ import {
   generateProposalData,
   wait,
 } from '../fixtures/test-data';
+import { waitForEntityPersisted, extractIdFromURL } from '../helpers/waitForEntity';
 
 /**
  * 預算申請工作流 E2E 測試
@@ -72,6 +73,9 @@ test.describe('預算申請工作流', () => {
       await expect(managerPage.locator('h1')).toContainText(budgetPoolData.name);
 
       console.log(`✅ 預算池已創建: ${budgetPoolId}`);
+
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      await waitForEntityPersisted(managerPage, 'budgetPool', budgetPoolId);
     });
 
     // ========================================
@@ -108,7 +112,7 @@ test.describe('預算申請工作流', () => {
       await managerPage.fill('input[name="requestedBudget"]', projectData.requestedBudget);
 
       // 提交表單
-      await managerPage.click('button[type="submit"]:has-text("創建項目")');
+      await managerPage.click('button[type="submit"]:has-text("創建專案")');
 
       // 等待重定向到詳情頁
       await managerPage.waitForURL(/\/projects\/[a-f0-9-]+/);
@@ -121,6 +125,9 @@ test.describe('預算申請工作流', () => {
       await expect(managerPage.locator('h1')).toContainText(projectData.name);
 
       console.log(`✅ 項目已創建: ${projectId}`);
+
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      await waitForEntityPersisted(managerPage, 'project', projectId);
     });
 
     // ========================================
@@ -138,7 +145,7 @@ test.describe('預算申請工作流', () => {
       // 填寫提案基本信息
       await managerPage.fill('input[name="title"]', proposalData.title);
       await managerPage.fill('input[name="amount"]', proposalData.amount);
-      await managerPage.fill('textarea[name="description"]', proposalData.description || '');
+      // 註：description 字段在表單中不存在，API 也不需要
 
       // 選擇項目
       await managerPage.selectOption('select[name="projectId"]', projectId);
@@ -160,6 +167,9 @@ test.describe('預算申請工作流', () => {
       await expect(managerPage.locator('text=草稿')).toBeVisible();
 
       console.log(`✅ 預算提案已創建: ${proposalId}`);
+
+      // 等待實體在數據庫中持久化（選項 C 修復）
+      await waitForEntityPersisted(managerPage, 'budgetProposal', proposalId);
     });
 
     // ========================================
@@ -175,8 +185,10 @@ test.describe('預算申請工作流', () => {
       // 確認對話框
       await managerPage.click('button:has-text("確認提交")');
 
-      // 等待狀態更新
-      await wait(1000);
+      // 等待狀態更新並驗證（選項 C 修復）
+      await waitForEntityWithFields(managerPage, 'budgetProposal', proposalId, {
+        status: 'PendingApproval'
+      });
       await managerPage.reload();
 
       // 驗證狀態變為 PendingApproval
@@ -201,8 +213,10 @@ test.describe('預算申請工作流', () => {
       // 確認對話框
       await supervisorPage.click('button:has-text("確認批准")');
 
-      // 等待狀態更新
-      await wait(1000);
+      // 等待狀態更新並驗證（選項 C 修復）
+      await waitForEntityWithFields(supervisorPage, 'budgetProposal', proposalId, {
+        status: 'Approved'
+      });
       await supervisorPage.reload();
 
       // 驗證狀態變為 Approved

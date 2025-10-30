@@ -36,13 +36,14 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
   const { data: projects } = api.project.getAll.useQuery();
 
   const createMutation = api.budgetProposal.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (proposal) => {
       toast({
         title: '成功',
         description: '提案建立成功！',
         variant: 'success',
       });
-      router.push('/proposals');
+      // FIX: 重定向到詳情頁，不是列表頁（E2E 測試期望）
+      router.push(`/proposals/${proposal.id}`);
       router.refresh();
     },
     onError: (error) => {
@@ -184,7 +185,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
         >
-          {isSubmitting ? '儲存中...' : mode === 'create' ? '建立提案' : '更新提案'}
+          {isSubmitting ? '儲存中...' : mode === 'create' ? '創建提案' : '更新提案'}
         </button>
         <button
           type="button"
