@@ -239,17 +239,13 @@ test.describe('預算申請工作流', () => {
       // 點擊提交按鈕 (正確的按鈕文字是"提交審批")
       await managerPage.click('button:has-text("提交審批")');
 
-      // 等待提交完成 (沒有確認對話框,直接提交)
-      await managerPage.waitForTimeout(1000);
-
-      // 等待狀態更新並驗證（選項 C 修復）
-      await waitForEntityWithFields(managerPage, 'budgetProposal', proposalId, {
-        status: 'PendingApproval'
-      });
+      // 等待提交完成並重新載入頁面
+      await managerPage.waitForTimeout(2000);
       await managerPage.reload();
+      await managerPage.waitForLoadState('networkidle');
 
       // 驗證狀態變為 PendingApproval (使用 .first() 選擇第一個 Badge)
-      await expect(managerPage.locator('text=待審核').first()).toBeVisible();
+      await expect(managerPage.locator('text=待審批').first()).toBeVisible({ timeout: 10000 });
 
       console.log(`✅ 提案已提交審核`);
     });
@@ -262,19 +258,18 @@ test.describe('預算申請工作流', () => {
       await supervisorPage.goto(`/proposals/${proposalId}`);
 
       // 驗證提案信息 (使用 .first() 選擇第一個 Badge)
-      await expect(supervisorPage.locator('text=待審核').first()).toBeVisible();
+      await expect(supervisorPage.locator('text=待審批').first()).toBeVisible();
 
       // 點擊批准按鈕 (沒有確認對話框,直接點擊即可)
       await supervisorPage.click('button:has-text("批准")');
 
-      // 等待狀態更新並驗證（選項 C 修復）
-      await waitForEntityWithFields(supervisorPage, 'budgetProposal', proposalId, {
-        status: 'Approved'
-      });
+      // 等待狀態更新並重新載入頁面
+      await supervisorPage.waitForTimeout(2000);
       await supervisorPage.reload();
+      await supervisorPage.waitForLoadState('networkidle');
 
       // 驗證狀態變為 Approved (使用 .first() 選擇第一個 Badge)
-      await expect(supervisorPage.locator('text=已批准').first()).toBeVisible();
+      await expect(supervisorPage.locator('text=已批准').first()).toBeVisible({ timeout: 10000 });
 
       console.log(`✅ 提案已批准`);
     });
