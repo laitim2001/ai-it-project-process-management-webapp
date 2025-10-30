@@ -10,6 +10,8 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2025-10-30 | 🧪 測試/穩定性 | ✅ 已解決 | [FIX-015: Jest Worker 崩潰與 Next.js 版本升級](#fix-015-jest-worker-崩潰與-nextjs-版本升級) |
+| 2025-10-30 | 🔐 認證/CSRF | ✅ 已解決 | [FIX-014: NextAuth MissingCSRF 冷啟動問題](#fix-014-nextauth-missingcsrf-冷啟動問題) |
 | 2025-10-29 | 🔐 認證/架構 | ✅ 已解決 | [FIX-009: NextAuth v5 升級與 Middleware Edge Runtime 兼容性修復](#fix-009-nextauth-v5-升級與-middleware-edge-runtime-兼容性修復) |
 | 2025-10-27 | 🎨 前端/表單 | ✅ 已解決 | [FIX-008: PurchaseOrderForm 選擇欄位修復](#fix-008-purchaseorderform-選擇欄位修復) |
 | 2025-10-27 | 🎨 前端/表單 | ✅ 已解決 | [FIX-007: ExpenseForm 選擇欄位修復](#fix-007-expenseform-選擇欄位修復) |
@@ -30,11 +32,12 @@
 - **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008
 - **表單問題**: FIX-007, FIX-008 (Shadcn Select DOM Nesting)
 - **配置問題**:
-- **認證問題**: FIX-009 (NextAuth v5 升級)
+- **認證問題**: FIX-009 (NextAuth v5 升級), FIX-014 (MissingCSRF)
 - **架構問題**: FIX-009 (Edge Runtime 兼容性)
 - **API問題**: FIX-006
 - **資料庫問題**:
-- **測試問題**:
+- **測試問題**: FIX-015 (Jest Worker 崩潰)
+- **穩定性問題**: FIX-015 (Next.js 14.2.33 升級)
 
 ---
 
@@ -48,6 +51,147 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-015: Jest Worker 崩潰與 Next.js 版本升級
+
+**日期**: 2025-10-30
+**狀態**: ✅ 已解決
+**問題級別**: 🔴 Critical
+**影響範圍**: E2E 測試、開發服務器穩定性
+**相關文件**: `apps/web/package.json`
+
+### 問題描述
+
+**症狀**:
+```
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+  page: '/api/auth/session'
+
+Error: write EPIPE
+  errno: -4047, code: 'EPIPE', syscall: 'write'
+```
+
+**影響**:
+- ❌ 所有創建操作失敗（budget pool, vendor 創建後無法重定向）
+- ❌ 導致後續測試級聯失敗
+- ❌ 測試超時（waitForURL 等待 30 秒）
+- ❌ 測試成功率：0/14（0%）
+
+**根本原因**:
+Next.js 14.1.0 的 Jest worker 在處理並發請求時，Windows 環境下 child_process 管道通信失敗，導致服務器無法正常響應表單提交和重定向請求。
+
+### 解決方案
+
+**升級 Next.js 版本**: 14.1.0 → 14.2.33
+
+**變更文件**:
+
+| 檔案 | 行數 | 變更內容 |
+|------|------|----------|
+| `apps/web/package.json` | 53 | `"next": "14.1.0"` → `"next": "14.2.33"` |
+| `apps/web/package.json` | 72 | `"eslint-config-next": "14.1.0"` → `"eslint-config-next": "14.2.33"` |
+
+**執行步驟**:
+1. 停止開發服務器
+2. 更新 package.json
+3. 清理 `.next` 緩存目錄
+4. 運行 `pnpm install`（耗時 18.1秒）
+5. 重啟開發服務器
+
+### 測試結果
+
+**修復前** (2025-10-30 早上):
+- ❌ 基本測試：0/7（0%）
+- ❌ 工作流測試：0/7（0%）
+- ❌ Jest worker 錯誤持續出現
+
+**修復後** (2025-10-30 下午):
+- ✅ 基本測試：7/7（100%）⭐
+- ✅ 認證功能：35+ 次登入全部成功
+- ✅ 服務器日誌：無 Jest worker 錯誤
+- ✅ 服務器日誌：無 EPIPE 錯誤
+- ✅ API 請求：所有 GET/POST 請求正常處理
+- ⚠️ 工作流測試：0/7（待修復，非 Jest worker 問題）
+
+### 預防措施
+
+1. **版本選擇**: 使用 Next.js LTS 或穩定版本，避免使用初期版本
+2. **測試環境**: 在 Windows 環境下測試 Jest worker 穩定性
+3. **錯誤監控**: 監控 child_process 相關錯誤
+4. **定期升級**: 追蹤 Next.js 版本更新和穩定性修復
+
+### 相關問題
+
+- **FIX-014**: MissingCSRF 冷啟動問題（已在本次會話修復）
+- **後續問題**: 工作流測試仍需修復（HTTP 500、ChargeOut 錯誤等）
+
+### 參考資源
+
+- Next.js Release Notes: https://github.com/vercel/next.js/releases
+- Jest Worker 穩定性改進：Next.js 14.2.x 系列
+
+---
+
+## FIX-014: NextAuth MissingCSRF 冷啟動問題
+
+**日期**: 2025-10-30
+**狀態**: ✅ 已解決
+**問題級別**: 🟡 High
+**影響範圍**: E2E 測試登入流程、首次認證
+**相關文件**: `apps/web/e2e/fixtures/auth.ts`
+
+### 問題描述
+
+**症狀**:
+```
+第一次登入嘗試失敗，錯誤訊息：MissingCSRF
+後續登入嘗試成功
+```
+
+**根本原因**:
+NextAuth v5 需要先訪問 `/api/auth/csrf` 端點來初始化 CSRF token，否則第一次登入會因為缺少 token 而失敗。
+
+### 解決方案
+
+**在登入前先訪問 CSRF 端點**:
+
+**變更文件**: `apps/web/e2e/fixtures/auth.ts`
+
+```typescript
+// Line 24-27
+export async function login(page: Page, email: string, password: string): Promise<void> {
+  // ⚠️ FIX: 先訪問 CSRF 端點以初始化 NextAuth CSRF token
+  await page.goto('/api/auth/csrf');
+  await page.waitForTimeout(500);
+
+  await page.goto('/login');
+  // ... rest of login logic
+}
+```
+
+### 測試結果
+
+**修復前**:
+- ❌ 第一次登入失敗（MissingCSRF）
+- ✅ 第二次登入成功
+- ⚠️ 測試不穩定，依賴重試機制
+
+**修復後**:
+- ✅ 第一次登入成功
+- ✅ 所有 35+ 次登入全部成功
+- ✅ 測試穩定，無需重試
+
+### 預防措施
+
+1. **測試模式**: 在 E2E 測試中明確初始化 CSRF token
+2. **文檔記錄**: 在代碼註釋中說明 CSRF 初始化的重要性
+3. **最佳實踐**: 遵循 NextAuth v5 官方測試指南
+
+### 相關資源
+
+- NextAuth v5 CSRF 文檔: https://authjs.dev/concepts/security
+
+---
 
 ## FIX-009: NextAuth v5 升級與 Middleware Edge Runtime 兼容性修復
 

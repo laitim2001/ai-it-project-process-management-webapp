@@ -46,10 +46,9 @@ test.describe('採購工作流', () => {
 
       // 填寫供應商信息
       await managerPage.fill('input[name="name"]', vendorData.name);
-      await managerPage.fill('input[name="contactName"]', vendorData.contactName || '');
-      await managerPage.fill('input[name="email"]', vendorData.email || '');
+      await managerPage.fill('input[name="contactPerson"]', vendorData.contactPerson || '');
+      await managerPage.fill('input[name="contactEmail"]', vendorData.contactEmail || '');
       await managerPage.fill('input[name="phone"]', vendorData.phone || '');
-      await managerPage.fill('textarea[name="address"]', vendorData.address || '');
 
       // 提交表單
       await managerPage.click('button[type="submit"]:has-text("創建供應商")');
@@ -117,7 +116,7 @@ test.describe('採購工作流', () => {
       const poData = generatePurchaseOrderData();
 
       await managerPage.goto('/purchase-orders');
-      await managerPage.click('text=新增採購訂單');
+      await managerPage.click('text=新增採購單');
 
       // 等待表單載入
       await managerPage.waitForSelector('input[name="poNumber"]');

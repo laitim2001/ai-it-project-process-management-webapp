@@ -13,7 +13,6 @@ const timestamp = () => Date.now().toString().slice(-6);
 export const generateBudgetPoolData = () => ({
   name: `E2E_BudgetPool_${timestamp()}`,
   description: 'E2E 測試預算池',
-  totalAmount: '1000000',
   financialYear: '2025',
   categories: [
     { categoryName: 'Hardware', categoryCode: 'HW', totalAmount: '400000' },
@@ -47,10 +46,9 @@ export const generateProposalData = () => ({
  */
 export const generateVendorData = () => ({
   name: `E2E_Vendor_${timestamp()}`,
-  contactName: 'Test Contact',
-  email: `e2e-vendor-${timestamp()}@example.com`,
+  contactPerson: 'Test Contact',
+  contactEmail: `e2e-vendor-${timestamp()}@example.com`,
   phone: '+852 1234 5678',
-  address: 'Test Address, Hong Kong',
 });
 
 /**

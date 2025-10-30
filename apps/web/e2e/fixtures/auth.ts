@@ -21,6 +21,11 @@ export type AuthFixtures = {
  * 登入助手函數
  */
 export async function login(page: Page, email: string, password: string): Promise<void> {
+  // ⚠️ FIX: 先訪問 CSRF 端點以初始化 NextAuth CSRF token
+  // 這解決了 cold start 時的 MissingCSRF 錯誤
+  await page.goto('/api/auth/csrf');
+  await page.waitForTimeout(500); // 等待 CSRF token cookie 設置完成
+
   await page.goto('/login');
 
   // 等待登入表單載入

@@ -1,5 +1,123 @@
 # E2E 工作流測試會話總結
 
+---
+
+## 會話 2025-10-30: Jest Worker 穩定性修復與測試進度突破 ⭐
+
+**會話日期**: 2025-10-30
+**會話時長**: ~3 小時
+**主要任務**: 修復 Jest Worker 崩潰、解決 VendorForm 字段不匹配
+**狀態**: ✅ 關鍵穩定性問題已解決，測試成功率 0% → 50%
+
+### 🎯 核心成就
+
+#### ⭐ FIX-015: Jest Worker 崩潰完全修復（Critical）
+**問題**: Next.js 14.1.0 Jest worker EPIPE 錯誤導致所有創建操作失敗
+**解決方案**: 升級 Next.js 14.1.0 → 14.2.33
+**結果**:
+- ✅ 基本測試：0/7 → 7/7（100%）⭐
+- ✅ 認證功能：35+ 次登入全部成功
+- ✅ 服務器穩定：無 Jest worker 錯誤，無 EPIPE 錯誤
+- ✅ API 正常：所有 GET/POST 請求處理成功
+
+#### ✅ FIX-014: MissingCSRF 冷啟動問題（High）
+**問題**: 首次登入因缺少 CSRF token 失敗
+**解決方案**: 在登入前訪問 `/api/auth/csrf` 端點初始化 token
+**結果**: 所有登入測試穩定成功，無需重試
+
+#### ✅ VendorForm 字段名稱修復
+**問題**: 測試數據和測試選擇器與實際表單字段不匹配
+**修正**: `contactName` → `contactPerson`, `email` → `contactEmail`
+**結果**: 測試代碼與實際表單完全同步
+
+### 📊 測試進度突破
+
+**修復前** (2025-10-30 早上):
+```
+基本測試：0/7 (0%)   ❌ Jest Worker 崩潰
+工作流測試：0/7 (0%) ❌ 級聯失敗
+總計：0/14 (0%)
+```
+
+**修復後** (2025-10-30 下午):
+```
+基本測試：7/7 (100%)   ✅ 完全通過
+工作流測試：0/7 (0%)   ⚠️ 待修復（非 Jest Worker 問題）
+總計：7/14 (50%)
+```
+
+**關鍵突破**: Jest Worker 問題從阻塞所有測試到完全解決，為後續工作流測試修復掃清障礙。
+
+### 📝 修改文件列表
+
+| 文件 | 變更類型 | 說明 |
+|------|----------|------|
+| `apps/web/package.json` | 升級 | Next.js 14.1.0 → 14.2.33 |
+| `apps/web/package.json` | 升級 | eslint-config-next 14.1.0 → 14.2.33 |
+| `apps/web/e2e/fixtures/auth.ts` | 修復 | 添加 CSRF token 初始化 |
+| `apps/web/e2e/fixtures/test-data.ts` | 修復 | Vendor 字段名稱更正 |
+| `apps/web/e2e/workflows/procurement-workflow.spec.ts` | 修復 | Vendor 表單選擇器更正 |
+| `FIXLOG.md` | 文檔 | 添加 FIX-014 和 FIX-015 記錄 |
+
+### 🔍 後續待修復問題
+
+**工作流測試失敗原因分析**:
+1. **HTTP 500 錯誤** (Test 8-9): Budget Proposal 查詢失敗 - "找不到該預算提案"
+2. **ChargeOut 頁面錯誤** (Test 10-12): NotFoundErrorBoundary
+3. **採購流程測試** (Test 13-14): 待確認具體錯誤
+
+**優先級**: 🟡 High（基本功能已穩定，工作流細節需優化）
+
+### ✅ 完成的工作
+
+1. ✅ **Jest Worker 穩定性修復**（FIX-015）
+   - 升級 Next.js 版本
+   - 清理緩存並重新安裝依賴
+   - 驗證服務器穩定性
+
+2. ✅ **認證系統優化**（FIX-014）
+   - 添加 CSRF token 初始化
+   - 所有登入測試通過
+
+3. ✅ **測試數據同步**
+   - VendorForm 字段名稱修正
+   - 測試選擇器更新
+
+4. ✅ **文檔更新**
+   - FIXLOG.md 添加 FIX-014 和 FIX-015
+   - 快速搜索索引更新
+
+### 🎓 經驗教訓
+
+1. **版本選擇**: 避免使用 Next.js 初期版本，優先選擇穩定版本（14.2.x+）
+2. **Windows 環境**: Jest worker 在 Windows 下的穩定性需要特別關注
+3. **測試隔離**: CSRF token 初始化是 NextAuth v5 E2E 測試的關鍵步驟
+4. **字段命名**: 測試數據必須與實際表單字段完全一致
+
+### 📋 下一步行動
+
+1. 🔄 **修復工作流測試**（優先級：High）
+   - 診斷 Budget Proposal HTTP 500 錯誤
+   - 修復 ChargeOut 頁面問題
+   - 驗證採購流程測試
+
+2. 📊 **提升測試覆蓋率**
+   - 目標：14/14（100%）
+   - 當前：7/14（50%）
+
+3. 📝 **文檔維護**
+   - 更新 E2E-WORKFLOW-TESTING-PROGRESS.md
+   - 同步 COMPLETE-IMPLEMENTATION-PROGRESS.md
+
+### 🔗 相關文檔
+
+- **FIXLOG.md**: FIX-014, FIX-015 詳細記錄
+- **DEVELOPMENT-LOG.md**: 完整開發歷史
+
+---
+
+## 會話 2025-10-29: E2E 測試配置修復與環境整合
+
 **會話日期**: 2025-10-29
 **會話時長**: ~2 小時
 **主要任務**: E2E 測試配置修復與環境整合

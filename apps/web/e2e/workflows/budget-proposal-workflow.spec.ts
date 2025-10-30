@@ -41,15 +41,14 @@ test.describe('預算申請工作流', () => {
 
       // 填寫預算池基本信息
       await managerPage.fill('input[name="name"]', budgetPoolData.name);
-      await managerPage.fill('textarea[name="description"]', budgetPoolData.description || '');
-      await managerPage.fill('input[name="totalAmount"]', budgetPoolData.totalAmount);
+      await managerPage.fill('input[name="description"]', budgetPoolData.description || '');
       await managerPage.fill('input[name="financialYear"]', budgetPoolData.financialYear);
 
       // 添加預算分類
       for (let i = 0; i < budgetPoolData.categories.length; i++) {
         const category = budgetPoolData.categories[i];
         if (i > 0) {
-          await managerPage.click('button:has-text("新增分類")');
+          await managerPage.click('button:has-text("新增類別")');
         }
         await managerPage.fill(`input[name="categories.${i}.categoryName"]`, category.categoryName);
         await managerPage.fill(`input[name="categories.${i}.categoryCode"]`, category.categoryCode);
@@ -82,7 +81,7 @@ test.describe('預算申請工作流', () => {
       const projectData = generateProjectData();
 
       await managerPage.goto('/projects');
-      await managerPage.click('text=新增項目');
+      await managerPage.click('text=創建新專案');
 
       // 等待表單載入
       await managerPage.waitForSelector('input[name="name"]');
