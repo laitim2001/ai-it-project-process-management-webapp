@@ -103,6 +103,13 @@ test.describe('預算申請工作流', () => {
       // 選擇預算池
       await managerPage.selectOption('select[name="budgetPoolId"]', budgetPoolId);
 
+      // 選擇專案經理 (Manager)
+      const managerSelect = managerPage.locator('select[name="managerId"]');
+      const managerOptions = await managerSelect.locator('option').allTextContents();
+      if (managerOptions.length > 1) {
+        await managerSelect.selectOption({ index: 1 }); // 選擇第一個非空選項
+      }
+
       // 選擇 Supervisor (假設有測試用戶)
       const supervisorSelect = managerPage.locator('select[name="supervisorId"]');
       const supervisorOptions = await supervisorSelect.locator('option').allTextContents();
@@ -175,8 +182,8 @@ test.describe('預算申請工作流', () => {
       // 驗證提案創建成功
       await expect(managerPage.locator('h1')).toContainText(proposalData.title);
 
-      // 驗證狀態為 Draft
-      await expect(managerPage.locator('text=草稿')).toBeVisible();
+      // 驗證狀態為 Draft (使用 .first() 選擇第一個 Badge)
+      await expect(managerPage.locator('text=草稿').first()).toBeVisible();
 
       console.log(`✅ 預算提案已創建: ${proposalId}`);
 
@@ -208,8 +215,8 @@ test.describe('預算申請工作流', () => {
       });
       await managerPage.reload();
 
-      // 驗證狀態變為 PendingApproval
-      await expect(managerPage.locator('text=待審核')).toBeVisible();
+      // 驗證狀態變為 PendingApproval (使用 .first() 選擇第一個 Badge)
+      await expect(managerPage.locator('text=待審核').first()).toBeVisible();
 
       console.log(`✅ 提案已提交審核`);
     });
@@ -221,8 +228,8 @@ test.describe('預算申請工作流', () => {
       // Supervisor 訪問提案詳情頁
       await supervisorPage.goto(`/proposals/${proposalId}`);
 
-      // 驗證提案信息
-      await expect(supervisorPage.locator('text=待審核')).toBeVisible();
+      // 驗證提案信息 (使用 .first() 選擇第一個 Badge)
+      await expect(supervisorPage.locator('text=待審核').first()).toBeVisible();
 
       // 點擊批准按鈕
       await supervisorPage.click('button:has-text("批准")');
@@ -236,8 +243,8 @@ test.describe('預算申請工作流', () => {
       });
       await supervisorPage.reload();
 
-      // 驗證狀態變為 Approved
-      await expect(supervisorPage.locator('text=已批准')).toBeVisible();
+      // 驗證狀態變為 Approved (使用 .first() 選擇第一個 Badge)
+      await expect(supervisorPage.locator('text=已批准').first()).toBeVisible();
 
       console.log(`✅ 提案已批准`);
     });
