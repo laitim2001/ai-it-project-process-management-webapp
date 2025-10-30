@@ -24,7 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/select';
-import { Pagination } from '@/components/ui/pagination';
+import { PaginationControls } from '@/components/ui';
 import {
   Briefcase,
   TrendingUp,
@@ -395,7 +395,7 @@ export default function SupervisorDashboard() {
 
             {/* 分頁 */}
             {pagination && pagination.totalPages > 1 && (
-              <Pagination
+              <PaginationControls
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
                 onPageChange={setPage}

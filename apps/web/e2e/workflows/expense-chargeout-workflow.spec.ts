@@ -122,6 +122,11 @@ test.describe('費用轉嫁工作流', () => {
     await test.step('Step 3: 創建費用轉嫁', async () => {
       const chargeOutData = generateChargeOutData();
 
+      // 在創建 ChargeOut 前,額外驗證費用已經完全持久化
+      console.log(`🔍 驗證費用 ${expenseId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'expense', expenseId);
+      console.log(`✅ 費用已確認可查詢,開始創建 ChargeOut`);
+
       await managerPage.goto('/charge-outs');
       await managerPage.click('text=新增 ChargeOut');
 
@@ -197,6 +202,11 @@ test.describe('費用轉嫁工作流', () => {
     // Step 5: ProjectManager 提交 ChargeOut
     // ========================================
     await test.step('Step 5: ProjectManager 提交 ChargeOut', async () => {
+      // 在提交 ChargeOut 前,額外驗證 ChargeOut 已經完全持久化
+      console.log(`🔍 驗證 ChargeOut ${chargeOutId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'chargeOut', chargeOutId);
+      console.log(`✅ ChargeOut 已確認可查詢,開始提交審核`);
+
       // 應該已經在 ChargeOut 詳情頁
       await expect(managerPage).toHaveURL(`/charge-outs/${chargeOutId}`);
 

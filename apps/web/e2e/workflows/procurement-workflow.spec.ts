@@ -74,6 +74,11 @@ test.describe('採購工作流', () => {
     // Step 2: 上傳報價單（Quote）
     // ========================================
     await test.step('Step 2: 上傳報價單', async () => {
+      // 在創建報價單前,額外驗證供應商已經完全持久化
+      console.log(`🔍 驗證供應商 ${vendorId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'vendor', vendorId);
+      console.log(`✅ 供應商已確認可查詢,開始創建報價單`);
+
       await managerPage.goto('/quotes');
       await managerPage.click('text=新增報價單');
 
@@ -134,6 +139,11 @@ test.describe('採購工作流', () => {
     await test.step('Step 3: 創建採購訂單', async () => {
       const poData = generatePurchaseOrderData();
 
+      // 在創建採購訂單前,額外驗證供應商已經完全持久化
+      console.log(`🔍 驗證供應商 ${vendorId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'vendor', vendorId);
+      console.log(`✅ 供應商已確認可查詢,開始創建採購訂單`);
+
       await managerPage.goto('/purchase-orders');
       await managerPage.click('text=新增採購單');
 
@@ -185,6 +195,11 @@ test.describe('採購工作流', () => {
     // ========================================
     await test.step('Step 4: 記錄費用', async () => {
       const expenseData = generateExpenseData();
+
+      // 在記錄費用前,額外驗證採購訂單已經完全持久化
+      console.log(`🔍 驗證採購訂單 ${purchaseOrderId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'purchaseOrder', purchaseOrderId);
+      console.log(`✅ 採購訂單已確認可查詢,開始記錄費用`);
 
       await managerPage.goto('/expenses');
       await managerPage.click('text=新增費用');

@@ -5,7 +5,7 @@ import {
   generateProposalData,
   wait,
 } from '../fixtures/test-data';
-import { waitForEntityPersisted, extractIdFromURL } from '../helpers/waitForEntity';
+import { waitForEntityPersisted, waitForEntityWithFields, extractIdFromURL } from '../helpers/waitForEntity';
 
 /**
  * 預算申請工作流 E2E 測試
@@ -84,6 +84,12 @@ test.describe('預算申請工作流', () => {
     await test.step('Step 2: 創建項目', async () => {
       const projectData = generateProjectData();
 
+      // 在創建項目前,額外驗證預算池已經完全持久化
+      // 這確保當表單載入時,下拉選單中可以找到該預算池
+      console.log(`🔍 驗證預算池 ${budgetPoolId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'budgetPool', budgetPoolId);
+      console.log(`✅ 預算池已確認可查詢,開始創建項目`);
+
       await managerPage.goto('/projects');
       await managerPage.click('text=創建新專案');
 
@@ -136,6 +142,12 @@ test.describe('預算申請工作流', () => {
     await test.step('Step 3: 創建預算提案', async () => {
       const proposalData = generateProposalData();
 
+      // 在創建提案前,額外驗證項目已經完全持久化
+      // 這確保當表單載入時,下拉選單中可以找到該項目
+      console.log(`🔍 驗證項目 ${projectId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'project', projectId);
+      console.log(`✅ 項目已確認可查詢,開始創建預算提案`);
+
       await managerPage.goto('/proposals');
       await managerPage.click('text=新增提案');
 
@@ -176,6 +188,11 @@ test.describe('預算申請工作流', () => {
     // Step 4: ProjectManager 提交提案
     // ========================================
     await test.step('Step 4: ProjectManager 提交提案', async () => {
+      // 在提交提案前,額外驗證提案已經完全持久化
+      console.log(`🔍 驗證提案 ${proposalId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'budgetProposal', proposalId);
+      console.log(`✅ 提案已確認可查詢,開始提交審核`);
+
       // 應該已經在提案詳情頁
       await expect(managerPage).toHaveURL(`/proposals/${proposalId}`);
 
