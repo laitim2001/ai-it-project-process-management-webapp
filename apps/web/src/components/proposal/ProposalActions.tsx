@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/Toast';
 
@@ -19,11 +20,12 @@ interface ProposalActionsProps {
 export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const { data: session } = useSession();
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock userId - 在實際應用中應從 session 獲取
-  const mockUserId = 'mock-user-id';
+  // 從 session 獲取當前用戶 ID
+  const userId = session?.user?.id;
 
   const submitMutation = api.budgetProposal.submit.useMutation({
     onSuccess: () => {
@@ -47,11 +49,16 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   });
 
   const handleSubmit = async () => {
+    if (!userId) {
+      showToast('請先登入', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await submitMutation.mutateAsync({
         id: proposalId,
-        userId: mockUserId,
+        userId,
       });
     } finally {
       setIsSubmitting(false);
@@ -59,6 +66,11 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   };
 
   const handleApprove = async (action: 'Approved' | 'Rejected' | 'MoreInfoRequired') => {
+    if (!userId) {
+      showToast('請先登入', 'error');
+      return;
+    }
+
     if (action !== 'Approved' && !comment.trim()) {
       showToast('請提供審批意見', 'error');
       return;
@@ -68,7 +80,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     try {
       await approveMutation.mutateAsync({
         id: proposalId,
-        userId: mockUserId,
+        userId,
         action,
         comment: comment || undefined,
       });
