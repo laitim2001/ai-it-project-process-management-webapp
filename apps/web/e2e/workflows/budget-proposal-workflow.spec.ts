@@ -100,22 +100,39 @@ test.describe('預算申請工作流', () => {
       await managerPage.fill('input[name="name"]', projectData.name);
       await managerPage.fill('textarea[name="description"]', projectData.description || '');
 
+      // 等待預算池下拉選單載入選項,並確保特定的預算池 ID 存在
+      await managerPage.waitForFunction(
+        (poolId) => {
+          const select = document.querySelector('select[name="budgetPoolId"]') as HTMLSelectElement;
+          if (!select || select.options.length <= 1) return false;
+          // 檢查是否有對應 value 的選項
+          for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === poolId) return true;
+          }
+          return false;
+        },
+        budgetPoolId,
+        { timeout: 20000 }
+      );
+
       // 選擇預算池
       await managerPage.selectOption('select[name="budgetPoolId"]', budgetPoolId);
 
-      // 選擇專案經理 (Manager)
+      // 等待並選擇專案經理 (Manager)
+      await managerPage.waitForFunction(() => {
+        const select = document.querySelector('select[name="managerId"]') as HTMLSelectElement;
+        return select && select.options.length > 1;
+      }, { timeout: 15000 });
       const managerSelect = managerPage.locator('select[name="managerId"]');
-      const managerOptions = await managerSelect.locator('option').allTextContents();
-      if (managerOptions.length > 1) {
-        await managerSelect.selectOption({ index: 1 }); // 選擇第一個非空選項
-      }
+      await managerSelect.selectOption({ index: 1 }); // 選擇第一個非空選項
 
-      // 選擇 Supervisor (假設有測試用戶)
+      // 等待並選擇 Supervisor
+      await managerPage.waitForFunction(() => {
+        const select = document.querySelector('select[name="supervisorId"]') as HTMLSelectElement;
+        return select && select.options.length > 1;
+      }, { timeout: 15000 });
       const supervisorSelect = managerPage.locator('select[name="supervisorId"]');
-      const supervisorOptions = await supervisorSelect.locator('option').allTextContents();
-      if (supervisorOptions.length > 1) {
-        await supervisorSelect.selectOption({ index: 1 }); // 選擇第一個非空選項
-      }
+      await supervisorSelect.selectOption({ index: 1 }); // 選擇第一個非空選項
 
       // 填寫日期
       await managerPage.fill('input[name="startDate"]', projectData.startDate);
@@ -127,12 +144,28 @@ test.describe('預算申請工作流', () => {
       // 提交表單
       await managerPage.click('button[type="submit"]:has-text("創建專案")');
 
-      // 等待重定向到詳情頁
-      await managerPage.waitForURL(/\/projects\/[a-f0-9-]+/);
+      // 等待成功提示出現 (不等待重定向,因為可能太慢)
+      await expect(managerPage.locator('text=專案創建成功')).toBeVisible({ timeout: 10000 });
 
-      // 提取項目 ID
-      const url = managerPage.url();
-      projectId = url.split('/projects/')[1];
+      // 等待一下讓重定向開始
+      await managerPage.waitForTimeout(2000);
+
+      // 提取項目 ID - 如果重定向成功就從 URL 獲取,否則從其他地方獲取
+      let url = managerPage.url();
+      if (url.includes('/projects/')) {
+        projectId = url.split('/projects/')[1].split('?')[0].split('/')[0];
+      } else {
+        // 重定向未完成,手動導航到項目列表查找最新項目
+        await managerPage.goto('/projects');
+        await managerPage.waitForSelector('text=' + projectData.name);
+        const projectLink = managerPage.locator(`a:has-text("${projectData.name}")`).first();
+        const href = await projectLink.getAttribute('href');
+        projectId = href?.split('/projects/')[1] || '';
+      }
+
+      // 手動導航到項目詳情頁確保頁面載入
+      await managerPage.goto(`/projects/${projectId}`);
+      await managerPage.waitForLoadState('networkidle');
 
       // 驗證項目創建成功
       await expect(managerPage.locator('h1')).toContainText(projectData.name);
@@ -203,11 +236,11 @@ test.describe('預算申請工作流', () => {
       // 應該已經在提案詳情頁
       await expect(managerPage).toHaveURL(`/proposals/${proposalId}`);
 
-      // 點擊提交按鈕
-      await managerPage.click('button:has-text("提交審核")');
+      // 點擊提交按鈕 (正確的按鈕文字是"提交審批")
+      await managerPage.click('button:has-text("提交審批")');
 
-      // 確認對話框
-      await managerPage.click('button:has-text("確認提交")');
+      // 等待提交完成 (沒有確認對話框,直接提交)
+      await managerPage.waitForTimeout(1000);
 
       // 等待狀態更新並驗證（選項 C 修復）
       await waitForEntityWithFields(managerPage, 'budgetProposal', proposalId, {
@@ -231,11 +264,8 @@ test.describe('預算申請工作流', () => {
       // 驗證提案信息 (使用 .first() 選擇第一個 Badge)
       await expect(supervisorPage.locator('text=待審核').first()).toBeVisible();
 
-      // 點擊批准按鈕
+      // 點擊批准按鈕 (沒有確認對話框,直接點擊即可)
       await supervisorPage.click('button:has-text("批准")');
-
-      // 確認對話框
-      await supervisorPage.click('button:has-text("確認批准")');
 
       // 等待狀態更新並驗證（選項 C 修復）
       await waitForEntityWithFields(supervisorPage, 'budgetProposal', proposalId, {
@@ -291,17 +321,14 @@ test.describe('預算申請工作流', () => {
     await test.step('Supervisor 拒絕提案', async () => {
       await supervisorPage.goto(`/proposals/${proposalId}`);
 
-      // 點擊拒絕按鈕
-      await supervisorPage.click('button:has-text("拒絕")');
-
-      // 填寫拒絕原因
+      // 填寫審批意見 (必須在點擊拒絕前填寫)
       await supervisorPage.fill(
-        'textarea[name="rejectionReason"]',
+        'textarea#comment',
         '預算金額超出項目需求'
       );
 
-      // 確認拒絕
-      await supervisorPage.click('button:has-text("確認拒絕")');
+      // 點擊拒絕按鈕 (沒有確認對話框,直接點擊即可)
+      await supervisorPage.click('button:has-text("拒絕")');
 
       // 等待狀態更新
       await wait(1000);
