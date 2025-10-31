@@ -267,11 +267,11 @@ test.describe('費用轉嫁工作流', () => {
       // 應該已經在 ChargeOut 詳情頁
       await expect(managerPage).toHaveURL(`/charge-outs/${chargeOutId}`);
 
-      // 驗證費用明細顯示
-      await expect(managerPage.locator('table tbody tr')).toHaveCount({ min: 1 });
+      // 驗證費用明細顯示（至少有一筆資料）
+      await expect(managerPage.locator('table tbody tr').first()).toBeVisible();
 
-      // 驗證總金額顯示
-      await expect(managerPage.locator('text=總金額')).toBeVisible();
+      // 驗證總計顯示（費用明細表格底部）
+      await expect(managerPage.locator('text=總計')).toBeVisible();
 
       // 點擊提交按鈕
       await managerPage.click('button:has-text("提交審核")');
@@ -279,11 +279,11 @@ test.describe('費用轉嫁工作流', () => {
       // 確認對話框
       await managerPage.click('button:has-text("確認提交")');
 
-      // 等待狀態更新為 PendingConfirmation
-      await waitForEntityWithFields(managerPage, 'chargeOut', chargeOutId, { status: 'PendingConfirmation' });
+      // 等待狀態更新為 Submitted
+      await waitForEntityWithFields(managerPage, 'chargeOut', chargeOutId, { status: 'Submitted' });
 
-      // 驗證狀態變為 Submitted
-      await expect(managerPage.locator('text=已提交')).toBeVisible();
+      // 驗證狀態變為 Submitted（頁面標題區域的大號狀態徽章）
+      await expect(managerPage.locator('div.bg-yellow-500.text-lg:has-text("已提交")')).toBeVisible();
 
       console.log(`✅ ChargeOut 已提交審核`);
     });
@@ -295,15 +295,15 @@ test.describe('費用轉嫁工作流', () => {
       // Supervisor 訪問 ChargeOut 詳情頁
       await supervisorPage.goto(`/charge-outs/${chargeOutId}`);
 
-      // 驗證 ChargeOut 信息
-      await expect(supervisorPage.locator('text=已提交')).toBeVisible();
+      // 驗證 ChargeOut 信息（頁面標題區域的大號狀態徽章）
+      await expect(supervisorPage.locator('div.bg-yellow-500.text-lg:has-text("已提交")')).toBeVisible();
 
-      // 驗證費用明細
-      await expect(supervisorPage.locator('table tbody tr')).toHaveCount({ min: 1 });
+      // 驗證費用明細（至少有一筆資料）
+      await expect(supervisorPage.locator('table tbody tr').first()).toBeVisible();
 
       // 驗證項目和 OpCo 信息
       await expect(supervisorPage.locator('text=項目信息')).toBeVisible();
-      await expect(supervisorPage.locator('text=營運公司')).toBeVisible();
+      await expect(supervisorPage.locator('h3:has-text("營運公司")')).toBeVisible(); // 精確選擇標題元素，避免匹配 OpCo 名稱和描述
 
       // 點擊確認按鈕
       await supervisorPage.click('button:has-text("確認")');
@@ -314,8 +314,8 @@ test.describe('費用轉嫁工作流', () => {
       // 等待狀態更新為 Confirmed
       await waitForEntityWithFields(supervisorPage, 'chargeOut', chargeOutId, { status: 'Confirmed' });
 
-      // 驗證狀態變為 Confirmed
-      await expect(supervisorPage.locator('text=已確認')).toBeVisible();
+      // 驗證狀態變為 Confirmed（精確選擇器 - 大號徽章）
+      await expect(supervisorPage.locator('div.bg-green-500.text-lg:has-text("已確認")')).toBeVisible();
 
       console.log(`✅ ChargeOut 已確認`);
     });
@@ -327,8 +327,8 @@ test.describe('費用轉嫁工作流', () => {
       // ProjectManager 或 Supervisor 可以標記為已付款
       await managerPage.goto(`/charge-outs/${chargeOutId}`);
 
-      // 驗證已確認狀態
-      await expect(managerPage.locator('text=已確認')).toBeVisible();
+      // 驗證已確認狀態（精確選擇器 - 大號徽章）
+      await expect(managerPage.locator('div.bg-green-500.text-lg:has-text("已確認")')).toBeVisible();
 
       // 點擊標記為已付款按鈕
       await managerPage.click('button:has-text("標記為已付款")');
@@ -339,8 +339,8 @@ test.describe('費用轉嫁工作流', () => {
       // 等待狀態更新為 Paid
       await waitForEntityWithFields(managerPage, 'chargeOut', chargeOutId, { status: 'Paid' });
 
-      // 驗證狀態變為 Paid
-      await expect(managerPage.locator('text=已付款')).toBeVisible();
+      // FIX-051: 使用精確選擇器定位「已付款」大號徽章（避免 Strict Mode violation）
+      await expect(managerPage.locator('div.bg-blue-500.text-lg:has-text("已付款")')).toBeVisible();
 
       // 驗證付款日期已記錄
       await expect(managerPage.locator('text=付款日期')).toBeVisible();
@@ -354,19 +354,22 @@ test.describe('費用轉嫁工作流', () => {
     await test.step('Step 8: 驗證完整流程', async () => {
       // 驗證 ChargeOut 最終狀態
       await expect(managerPage).toHaveURL(`/charge-outs/${chargeOutId}`);
-      await expect(managerPage.locator('text=已付款')).toBeVisible();
+      // FIX-052: 使用精確選擇器定位「已付款」大號徽章（避免 Strict Mode violation）
+      await expect(managerPage.locator('div.bg-blue-500.text-lg:has-text("已付款")')).toBeVisible();
 
       // 驗證確認人信息
       await expect(managerPage.locator('text=確認人')).toBeVisible();
 
       // 驗證時間軸完整性
       await expect(managerPage.locator('text=創建時間')).toBeVisible();
-      await expect(managerPage.locator('text=確認時間')).toBeVisible();
+      // FIX-053: 使用精確選擇器定位「確認時間」標籤（text-sm，避免匹配帶時間值的 text-xs 元素）
+      await expect(managerPage.locator('div.text-sm.text-muted-foreground:has-text("確認時間")')).toBeVisible();
 
       // 返回列表頁驗證
       await managerPage.goto('/charge-outs');
       await expect(managerPage.locator(`text=E2E_ChargeOut`).first()).toBeVisible();
-      await expect(managerPage.locator('text=已付款').first()).toBeVisible();
+      // FIX-054: 使用 Badge 選擇器（避免匹配隱藏的 <option> 元素）
+      await expect(managerPage.locator('div.bg-blue-500:has-text("已付款")').first()).toBeVisible();
 
       console.log(`✅ 完整費用轉嫁工作流驗證通過`);
     });

@@ -174,7 +174,12 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   };
 
   const handleMarkAsPaid = () => {
-    markAsPaidMutation.mutate({ id: chargeOut.id });
+    // FIX-050: markAsPaid API 需要 paymentDate 參數（ISO 8601 格式）
+    const today = new Date().toISOString();
+    markAsPaidMutation.mutate({
+      id: chargeOut.id,
+      paymentDate: today
+    });
   };
 
   const handleDelete = () => {

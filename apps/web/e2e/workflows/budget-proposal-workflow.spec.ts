@@ -90,11 +90,11 @@ test.describe('預算申請工作流', () => {
       await waitForEntityPersisted(managerPage, 'budgetPool', budgetPoolId);
       console.log(`✅ 預算池已確認可查詢,開始創建項目`);
 
-      await managerPage.goto('/projects');
-      await managerPage.click('text=創建新專案');
+      // 直接導航到創建項目頁面（更穩定）
+      await managerPage.goto('/projects/new');
 
       // 等待表單載入
-      await managerPage.waitForSelector('input[name="name"]');
+      await managerPage.waitForSelector('input[name="name"]', { timeout: 10000 });
 
       // 填寫項目基本信息
       await managerPage.fill('input[name="name"]', projectData.name);
@@ -300,18 +300,143 @@ test.describe('預算申請工作流', () => {
 
   test('預算提案拒絕流程', async ({ managerPage, supervisorPage }) => {
     // ========================================
-    // 前置準備：創建預算池、項目、提案
+    // 前置準備：創建預算池、項目、提案並提交
     // ========================================
-    await test.step('前置準備', async () => {
-      // 簡化版創建流程（可以復用上面的代碼或調用 API）
-      // 為了演示，這裡假設已有測試數據
+    await test.step('前置準備: 創建預算池', async () => {
+      const budgetPoolData = generateBudgetPoolData();
 
-      // 創建提案並提交
+      await managerPage.goto('/budget-pools');
+      await managerPage.click('text=新增預算池');
+      await managerPage.waitForSelector('input[name="name"]');
+
+      await managerPage.fill('input[name="name"]', budgetPoolData.name);
+      await managerPage.fill('input[name="description"]', budgetPoolData.description || '');
+      await managerPage.fill('input[name="financialYear"]', budgetPoolData.financialYear);
+
+      for (let i = 0; i < budgetPoolData.categories.length; i++) {
+        const category = budgetPoolData.categories[i];
+        if (i > 0) {
+          await managerPage.click('button:has-text("新增類別")');
+        }
+        await managerPage.fill(`input[name="categories.${i}.categoryName"]`, category.categoryName);
+        await managerPage.fill(`input[name="categories.${i}.categoryCode"]`, category.categoryCode);
+        await managerPage.fill(`input[name="categories.${i}.totalAmount"]`, category.totalAmount);
+      }
+
+      await managerPage.click('button[type="submit"]:has-text("創建預算池")');
+      await managerPage.waitForURL(/\/budget-pools\/[a-f0-9-]+/);
+
+      const url = managerPage.url();
+      budgetPoolId = url.split('/budget-pools/')[1];
+
+      console.log(`✅ 預算池已創建: ${budgetPoolId}`);
+      await waitForEntityPersisted(managerPage, 'budgetPool', budgetPoolId);
+    });
+
+    await test.step('前置準備: 創建項目', async () => {
+      const projectData = generateProjectData();
+
+      console.log(`🔍 驗證預算池 ${budgetPoolId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'budgetPool', budgetPoolId);
+
+      // 直接導航到創建項目頁面（更穩定）
+      await managerPage.goto('/projects/new');
+      await managerPage.waitForSelector('input[name="name"]', { timeout: 10000 });
+
+      await managerPage.fill('input[name="name"]', projectData.name);
+      await managerPage.fill('textarea[name="description"]', projectData.description || '');
+
+      await managerPage.waitForFunction(
+        (poolId) => {
+          const select = document.querySelector('select[name="budgetPoolId"]') as HTMLSelectElement;
+          if (!select || select.options.length <= 1) return false;
+          for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === poolId) return true;
+          }
+          return false;
+        },
+        budgetPoolId,
+        { timeout: 20000 }
+      );
+
+      await managerPage.selectOption('select[name="budgetPoolId"]', budgetPoolId);
+
+      await managerPage.waitForFunction(() => {
+        const select = document.querySelector('select[name="managerId"]') as HTMLSelectElement;
+        return select && select.options.length > 1;
+      }, { timeout: 15000 });
+      const managerSelect = managerPage.locator('select[name="managerId"]');
+      await managerSelect.selectOption({ index: 1 });
+
+      await managerPage.waitForFunction(() => {
+        const select = document.querySelector('select[name="supervisorId"]') as HTMLSelectElement;
+        return select && select.options.length > 1;
+      }, { timeout: 15000 });
+      const supervisorSelect = managerPage.locator('select[name="supervisorId"]');
+      await supervisorSelect.selectOption({ index: 1 });
+
+      await managerPage.fill('input[name="startDate"]', projectData.startDate);
+      await managerPage.fill('input[name="endDate"]', projectData.endDate);
+      await managerPage.fill('input[name="requestedBudget"]', projectData.requestedBudget);
+
+      await managerPage.click('button[type="submit"]:has-text("創建專案")');
+      await expect(managerPage.locator('text=專案創建成功')).toBeVisible({ timeout: 10000 });
+      await managerPage.waitForTimeout(2000);
+
+      let url = managerPage.url();
+      if (url.includes('/projects/')) {
+        projectId = url.split('/projects/')[1].split('?')[0].split('/')[0];
+      } else {
+        await managerPage.goto('/projects');
+        await managerPage.waitForSelector('text=' + projectData.name);
+        const projectLink = managerPage.locator(`a:has-text("${projectData.name}")`).first();
+        const href = await projectLink.getAttribute('href');
+        projectId = href?.split('/projects/')[1] || '';
+      }
+
+      await managerPage.goto(`/projects/${projectId}`);
+      await managerPage.waitForLoadState('networkidle');
+
+      console.log(`✅ 項目已創建: ${projectId}`);
+      await waitForEntityPersisted(managerPage, 'project', projectId);
+    });
+
+    await test.step('前置準備: 創建並提交提案', async () => {
       const proposalData = generateProposalData();
-      await managerPage.goto('/proposals/new');
-      // ... 創建和提交邏輯 ...
 
-      proposalId = 'test-proposal-id'; // 假設已創建
+      console.log(`🔍 驗證項目 ${projectId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'project', projectId);
+
+      await managerPage.goto('/proposals');
+      await managerPage.click('text=新增提案');
+      await managerPage.waitForSelector('input[name="title"]');
+
+      await managerPage.fill('input[name="title"]', proposalData.title);
+      await managerPage.fill('input[name="amount"]', proposalData.amount);
+      await managerPage.selectOption('select[name="projectId"]', projectId);
+
+      await managerPage.click('button[type="submit"]:has-text("創建提案")');
+      await managerPage.waitForURL(/\/proposals\/[a-f0-9-]+/);
+
+      const url = managerPage.url();
+      proposalId = url.split('/proposals/')[1];
+
+      console.log(`✅ 預算提案已創建: ${proposalId}`);
+      await waitForEntityPersisted(managerPage, 'budgetProposal', proposalId);
+
+      // 提交提案到待審批狀態
+      console.log(`🔍 驗證提案 ${proposalId} 是否可查詢...`);
+      await waitForEntityPersisted(managerPage, 'budgetProposal', proposalId);
+
+      await expect(managerPage).toHaveURL(`/proposals/${proposalId}`);
+      await managerPage.click('button:has-text("提交審批")');
+      await managerPage.waitForTimeout(2000);
+      await managerPage.reload();
+      await managerPage.waitForLoadState('networkidle');
+
+      await expect(managerPage.locator('text=待審批').first()).toBeVisible({ timeout: 10000 });
+
+      console.log(`✅ 提案已提交審核，當前狀態：待審批`);
     });
 
     // ========================================
@@ -333,8 +458,8 @@ test.describe('預算申請工作流', () => {
       await wait(1000);
       await supervisorPage.reload();
 
-      // 驗證狀態變為 Rejected
-      await expect(supervisorPage.locator('text=已拒絕')).toBeVisible();
+      // 驗證狀態變為 Rejected（使用 first() 選擇第一個匹配元素）
+      await expect(supervisorPage.locator('text=已拒絕').first()).toBeVisible();
 
       console.log(`✅ 提案已拒絕`);
     });
@@ -346,7 +471,7 @@ test.describe('預算申請工作流', () => {
       await managerPage.goto(`/proposals/${proposalId}`);
 
       // 驗證拒絕原因可見
-      await expect(managerPage.locator('text=預算金額超出項目需求')).toBeVisible();
+      await expect(managerPage.locator('text=預算金額超出項目需求').first()).toBeVisible();
 
       console.log(`✅ 拒絕原因已顯示`);
     });

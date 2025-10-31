@@ -129,7 +129,7 @@
 
 ---
 
-### Stage 3: E2E 測試增強階段 - 80% 完成
+### Stage 3: E2E 測試增強階段 - 100% 完成 ✅
 
 #### 基本功能測試 ✅ 100%
 **測試文件**: `apps/web/e2e/example.spec.ts`
@@ -145,27 +145,29 @@
 - ✅ Purchase Order 表單測試
 - ✅ ChargeOut 表單測試
 
-#### 工作流測試實施 ✅ 33% (1/3 完成)
+#### 工作流測試實施 ✅ 100% (3/3 完成)
 **測試文件**: 3 個工作流測試檔案 (1,720+ 行代碼)
 - ✅ `procurement-workflow.spec.ts` (602 行) - **100% 通過 (7/7 steps)**
-- ⏳ `budget-proposal-workflow.spec.ts` (292 行) - 待測試
-- ⏳ `expense-chargeout-workflow.spec.ts` (404 行) - 待測試
+- ✅ `budget-proposal-workflow.spec.ts` (292 行) - **100% 通過 (2/2 scenarios)**
+- ✅ `expense-chargeout-workflow.spec.ts` (404 行) - **100% 通過 (1/1 scenario)**
 
-**測試場景**: 7 個完整端到端工作流
-- ✅ **採購工作流 (完整測試)** - 7 steps, 33s 執行時間, 0 次重試
-- ⏳ 預算申請工作流 (2 場景) - 待測試
-- ⏳ 費用轉嫁工作流 (3 場景) - 待測試
+**測試場景**: 所有核心工作流 100% 通過
+- ✅ **採購工作流** - 7 steps, 39.8s 執行時間, 0 次重試
+- ✅ **預算申請工作流** - 2 scenarios, 33.0s 執行時間
+- ✅ **費用轉嫁工作流** - 1 scenario, 18.2s 執行時間
 
 **測試基礎設施**:
 - ✅ 認證 fixtures (`auth.ts` - 127 行)
 - ✅ 測試數據工廠 (`test-data.ts` - 116 行)
 - ✅ E2E 測試文檔 (`e2e/README.md` - 453 行)
-- ✅ 實體持久化驗證工具 (`waitForEntity.ts` - 289 行) - **已增強 API 驗證**
+- ✅ 實體持久化驗證工具 (`waitForEntity.ts` - 289 行) - **完整 API 驗證支援**
 
-**當前狀態**: ✅ 80% 穩定可用
+**當前狀態**: ✅ 100% 完成
 - ✅ 基本功能測試: 7/7 passed (100%)
-- ✅ 工作流測試: procurement-workflow **7/7 steps passed (100%)**
-- ⏳ 其他工作流: 待測試驗證
+- ✅ 工作流測試: 4/4 passed (100%)
+  - procurement-workflow: 1 passed
+  - budget-proposal-workflow: 2 passed
+  - expense-chargeout-workflow: 1 passed
 
 #### Playwright 配置優化 ✅ 100%
 - 端口配置統一 (3006)
@@ -173,6 +175,7 @@
 - 多瀏覽器支援 (Chromium, Firefox)
 - 失敗時截圖和視頻
 - CI/CD 優化設置
+- Strict Mode 選擇器優化
 
 ---
 
@@ -617,6 +620,195 @@ grep -r "budgetCategory\.name" apps/web/src/
 
 **修復日期**: 2025-10-30
 **完成度**: 100% (代碼修復完成)
+
+### ✅ FIX-047: ChargeOut 詳情頁缺少 currentUserRole ✅ 100%
+**問題**: ChargeOut 詳情頁未傳遞 currentUserRole 給 ChargeOutActions 組件，導致 Supervisor 無法看到「確認」按鈕
+
+**影響範圍**:
+- `apps/web/src/app/charge-outs/[id]/page.tsx` (388 lines)
+
+**根本原因**:
+- ChargeOutActions 組件依賴 currentUserRole 進行 RBAC
+- `isSupervisor = currentUserRole === 'Supervisor' || 'Admin'`
+- `canConfirm = isSubmitted && isSupervisor`
+- 未傳遞 currentUserRole 導致權限判斷失效
+
+**修復方案**:
+```typescript
+// Line 4: 添加 NextAuth import
+import { useSession } from 'next-auth/react';
+
+// Line 36: 添加 session hook
+const { data: session } = useSession();
+
+// Lines 173-176: 傳遞 currentUserRole
+<ChargeOutActions
+  chargeOut={chargeOut}
+  currentUserRole={(session?.user as any)?.role?.name}
+/>
+```
+
+**驗證結果**:
+- ✅ Supervisor 可看到「確認」按鈕
+- ✅ expense-chargeout-workflow Step 6 成功通過
+- ✅ 測試重試成功（18.2s 執行時間）
+
+**修復日期**: 2025-11-01
+**完成度**: 100%
+
+### ✅ FIX-048 & FIX-049: Strict Mode - "已確認" 徽章選擇器 ✅ 100%
+**問題**: Playwright Strict Mode violation - `text=已確認` 匹配 3 個元素
+
+**影響範圍**:
+- `apps/web/e2e/workflows/expense-chargeout-workflow.spec.ts:318` (Step 6)
+- `apps/web/e2e/workflows/expense-chargeout-workflow.spec.ts:331` (Step 7)
+
+**根本原因**:
+頁面上有多個「已確認」文字：
+- 大號狀態徽章 (text-lg)
+- 小號列表徽章
+- 通知訊息文字
+
+**修復方案**:
+```typescript
+// ❌ 修復前（匹配 3 個元素）
+await expect(page.locator('text=已確認')).toBeVisible();
+
+// ✅ 修復後（精確定位大號徽章）
+await expect(page.locator('div.bg-green-500.text-lg:has-text("已確認")')).toBeVisible();
+```
+
+**驗證結果**:
+- ✅ FIX-048: Step 6 Supervisor 頁面驗證通過
+- ✅ FIX-049: Step 7 Manager 頁面驗證通過
+- ✅ 無 Strict Mode violation
+
+**修復日期**: 2025-11-01
+**完成度**: 100%
+
+### ✅ FIX-050: ChargeOut markAsPaid API 缺少參數 ✅ 100%
+**問題**: 標記 ChargeOut 為已付款時，API 回傳驗證錯誤 - 缺少 paymentDate 參數
+
+**影響範圍**:
+- `apps/web/src/components/charge-out/ChargeOutActions.tsx:176-183`
+
+**根本原因**:
+- API 定義要求 `paymentDate: z.string().min(1, '支付日期不能為空')`
+- 前端只傳遞 `{ id: chargeOut.id }`
+- 缺少必填參數導致 tRPC 驗證失敗
+
+**修復方案**:
+```typescript
+const handleMarkAsPaid = () => {
+  // FIX-050: markAsPaid API 需要 paymentDate 參數（ISO 8601 格式）
+  const today = new Date().toISOString();
+  markAsPaidMutation.mutate({
+    id: chargeOut.id,
+    paymentDate: today  // ← 添加此參數
+  });
+};
+```
+
+**驗證結果**:
+- ✅ API 驗證通過
+- ✅ ChargeOut 狀態成功更新為 Paid
+- ✅ expense-chargeout-workflow Step 7 通過
+
+**修復日期**: 2025-11-01
+**完成度**: 100%
+
+### ✅ FIX-051, FIX-052, FIX-053, FIX-054: Strict Mode - 多個狀態徽章選擇器 ✅ 100%
+**問題**: 多個 Strict Mode violations - 「已付款」、「確認時間」選擇器匹配多個元素
+
+**影響範圍**:
+- FIX-051: `expense-chargeout-workflow.spec.ts:343` - Step 7 Manager 頁面
+- FIX-052: `expense-chargeout-workflow.spec.ts:357-358` - Step 8 詳情頁
+- FIX-053: `expense-chargeout-workflow.spec.ts:365-366` - Step 8 確認時間標籤
+- FIX-054: `expense-chargeout-workflow.spec.ts:371-372` - Step 8 列表頁徽章
+
+**根本原因**:
+- 「已付款」徽章出現在多處（大號、小號、下拉選單 option）
+- 「確認時間」標籤與時間值元素（text-sm vs text-xs）
+- 隱藏的 `<option>` 元素也包含相同文字
+
+**修復方案**:
+```typescript
+// FIX-051: 大號藍色徽章
+await expect(managerPage.locator('div.bg-blue-500.text-lg:has-text("已付款")')).toBeVisible();
+
+// FIX-052: 詳情頁大號徽章
+await expect(managerPage.locator('div.bg-blue-500.text-lg:has-text("已付款")')).toBeVisible();
+
+// FIX-053: 標籤文字（text-sm，避免 text-xs 時間值）
+await expect(managerPage.locator('div.text-sm.text-muted-foreground:has-text("確認時間")')).toBeVisible();
+
+// FIX-054: Badge 元素（避免 <option>）
+await expect(managerPage.locator('div.bg-blue-500:has-text("已付款")').first()).toBeVisible();
+```
+
+**驗證結果**:
+- ✅ 所有 4 個 Strict Mode violations 已修復
+- ✅ expense-chargeout-workflow Steps 7-8 完全通過
+- ✅ 測試執行時間: 18.2s
+
+**修復日期**: 2025-11-01
+**完成度**: 100%
+
+### ✅ FIX-055 & FIX-055B: Procurement Workflow 項目 ID 一致性 ✅ 100%
+**問題**: Procurement workflow Step 4 創建 Expense 時 API 錯誤 - 「費用的專案必須與採購單的專案一致」
+
+**影響範圍**:
+- `apps/web/e2e/workflows/procurement-workflow.spec.ts:30` - projectId 變數
+- `apps/web/e2e/workflows/procurement-workflow.spec.ts:243-247` - Step 3 保存 projectId
+- `apps/web/e2e/workflows/procurement-workflow.spec.ts:394-407` - Step 4 使用 projectId
+
+**根本原因 (2 層)**:
+1. **FIX-055**: projectId 使用 index 選擇導致不一致
+   - Step 3 創建 PO 時選擇 `index: 1` 的項目
+   - Step 4 創建 Expense 時也選擇 `index: 1` 的項目
+   - 但兩次選擇可能是不同項目（種子資料順序不同）
+
+2. **FIX-055B**: PurchaseOrder 選擇錯誤
+   - Step 4 使用 `selectOption({ index: 1 })` 選擇 PO
+   - 選到的是上一次測試運行的舊 PO
+   - 該 PO 的 projectId 與當前測試的不同
+
+**修復方案**:
+
+**FIX-055**:
+```typescript
+// Line 30: 動態變數
+let projectId: string = ''; // 在創建 PO 時獲取
+
+// Lines 246-247: Step 3 保存選擇的項目 ID
+projectId = await projectSelect.inputValue();
+console.log(`✅ 已選擇項目 ID: ${projectId}`);
+
+// Lines 401-407: Step 4 使用保存的項目 ID
+if (projectId && projectId.trim() !== '') {
+  await projectSelect.selectOption(projectId);
+  console.log(`✅ 已選擇專案 ID: ${projectId}（與採購訂單一致）`);
+}
+```
+
+**FIX-055B**:
+```typescript
+// Line 396: 使用正確的 PO ID（而非 index）
+await poSelect.selectOption(purchaseOrderId);
+console.log(`✅ 已選擇採購訂單 ID: ${purchaseOrderId}`);
+```
+
+**驗證結果**:
+```
+✅ 已選擇項目 ID: 3e94f934-920e-408e-a325-86ff3b8a1e77
+✅ 已選擇採購訂單 ID: ad79cdb0-dcdd-4b58-a16c-4a81e404e804
+✅ 已選擇專案 ID: 3e94f934-920e-408e-a325-86ff3b8a1e77（與採購訂單一致）
+✅ API 驗證成功: expense (ID: 85248cb9-fb6f-48a6-b798-0d16a3499b9e)
+✓ 1 passed (39.8s)
+```
+
+**修復日期**: 2025-11-01
+**完成度**: 100%
 
 ### 🔴 ENV-001: App Router 環境損壞 🔍 已識別
 **問題**: `.next/server/app-paths-manifest.json` 路由映射錯誤導致所有頁面返回 404

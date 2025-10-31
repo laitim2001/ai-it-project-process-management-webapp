@@ -39,7 +39,12 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch budget pools for dropdown
-  const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery();
+  const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery({
+    page: 1,
+    limit: 100,
+    sortBy: 'year',
+    sortOrder: 'desc',
+  });
   const budgetPools = budgetPoolsData?.items ?? [];
 
   // Module 2: 動態載入預算類別列表（當選擇預算池時）

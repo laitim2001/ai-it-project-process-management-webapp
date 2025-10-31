@@ -26,8 +26,8 @@ test.describe('採購工作流', () => {
   let purchaseOrderId: string;
   let expenseId: string;
 
-  // 前置條件：需要有項目和預算池
-  let projectId: string = 'existing-project-id'; // 在實際測試中應該先創建
+  // FIX-055: 動態獲取 projectId，確保 PurchaseOrder 和 Expense 使用同一個項目
+  let projectId: string = ''; // 在創建 PurchaseOrder 時獲取
 
   test('完整採購工作流：供應商 → 報價 → 採購訂單 → 費用記錄 → 批准', async ({
     managerPage,
@@ -240,9 +240,11 @@ test.describe('採購工作流', () => {
       // 等待項目選擇器載入
       await managerPage.waitForSelector('select', { timeout: 5000 });
 
-      // 選擇項目（第一個 select）
+      // FIX-055: 選擇項目並保存 projectId（確保後續創建 Expense 時使用同一個項目）
       const projectSelect = managerPage.locator('select').first();
       await projectSelect.selectOption({ index: 1 }); // 選擇第一個項目
+      projectId = await projectSelect.inputValue(); // 保存選擇的項目 ID
+      console.log(`✅ 已選擇項目 ID: ${projectId}`);
 
       // 選擇供應商（第二個 select）
       const vendorSelect = managerPage.locator('select').nth(1);
@@ -389,13 +391,21 @@ test.describe('採購工作流', () => {
       // 等待選擇器載入
       await managerPage.waitForSelector('select', { timeout: 5000 });
 
-      // 選擇採購訂單（第一個 select）
+      // FIX-055B: 選擇採購訂單（使用 Step 3 創建的 purchaseOrderId）
       const poSelect = managerPage.locator('select').first();
-      await poSelect.selectOption({ index: 1 }); // 選擇第一個採購訂單
+      await poSelect.selectOption(purchaseOrderId);
+      console.log(`✅ 已選擇採購訂單 ID: ${purchaseOrderId}`);
 
-      // 選擇專案（第二個 select）
+      // FIX-055: 選擇專案（使用 Step 3 保存的 projectId，確保與 PurchaseOrder 一致）
       const projectSelect = managerPage.locator('select').nth(1);
-      await projectSelect.selectOption({ index: 1 }); // 選擇第一個專案
+      if (projectId && projectId.trim() !== '') {
+        await projectSelect.selectOption(projectId);
+        console.log(`✅ 已選擇專案 ID: ${projectId}（與採購訂單一致）`);
+      } else {
+        // 備用方案：如果 projectId 為空，選擇第一個專案
+        console.warn('⚠️ projectId 為空，使用備用方案選擇第一個專案');
+        await projectSelect.selectOption({ index: 1 });
+      }
 
       // 填寫發票日期（第一個 date input）
       const invoiceDateInput = managerPage.locator('input[type="date"]').first();

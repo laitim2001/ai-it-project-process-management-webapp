@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { ArrowLeft, Building2, FolderOpen, DollarSign, Calendar, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,7 @@ import { ChargeOutActions } from '@/components/charge-out/ChargeOutActions';
 
 export default function ChargeOutDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   // 獲取 ChargeOut 詳情
   const { data: chargeOut, isLoading } = api.chargeOut.getById.useQuery({
@@ -168,7 +170,10 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
 
       {/* 狀態操作按鈕 */}
       <div className="mb-6">
-        <ChargeOutActions chargeOut={chargeOut} />
+        <ChargeOutActions
+          chargeOut={chargeOut}
+          currentUserRole={(session?.user as any)?.role?.name}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
