@@ -55,7 +55,9 @@ export function ExpenseActions({
         description: '費用記錄已提交，等待主管審批',
       });
       utils.expense.getById.invalidate({ id: expenseId });
-      router.refresh();
+      // FIX-044: 移除 router.refresh() 以避免開發模式下的 HotReload 問題
+      // invalidate 已經會觸發 React Query 重新獲取數據，無需 refresh
+      // router.refresh();
     },
     onError: (error) => {
       toast({
@@ -73,7 +75,9 @@ export function ExpenseActions({
         description: '費用記錄已批准',
       });
       utils.expense.getById.invalidate({ id: expenseId });
-      router.refresh();
+      // FIX-044: 移除 router.refresh() 以避免開發模式下的 HotReload 問題
+      // invalidate 已經會觸發 React Query 重新獲取數據，無需 refresh
+      // router.refresh();
     },
     onError: (error) => {
       toast({

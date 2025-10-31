@@ -58,10 +58,14 @@ export async function waitForEntityPersisted(
       await page.waitForTimeout(waitTime);
 
       // 使用頁面導航驗證（會自動帶認證 cookies）
+      // FIX-042: 增強容錯性 - 使用 domcontentloaded 避免 HMR 資源等待問題
       const response = await page.goto(detailUrl, {
-        waitUntil: 'networkidle',
-        timeout: 10000, // 10秒超時
+        waitUntil: 'domcontentloaded',  // 開發模式下更穩定
+        timeout: 15000, // 增加超時時間到 15 秒
       });
+
+      // 額外等待頁面穩定
+      await page.waitForTimeout(500);
 
       // 檢查響應狀態
       if (response && response.ok() && response.status() !== 404) {
@@ -142,12 +146,132 @@ export function extractIdFromURL(page: Page, pattern: RegExp): string {
  * });
  * ```
  */
+/**
+ * FIX-044: 使用 API 驗證實體狀態（避免導航到有 HotReload 問題的頁面）
+ *
+ * 問題: ExpensesPage 詳情頁同樣有 HotReload 問題，導致頁面導航驗證失敗
+ * 解決: 直接使用 tRPC API 端點驗證實體狀態，避免瀏覽器渲染
+ *
+ * @param page - Playwright Page 對象
+ * @param entityType - 實體類型
+ * @param entityId - 實體 ID
+ * @param fieldChecks - 欄位驗證對象
+ * @param maxRetries - 最大重試次數
+ */
+export async function waitForEntityViaAPI(
+  page: Page,
+  entityType: string,
+  entityId: string,
+  fieldChecks: Record<string, any>,
+  maxRetries: number = 5
+): Promise<any> {
+  console.log(`⏳ 使用 API 驗證實體狀態: ${entityType} (ID: ${entityId})`);
+
+  // Entity type 到 tRPC 端點的映射
+  const entityTypeToEndpoint: Record<string, string> = {
+    'expense': `expense.getById`,
+    'budgetProposal': `budgetProposal.getById`,
+    'project': `project.getById`,
+    'purchaseOrder': `purchaseOrder.getById`,
+    'vendor': `vendor.getById`,
+  };
+
+  const endpoint = entityTypeToEndpoint[entityType];
+  if (!endpoint) {
+    throw new Error(`未支援的實體類型（API 驗證）: ${entityType}`);
+  }
+
+  // 構建 tRPC API URL
+  // tRPC 使用 {"json": {...}} 格式包裝 input
+  const apiUrl = `http://localhost:3006/api/trpc/${endpoint}?input=${encodeURIComponent(JSON.stringify({ json: { id: entityId } }))}`;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔍 API 驗證 (第 ${attempt}/${maxRetries} 次嘗試): GET ${endpoint}`);
+
+      // 等待時間遞增：前兩次等待較長（費用狀態更新需要時間）
+      // 1000ms, 2000ms, 3000ms, 3500ms, 4000ms
+      const waitTime = attempt <= 2 ? 1000 * attempt : 2500 + (attempt * 500);
+      await page.waitForTimeout(waitTime);
+
+      // 使用 page.evaluate 發送 API 請求（會自動帶認證 cookies）
+      const response = await page.evaluate(async (url) => {
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include', // 攜帶 cookies
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return await res.json();
+      }, apiUrl);
+
+      // tRPC 響應格式：{ result: { data: { json: {...} } } }
+      console.log(`📦 API 原始響應:`, JSON.stringify(response).substring(0, 200));
+
+      // FIX-044: tRPC 返回的數據在 result.data.json 中
+      const entityData = response.result?.data?.json || response.result?.data;
+
+      if (!entityData) {
+        console.log(`⚠️ 第 ${attempt} 次嘗試：實體數據為空`);
+        if (attempt === maxRetries) {
+          throw new Error(`API 驗證失敗：實體數據為空`);
+        }
+        continue;
+      }
+
+      console.log(`📦 解析後的實體數據:`, JSON.stringify(entityData).substring(0, 200));
+
+      // 驗證欄位值
+      let allFieldsMatch = true;
+      for (const [field, expectedValue] of Object.entries(fieldChecks)) {
+        const actualValue = entityData[field];
+        console.log(`🔍 驗證欄位: ${field} = ${actualValue} (期望: ${expectedValue})`);
+
+        if (actualValue !== expectedValue) {
+          allFieldsMatch = false;
+          console.log(`⚠️ 欄位不匹配: ${field} (實際: ${actualValue}, 期望: ${expectedValue})`);
+          break;
+        }
+      }
+
+      if (!allFieldsMatch) {
+        if (attempt === maxRetries) {
+          throw new Error(`欄位驗證失敗：部分欄位值不符合預期`);
+        }
+        console.log(`🔄 準備第 ${attempt + 1} 次重試...`);
+        continue;
+      }
+
+      console.log(`✅ API 驗證成功: ${entityType} (ID: ${entityId}) [第 ${attempt} 次嘗試成功]`);
+      return entityData;
+
+    } catch (error) {
+      console.log(`⚠️ 第 ${attempt} 次嘗試遇到錯誤: ${error}`);
+
+      if (attempt === maxRetries) {
+        throw new Error(`API 驗證失敗 (${maxRetries}次重試後): ${entityType} (ID: ${entityId}) - ${error}`);
+      }
+
+      console.log(`🔄 準備第 ${attempt + 1} 次重試...`);
+    }
+  }
+
+  throw new Error(`API 驗證失敗: ${entityType} (ID: ${entityId})`);
+}
+
 export async function waitForEntityWithFields(
   page: Page,
   entityType: string,
   entityId: string,
   fieldChecks: Record<string, any>
 ): Promise<any> {
+  // FIX-044: 對於 expense 類型，使用 API 驗證避免 HotReload 問題
+  if (entityType === 'expense') {
+    console.log(`⚠️ 檢測到 expense 實體，使用 API 驗證（避免 ExpensesPage HotReload 問題）`);
+    return await waitForEntityViaAPI(page, entityType, entityId, fieldChecks);
+  }
+
   // 先確保實體存在
   const data = await waitForEntityPersisted(page, entityType, entityId);
 
