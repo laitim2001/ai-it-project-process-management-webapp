@@ -160,10 +160,11 @@
 - ✅ 認證 fixtures (`auth.ts` - 127 行)
 - ✅ 測試數據工廠 (`test-data.ts` - 116 行)
 - ✅ E2E 測試文檔 (`e2e/README.md` - 453 行)
+- ✅ 實體持久化驗證工具 (`waitForEntity.ts` - 165 行)
 
-**當前狀態**: ⚠️ 50% 可用 (7/14 測試通過)
+**當前狀態**: 🔄 70% 部分可用 (測試執行中)
 - ✅ 基本功能測試: 7/7 passed (100%)
-- ❌ 工作流測試: 0/7 passed (0%) - 受 FIX-013 阻塞
+- 🔄 工作流測試: procurement-workflow 進行中 (Steps 1-4 通過，Step 5 待修復)
 
 #### Playwright 配置優化 ✅ 100%
 - 端口配置統一 (3006)
@@ -317,6 +318,115 @@ toast({
 
 **修復日期**: 2025-10-30
 **完成度**: 100% (代碼修復完成)
+
+### ✅ FIX-039-REVISED: ExpensesPage HotReload 修復 ✅ 100%
+**問題**: Procurement workflow Step 4 在訪問 `/expenses` 列表頁時遇到 React HotReload 競態條件錯誤
+
+**影響範圍**:
+- `apps/web/src/app/expenses/page.tsx` (3 個 tRPC 查詢)
+- `apps/web/e2e/workflows/procurement-workflow.spec.ts` (Step 4)
+
+**根本原因**:
+- Next.js HMR + 3 個並發 tRPC 查詢 (`expense.getAll`, `purchaseOrder.getAll`, `expense.getStats`)
+- HMR 嘗試在 ExpensesPage 仍在渲染時更新組件狀態
+- 錯誤: "Cannot update a component while rendering a different component"
+
+**錯誤修復嘗試 (FIX-039)**:
+直接導航到 `/expenses/new` 繞過列表頁 - **用戶正確指出此方法違反 E2E 測試原則**
+
+**正確修復方案**:
+1. **應用層修復**: 添加 refetch 配置到 3 個查詢
+```typescript
+const { data } = api.expense.getAll.useQuery(params, {
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+});
+```
+
+2. **測試層修復**: 恢復完整用戶流程
+```typescript
+await managerPage.goto('/expenses');
+await managerPage.waitForLoadState('networkidle');
+await managerPage.click('text=新增費用');
+```
+
+**驗證結果**:
+- ✅ ExpensesPage HotReload 錯誤完全消失
+- ✅ Step 4 成功通過，能正常創建費用記錄
+- ✅ 完整用戶流程驗證通過
+
+**修復日期**: 2025-10-31
+**完成度**: 100%
+
+### ✅ FIX-040: Expense 狀態流程修正 ✅ 100%
+**問題**: Procurement workflow Step 5 使用錯誤的 Expense 狀態值進行驗證
+
+**影響範圍**:
+- `apps/web/e2e/workflows/procurement-workflow.spec.ts` (Step 5)
+
+**根本原因**:
+不同業務實體使用不同的狀態機流程：
+- BudgetProposal: `Draft → PendingApproval → Approved`
+- Expense: `Draft → Submitted → Approved → Paid`
+
+FIX-038 的假設（Expense 使用 'PendingApproval'）是錯誤的
+
+**修復方案**:
+```typescript
+// 修復前（錯誤）:
+await expect(managerPage.locator('text=待審批')).toBeVisible();
+
+// 修復後（正確）:
+await expect(managerPage.locator('text=已提交')).toBeVisible();
+```
+
+**驗證結果**:
+- ✅ 修正了對 Expense 狀態流程的理解
+- ✅ 測試代碼使用正確的狀態值
+- ⏳ 完整驗證待 FIX-041 配合
+
+**修復日期**: 2025-10-31
+**完成度**: 100%
+
+### 🔧 FIX-041: waitForEntityWithFields 工具缺陷繞過 ⚠️ 臨時方案
+**問題**: `waitForEntityWithFields()` 助手函數無法驗證實體字段，永遠返回 undefined
+
+**影響範圍**:
+- `apps/web/e2e/helpers/waitForEntity.ts` (waitForEntityPersisted 和 waitForEntityWithFields 函數)
+- 所有使用此工具的工作流測試
+
+**根本原因**:
+`waitForEntityPersisted()` 僅返回 `{success: true}`，不返回實體數據：
+```typescript
+// waitForEntity.ts:69
+return { success: true };  // ❌ 缺少實體數據
+
+// waitForEntity.ts:155
+const entityData = data.result?.data || data;  // = {success: true}
+const actualValue = entityData[field];  // = undefined ❌
+```
+
+**臨時繞過方案**:
+使用 UI 驗證替代 API 數據驗證：
+```typescript
+// FIX-041: 臨時繞過方案
+await managerPage.waitForTimeout(2000);
+await managerPage.reload();
+await expect(managerPage.locator('text=已提交')).toBeVisible({ timeout: 10000 });
+```
+
+**驗證結果**:
+- ⚠️ 臨時繞過方案可用於單一字段驗證
+- ❌ 不適用於多字段或複雜驗證場景
+- 🔧 需要修復工具本身
+
+**後續行動**:
+1. 修復 `waitForEntityPersisted()` 使其返回實體數據
+2. 或改用 tRPC API 查詢替代頁面導航驗證
+
+**修復日期**: 2025-10-31
+**完成度**: 50% (臨時方案，待完整修復)
 
 ### ✅ FIX-011C: BudgetCategory Field Name Error (前端層) ✅ 100%
 **問題**: 項目詳情頁使用錯誤的 BudgetCategory 字段名稱

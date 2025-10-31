@@ -47,22 +47,37 @@ export default function ExpensesPage() {
   const { showToast } = useToast();
 
   // 查詢費用列表
+  // FIX-039-REVISED: 添加 refetch 配置避免 HotReload 期間的競態條件
   const { data, isLoading, error } = api.expense.getAll.useQuery({
     page,
     limit: 10,
     status: status as 'Draft' | 'PendingApproval' | 'Approved' | 'Paid' | undefined,
     purchaseOrderId,
+  }, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // 查詢所有採購單（用於篩選）
   // 注意：API 限制最大 limit 為 100，如需更多數據請使用分頁
+  // FIX-039-REVISED: 添加 refetch 配置避免 HotReload 期間的競態條件
   const { data: purchaseOrders } = api.purchaseOrder.getAll.useQuery({
     page: 1,
     limit: 100,
+  }, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // 查詢統計資訊
-  const { data: stats } = api.expense.getStats.useQuery();
+  // FIX-039-REVISED: 添加 refetch 配置避免 HotReload 期間的競態條件
+  const { data: stats } = api.expense.getStats.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   // 載入骨架屏
   if (isLoading) {

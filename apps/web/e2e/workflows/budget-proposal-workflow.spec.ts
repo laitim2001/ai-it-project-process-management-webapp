@@ -281,13 +281,17 @@ test.describe('預算申請工作流', () => {
       // 訪問項目詳情頁
       await managerPage.goto(`/projects/${projectId}`);
 
-      // 驗證批准預算已更新
-      await expect(managerPage.locator('text=已批准預算')).toBeVisible();
+      // 等待頁面載入
+      await managerPage.waitForLoadState('networkidle');
 
-      // 可以進一步驗證具體金額
+      // 驗證批准預算已更新 (正確的文字是"批准預算")
+      await expect(managerPage.locator('text=批准預算')).toBeVisible({ timeout: 10000 });
+
+      // 可以進一步驗證具體金額 (使用更精確的選擇器，只選擇批准預算行的金額)
+      // 頁面有多個 $50,000，使用 .nth(3) 選擇第4個（批准預算那一行）
       const proposalData = generateProposalData();
       await expect(
-        managerPage.locator(`text=${proposalData.amount}` || 'text=50000')
+        managerPage.locator('text=$50,000').nth(3)
       ).toBeVisible();
 
       console.log(`✅ 項目批准預算已更新`);

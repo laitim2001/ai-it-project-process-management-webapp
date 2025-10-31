@@ -240,9 +240,15 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
       return;
     }
 
+    // FIX-029: 過濾空 quoteId 以避免外鍵約束錯誤
     // 組裝提交數據
     const submitData = {
-      ...values,
+      name: values.name,
+      description: values.description,
+      projectId: values.projectId,
+      vendorId: values.vendorId,
+      ...(values.quoteId && values.quoteId.trim() !== '' && { quoteId: values.quoteId }),
+      ...(values.date && { date: values.date }),
       items: items.map((item, index) => ({
         ...(item.id && { id: item.id }), // 編輯時包含 id
         itemName: item.itemName,

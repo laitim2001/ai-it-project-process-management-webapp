@@ -265,9 +265,18 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
       return;
     }
 
-    // 組裝提交數據
+    // FIX-036: 組裝提交數據，過濾掉 vendorId（Expense 模型沒有此欄位）
+    // 類似 PurchaseOrderForm 的 FIX-029，明確列出欄位而非展開 ...values
     const submitData = {
-      ...values,
+      name: values.name,
+      description: values.description,
+      purchaseOrderId: values.purchaseOrderId,
+      projectId: values.projectId,
+      invoiceNumber: values.invoiceNumber,
+      invoiceDate: values.invoiceDate,
+      ...(values.budgetCategoryId && { budgetCategoryId: values.budgetCategoryId }),
+      requiresChargeOut: values.requiresChargeOut || false,
+      isOperationMaint: values.isOperationMaint || false,
       items: items.map((item, index) => ({
         ...(item.id && { id: item.id }), // 編輯時包含 id
         itemName: item.itemName,
