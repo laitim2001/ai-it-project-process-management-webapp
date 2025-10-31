@@ -174,6 +174,7 @@ export async function waitForEntityViaAPI(
     'project': `project.getById`,
     'purchaseOrder': `purchaseOrder.getById`,
     'vendor': `vendor.getById`,
+    'chargeOut': `chargeOut.getById`,
   };
 
   const endpoint = entityTypeToEndpoint[entityType];
@@ -266,9 +267,9 @@ export async function waitForEntityWithFields(
   entityId: string,
   fieldChecks: Record<string, any>
 ): Promise<any> {
-  // FIX-044: 對於 expense 類型，使用 API 驗證避免 HotReload 問題
-  if (entityType === 'expense') {
-    console.log(`⚠️ 檢測到 expense 實體，使用 API 驗證（避免 ExpensesPage HotReload 問題）`);
+  // FIX-044: 對於 expense 和 chargeOut 類型，使用 API 驗證避免頁面 HotReload 問題
+  if (entityType === 'expense' || entityType === 'chargeOut') {
+    console.log(`⚠️ 檢測到 ${entityType} 實體，使用 API 驗證（避免頁面 HotReload 問題）`);
     return await waitForEntityViaAPI(page, entityType, entityId, fieldChecks);
   }
 

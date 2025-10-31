@@ -1,8 +1,63 @@
 # E2E 工作流測試實施進度報告
 
-**最新更新**: 2025-10-31
-**狀態**: ✅ procurement-workflow 測試 100% 通過！
+**最新更新**: 2025-10-31 (FIX-045)
+**狀態**: ✅ procurement-workflow 100% | ✅ expense-chargeout Step 1-3 通過 | 🔧 Step 5 待修復
 **負責**: AI Assistant (Claude Code)
+
+---
+
+## 🎉 重大里程碑：FIX-045 - expense-chargeout-workflow Step 1-3 完全通過（2025-10-31）
+
+### ✅ **expense-chargeout-workflow Steps 1-3 達成 100% 通過率！**
+
+**測試狀態**:
+```
+✅ Step 1: 創建費用（API）- PASSED
+✅ Step 2: 提交並批准費用（API）- PASSED
+✅ Step 3: 創建 OpCo + ChargeOut（API）- PASSED
+🔧 Step 5: Playwright 語法錯誤（待修復 - line 271）
+⏳ Steps 6-7: 待測試
+```
+
+**核心成就**:
+1. ✅ **完全 API 創建模式**: Step 1-3 統一使用 API，避免表單複雜性
+2. ✅ **OpCo 資料自給自足**: 測試時動態創建，無需種子資料
+3. ✅ **API 驗證擴展**: waitForEntity.ts 支援 chargeOut 類型
+4. ✅ **權限感知測試**: 正確使用 supervisorPage 和 managerPage
+
+**關鍵修復**:
+- **waitForEntity.ts:177**: 添加 `'chargeOut': 'chargeOut.getById'` 端點映射
+- **waitForEntity.ts:271**: 擴展 API 驗證條件支援 chargeOut
+- **expense-chargeout-workflow.spec.ts:176-255**: 完全重寫 Step 3（API 創建 OpCo + ChargeOut）
+- **ChargeOutForm.tsx:124**: 添加 API 參數（預防性修復）
+
+**執行日誌範例**:
+```
+🏢 Step 3.1: 創建 OpCo via API (Supervisor 權限)...
+✅ OpCo 創建成功: 00a92afc-5265-470e-8da9-ba37a8d185ae (E2E_OPCO_1761897508334)
+
+💰 Step 3.2: 創建 ChargeOut via API (ProjectManager 權限)...
+✅ ChargeOut 創建成功: cb10f974-c9c1-4e56-b9f2-8a9b13c751ce
+
+⏳ 使用 API 驗證實體狀態: chargeOut (ID: cb10f974-c9c1-4e56-b9f2-8a9b13c751ce)
+🔍 驗證欄位: status = Draft (期望: Draft)
+✅ API 驗證成功: chargeOut
+```
+
+**待修復問題**:
+```
+Step 5 line 271:
+await expect(managerPage.locator('table tbody tr')).toHaveCount({ min: 1 });
+                                                                  ^^^^^^^^^^^
+Error: locator._expect: expectedNumber: expected float, got object
+
+修復建議:
+await expect(managerPage.locator('table tbody tr').first()).toBeVisible();
+```
+
+**相關文檔**:
+- 詳細會話總結: `claudedocs/E2E-WORKFLOW-SESSION-SUMMARY.md`
+- 技術記錄: `FIXLOG.md` (FIX-045，待創建)
 
 ---
 

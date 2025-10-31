@@ -121,7 +121,9 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
     limit: 100,
   });
 
-  const { data: opCos } = api.operatingCompany.getAll.useQuery();
+  const { data: opCos } = api.operatingCompany.getAll.useQuery({
+    isActive: true, // 只顯示啟用的 OpCo
+  });
 
   // 獲取可用於 ChargeOut 的費用（requiresChargeOut = true）
   const { data: eligibleExpenses, isLoading: isLoadingExpenses } =
