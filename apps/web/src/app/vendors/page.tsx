@@ -169,10 +169,7 @@ export default function VendorsPage() {
               type="text"
               placeholder="搜尋供應商名稱、聯絡人或郵箱..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 

@@ -54,7 +54,18 @@ export default function LoginPage() {
 
       if (result?.error) {
         console.error('❌ 登入錯誤:', result.error);
-        setError(result.error === 'CredentialsSignin' ? 'Email 或密碼錯誤' : result.error);
+        // 將所有錯誤類型轉換為用戶友好的訊息
+        let errorMessage = 'Email 或密碼錯誤';
+        if (result.error === 'Configuration') {
+          errorMessage = '系統配置錯誤，請聯繫管理員';
+        } else if (result.error === 'AccessDenied') {
+          errorMessage = '訪問被拒絕，您沒有權限登入';
+        } else if (result.error === 'Verification') {
+          errorMessage = '請先驗證您的 Email 地址';
+        } else if (result.error !== 'CredentialsSignin') {
+          errorMessage = '登入失敗，請稍後再試';
+        }
+        setError(errorMessage);
         setIsLoading(false);
       } else if (result?.ok) {
         console.log('✅ 登入成功');

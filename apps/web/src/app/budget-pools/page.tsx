@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { PaginationControls, BudgetPoolListSkeleton, useToast } from '@/components/ui';
+import { PaginationControls, BudgetPoolListSkeleton } from '@/components/ui';
+import { useToast } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -194,10 +195,7 @@ export default function BudgetPoolsPage() {
               type="text"
               placeholder="搜尋預算池..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 

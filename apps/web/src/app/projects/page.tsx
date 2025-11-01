@@ -309,10 +309,7 @@ export default function ProjectsPage() {
                     type="text"
                     placeholder="搜尋專案名稱..."
                     value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(1);
-                    }}
+                    onChange={(e) => setSearch(e.target.value)}
                     className="pl-10"
                   />
                 </div>
