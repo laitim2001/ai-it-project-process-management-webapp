@@ -35,7 +35,8 @@ export default defineConfig({
   // 共享設置
   use: {
     // 基礎 URL（支持環境變數配置）
-    baseURL: process.env.BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3006',
+    // 臨時使用 3005 - 因為開發伺服器運行在此端口
+    baseURL: process.env.BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005',
 
     // 首次重試時記錄 trace
     trace: 'on-first-retry',

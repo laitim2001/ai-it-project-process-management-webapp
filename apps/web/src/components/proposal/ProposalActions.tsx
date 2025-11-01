@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 
 interface ProposalActionsProps {
   proposalId: string;
@@ -19,8 +19,9 @@ interface ProposalActionsProps {
 
 export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const { data: session } = useSession();
+  const utils = api.useContext();
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,29 +29,53 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const userId = session?.user?.id;
 
   const submitMutation = api.budgetProposal.submit.useMutation({
-    onSuccess: () => {
-      showToast('提案已提交審批！', 'success');
+    onSuccess: async () => {
+      toast({
+        title: '成功',
+        description: '提案已提交審批！',
+        variant: 'success',
+      });
+      // 修復 Bug #4: 手動觸發數據重新獲取，確保 UI 立即更新
+      await utils.budgetProposal.getById.invalidate({ id: proposalId });
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
   const approveMutation = api.budgetProposal.approve.useMutation({
-    onSuccess: () => {
-      showToast('審批完成！', 'success');
+    onSuccess: async () => {
+      toast({
+        title: '成功',
+        description: '審批完成！',
+        variant: 'success',
+      });
       setComment('');
+      // 修復 Bug #5: 手動觸發數據重新獲取，確保 UI 立即更新
+      await utils.budgetProposal.getById.invalidate({ id: proposalId });
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
   const handleSubmit = async () => {
     if (!userId) {
-      showToast('請先登入', 'error');
+      toast({
+        title: '錯誤',
+        description: '請先登入',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -67,12 +92,20 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
 
   const handleApprove = async (action: 'Approved' | 'Rejected' | 'MoreInfoRequired') => {
     if (!userId) {
-      showToast('請先登入', 'error');
+      toast({
+        title: '錯誤',
+        description: '請先登入',
+        variant: 'destructive',
+      });
       return;
     }
 
     if (action !== 'Approved' && !comment.trim()) {
-      showToast('請提供審批意見', 'error');
+      toast({
+        title: '錯誤',
+        description: '請提供審批意見',
+        variant: 'destructive',
+      });
       return;
     }
 

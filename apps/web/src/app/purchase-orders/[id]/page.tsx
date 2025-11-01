@@ -18,7 +18,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -78,7 +78,7 @@ function formatCurrency(amount: number): string {
 export default function PurchaseOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const id = params.id as string;
 
   // 查詢採購單詳情

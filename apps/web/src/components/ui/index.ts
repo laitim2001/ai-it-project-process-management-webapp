@@ -106,7 +106,8 @@ export {
   PaginationControls,
 } from "./pagination"
 export { BudgetPoolListSkeleton } from './LoadingSkeleton';
-export { ToastProvider, useToast } from './Toast';
+// 使用新版 shadcn/ui Toast 系統 (見第180-181行)
+// export { ToastProvider, useToast } from './Toast';
 
 // Phase 2 - Additional P2 Form Components
 export { Checkbox } from "./checkbox";
@@ -177,7 +178,7 @@ export {
 // Phase 2 - Additional P4 Feedback Components
 export { Alert, AlertTitle, AlertDescription } from "./alert";
 export { Separator } from "./separator";
-export { toast } from "./use-toast";
+export { toast, useToast } from "./use-toast"; // 新版 Toast Hook
 export { Toaster } from "./toaster";
 
 // Phase 2 - P5 Advanced Component (Accordion)

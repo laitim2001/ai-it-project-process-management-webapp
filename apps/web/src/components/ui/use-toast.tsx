@@ -115,7 +115,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: "REMOVE_TOAST",
       toastId: toastId,
     });
-  }, 1000000); // 實際的移除延遲由 toast duration 控制
+  }, 300); // 300ms 等待退出動畫完成
 
   toastTimeouts.set(toastId, timeout);
 };

@@ -15,7 +15,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -30,7 +30,7 @@ import { QuoteUploadForm } from '@/components/quote/QuoteUploadForm';
 export default function ProjectQuotesPage() {
   const params = useParams();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const projectId = params.id as string;
 
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
@@ -47,11 +47,19 @@ export default function ProjectQuotesPage() {
   // 從報價生成採購單
   const createPOMutation = api.purchaseOrder.createFromQuote.useMutation({
     onSuccess: (po) => {
-      showToast(`採購單 ${po.poNumber} 已成功創建！`, 'success');
+      toast({
+        title: '成功',
+        description: `採購單 ${po.poNumber} 已成功創建！`,
+        variant: 'success',
+      });
       router.push(`/purchase-orders/${po.id}`);
     },
     onError: (error) => {
-      showToast(`創建採購單失敗: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: `創建採購單失敗: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 

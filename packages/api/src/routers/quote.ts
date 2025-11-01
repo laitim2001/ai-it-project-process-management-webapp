@@ -36,7 +36,7 @@ const createQuoteSchema = z.object({
  * 更新報價單 Schema
  */
 const updateQuoteSchema = z.object({
-  id: z.string().min(1, '無效的報價單ID'),
+  id: z.string().uuid('報價單ID必須是有效的UUID格式'),
   amount: z.number().min(0, '報價金額必須大於等於0').optional(),
   description: z.string().optional(),
 });
@@ -212,7 +212,7 @@ export const quoteRouter = createTRPCRouter({
    * @returns Quote 完整資訊
    */
   getById: protectedProcedure
-    .input(z.object({ id: z.string().min(1, '無效的報價單ID') }))
+    .input(z.object({ id: z.string().uuid('報價單ID必須是有效的UUID格式') }))
     .query(async ({ ctx, input }) => {
       const quote = await ctx.prisma.quote.findUnique({
         where: { id: input.id },
@@ -383,7 +383,7 @@ export const quoteRouter = createTRPCRouter({
    * 注意：如果報價單已被選為採購單，將拒絕刪除
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().min(1, '無效的報價單ID') }))
+    .input(z.object({ id: z.string().uuid('報價單ID必須是有效的UUID格式') }))
     .mutation(async ({ ctx, input }) => {
       // 檢查報價單是否存在
       const quote = await ctx.prisma.quote.findUnique({

@@ -11,8 +11,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { prisma } from '@itpm/db';
 
 // 允許的文件類型
@@ -114,16 +115,19 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // 保存文件到 public/uploads/quotes/
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'quotes');
+    const uploadDir = join(process.cwd(), 'apps', 'web', 'public', 'uploads', 'quotes');
     const filePath = join(uploadDir, fileName);
 
     // 確保目錄存在
     try {
+      if (!existsSync(uploadDir)) {
+        await mkdir(uploadDir, { recursive: true });
+      }
       await writeFile(filePath, buffer);
     } catch (error) {
       console.error('文件寫入失敗:', error);
       return NextResponse.json(
-        { error: '文件上傳失敗，請稍後再試' },
+        { error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}` },
         { status: 500 }
       );
     }

@@ -26,7 +26,7 @@ export default function BudgetPoolsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const utils = api.useContext();
 
   // Debounce search to avoid too many API calls
@@ -62,9 +62,17 @@ export default function BudgetPoolsPage() {
       const filename = generateExportFilename('budget-pools');
       downloadCSV(csvContent, filename);
 
-      showToast('Export successful!', 'success');
+      toast({
+        title: '成功',
+        description: '資料匯出成功！',
+        variant: 'success',
+      });
     } catch (error) {
-      showToast('Export failed. Please try again.', 'error');
+      toast({
+        title: '錯誤',
+        description: '資料匯出失敗，請稍後再試',
+        variant: 'destructive',
+      });
       console.error('Export error:', error);
     } finally {
       setIsExporting(false);

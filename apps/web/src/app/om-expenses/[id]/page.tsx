@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseMonthlyGrid from '@/components/om-expense/OMExpenseMonthlyGrid';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
 /**

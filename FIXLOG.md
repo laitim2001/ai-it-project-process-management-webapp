@@ -10,6 +10,9 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-058: Toast Provider 錯誤修復第三輪 - 子組件檢查](#fix-058-toast-provider-錯誤修復第三輪---子組件檢查) |
+| 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-057: Toast 自動關閉與評論刷新問題](#fix-057-toast-自動關閉與評論刷新問題) |
+| 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-056: Toast 通知系統遷移第一輪](#fix-056-toast-通知系統遷移第一輪) |
 | 2025-10-31 | 🧪 E2E測試/HMR | ✅ 已解決 | [FIX-044: ExpensesPage 詳情頁 HotReload 問題 - API 驗證方案](#fix-044-expensespage-詳情頁-hotreload-問題---api-驗證方案) |
 | 2025-10-31 | 🧪 E2E測試/HMR | ✅ 已解決 | [FIX-043: ExpensesPage 列表頁 HotReload 臨時繞過方案](#fix-043-expensespage-列表頁-hotreload-臨時繞過方案) |
 | 2025-10-31 | 🧪 E2E測試/穩定性 | ✅ 已解決 | [FIX-042: waitForEntityPersisted 容錯性增強](#fix-042-waitforentitypersisted-容錯性增強) |
@@ -30,17 +33,20 @@
 
 ## 🔍 快速搜索
 
+- **Toast 系統問題**: FIX-056, FIX-057, FIX-058 (三輪完整修復) ⭐
 - **文檔/索引問題**: FIX-001, FIX-002
 - **環境/部署問題**: FIX-005
 - **版本控制問題**: FIX-004
-- **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008
+- **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008, FIX-056, FIX-057, FIX-058
 - **表單問題**: FIX-007, FIX-008 (Shadcn Select DOM Nesting)
+- **子組件問題**: FIX-058 (QuoteUploadForm, OMExpenseMonthlyGrid)
 - **配置問題**:
 - **認證問題**: FIX-009 (NextAuth v5 升級), FIX-014 (MissingCSRF)
 - **架構問題**: FIX-009 (Edge Runtime 兼容性)
 - **API問題**: FIX-006
 - **資料庫問題**:
 - **測試問題**: FIX-015 (Jest Worker 崩潰)
+- **UI 刷新問題**: FIX-057 (tRPC invalidate)
 - **穩定性問題**: FIX-015 (Next.js 14.2.33 升級)
 
 ---
@@ -55,6 +61,188 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-058: Toast Provider 錯誤修復第三輪 - 子組件檢查
+
+**日期**: 2025-11-01
+**問題類型**: 🎨 前端/Toast
+**狀態**: ✅ 已解決
+**嚴重程度**: 🟡 High
+
+### 問題描述
+
+在第二輪修復後，用戶測試發現 3 個頁面仍有 Toast Provider 錯誤：
+1. `/projects/[id]/quotes` - Toast Provider 錯誤
+2. `/purchase-orders/[id]` - Toast Provider 錯誤
+3. `/om-expenses/[id]` - Toast Provider 錯誤
+
+**關鍵發現**：主頁面修復後問題仍存在，追查發現是**子組件**也使用舊版 Toast API！
+
+### 根本原因
+
+- 第一、二輪只修復了主頁面，忽略了子組件
+- `QuoteUploadForm` 子組件有 **7 個 showToast 呼叫**
+- `OMExpenseMonthlyGrid` 子組件使用舊版 Toast import
+
+### 解決方案
+
+**修改檔案** (5 個):
+
+1. **apps/web/src/app/projects/[id]/quotes/page.tsx**
+   - 更新 import: `@/components/ui/Toast` → `@/components/ui`
+   - 遷移 2 個 showToast 呼叫（createPOMutation）
+
+2. **apps/web/src/components/quote/QuoteUploadForm.tsx** ⭐
+   - 更新 import
+   - 更新 hook: `showToast` → `toast`
+   - **遷移 7 個 showToast 呼叫**:
+     - 文件類型驗證錯誤
+     - 文件大小驗證錯誤
+     - 未選擇文件錯誤
+     - 未選擇供應商錯誤
+     - 金額驗證錯誤
+     - 上傳成功通知
+     - 上傳失敗錯誤
+
+3. **apps/web/src/app/purchase-orders/[id]/page.tsx**
+   - 更新 import 和 hook
+   - 此頁面無實際 showToast 呼叫
+
+4. **apps/web/src/app/om-expenses/[id]/page.tsx**
+   - 更新 import
+   - 已使用新版 toast() API
+
+5. **apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx** ⭐
+   - 更新 import
+   - 已使用新版 toast() API
+
+### 驗證步驟
+
+測試所有 3 個 URL：
+- ✅ http://localhost:3005/projects/d4ba5d69-cb32-4321-a39e-23b680d7d205/quotes
+- ✅ http://localhost:3005/purchase-orders/0f7bb6b3-1ee9-443d-ae45-28cb29f6b823
+- ✅ http://localhost:3005/om-expenses/d5c1b266-3327-4aa2-9400-e15a106ba0d4
+
+### 經驗教訓
+
+**⭐ 關鍵發現**：系統性重構時，必須檢查**所有子組件**！
+
+**排查流程**：
+1. 修復主頁面 import 和 API 呼叫
+2. **檢查主頁面引用的所有子組件**
+3. 修復子組件 import 和 API 呼叫
+4. 使用 grep 驗證無遺漏
+
+**文檔**: `claudedocs/BUG-FIX-ROUND-3-SUMMARY.md`
+
+---
+
+## FIX-057: Toast 自動關閉與評論刷新問題
+
+**日期**: 2025-11-01
+**問題類型**: 🎨 前端/Toast
+**狀態**: ✅ 已解決
+**嚴重程度**: 🟡 High
+
+### 問題描述
+
+第一輪修復後發現的 4 個新問題：
+1. Toast 通知仍無法自動關閉和手動關閉
+2. 評論提交成功但頁面不更新
+3. `/quotes/new` 頁面 Toast Provider 錯誤
+4. `/om-expenses/new` 頁面 Toast Provider 錯誤
+
+### 根本原因
+
+**問題1**: `use-toast.tsx` 的 `addToRemoveQueue` 函數中 timeout 設置為 **1000000ms**（約 16.7 分鐘），導致 Toast 實際上要等很久才會從 DOM 中移除
+
+**問題2**: `CommentSection` 組件只調用 `router.refresh()` 刷新服務端數據，沒有使用 tRPC 的 `utils.invalidate()` 強制重新獲取查詢
+
+**問題3-4**: 使用舊版 Toast API
+
+### 解決方案
+
+**修改檔案** (4 個):
+
+1. **apps/web/src/components/ui/use-toast.tsx**
+   ```typescript
+   // 修復前: timeout = 1000000ms
+   // 修復後: timeout = 300ms（等待退出動畫完成）
+   ```
+
+2. **apps/web/src/components/proposal/CommentSection.tsx**
+   ```typescript
+   const utils = api.useContext();
+
+   onSuccess: async () => {
+     toast({ ... });
+     setNewComment('');
+     // 手動觸發數據重新獲取
+     await utils.budgetProposal.getById.invalidate({ id: proposalId });
+     router.refresh();
+   }
+   ```
+
+3. **apps/web/src/app/quotes/new/page.tsx**
+   - 遷移 8 個 showToast 呼叫
+
+4. **apps/web/src/components/om-expense/OMExpenseForm.tsx**
+   - 更新 import（已使用新版 API）
+
+**文檔**: `claudedocs/BUG-FIX-ROUND-2-SUMMARY.md`
+
+---
+
+## FIX-056: Toast 通知系統遷移第一輪
+
+**日期**: 2025-11-01
+**問題類型**: 🎨 前端/Toast
+**狀態**: ✅ 已解決
+**嚴重程度**: 🟡 High
+
+### 問題描述
+
+手動測試發現的 9 個主要問題，包括：
+1. Toast 通知無法自動關閉和手動關閉
+2. 專案編輯表單數據綁定錯誤
+3. 評論功能 Foreign Key 錯誤
+4-5. 提案提交/審批後 UI 未更新
+6-7. 報價單相關錯誤
+8-9. 費用和 OM 費用錯誤
+
+### 根本原因
+
+**Toast 系統衝突**：
+- `layout.tsx` 同時使用舊版 `Toast.tsx` 和新版 `toaster.tsx`
+- 造成雙重 Provider 衝突
+
+**UI 更新問題**：
+- 缺少 tRPC `utils.invalidate()` 強制刷新
+- 只使用 `router.refresh()` 不夠
+
+**Foreign Key 錯誤**：
+- 空字符串 `""` 被視為有效值，應轉換為 `undefined`
+
+### 解決方案
+
+**修改檔案** (7 個):
+
+1. **apps/web/src/app/layout.tsx**
+   - 移除舊版 `<Toaster />` 組件
+   - 統一使用新版 shadcn/ui toast
+
+2. **apps/web/src/components/proposal/ProposalActions.tsx**
+   - 添加 `utils.budgetProposal.getById.invalidate()`
+   - Toast API 遷移
+
+3. **apps/web/src/app/projects/[id]/edit/page.tsx**
+   - 添加缺失的預算欄位到 initialData
+
+4-7. 其他檔案修復（文件上傳、UUID 驗證、Foreign Key 處理）
+
+**文檔**: `claudedocs/BUG-FIX-SUMMARY.md`
+
+---
 
 ## FIX-044: ExpensesPage 完整 HotReload 解決方案（API 驗證 + router.refresh 移除）
 

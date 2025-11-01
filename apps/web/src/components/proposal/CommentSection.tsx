@@ -8,8 +8,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 
 interface Comment {
   id: string;
@@ -29,21 +30,30 @@ interface CommentSectionProps {
 
 export function CommentSection({ proposalId, comments }: CommentSectionProps) {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { data: session } = useSession();
+  const { toast } = useToast();
+  const utils = api.useContext();
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock userId - 在實際應用中應從 session 獲取
-  const mockUserId = 'mock-user-id';
-
   const addCommentMutation = api.budgetProposal.addComment.useMutation({
-    onSuccess: () => {
-      showToast('評論已新增！', 'success');
+    onSuccess: async () => {
+      toast({
+        title: '成功',
+        description: '評論已新增！',
+        variant: 'success',
+      });
       setNewComment('');
+      // 修復問題2: 手動觸發數據重新獲取，確保評論列表立即更新
+      await utils.budgetProposal.getById.invalidate({ id: proposalId });
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: `無法新增評論: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -51,7 +61,20 @@ export function CommentSection({ proposalId, comments }: CommentSectionProps) {
     e.preventDefault();
 
     if (!newComment.trim()) {
-      showToast('請輸入評論內容', 'error');
+      toast({
+        title: '錯誤',
+        description: '請輸入評論內容',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!session?.user?.id) {
+      toast({
+        title: '錯誤',
+        description: '請先登入',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -59,7 +82,7 @@ export function CommentSection({ proposalId, comments }: CommentSectionProps) {
     try {
       await addCommentMutation.mutateAsync({
         budgetProposalId: proposalId,
-        userId: mockUserId,
+        userId: session.user.id,
         content: newComment,
       });
     } finally {

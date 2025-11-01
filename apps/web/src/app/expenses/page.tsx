@@ -36,6 +36,16 @@ const EXPENSE_STATUS_CONFIG = {
   PendingApproval: { label: '待審批', variant: 'default' as const },
   Approved: { label: '已批准', variant: 'secondary' as const },
   Paid: { label: '已支付', variant: 'default' as const },
+} as const;
+
+/**
+ * 安全獲取費用狀態配置
+ */
+const getExpenseStatusConfig = (status: string) => {
+  return EXPENSE_STATUS_CONFIG[status as keyof typeof EXPENSE_STATUS_CONFIG] || {
+    label: status || '未知',
+    variant: 'outline' as const,
+  };
 };
 
 export default function ExpensesPage() {
@@ -338,8 +348,8 @@ export default function ExpensesPage() {
                                 <h3 className="text-lg font-semibold text-foreground">
                                   ${expense.totalAmount.toLocaleString()}
                                 </h3>
-                                <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
-                                  {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
+                                <Badge variant={getExpenseStatusConfig(expense.status).variant}>
+                                  {getExpenseStatusConfig(expense.status).label}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground">
@@ -431,8 +441,8 @@ export default function ExpensesPage() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].variant}>
-                          {EXPENSE_STATUS_CONFIG[expense.status as keyof typeof EXPENSE_STATUS_CONFIG].label}
+                        <Badge variant={getExpenseStatusConfig(expense.status).variant}>
+                          {getExpenseStatusConfig(expense.status).label}
                         </Badge>
                       </TableCell>
                       <TableCell>{expense.purchaseOrder.poNumber}</TableCell>

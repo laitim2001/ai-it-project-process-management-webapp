@@ -29,12 +29,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 import { Upload, FileText, AlertCircle, Save } from 'lucide-react';
 
 export default function NewQuotePage() {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
 
   // 表單狀態
   const [projectId, setProjectId] = useState('');
@@ -71,13 +71,13 @@ export default function NewQuotePage() {
       ];
 
       if (!allowedTypes.includes(selectedFile.type)) {
-        showToast('不支援的文件類型。請上傳 PDF, Word 或 Excel 文件。', 'error');
+        toast({ title: "錯誤", description: "不支援的文件類型。請上傳 PDF, Word 或 Excel 文件。", variant: "destructive" });
         return;
       }
 
       // 驗證文件大小 (10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
-        showToast('文件大小超過限制（最大 10MB）', 'error');
+        toast({ title: "錯誤", description: "文件大小超過限制（最大 10MB）", variant: "destructive" });
         return;
       }
 
@@ -93,22 +93,22 @@ export default function NewQuotePage() {
 
     // 驗證表單
     if (!projectId) {
-      showToast('請選擇專案', 'error');
+      toast({ title: "錯誤", description: "請選擇專案", variant: "destructive" });
       return;
     }
 
     if (!vendorId) {
-      showToast('請選擇供應商', 'error');
+      toast({ title: "錯誤", description: "請選擇供應商", variant: "destructive" });
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      showToast('請輸入有效的報價金額', 'error');
+      toast({ title: "錯誤", description: "請輸入有效的報價金額", variant: "destructive" });
       return;
     }
 
     if (!file) {
-      showToast('請選擇要上傳的文件', 'error');
+      toast({ title: "錯誤", description: "請選擇要上傳的文件", variant: "destructive" });
       return;
     }
 
@@ -134,16 +134,17 @@ export default function NewQuotePage() {
         throw new Error(result.error || '上傳失敗');
       }
 
-      showToast('報價單創建成功！', 'success');
+      toast({ title: "成功", description: "報價單創建成功！", variant: "success" });
 
       // 跳轉到報價單列表頁
       router.push('/quotes');
     } catch (error) {
       console.error('創建報價單錯誤:', error);
-      showToast(
-        error instanceof Error ? error.message : '創建失敗，請稍後再試',
-        'error'
-      );
+      toast({
+        title: '錯誤',
+        description: error instanceof Error ? error.message : '創建失敗，請稍後再試',
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
     }

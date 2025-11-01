@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
 /**
@@ -156,12 +156,18 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
 
   // 表單提交
   const onSubmit = (data: OMExpenseFormData) => {
+    // 修復 Bug #9: 將空字符串 vendorId 轉換為 undefined，避免 Foreign Key 錯誤
+    const formattedData = {
+      ...data,
+      vendorId: data.vendorId || undefined,
+    };
+
     if (mode === 'create') {
-      createMutation.mutate(data);
+      createMutation.mutate(formattedData);
     } else if (mode === 'edit' && initialData?.id) {
       updateMutation.mutate({
         id: initialData.id,
-        ...data,
+        ...formattedData,
       });
     }
   };
