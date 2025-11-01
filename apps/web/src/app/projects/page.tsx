@@ -23,7 +23,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -90,6 +90,9 @@ export default function ProjectsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
+
+  // 使用 ref 保持輸入框 focus
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   const utils = api.useContext();
@@ -306,10 +309,14 @@ export default function ProjectsPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
+                    ref={searchInputRef}
                     type="text"
                     placeholder="搜尋專案名稱..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1); // 搜索時重置到第一頁
+                    }}
                     className="pl-10"
                   />
                 </div>

@@ -11,13 +11,13 @@
  * Epic 4 - Story 5.1: 管理供應商基本資訊
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { PaginationControls, useToast } from '@/components/ui';
+import { PaginationControls } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
@@ -34,7 +34,9 @@ export default function VendorsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'updatedAt'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const { showToast } = useToast();
+
+  // 使用 ref 保持輸入框 focus
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce 搜尋避免過多 API 請求
   const debouncedSearch = useDebounce(search, 300);
@@ -166,10 +168,14 @@ export default function VendorsPage() {
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <Input
+              ref={searchInputRef}
               type="text"
               placeholder="搜尋供應商名稱、聯絡人或郵箱..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1); // 搜索時重置到第一頁
+              }}
             />
           </div>
 

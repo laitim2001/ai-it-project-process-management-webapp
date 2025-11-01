@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { PaginationControls, useToast } from '@/components/ui';
+import { PaginationControls } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
@@ -35,7 +35,6 @@ export default function PurchaseOrdersPage() {
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
   const [vendorId, setVendorId] = useState<string | undefined>(undefined);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const { showToast } = useToast();
 
   // Debounce 搜尋避免過多 API 請求
   const debouncedSearch = useDebounce(search, 300);

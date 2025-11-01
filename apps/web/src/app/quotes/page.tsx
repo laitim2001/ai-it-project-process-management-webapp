@@ -17,7 +17,7 @@ import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/select';
-import { PaginationControls, useToast } from '@/components/ui';
+import { PaginationControls } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,7 +32,6 @@ export default function QuotesPage() {
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
   const [vendorId, setVendorId] = useState<string | undefined>(undefined);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const { showToast } = useToast();
 
   // 查詢報價列表
   const { data, isLoading, error } = api.quote.getAll.useQuery({

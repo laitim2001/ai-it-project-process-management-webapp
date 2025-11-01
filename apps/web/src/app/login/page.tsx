@@ -39,6 +39,28 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
 
+    // 客戶端輸入驗證 - 提供即時反饋
+    if (!email || !password) {
+      setError('請輸入 Email 和密碼');
+      setIsLoading(false);
+      return;
+    }
+
+    // Email 格式驗證
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Email 格式不正確，請檢查輸入');
+      setIsLoading(false);
+      return;
+    }
+
+    // 密碼長度驗證
+    if (password.length < 6) {
+      setError('密碼長度必須至少 6 個字元');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       console.log('🔐 開始登入流程', { email, callbackUrl });
 
@@ -54,17 +76,24 @@ export default function LoginPage() {
 
       if (result?.error) {
         console.error('❌ 登入錯誤:', result.error);
-        // 將所有錯誤類型轉換為用戶友好的訊息
+
+        // 根據錯誤類型提供具體的錯誤訊息
         let errorMessage = 'Email 或密碼錯誤';
+
         if (result.error === 'Configuration') {
           errorMessage = '系統配置錯誤，請聯繫管理員';
         } else if (result.error === 'AccessDenied') {
           errorMessage = '訪問被拒絕，您沒有權限登入';
         } else if (result.error === 'Verification') {
           errorMessage = '請先驗證您的 Email 地址';
-        } else if (result.error !== 'CredentialsSignin') {
+        } else if (result.error === 'CredentialsSignin') {
+          // NextAuth 的憑證登入錯誤
+          // 注意：為了安全，後端不區分"用戶不存在"和"密碼錯誤"
+          errorMessage = 'Email 或密碼錯誤，請檢查您的登入信息';
+        } else {
           errorMessage = '登入失敗，請稍後再試';
         }
+
         setError(errorMessage);
         setIsLoading(false);
       } else if (result?.ok) {

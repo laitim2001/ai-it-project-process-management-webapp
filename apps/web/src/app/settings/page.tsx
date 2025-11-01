@@ -23,12 +23,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui';
+import { useToast } from '@/components/ui/use-toast';
 import { Settings, User, Bell, Eye, Shield, Save } from 'lucide-react';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const { showToast } = useToast();
+  const { toast } = useToast();
 
   // 個人資料設定
   const [name, setName] = useState(session?.user?.name || '');
@@ -48,17 +48,29 @@ export default function SettingsPage() {
   // 處理儲存設定
   const handleSaveProfile = () => {
     // TODO: 實現 API 調用保存個人資料
-    showToast('個人資料已更新', 'success');
+    toast({
+      title: '成功',
+      description: '個人資料已更新',
+      variant: 'success',
+    });
   };
 
   const handleSaveNotifications = () => {
     // TODO: 實現 API 調用保存通知設定
-    showToast('通知設定已更新', 'success');
+    toast({
+      title: '成功',
+      description: '通知設定已更新',
+      variant: 'success',
+    });
   };
 
   const handleSavePreferences = () => {
     // TODO: 實現 API 調用保存顯示偏好
-    showToast('顯示偏好已更新', 'success');
+    toast({
+      title: '成功',
+      description: '顯示偏好已更新',
+      variant: 'success',
+    });
   };
 
   return (

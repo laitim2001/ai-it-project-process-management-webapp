@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +39,7 @@ const PROJECT_STATUS_CONFIG = {
 export default function BudgetPoolDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const id = params.id as string;
 
   const { data: budgetPool, isLoading } = api.budgetPool.getById.useQuery({ id });
@@ -47,12 +47,20 @@ export default function BudgetPoolDetailPage() {
 
   const deleteMutation = api.budgetPool.delete.useMutation({
     onSuccess: () => {
-      showToast('預算池已成功刪除！', 'success');
+      toast({
+        title: '成功',
+        description: '預算池已成功刪除！',
+        variant: 'success',
+      });
       router.push('/budget-pools');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤：${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 

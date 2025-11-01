@@ -14,7 +14,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +26,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export default function VendorDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const id = params.id as string;
 
   // 查詢供應商詳情
@@ -35,12 +35,20 @@ export default function VendorDetailPage() {
   // 刪除 Mutation
   const deleteMutation = api.vendor.delete.useMutation({
     onSuccess: () => {
-      showToast('供應商已成功刪除!', 'success');
+      toast({
+        title: '成功',
+        description: '供應商已成功刪除!',
+        variant: 'success',
+      });
       router.push('/vendors');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`刪除失敗: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: `刪除失敗: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 

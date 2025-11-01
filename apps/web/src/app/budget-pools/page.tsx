@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { PaginationControls, BudgetPoolListSkeleton } from '@/components/ui';
-import { useToast } from '@/components/ui';
+import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -29,6 +29,9 @@ export default function BudgetPoolsPage() {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { toast } = useToast();
   const utils = api.useContext();
+
+  // 使用 ref 保持輸入框 focus
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(search, 300);
@@ -192,10 +195,14 @@ export default function BudgetPoolsPage() {
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <Input
+              ref={searchInputRef}
               type="text"
               placeholder="搜尋預算池..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1); // 搜索時重置到第一頁
+              }}
             />
           </div>
 

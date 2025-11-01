@@ -18,7 +18,7 @@ import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/select';
-import { PaginationControls, useToast } from '@/components/ui';
+import { PaginationControls } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -54,7 +54,6 @@ export default function ExpensesPage() {
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [purchaseOrderId, setPurchaseOrderId] = useState<string | undefined>(undefined);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const { showToast } = useToast();
 
   // 查詢費用列表
   // FIX-039-REVISED: 添加 refetch 配置避免 HotReload 期間的競態條件

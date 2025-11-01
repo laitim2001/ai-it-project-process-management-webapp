@@ -31,14 +31,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Save, FileText, Building2, FolderKanban, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EditQuotePage() {
   const params = useParams();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const quoteId = params.id as string;
 
   // 表單狀態
@@ -51,11 +51,19 @@ export default function EditQuotePage() {
   // 更新報價單 mutation
   const updateMutation = api.quote.update.useMutation({
     onSuccess: () => {
-      showToast('報價單更新成功！', 'success');
+      toast({
+        title: '成功',
+        description: '報價單更新成功！',
+        variant: 'success',
+      });
       router.push('/quotes');
     },
     onError: (error) => {
-      showToast(`更新失敗: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: `更新失敗: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -75,7 +83,11 @@ export default function EditQuotePage() {
 
     // 驗證表單
     if (!amount || parseFloat(amount) <= 0) {
-      showToast('請輸入有效的報價金額', 'error');
+      toast({
+        title: '驗證錯誤',
+        description: '請輸入有效的報價金額',
+        variant: 'destructive',
+      });
       return;
     }
 
