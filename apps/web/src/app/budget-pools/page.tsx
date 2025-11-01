@@ -45,6 +45,23 @@ export default function BudgetPoolsPage() {
     sortOrder,
   });
 
+  // 在查詢完成後恢復搜索框焦點，避免用戶輸入時被打斷
+  useEffect(() => {
+    // 只在搜索框之前有焦點且查詢完成時才恢復焦點
+    if (!isLoading && searchInputRef.current) {
+      const activeElement = document.activeElement;
+      // 如果當前焦點不在搜索框，且用戶正在輸入（search 不為空），則恢復焦點
+      if (activeElement !== searchInputRef.current && search.length > 0) {
+        const cursorPosition = searchInputRef.current.selectionStart;
+        searchInputRef.current.focus();
+        // 恢復光標位置
+        if (cursorPosition !== null) {
+          searchInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      }
+    }
+  }, [isLoading, debouncedSearch, search]);
+
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
