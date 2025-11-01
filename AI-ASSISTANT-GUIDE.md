@@ -734,8 +734,8 @@ npm run index:health            # 完整健康檢查
 |---------|---------|----------|
 | `README.md` | 專案總覽與快速開始指南 | ~200行 |
 | `docs/brief.md` | 專案簡報（背景與目標） | ~150行 |
-| `mvp-development-plan.md` ⭐ | MVP 完整開發路線圖和 Sprint 規劃 | ~600行 |
-| `mvp-implementation-checklist.md` ⭐ | MVP 詳細實施檢查清單和進度追蹤 | ~800行 |
+| `claudedocs/planning/mvp-development-plan.md` ⭐ | MVP 完整開發路線圖和 Sprint 規劃 | ~600行 |
+| `claudedocs/planning/mvp-implementation-checklist.md` ⭐ | MVP 詳細實施檢查清單和進度追蹤 | ~800行 |
 | `docs/prd/index.md` | 產品需求文件（PRD）總覽 | ~300行 |
 | `docs/prd/4-epic-and-user-story-details.md` | Epic 與 User Story 詳細說明 | ~800行 |
 | `docs/fullstack-architecture/index.md` | 全端架構文件總覽 | ~200行 |
@@ -934,8 +934,8 @@ dist/ build/                   # 構建產物
 | **專案結構？** | `docs/fullstack-architecture/4-unified-project-structure.md` | L1 |
 | **資料庫設計？** | `packages/db/prisma/schema.prisma` | L1 |
 | **API 設計？** | `docs/fullstack-architecture/6-api-design-trpc.md` | L1 |
-| **MVP 開發計劃？** | `mvp-development-plan.md` ⭐ | L1 |
-| **MVP 實施檢查清單？** | `mvp-implementation-checklist.md` ⭐ | L1 |
+| **MVP 開發計劃？** | `claudedocs/planning/mvp-development-plan.md` ⭐ | L1 |
+| **MVP 實施檢查清單？** | `claudedocs/planning/mvp-implementation-checklist.md` ⭐ | L1 |
 | **環境設置？** | `.env.example`, `docs/development/SETUP-COMPLETE.md` | L2 |
 | **開發記錄？** | `DEVELOPMENT-LOG.md` | L1 |
 | **問題修復記錄？** | `FIXLOG.md` | L1 |
@@ -1026,7 +1026,7 @@ git push origin feature-branch  # 推送到遠程
 
 > **目的**: 確保 AI 助手在關鍵時刻主動提醒執行維護，避免遺漏重要記錄
 > **重要**: AI 助手應根據工作進度自動觸發維護提醒，無需用戶明確要求
-> **最後更新**: 2025-10-26
+> **最後更新**: 2025-11-01
 
 ### 🎯 觸發時機與優先級
 
@@ -1288,4 +1288,4 @@ git push origin feature-branch  # 推送到遠程
 
 **🎯 記住：良好的導航系統是團隊效率的倍增器！**
 
-**最後更新**: 2025-10-15 22:50
+**最後更新**: 2025-11-01 22:50

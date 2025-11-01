@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-10-26 18:30 (文檔重組 - Method C 深度整理完成)
+**最後更新**: 2025-11-01 22:50 (文件重組 - claudedocs 子目錄分類完成)
 
 ---
 
@@ -75,8 +75,8 @@
 |---------|------|------|--------|
 | **README** | `README.md` | 項目總覽、快速開始指南 | 🔴 極高 |
 | **專案簡報** | `docs/brief.md` | 項目背景、目標與價值主張 | 🔴 極高 |
-| **MVP 開發計劃** | `mvp-development-plan.md` | MVP 完整開發路線圖和 Sprint 規劃 | 🔴 極高 |
-| **MVP 實施檢查清單** | `mvp-implementation-checklist.md` | MVP 詳細實施檢查清單和進度追蹤 | 🔴 極高 |
+| **MVP 開發計劃** | `claudedocs/planning/mvp-development-plan.md` | MVP 完整開發路線圖和 Sprint 規劃 | 🔴 極高 |
+| **MVP 實施檢查清單** | `claudedocs/planning/mvp-implementation-checklist.md` | MVP 詳細實施檢查清單和進度追蹤 | 🔴 極高 |
 | **完整環境設置指南** | `DEVELOPMENT-SETUP.md` | 711 行跨平台環境設置完整指南（Windows/Mac/Linux） | 🔴 極高 |
 | **環境設置驗證** | `docs/development/SETUP-COMPLETE.md` | 環境設置完成後的驗證清單 | 🟡 高 |
 | **貢獻指南** | `CONTRIBUTING.md` | 如何為項目做貢獻的完整指南 | 🟡 高 |
@@ -292,9 +292,9 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **Claude 文檔索引** | `claudedocs/README.md` | Claude 輔助文檔完整索引與使用說明 | 🔴 極高 |
-| **完整實施計劃** | `claudedocs/COMPLETE-IMPLEMENTATION-PLAN.md` | Post-MVP 階段完整實施計劃（用戶需求澄清版） | 🔴 極高 |
-| **實施進度追蹤** | `claudedocs/COMPLETE-IMPLEMENTATION-PROGRESS.md` | COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤（當前：22%） | 🔴 極高 |
-| **需求缺口分析** | `claudedocs/REQUIREMENT-GAP-ANALYSIS.md` | 需求缺口分析與澄清記錄 | 🟡 高 |
+| **完整實施計劃** | `claudedocs/planning/COMPLETE-IMPLEMENTATION-PLAN.md` | Post-MVP 階段完整實施計劃（用戶需求澄清版） | 🔴 極高 |
+| **實施進度追蹤** | `claudedocs/progress/COMPLETE-IMPLEMENTATION-PROGRESS.md` | COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤（當前：22%） | 🔴 極高 |
+| **需求缺口分析** | `claudedocs/analysis/REQUIREMENT-GAP-ANALYSIS.md` | 需求缺口分析與澄清記錄 | 🟡 高 |
 
 #### 📊 分析報告 (analysis/)
 | **CLAUDE.md 分析報告** | `claudedocs/analysis/CLAUDE-MD-ANALYSIS-REPORT.md` | CLAUDE.md 文件差異分析報告 | 🟡 高 |
@@ -329,12 +329,12 @@
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **E2E 測試增強計劃** | `claudedocs/E2E-TESTING-ENHANCEMENT-PLAN.md` | 完整 E2E 測試增強計劃（4 階段實施策略） | 🔴 極高 |
-| **工作流測試進度** | `claudedocs/E2E-WORKFLOW-TESTING-PROGRESS.md` | E2E 工作流測試詳細進度追蹤（Stage 1-4） | 🔴 極高 |
-| **工作流會話總結** | `claudedocs/E2E-WORKFLOW-SESSION-SUMMARY.md` | 測試配置會話完整總結（645 行，問題診斷與解決方案） | 🔴 極高 |
-| **E2E 測試最終報告** | `claudedocs/E2E-TESTING-FINAL-REPORT.md` | 基本功能測試最終報告（7/7 測試通過） | 🟡 高 |
-| **登入修復成功總結** | `claudedocs/E2E-LOGIN-FIX-SUCCESS-SUMMARY.md` | FIX-010 登入流程修復成功總結 | 🟡 高 |
-| **登入問題分析** | `claudedocs/E2E-LOGIN-ISSUE-ANALYSIS.md` | 登入認證問題深度分析 | 🟡 高 |
+| **E2E 測試增強計劃** | `claudedocs/e2e-testing/E2E-TESTING-ENHANCEMENT-PLAN.md` | 完整 E2E 測試增強計劃（4 階段實施策略） | 🔴 極高 |
+| **工作流測試進度** | `claudedocs/e2e-testing/E2E-WORKFLOW-TESTING-PROGRESS.md` | E2E 工作流測試詳細進度追蹤（Stage 1-4） | 🔴 極高 |
+| **工作流會話總結** | `claudedocs/e2e-testing/E2E-WORKFLOW-SESSION-SUMMARY.md` | 測試配置會話完整總結（645 行，問題診斷與解決方案） | 🔴 極高 |
+| **E2E 測試最終報告** | `claudedocs/e2e-testing/E2E-TESTING-FINAL-REPORT.md` | 基本功能測試最終報告（7/7 測試通過） | 🟡 高 |
+| **登入修復成功總結** | `claudedocs/e2e-testing/E2E-LOGIN-FIX-SUCCESS-SUMMARY.md` | FIX-010 登入流程修復成功總結 | 🟡 高 |
+| **登入問題分析** | `claudedocs/e2e-testing/E2E-LOGIN-ISSUE-ANALYSIS.md` | 登入認證問題深度分析 | 🟡 高 |
 
 ### 文檔總覽
 
