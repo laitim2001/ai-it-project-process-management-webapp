@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/card';
 
 export default function NewVendorPage() {
   const t = useTranslations('vendors');
+  const tNav = useTranslations('navigation');
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-3xl">
@@ -26,23 +27,23 @@ export default function NewVendorPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/vendors">供應商管理</BreadcrumbLink>
+              <BreadcrumbLink href="/vendors">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新增供應商</BreadcrumbPage>
+              <BreadcrumbPage>{t('new.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">新增供應商</h1>
-          <p className="mt-2 text-muted-foreground">填寫供應商基本資訊</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('new.title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('new.description')}</p>
         </div>
 
         {/* 表單卡片 */}

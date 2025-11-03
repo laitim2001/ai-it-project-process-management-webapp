@@ -27,6 +27,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function VendorDetailPage() {
   const t = useTranslations('vendors');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -39,8 +41,8 @@ export default function VendorDetailPage() {
   const deleteMutation = api.vendor.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: '成功',
-        description: '供應商已成功刪除!',
+        title: tCommon('messages.success'),
+        description: t('messages.deleteSuccess'),
         variant: 'success',
       });
       router.push('/vendors');
@@ -48,8 +50,8 @@ export default function VendorDetailPage() {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
-        description: `刪除失敗: ${error.message}`,
+        title: tCommon('messages.error'),
+        description: `${tCommon('messages.deleteFailed')}: ${error.message}`,
         variant: 'destructive',
       });
     },
@@ -59,7 +61,7 @@ export default function VendorDetailPage() {
    * 刪除確認處理
    */
   const handleDelete = () => {
-    if (confirm('確定要刪除此供應商嗎?\n\n注意: 如果供應商有關聯的報價單或採購單,將無法刪除。')) {
+    if (confirm(t('messages.confirmDelete'))) {
       deleteMutation.mutate({ id });
     }
   };
@@ -97,15 +99,15 @@ export default function VendorDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/vendors">供應商管理</BreadcrumbLink>
+                <BreadcrumbLink href="/vendors">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>詳情</BreadcrumbPage>
+                <BreadcrumbPage>{t('detail.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -114,11 +116,11 @@ export default function VendorDetailPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到供應商。此供應商可能不存在或已被刪除。
+                  {t('messages.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/vendors">
-                <Button>返回供應商列表</Button>
+                <Button>{t('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -134,11 +136,11 @@ export default function VendorDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/vendors">供應商管理</BreadcrumbLink>
+              <BreadcrumbLink href="/vendors">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -157,7 +159,7 @@ export default function VendorDetailPage() {
             <Link href={`/vendors/${id}/edit`}>
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
-                編輯
+                {tCommon('actions.edit')}
               </Button>
             </Link>
             <Button
@@ -166,7 +168,7 @@ export default function VendorDetailPage() {
               disabled={deleteMutation.isLoading}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {deleteMutation.isLoading ? '刪除中...' : '刪除'}
+              {deleteMutation.isLoading ? tCommon('actions.deleting') : tCommon('actions.delete')}
             </Button>
           </div>
         </div>
@@ -175,7 +177,7 @@ export default function VendorDetailPage() {
           {/* 基本資訊卡片 */}
           <Card>
             <CardHeader>
-              <CardTitle>基本資訊</CardTitle>
+              <CardTitle>{t('detail.basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* 聯絡人 */}
@@ -183,7 +185,7 @@ export default function VendorDetailPage() {
                 <div className="flex items-start gap-3">
                   <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">聯絡人</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('fields.contactPerson')}</p>
                     <p className="text-base text-foreground">{vendor.contactPerson}</p>
                   </div>
                 </div>
@@ -194,7 +196,7 @@ export default function VendorDetailPage() {
                 <div className="flex items-start gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">聯絡郵箱</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('fields.email')}</p>
                     <a
                       href={`mailto:${vendor.contactEmail}`}
                       className="text-base text-primary hover:underline"
@@ -210,7 +212,7 @@ export default function VendorDetailPage() {
                 <div className="flex items-start gap-3">
                   <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">聯絡電話</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('fields.phone')}</p>
                     <a
                       href={`tel:${vendor.phone}`}
                       className="text-base text-primary hover:underline"
@@ -223,7 +225,7 @@ export default function VendorDetailPage() {
 
               {/* 如果沒有任何聯絡資訊 */}
               {!vendor.contactPerson && !vendor.contactEmail && !vendor.phone && (
-                <p className="text-sm text-muted-foreground italic">尚未提供聯絡資訊</p>
+                <p className="text-sm text-muted-foreground italic">{t('detail.noContact')}</p>
               )}
             </CardContent>
           </Card>
@@ -231,13 +233,13 @@ export default function VendorDetailPage() {
           {/* 統計資訊卡片 */}
           <Card>
             <CardHeader>
-              <CardTitle>統計資訊</CardTitle>
+              <CardTitle>{t('detail.statistics')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">報價單數量</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t('fields.quotesCount')}</span>
                 </div>
                 <span className="text-2xl font-bold text-foreground">
                   {vendor.quotes?.length ?? 0}
@@ -247,7 +249,7 @@ export default function VendorDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">採購單數量</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t('fields.purchaseOrdersCount')}</span>
                 </div>
                 <span className="text-2xl font-bold text-foreground">
                   {vendor.purchaseOrders?.length ?? 0}
@@ -261,7 +263,7 @@ export default function VendorDetailPage() {
         {vendor.quotes && vendor.quotes.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>最近報價單</CardTitle>
+              <CardTitle>{t('detail.recentQuotes')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -274,10 +276,10 @@ export default function VendorDetailPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-foreground">
-                          金額: ${quote.amount.toLocaleString()}
+                          {tCommon('fields.amount')}: ${quote.amount.toLocaleString()}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          上傳日期: {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
+                          {tCommon('fields.uploadDate')}: {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
                         </p>
                       </div>
                       <FileText className="h-5 w-5 text-muted-foreground" />
@@ -293,7 +295,7 @@ export default function VendorDetailPage() {
         {vendor.purchaseOrders && vendor.purchaseOrders.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>最近採購單</CardTitle>
+              <CardTitle>{t('detail.recentPurchaseOrders')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -309,10 +311,10 @@ export default function VendorDetailPage() {
                           PO#{po.poNumber}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          專案: {po.project.name}
+                          {tCommon('fields.project')}: {po.project.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          金額: ${po.totalAmount.toLocaleString()}
+                          {tCommon('fields.amount')}: ${po.totalAmount.toLocaleString()}
                         </p>
                       </div>
                       <ShoppingCart className="h-5 w-5 text-muted-foreground" />

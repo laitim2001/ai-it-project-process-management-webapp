@@ -30,6 +30,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 
 export default function VendorsPage() {
   const t = useTranslations('vendors');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   // 狀態管理
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -104,11 +106,11 @@ export default function VendorsPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>供應商管理</BreadcrumbPage>
+                <BreadcrumbPage>{t('title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -117,7 +119,7 @@ export default function VendorsPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  載入供應商失敗: {error.message}
+                  {t('messages.loadError')}: {error.message}
                 </AlertDescription>
               </Alert>
             </div>
@@ -137,11 +139,11 @@ export default function VendorsPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>供應商管理</BreadcrumbPage>
+              <BreadcrumbPage>{t('title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -149,8 +151,8 @@ export default function VendorsPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">供應商管理</h1>
-            <p className="mt-2 text-muted-foreground">管理和維護供應商資訊</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-2 text-muted-foreground">{t('description')}</p>
           </div>
           <div className="flex gap-2">
             {/* 視圖切換按鈕 */}
@@ -160,7 +162,7 @@ export default function VendorsPage() {
                 size="sm"
                 onClick={() => setViewMode('card')}
                 className="rounded-r-none"
-                aria-label="卡片視圖"
+                aria-label={tCommon('viewMode.card')}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
@@ -169,7 +171,7 @@ export default function VendorsPage() {
                 size="sm"
                 onClick={() => setViewMode('list')}
                 className="rounded-l-none"
-                aria-label="列表視圖"
+                aria-label={tCommon('viewMode.list')}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -177,7 +179,7 @@ export default function VendorsPage() {
             <Link href="/vendors/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                新增供應商
+                {t('actions.create')}
               </Button>
             </Link>
           </div>
@@ -189,7 +191,7 @@ export default function VendorsPage() {
             <Input
               ref={searchInputRef}
               type="text"
-              placeholder="搜尋供應商名稱、聯絡人或郵箱..."
+              placeholder={t('search.placeholder')}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -209,20 +211,23 @@ export default function VendorsPage() {
               setSortOrder(newSortOrder);
             }}
           >
-            <option value="name-asc">名稱 (A-Z)</option>
-            <option value="name-desc">名稱 (Z-A)</option>
-            <option value="createdAt-desc">創建時間 (新到舊)</option>
-            <option value="createdAt-asc">創建時間 (舊到新)</option>
-            <option value="updatedAt-desc">更新時間 (新到舊)</option>
-            <option value="updatedAt-asc">更新時間 (舊到新)</option>
+            <option value="name-asc">{t('sort.nameAsc')}</option>
+            <option value="name-desc">{t('sort.nameDesc')}</option>
+            <option value="createdAt-desc">{tCommon('sort.createdAtDesc')}</option>
+            <option value="createdAt-asc">{tCommon('sort.createdAtAsc')}</option>
+            <option value="updatedAt-desc">{tCommon('sort.updatedAtDesc')}</option>
+            <option value="updatedAt-asc">{tCommon('sort.updatedAtAsc')}</option>
           </Select>
         </div>
 
         {/* 結果計數 */}
         {pagination && (
           <div className="text-sm text-muted-foreground">
-            顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 個供應商
+            {tCommon('pagination.showing', {
+              from: ((pagination.page - 1) * pagination.limit) + 1,
+              to: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total
+            })} {t('list.items')}
           </div>
         )}
 
@@ -232,8 +237,8 @@ export default function VendorsPage() {
             <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">
               {search
-                ? '找不到符合條件的供應商'
-                : '尚未有任何供應商，點擊新增開始建立'}
+                ? t('list.noResults')
+                : t('list.empty')}
             </p>
           </Card>
         ) : viewMode === 'card' ? (
@@ -279,13 +284,13 @@ export default function VendorsPage() {
                     {/* 統計資訊 */}
                     <div className="mt-4 flex gap-4 pt-4 border-t border-border text-sm">
                       <div>
-                        <span className="text-muted-foreground">報價單: </span>
+                        <span className="text-muted-foreground">{t('fields.quotesCount')}: </span>
                         <span className="font-medium text-foreground">
                           {vendor._count.quotes}
                         </span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">採購單: </span>
+                        <span className="text-muted-foreground">{t('fields.purchaseOrdersCount')}: </span>
                         <span className="font-medium text-foreground">
                           {vendor._count.purchaseOrders}
                         </span>
@@ -312,13 +317,13 @@ export default function VendorsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>供應商名稱</TableHead>
-                    <TableHead>聯絡人</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>電話</TableHead>
-                    <TableHead className="text-center">報價數量</TableHead>
-                    <TableHead className="text-center">採購單數量</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead>{t('fields.name')}</TableHead>
+                    <TableHead>{t('fields.contactPerson')}</TableHead>
+                    <TableHead>{t('fields.email')}</TableHead>
+                    <TableHead>{t('fields.phone')}</TableHead>
+                    <TableHead className="text-center">{t('fields.quotesCount')}</TableHead>
+                    <TableHead className="text-center">{t('fields.purchaseOrdersCount')}</TableHead>
+                    <TableHead className="text-right">{tCommon('actions.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -343,7 +348,7 @@ export default function VendorsPage() {
                           href={`/vendors/${vendor.id}`}
                           className="text-primary hover:underline"
                         >
-                          查看
+                          {tCommon('actions.view')}
                         </Link>
                       </TableCell>
                     </TableRow>

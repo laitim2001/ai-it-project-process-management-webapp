@@ -32,31 +32,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X } from 'lucide-react';
 
-/**
- * 提案狀態顯示配置
- */
-const PROPOSAL_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const },
-  PendingApproval: { label: '待審批', variant: 'default' as const },
-  Approved: { label: '已批准', variant: 'secondary' as const },
-  Rejected: { label: '已拒絕', variant: 'destructive' as const },
-  MoreInfoRequired: { label: '需更多資訊', variant: 'default' as const },
-} as const;
-
-/**
- * 審批動作標籤映射
- */
-const ACTION_LABELS: Record<string, string> = {
-  SUBMITTED: '提交審批',
-  APPROVED: '批准',
-  REJECTED: '拒絕',
-  MORE_INFO_REQUIRED: '需要更多資訊',
-};
-
 export default function ProposalDetailPage() {
   const t = useTranslations('proposals');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const id = params.id as string;
+
+  /**
+   * 提案狀態顯示配置
+   */
+  const PROPOSAL_STATUS_CONFIG = {
+    Draft: { label: t('status.draft'), variant: 'outline' as const },
+    PendingApproval: { label: t('status.pendingApproval'), variant: 'default' as const },
+    Approved: { label: t('status.approved'), variant: 'secondary' as const },
+    Rejected: { label: t('status.rejected'), variant: 'destructive' as const },
+    MoreInfoRequired: { label: t('status.moreInfoRequired'), variant: 'default' as const },
+  } as const;
+
+  /**
+   * 審批動作標籤映射
+   */
+  const ACTION_LABELS: Record<string, string> = {
+    SUBMITTED: t('actions.submit'),
+    APPROVED: t('actions.approve'),
+    REJECTED: t('actions.reject'),
+    MORE_INFO_REQUIRED: t('actions.requestInfo'),
+  };
 
   const { data: proposal, isLoading } = api.budgetProposal.getById.useQuery({ id });
 
@@ -107,15 +109,15 @@ export default function ProposalDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/proposals">預算提案</BreadcrumbLink>
+                <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>詳情</BreadcrumbPage>
+                <BreadcrumbPage>{t('detail.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -126,11 +128,11 @@ export default function ProposalDetailPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到提案。此提案可能不存在或已被刪除。
+                  {t('detail.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/proposals">
-                <Button>返回提案列表</Button>
+                <Button>{tCommon('actions.back')}</Button>
               </Link>
             </div>
           </div>
@@ -148,11 +150,11 @@ export default function ProposalDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/proposals">預算提案</BreadcrumbLink>
+              <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -171,7 +173,7 @@ export default function ProposalDetailPage() {
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              專案：
+              {t('fields.project')}：
               <Link
                 href={`/projects/${proposal.project.id}`}
                 className="ml-1 text-primary hover:text-primary font-medium"
@@ -183,11 +185,11 @@ export default function ProposalDetailPage() {
           <div className="flex gap-2">
             {(proposal.status === 'Draft' || proposal.status === 'MoreInfoRequired') && (
               <Link href={`/proposals/${proposal.id}/edit`}>
-                <Button variant="outline">編輯</Button>
+                <Button variant="outline">{tCommon('actions.edit')}</Button>
               </Link>
             )}
             <Link href="/proposals">
-              <Button variant="outline">返回列表</Button>
+              <Button variant="outline">{tCommon('actions.back')}</Button>
             </Link>
           </div>
         </div>
@@ -198,10 +200,10 @@ export default function ProposalDetailPage() {
             {/* Tabs 導航 */}
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="basic">基本資訊</TabsTrigger>
-                <TabsTrigger value="project">相關專案</TabsTrigger>
-                <TabsTrigger value="file">項目計劃書</TabsTrigger>
-                <TabsTrigger value="meeting">會議記錄</TabsTrigger>
+                <TabsTrigger value="basic">{t('detail.tabs.basic')}</TabsTrigger>
+                <TabsTrigger value="project">{t('detail.tabs.project')}</TabsTrigger>
+                <TabsTrigger value="file">{t('detail.tabs.file')}</TabsTrigger>
+                <TabsTrigger value="meeting">{t('detail.tabs.meeting')}</TabsTrigger>
               </TabsList>
 
               {/* Tab 1: 基本資訊 */}
@@ -210,20 +212,20 @@ export default function ProposalDetailPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5" />
-                      提案資訊
+                      {t('detail.info.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <dt className="text-sm font-medium text-muted-foreground mb-1">預算金額</dt>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.amount')}</dt>
                         <dd className="text-2xl font-bold text-foreground flex items-center gap-1">
                           <DollarSign className="h-5 w-5" />
                           ${proposal.amount.toLocaleString()}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-sm font-medium text-muted-foreground mb-1">狀態</dt>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.status')}</dt>
                         <dd>
                           <Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].variant}>
                             {PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].label}
@@ -231,14 +233,14 @@ export default function ProposalDetailPage() {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-sm font-medium text-muted-foreground mb-1">建立時間</dt>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">{tCommon('fields.createdAt')}</dt>
                         <dd className="text-sm text-foreground flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           {new Date(proposal.createdAt).toLocaleString('zh-TW')}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-sm font-medium text-muted-foreground mb-1">最後更新</dt>
+                        <dt className="text-sm font-medium text-muted-foreground mb-1">{tCommon('fields.updatedAt')}</dt>
                         <dd className="text-sm text-foreground flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           {new Date(proposal.updatedAt).toLocaleString('zh-TW')}
@@ -246,7 +248,7 @@ export default function ProposalDetailPage() {
                       </div>
                       {proposal.approvedAmount && (
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground mb-1">批准金額</dt>
+                          <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.approvedAmount')}</dt>
                           <dd className="text-2xl font-bold text-green-600 flex items-center gap-1">
                             <DollarSign className="h-5 w-5" />
                             ${proposal.approvedAmount.toLocaleString()}
@@ -255,7 +257,7 @@ export default function ProposalDetailPage() {
                       )}
                       {proposal.approvedAt && (
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground mb-1">批准時間</dt>
+                          <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.approvedAt')}</dt>
                           <dd className="text-sm text-foreground flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
                             {new Date(proposal.approvedAt).toLocaleString('zh-TW')}
@@ -273,12 +275,12 @@ export default function ProposalDetailPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Building2 className="h-5 w-5" />
-                      相關專案
+                      {t('detail.project.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">專案名稱：</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t('fields.projectName')}：</span>
                       <Link
                         href={`/projects/${proposal.project.id}`}
                         className="ml-2 text-primary hover:text-primary font-medium"
@@ -288,7 +290,7 @@ export default function ProposalDetailPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <span className="text-sm font-medium text-muted-foreground block mb-2">專案管理者</span>
+                        <span className="text-sm font-medium text-muted-foreground block mb-2">{t('fields.manager')}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <User className="h-4 w-4 text-primary" />
@@ -299,7 +301,7 @@ export default function ProposalDetailPage() {
                         </div>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-muted-foreground block mb-2">監督者</span>
+                        <span className="text-sm font-medium text-muted-foreground block mb-2">{t('fields.supervisor')}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                             <User className="h-4 w-4 text-green-600" />
@@ -311,7 +313,7 @@ export default function ProposalDetailPage() {
                       </div>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">預算池：</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t('fields.budgetPool')}：</span>
                       <Link
                         href={`/budget-pools/${proposal.project.budgetPool.id}`}
                         className="ml-2 text-primary hover:text-primary font-medium"
@@ -365,7 +367,7 @@ export default function ProposalDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <History className="h-5 w-5" />
-                    審批歷史
+                    {t('detail.history.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

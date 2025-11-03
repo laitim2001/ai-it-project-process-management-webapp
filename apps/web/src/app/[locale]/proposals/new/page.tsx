@@ -15,6 +15,7 @@ const BudgetProposalForm = dynamic(
 
 export default function NewProposalPage() {
   const t = useTranslations('proposals');
+  const tNav = useTranslations('navigation');
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -22,24 +23,24 @@ export default function NewProposalPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/proposals">預算提案</BreadcrumbLink>
+              <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新增提案</BreadcrumbPage>
+              <BreadcrumbPage>{t('new.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">新增預算提案</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('new.title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            填寫以下資訊以建立新的預算提案
+            {t('new.description')}
           </p>
         </div>
 

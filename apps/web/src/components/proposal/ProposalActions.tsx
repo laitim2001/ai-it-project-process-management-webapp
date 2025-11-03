@@ -20,6 +20,7 @@ interface ProposalActionsProps {
 
 export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const t = useTranslations('proposals');
+  const tToast = useTranslations('toast');
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = useSession();
@@ -33,8 +34,8 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const submitMutation = api.budgetProposal.submit.useMutation({
     onSuccess: async () => {
       toast({
-        title: '成功',
-        description: '提案已提交審批！',
+        title: tToast('success'),
+        description: t('messages.submitSuccess'),
         variant: 'success',
       });
       // 修復 Bug #4: 手動觸發數據重新獲取，確保 UI 立即更新
@@ -43,7 +44,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tToast('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -53,8 +54,8 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const approveMutation = api.budgetProposal.approve.useMutation({
     onSuccess: async () => {
       toast({
-        title: '成功',
-        description: '審批完成！',
+        title: tToast('success'),
+        description: t('messages.approvalSuccess'),
         variant: 'success',
       });
       setComment('');
@@ -64,7 +65,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tToast('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -74,8 +75,8 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const handleSubmit = async () => {
     if (!userId) {
       toast({
-        title: '錯誤',
-        description: '請先登入',
+        title: tToast('error'),
+        description: tToast('pleaseLogin'),
         variant: 'destructive',
       });
       return;
@@ -95,8 +96,8 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const handleApprove = async (action: 'Approved' | 'Rejected' | 'MoreInfoRequired') => {
     if (!userId) {
       toast({
-        title: '錯誤',
-        description: '請先登入',
+        title: tToast('error'),
+        description: tToast('pleaseLogin'),
         variant: 'destructive',
       });
       return;
@@ -104,8 +105,8 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
 
     if (action !== 'Approved' && !comment.trim()) {
       toast({
-        title: '錯誤',
-        description: '請提供審批意見',
+        title: tToast('error'),
+        description: t('messages.commentRequired'),
         variant: 'destructive',
       });
       return;
@@ -126,7 +127,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
 
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">操作</h2>
+      <h2 className="mb-4 text-lg font-semibold text-gray-900">{t('actions.title')}</h2>
 
       {/* 草稿或需更多資訊狀態：可以提交審批 */}
       {(status === 'Draft' || status === 'MoreInfoRequired') && (
@@ -135,7 +136,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
           disabled={isSubmitting}
           className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
         >
-          {isSubmitting ? '提交中...' : '提交審批'}
+          {isSubmitting ? tToast('submitting') : t('actions.submit')}
         </button>
       )}
 
@@ -144,7 +145,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
         <div className="space-y-4">
           <div>
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
-              審批意見
+              {t('approval.comment.label')}
             </label>
             <textarea
               id="comment"
@@ -152,7 +153,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="請輸入審批意見..."
+              placeholder={t('approval.comment.placeholder')}
             />
           </div>
 
@@ -162,21 +163,21 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
               disabled={isSubmitting}
               className="w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400"
             >
-              批准
+              {t('approval.actions.approve')}
             </button>
             <button
               onClick={() => handleApprove('Rejected')}
               disabled={isSubmitting}
               className="w-full rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-gray-400"
             >
-              拒絕
+              {t('approval.actions.reject')}
             </button>
             <button
               onClick={() => handleApprove('MoreInfoRequired')}
               disabled={isSubmitting}
               className="w-full rounded-md bg-orange-600 px-4 py-2 text-white hover:bg-orange-700 disabled:bg-gray-400"
             >
-              需要更多資訊
+              {t('approval.actions.requestInfo')}
             </button>
           </div>
         </div>
@@ -185,14 +186,14 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
       {/* 已批准狀態 */}
       {status === 'Approved' && (
         <div className="rounded-md bg-green-50 p-4 text-center">
-          <p className="text-sm font-medium text-green-800">此提案已批准</p>
+          <p className="text-sm font-medium text-green-800">{t('status.approved.message')}</p>
         </div>
       )}
 
       {/* 已拒絕狀態 */}
       {status === 'Rejected' && (
         <div className="rounded-md bg-red-50 p-4 text-center">
-          <p className="text-sm font-medium text-red-800">此提案已被拒絕</p>
+          <p className="text-sm font-medium text-red-800">{t('status.rejected.message')}</p>
         </div>
       )}
     </div>

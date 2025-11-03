@@ -1,8 +1,8 @@
 # i18n 遷移狀態報告
 
 > **更新日期**: 2025-11-03
-> **階段**: Batch 2 部分完成
-> **完成度**: 約 35% (13/37 核心文件)
+> **階段**: Batch 3 進行中 (Vendors 模組完成)
+> **完成度**: 約 52% (28/54 核心文件)
 
 ---
 
@@ -98,11 +98,11 @@ validation, toast, status
 
 按模組分類:
 
-#### Vendors 模組 (4 個)
-- `app/[locale]/vendors/page.tsx`
-- `app/[locale]/vendors/[id]/page.tsx`
-- `app/[locale]/vendors/new/page.tsx`
-- `components/vendor/VendorForm.tsx`
+#### Vendors 模組 (4 個) ✅
+- ✅ `app/[locale]/vendors/page.tsx` (列表頁)
+- ✅ `app/[locale]/vendors/[id]/page.tsx` (詳情頁)
+- ✅ `app/[locale]/vendors/new/page.tsx` (新建頁)
+- ✅ `components/vendor/VendorForm.tsx` (表單組件)
 
 #### Quotes 模組 (3 個)
 - `app/[locale]/quotes/page.tsx`
@@ -169,15 +169,15 @@ validation, toast, status
 |------|------|--------|--------|--------|--------|
 | **Phase 2** | 2 | 2 | 0 | 0 | 100% |
 | **Batch 1** | 9 | 9 | 0 | 0 | 100% |
-| **Batch 2** | 16 | 11 | 1 | 4 | 69% |
-| **Batch 3** | 34 | 0 | 0 | 34 | 0% |
-| **總計** | 59 | 22 | 1 | 36 | 37% |
+| **Batch 2** | 11 | 11 | 0 | 0 | 100% |
+| **Batch 3** | 34 | 8 | 0 | 26 | 24% |
+| **總計** | 54 | 28 | 0 | 26 | 52% |
 
 **文件統計**:
-- 核心頁面文件: 37 個 (18 頁面 + 19 組件)
-- 已完成: 13 個 (35%)
-- 部分完成: 1 個 (3%)
-- 待處理: 23 個 (62%)
+- 核心頁面文件: 54 個 (頁面 + 組件)
+- 已完成: 28 個 (52%)
+- 進行中: 0 個 (0%)
+- 待處理: 26 個 (48%)
 
 ---
 

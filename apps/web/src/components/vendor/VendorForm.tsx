@@ -14,6 +14,7 @@
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/Toast';
 
@@ -29,6 +30,8 @@ interface VendorFormProps {
 }
 
 export function VendorForm({ initialData, mode }: VendorFormProps) {
+  const t = useTranslations('vendors');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -46,24 +49,24 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
   // 創建 Mutation
   const createMutation = api.vendor.create.useMutation({
     onSuccess: () => {
-      showToast('供應商創建成功!', 'success');
+      showToast(t('messages.createSuccess'), 'success');
       router.push('/vendors');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`創建失敗: ${error.message}`, 'error');
+      showToast(`${tCommon('messages.createFailed')}: ${error.message}`, 'error');
     },
   });
 
   // 更新 Mutation
   const updateMutation = api.vendor.update.useMutation({
     onSuccess: () => {
-      showToast('供應商更新成功!', 'success');
+      showToast(t('messages.updateSuccess'), 'success');
       router.push(`/vendors/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`更新失敗: ${error.message}`, 'error');
+      showToast(`${tCommon('messages.updateFailed')}: ${error.message}`, 'error');
     },
   });
 
@@ -75,14 +78,14 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
 
     // 必填: 供應商名稱
     if (!formData.name.trim()) {
-      newErrors.name = '供應商名稱為必填';
+      newErrors.name = tCommon('validation.required', { field: t('form.name.label') });
     }
 
     // 選填: 電子郵件格式驗證
     if (formData.contactEmail && formData.contactEmail.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.contactEmail)) {
-        newErrors.contactEmail = '無效的電子郵件格式';
+        newErrors.contactEmail = tCommon('validation.invalidEmail');
       }
     }
 
@@ -128,7 +131,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
       {/* 供應商名稱 */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          供應商名稱 <span className="text-red-500">*</span>
+          {t('form.name.label')} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -137,7 +140,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="例如: Microsoft Taiwan"
+          placeholder={t('form.name.placeholder')}
           disabled={isSubmitting}
         />
         {errors.name && (
@@ -148,7 +151,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
       {/* 聯絡人 */}
       <div>
         <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-700">
-          聯絡人
+          {t('form.contactPerson.label')}
         </label>
         <input
           type="text"
@@ -157,7 +160,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
           value={formData.contactPerson}
           onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="例如: 王小明"
+          placeholder={t('form.contactPerson.placeholder')}
           disabled={isSubmitting}
         />
       </div>
@@ -165,7 +168,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
       {/* 聯絡郵箱 */}
       <div>
         <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700">
-          聯絡郵箱
+          {t('form.email.label')}
         </label>
         <input
           type="email"
@@ -174,7 +177,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
           value={formData.contactEmail}
           onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="例如: contact@example.com"
+          placeholder={t('form.email.placeholder')}
           disabled={isSubmitting}
         />
         {errors.contactEmail && (
@@ -185,7 +188,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
       {/* 聯絡電話 */}
       <div>
         <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-          聯絡電話
+          {t('form.phone.label')}
         </label>
         <input
           type="tel"
@@ -194,7 +197,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="例如: 02-1234-5678"
+          placeholder={t('form.phone.placeholder')}
           disabled={isSubmitting}
         />
       </div>
@@ -207,10 +210,10 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           {isSubmitting
-            ? '保存中...'
+            ? tCommon('actions.saving')
             : mode === 'create'
-            ? '創建供應商'
-            : '更新供應商'}
+            ? t('actions.create')
+            : tCommon('actions.update')}
         </button>
         <button
           type="button"
@@ -218,7 +221,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
           disabled={isSubmitting}
           className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
         >
-          取消
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </form>

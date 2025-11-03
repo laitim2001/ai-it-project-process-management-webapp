@@ -20,6 +20,8 @@ import { Plus, Download, Wallet, AlertCircle, LayoutGrid, List } from 'lucide-re
 
 export default function BudgetPoolsPage() {
   const t = useTranslations('budgetPools');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState<number | undefined>(undefined);
@@ -86,14 +88,14 @@ export default function BudgetPoolsPage() {
       downloadCSV(csvContent, filename);
 
       toast({
-        title: '成功',
-        description: '資料匯出成功！',
+        title: tCommon('messages.success'),
+        description: t('messages.exportSuccess'),
         variant: 'success',
       });
     } catch (error) {
       toast({
-        title: '錯誤',
-        description: '資料匯出失敗，請稍後再試',
+        title: tCommon('messages.error'),
+        description: t('messages.exportError'),
         variant: 'destructive',
       });
       console.error('Export error:', error);
@@ -107,7 +109,7 @@ export default function BudgetPoolsPage() {
       <DashboardLayout>
         <div className="space-y-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-foreground">預算池</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
           </div>
           <BudgetPoolListSkeleton />
         </div>
@@ -123,11 +125,11 @@ export default function BudgetPoolsPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>預算池</BreadcrumbPage>
+                <BreadcrumbPage>{t('title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -137,7 +139,7 @@ export default function BudgetPoolsPage() {
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                載入預算池時發生錯誤：{error.message}。請稍後再試或聯繫系統管理員。
+                {tCommon('errors.loadingError')}{error.message}{tCommon('errors.tryAgain')}
               </AlertDescription>
             </Alert>
           </div>
@@ -156,11 +158,11 @@ export default function BudgetPoolsPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>預算池</BreadcrumbPage>
+              <BreadcrumbPage>{t('title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -168,8 +170,8 @@ export default function BudgetPoolsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">預算池</h1>
-            <p className="mt-2 text-muted-foreground">管理財務年度預算池</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-2 text-muted-foreground">{t('subtitle')}</p>
           </div>
           <div className="flex gap-2">
             {/* 視圖切換按鈕 */}
@@ -179,7 +181,7 @@ export default function BudgetPoolsPage() {
                 size="sm"
                 onClick={() => setViewMode('card')}
                 className="rounded-r-none"
-                aria-label="卡片視圖"
+                aria-label={t('views.card')}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
@@ -188,7 +190,7 @@ export default function BudgetPoolsPage() {
                 size="sm"
                 onClick={() => setViewMode('list')}
                 className="rounded-l-none"
-                aria-label="列表視圖"
+                aria-label={t('views.list')}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -199,12 +201,12 @@ export default function BudgetPoolsPage() {
               disabled={isExporting || budgetPools.length === 0}
             >
               <Download className="h-4 w-4 mr-2" />
-              {isExporting ? '匯出中...' : '匯出 CSV'}
+              {isExporting ? tCommon('actions.exporting') : tCommon('actions.exportCSV')}
             </Button>
             <Link href="/budget-pools/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                新增預算池
+                {t('actions.create')}
               </Button>
             </Link>
           </div>
@@ -216,7 +218,7 @@ export default function BudgetPoolsPage() {
             <Input
               ref={searchInputRef}
               type="text"
-              placeholder="搜尋預算池..."
+              placeholder={t('search.placeholder')}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -232,7 +234,7 @@ export default function BudgetPoolsPage() {
               setPage(1);
             }}
           >
-            <option value="">所有年度</option>
+            <option value="">{t('filters.allYears')}</option>
             {years.map((year) => (
               <option key={year} value={year}>
                 FY {year}
@@ -251,20 +253,20 @@ export default function BudgetPoolsPage() {
               setSortOrder(newSortOrder);
             }}
           >
-            <option value="year-desc">年度 (新到舊)</option>
-            <option value="year-asc">年度 (舊到新)</option>
-            <option value="name-asc">名稱 (A-Z)</option>
-            <option value="name-desc">名稱 (Z-A)</option>
-            <option value="amount-desc">金額 (高到低)</option>
-            <option value="amount-asc">金額 (低到高)</option>
+            <option value="year-desc">{t('sort.yearDesc')}</option>
+            <option value="year-asc">{t('sort.yearAsc')}</option>
+            <option value="name-asc">{t('sort.nameAsc')}</option>
+            <option value="name-desc">{t('sort.nameDesc')}</option>
+            <option value="amount-desc">{t('sort.amountDesc')}</option>
+            <option value="amount-asc">{t('sort.amountAsc')}</option>
           </Select>
         </div>
 
         {/* Results Count */}
         {pagination && (
           <div className="text-sm text-muted-foreground">
-            顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 個預算池
+            {t('list.showing')} {((pagination.page - 1) * pagination.limit) + 1} -{' '}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} {t('list.total')}
           </div>
         )}
 
@@ -275,12 +277,12 @@ export default function BudgetPoolsPage() {
               <Wallet className="h-16 w-16 text-muted-foreground/50 mb-4" />
               <p className="text-muted-foreground font-medium mb-2">
                 {search || yearFilter
-                  ? '找不到符合條件的預算池'
-                  : '尚未有任何預算池'}
+                  ? t('list.noResults')
+                  : t('list.empty')}
               </p>
               {!search && !yearFilter && (
                 <p className="text-sm text-muted-foreground">
-                  點擊上方「新增預算池」按鈕開始建立
+                  {t('list.emptyHint')}
                 </p>
               )}
             </div>
@@ -302,15 +304,15 @@ export default function BudgetPoolsPage() {
                       <h2 className="mb-3 text-xl font-semibold text-foreground">{pool.name}</h2>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">財務年度</span>
+                          <span className="text-muted-foreground">{t('fields.fiscalYear')}</span>
                           <span className="font-medium text-foreground">FY {pool.financialYear}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">類別數量</span>
-                          <span className="font-medium text-foreground">{categoryCount} 個類別</span>
+                          <span className="text-muted-foreground">{t('fields.categoryCount')}</span>
+                          <span className="font-medium text-foreground">{categoryCount} {t('fields.categories')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">總預算</span>
+                          <span className="text-muted-foreground">{t('fields.totalBudget')}</span>
                           <span className="font-medium text-foreground">
                             ${(pool.computedTotalAmount ?? pool.totalAmount).toLocaleString('en-US', {
                               minimumFractionDigits: 2,
@@ -319,7 +321,7 @@ export default function BudgetPoolsPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">已使用</span>
+                          <span className="text-muted-foreground">{t('fields.used')}</span>
                           <span className="font-medium text-foreground">
                             ${(pool.computedUsedAmount ?? 0).toLocaleString('en-US', {
                               minimumFractionDigits: 2,
@@ -328,7 +330,7 @@ export default function BudgetPoolsPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">使用率</span>
+                          <span className="text-muted-foreground">{t('fields.utilizationRate')}</span>
                           <span className={`font-medium ${
                             utilizationRate > 90 ? 'text-destructive' :
                             utilizationRate > 75 ? 'text-yellow-600 dark:text-yellow-500' :
@@ -338,7 +340,7 @@ export default function BudgetPoolsPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">專案數量</span>
+                          <span className="text-muted-foreground">{t('fields.projectCount')}</span>
                           <span className="font-medium text-foreground">{pool._count.projects}</span>
                         </div>
                       </div>
@@ -364,14 +366,14 @@ export default function BudgetPoolsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>預算池名稱</TableHead>
-                    <TableHead>財務年度</TableHead>
-                    <TableHead className="text-center">類別數量</TableHead>
-                    <TableHead className="text-right">總預算</TableHead>
-                    <TableHead className="text-right">已使用</TableHead>
-                    <TableHead className="text-right">使用率</TableHead>
-                    <TableHead className="text-center">專案數</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead>{t('table.name')}</TableHead>
+                    <TableHead>{t('table.fiscalYear')}</TableHead>
+                    <TableHead className="text-center">{t('table.categoryCount')}</TableHead>
+                    <TableHead className="text-right">{t('table.totalBudget')}</TableHead>
+                    <TableHead className="text-right">{t('table.used')}</TableHead>
+                    <TableHead className="text-right">{t('table.utilizationRate')}</TableHead>
+                    <TableHead className="text-center">{t('table.projectCount')}</TableHead>
+                    <TableHead className="text-right">{tCommon('table.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -418,7 +420,7 @@ export default function BudgetPoolsPage() {
                             href={`/budget-pools/${pool.id}`}
                             className="text-primary hover:underline"
                           >
-                            查看
+                            {tCommon('actions.view')}
                           </Link>
                         </TableCell>
                       </TableRow>

@@ -40,6 +40,8 @@ const PROJECT_STATUS_CONFIG = {
 
 export default function BudgetPoolDetailPage() {
   const t = useTranslations('budgetPools');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -51,8 +53,8 @@ export default function BudgetPoolDetailPage() {
   const deleteMutation = api.budgetPool.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: '成功',
-        description: '預算池已成功刪除！',
+        title: tCommon('messages.success'),
+        description: t('messages.deleteSuccess'),
         variant: 'success',
       });
       router.push('/budget-pools');
@@ -60,7 +62,7 @@ export default function BudgetPoolDetailPage() {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tCommon('messages.error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -68,7 +70,7 @@ export default function BudgetPoolDetailPage() {
   });
 
   const handleDelete = () => {
-    if (confirm('確定要刪除此預算池嗎？\n\n注意：如果預算池有關聯的專案，將無法刪除。')) {
+    if (confirm(t('messages.confirmDelete'))) {
       deleteMutation.mutate({ id });
     }
   };
@@ -115,15 +117,15 @@ export default function BudgetPoolDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+                <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>詳情</BreadcrumbPage>
+                <BreadcrumbPage>{t('detail.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -134,11 +136,11 @@ export default function BudgetPoolDetailPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到預算池。此預算池可能不存在或已被刪除。
+                  {t('messages.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/budget-pools">
-                <Button>返回預算池列表</Button>
+                <Button>{t('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -154,11 +156,11 @@ export default function BudgetPoolDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+              <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -171,13 +173,13 @@ export default function BudgetPoolDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">{budgetPool.name}</h1>
-            <p className="text-muted-foreground mt-2">財務年度 {budgetPool.financialYear}</p>
+            <p className="text-muted-foreground mt-2">{t('detail.fiscalYearLabel')} {budgetPool.financialYear}</p>
           </div>
           <div className="flex gap-2">
             <Link href={`/budget-pools/${id}/edit`}>
               <Button variant="outline" size="default">
                 <Edit className="h-4 w-4 mr-2" />
-                編輯預算池
+                {t('actions.edit')}
               </Button>
             </Link>
             <Button
@@ -186,7 +188,7 @@ export default function BudgetPoolDetailPage() {
               disabled={deleteMutation.isLoading}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {deleteMutation.isLoading ? '刪除中...' : '刪除預算池'}
+              {deleteMutation.isLoading ? tCommon('actions.deleting') : t('actions.delete')}
             </Button>
           </div>
         </div>
@@ -199,21 +201,21 @@ export default function BudgetPoolDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  預算池資訊
+                  {t('detail.basicInfo')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <dl className="grid grid-cols-2 gap-6">
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">財務年度</dt>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.fiscalYear')}</dt>
                     <dd className="text-xl font-bold text-foreground">FY {budgetPool.financialYear}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">類別數量</dt>
-                    <dd className="text-xl font-bold text-foreground">{budgetPool.categories.length} 個類別</dd>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.categoryCount')}</dt>
+                    <dd className="text-xl font-bold text-foreground">{budgetPool.categories.length} {t('fields.categories')}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">總預算</dt>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.totalBudget')}</dt>
                     <dd className="text-xl font-bold text-foreground">
                       ${(budgetPool.computedTotalAmount ?? budgetPool.totalAmount).toLocaleString('en-US', {
                         minimumFractionDigits: 2,
@@ -222,7 +224,7 @@ export default function BudgetPoolDetailPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">已使用金額</dt>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.usedAmount')}</dt>
                     <dd className="text-xl font-bold text-orange-600">
                       ${(budgetPool.computedUsedAmount ?? 0).toLocaleString('en-US', {
                         minimumFractionDigits: 2,
@@ -231,14 +233,14 @@ export default function BudgetPoolDetailPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">創建時間</dt>
+                    <dt className="text-sm font-medium text-muted-foreground">{tCommon('fields.createdAt')}</dt>
                     <dd className="text-foreground font-medium mt-1 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {new Date(budgetPool.createdAt).toLocaleDateString('zh-TW')}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">最後更新</dt>
+                    <dt className="text-sm font-medium text-muted-foreground">{tCommon('fields.updatedAt')}</dt>
                     <dd className="text-foreground font-medium mt-1 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {new Date(budgetPool.updatedAt).toLocaleDateString('zh-TW')}
@@ -253,25 +255,25 @@ export default function BudgetPoolDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ListTree className="h-5 w-5" />
-                  預算類別 ({budgetPool.categories.length})
+                  {t('detail.categories.title')} ({budgetPool.categories.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {budgetPool.categories.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">尚未有任何預算類別</p>
+                  <p className="text-muted-foreground text-center py-8">{t('detail.categories.empty')}</p>
                 ) : (
                   <div className="rounded-lg border">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[50px]">排序</TableHead>
-                          <TableHead>類別名稱</TableHead>
-                          <TableHead>類別代碼</TableHead>
-                          <TableHead className="text-right">總預算</TableHead>
-                          <TableHead className="text-right">已使用</TableHead>
-                          <TableHead className="text-right">使用率</TableHead>
-                          <TableHead className="text-center">專案數</TableHead>
-                          <TableHead className="text-center">支出數</TableHead>
+                          <TableHead className="w-[50px]">{t('detail.categories.table.sort')}</TableHead>
+                          <TableHead>{t('detail.categories.table.name')}</TableHead>
+                          <TableHead>{t('detail.categories.table.code')}</TableHead>
+                          <TableHead className="text-right">{t('detail.categories.table.totalBudget')}</TableHead>
+                          <TableHead className="text-right">{t('detail.categories.table.used')}</TableHead>
+                          <TableHead className="text-right">{t('detail.categories.table.utilizationRate')}</TableHead>
+                          <TableHead className="text-center">{t('detail.categories.table.projectCount')}</TableHead>
+                          <TableHead className="text-center">{t('detail.categories.table.expenseCount')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -339,31 +341,31 @@ export default function BudgetPoolDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    預算統計
+                    {t('detail.stats.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-2 gap-6">
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground mb-1">已分配金額</dt>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">{t('detail.stats.allocated')}</dt>
                       <dd className="text-lg font-bold text-primary">
                         ${stats.totalAllocated.toLocaleString()}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground mb-1">已支出金額</dt>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">{t('detail.stats.spent')}</dt>
                       <dd className="text-lg font-bold text-orange-600">
                         ${stats.totalSpent.toLocaleString()}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground mb-1">剩餘預算</dt>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">{t('detail.stats.remaining')}</dt>
                       <dd className="text-lg font-bold text-green-600">
                         ${stats.remaining.toLocaleString()}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground mb-1">使用率</dt>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.utilizationRate')}</dt>
                       <dd className="text-lg font-bold text-foreground">
                         {stats.utilizationRate.toFixed(1)}%
                       </dd>
@@ -373,7 +375,7 @@ export default function BudgetPoolDetailPage() {
                   {/* 進度條 */}
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-muted-foreground">預算使用進度</span>
+                      <span className="text-sm text-muted-foreground">{t('detail.stats.progress')}</span>
                       <span className="text-sm font-medium text-foreground">
                         {stats.utilizationRate.toFixed(1)}%
                       </span>
@@ -396,12 +398,12 @@ export default function BudgetPoolDetailPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Folder className="h-5 w-5" />
-                  關聯專案 ({budgetPool.projects.length})
+                  {t('detail.projects.title')} ({budgetPool.projects.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {budgetPool.projects.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">尚未有任何專案</p>
+                  <p className="text-muted-foreground text-center py-8">{t('detail.projects.empty')}</p>
                 ) : (
                   <div className="space-y-3">
                     {budgetPool.projects.map((project) => (

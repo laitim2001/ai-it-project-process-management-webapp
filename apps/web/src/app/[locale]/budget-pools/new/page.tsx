@@ -17,6 +17,7 @@ const BudgetPoolForm = dynamic(
 
 export default function NewBudgetPoolPage() {
   const t = useTranslations('budgetPools');
+  const tNav = useTranslations('navigation');
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -24,24 +25,24 @@ export default function NewBudgetPoolPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+              <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新增預算池</BreadcrumbPage>
+              <BreadcrumbPage>{t('new.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">新增預算池</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('new.title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            填寫以下資訊以建立新預算池
+            {t('new.subtitle')}
           </p>
         </div>
 

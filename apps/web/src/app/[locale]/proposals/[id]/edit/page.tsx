@@ -23,6 +23,7 @@ const BudgetProposalForm = dynamic(
 
 export default function EditProposalPage() {
   const t = useTranslations('proposals');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const id = params.id as string;
 
@@ -75,15 +76,15 @@ export default function EditProposalPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/proposals">預算提案</BreadcrumbLink>
+                <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{t('edit.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -94,11 +95,11 @@ export default function EditProposalPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到提案。此提案可能不存在或已被刪除。
+                  {t('detail.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/proposals">
-                <Button>返回提案列表</Button>
+                <Button>{t('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -119,11 +120,11 @@ export default function EditProposalPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/proposals">預算提案</BreadcrumbLink>
+              <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -131,16 +132,16 @@ export default function EditProposalPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯</BreadcrumbPage>
+              <BreadcrumbPage>{t('edit.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯預算提案</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('edit.title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            更新提案資訊
+            {t('edit.description')}
           </p>
         </div>
 

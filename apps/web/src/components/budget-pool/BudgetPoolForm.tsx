@@ -43,6 +43,7 @@ interface BudgetPoolFormProps {
 
 export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const t = useTranslations('budgetPools');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -80,8 +81,8 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const createMutation = api.budgetPool.create.useMutation({
     onSuccess: (budgetPool) => {
       toast({
-        title: '成功',
-        description: '預算池創建成功！',
+        title: tCommon('messages.success'),
+        description: t('messages.createSuccess'),
         variant: 'success',
       });
       router.push(`/budget-pools/${budgetPool.id}`);
@@ -89,7 +90,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tCommon('messages.error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -99,8 +100,8 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const updateMutation = api.budgetPool.update.useMutation({
     onSuccess: () => {
       toast({
-        title: '成功',
-        description: '預算池更新成功！',
+        title: tCommon('messages.success'),
+        description: t('messages.updateSuccess'),
         variant: 'success',
       });
       router.push(`/budget-pools/${initialData?.id}`);
@@ -108,7 +109,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tCommon('messages.error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -158,8 +159,8 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const handleDeleteCategory = (index: number) => {
     if (categories.length <= 1) {
       toast({
-        title: '錯誤',
-        description: '至少需要保留一個類別',
+        title: tCommon('messages.error'),
+        description: t('form.categories.minOneRequired'),
         variant: 'destructive',
       });
       return;
@@ -183,11 +184,11 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
 
     // 驗證基本欄位
     if (!formData.name.trim()) {
-      newErrors.name = '預算池名稱為必填欄位';
+      newErrors.name = t('form.name.required');
     }
 
     if (formData.financialYear < 2000 || formData.financialYear > 2100) {
-      newErrors.financialYear = '財政年度範圍：2000-2100';
+      newErrors.financialYear = t('form.fiscalYear.rangeError');
     }
 
     // 驗證類別
@@ -199,21 +200,21 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
 
       // 類別名稱必填且不重複
       if (!cat.categoryName.trim()) {
-        catError.categoryName = '類別名稱為必填欄位';
+        catError.categoryName = t('form.categories.nameRequired');
       } else if (categoryNames.has(cat.categoryName.trim())) {
-        catError.categoryName = '類別名稱不可重複';
+        catError.categoryName = t('form.categories.nameDuplicate');
       } else {
         categoryNames.add(cat.categoryName.trim());
       }
 
       // 預算金額必須 ≥ 0
       if (cat.totalAmount < 0) {
-        catError.totalAmount = '預算金額不可為負數';
+        catError.totalAmount = t('form.categories.amountNegative');
       }
 
       // 排序必須是整數
       if (cat.sortOrder !== undefined && !Number.isInteger(cat.sortOrder)) {
-        catError.sortOrder = '排序必須為整數';
+        catError.sortOrder = t('form.categories.sortOrderInteger');
       }
 
       if (Object.keys(catError).length > 0) {
@@ -242,7 +243,11 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
     e.preventDefault();
 
     if (!validate()) {
-      showToast('請修正表單錯誤後再提交', 'error');
+      toast({
+        title: tCommon('messages.error'),
+        description: t('form.validationError'),
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -271,13 +276,13 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
       {/* ========== 基本信息區塊 ========== */}
       <Card>
         <CardHeader>
-          <CardTitle>基本信息</CardTitle>
+          <CardTitle>{t('form.basicInfo')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 預算池名稱 */}
           <div>
             <Label htmlFor="name" className="text-sm font-medium">
-              預算池名稱 <span className="text-red-500">*</span>
+              {t('form.name.label')} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
@@ -287,7 +292,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="例如：FY2025 IT 基礎設施預算"
+              placeholder={t('form.name.placeholder')}
               className={errors.name ? 'border-red-500' : ''}
             />
             {errors.name && (
@@ -298,7 +303,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
           {/* 財政年度 */}
           <div>
             <Label htmlFor="financialYear" className="text-sm font-medium">
-              財政年度 <span className="text-red-500">*</span>
+              {t('form.fiscalYear.label')} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="financialYear"
@@ -311,7 +316,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
                   financialYear: parseInt(e.target.value) || new Date().getFullYear(),
                 })
               }
-              placeholder="2025"
+              placeholder={t('form.fiscalYear.placeholder')}
               className={errors.financialYear ? 'border-red-500' : ''}
             />
             {errors.financialYear && (
@@ -324,7 +329,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
           {/* 說明（可選） */}
           <div>
             <Label htmlFor="description" className="text-sm font-medium">
-              說明
+              {tCommon('form.description.label')}
             </Label>
             <Input
               id="description"
@@ -334,7 +339,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              placeholder="選填：預算池用途說明"
+              placeholder={t('form.description.placeholder')}
             />
           </div>
         </CardContent>
@@ -344,16 +349,16 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>預算類別</CardTitle>
+            <CardTitle>{t('form.categories.title')}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              定義預算池的各個類別，至少需要一個類別
+              {t('form.categories.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-4">
             {/* 總預算顯示 */}
             <div className="flex items-center gap-2 text-sm">
               <Calculator className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">總預算：</span>
+              <span className="text-muted-foreground">{t('form.categories.totalBudget')}：</span>
               <span className="font-semibold text-primary">
                 ${computedTotalAmount.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
@@ -385,7 +390,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
             className="w-full"
           >
             <Plus className="h-4 w-4 mr-2" />
-            新增類別
+            {t('form.categories.addCategory')}
           </Button>
         </CardContent>
       </Card>
@@ -398,14 +403,14 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
           onClick={() => router.back()}
           disabled={isSubmitting}
         >
-          取消
+          {tCommon('actions.cancel')}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? '儲存中...'
+            ? tCommon('actions.saving')
             : mode === 'create'
-            ? '創建預算池'
-            : '更新預算池'}
+            ? t('actions.create')
+            : t('actions.update')}
         </Button>
       </div>
     </form>

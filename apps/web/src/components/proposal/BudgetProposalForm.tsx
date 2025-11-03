@@ -24,6 +24,8 @@ interface BudgetProposalFormProps {
 
 export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProps) {
   const t = useTranslations('proposals');
+  const tCommon = useTranslations('common');
+  const tToast = useTranslations('toast');
   const router = useRouter();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -40,8 +42,8 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
   const createMutation = api.budgetProposal.create.useMutation({
     onSuccess: (proposal) => {
       toast({
-        title: '成功',
-        description: '提案建立成功！',
+        title: tToast('success'),
+        description: t('messages.createSuccess'),
         variant: 'success',
       });
       // FIX: 重定向到詳情頁，不是列表頁（E2E 測試期望）
@@ -50,7 +52,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tToast('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -60,8 +62,8 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
   const updateMutation = api.budgetProposal.update.useMutation({
     onSuccess: () => {
       toast({
-        title: '成功',
-        description: '提案更新成功！',
+        title: tToast('success'),
+        description: t('messages.updateSuccess'),
         variant: 'success',
       });
       router.push(`/proposals/${initialData?.id}`);
@@ -69,7 +71,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tToast('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -80,15 +82,15 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = '標題為必填欄位';
+      newErrors.title = tCommon('validation.required', { field: t('form.title.label') });
     }
 
     if (formData.amount <= 0) {
-      newErrors.amount = '金額必須大於0';
+      newErrors.amount = tCommon('validation.amountPositive');
     }
 
     if (!formData.projectId) {
-      newErrors.projectId = '專案為必填欄位';
+      newErrors.projectId = tCommon('validation.required', { field: t('form.project.label') });
     }
 
     setErrors(newErrors);
@@ -119,7 +121,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          提案標題 *
+          {t('form.title.label')} *
         </label>
         <input
           type="text"
@@ -128,7 +130,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="例如：購買伺服器設備"
+          placeholder={t('form.title.placeholder')}
         />
         {errors.title && (
           <p className="mt-1 text-sm text-red-600">{errors.title}</p>
@@ -137,7 +139,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
 
       <div>
         <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-          預算金額 ($) *
+          {t('form.amount.label')} *
         </label>
         <input
           type="number"
@@ -159,7 +161,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
       {mode === 'create' && (
         <div>
           <label htmlFor="projectId" className="block text-sm font-medium text-gray-700">
-            所屬專案 *
+            {t('form.project.label')} *
           </label>
           <select
             id="projectId"
@@ -168,7 +170,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
             onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
-            <option value="">選擇專案</option>
+            <option value="">{t('form.project.placeholder')}</option>
             {projects?.items?.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
@@ -187,14 +189,14 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
         >
-          {isSubmitting ? '儲存中...' : mode === 'create' ? '創建提案' : '更新提案'}
+          {isSubmitting ? tCommon('actions.saving') : mode === 'create' ? t('actions.create') : t('actions.update')}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
           className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50"
         >
-          取消
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </form>

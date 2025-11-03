@@ -20,6 +20,65 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-03 | 🌐 功能開發 | i18n 遷移進度更新 - Batch 2 和 Batch 3-1 完成
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成 52% (28/54 文件)
+
+**主要工作**:
+1. ✅ **Batch 2 完成** (Proposals + BudgetPools 模組, 11 個文件)
+   - **Proposals 模組**: 6 個文件
+     - 組件: ProposalActions.tsx, CommentSection.tsx
+     - 頁面: proposals/page.tsx, new/page.tsx, [id]/page.tsx, [id]/edit/page.tsx
+   - **BudgetPools 模組**: 5 個文件
+     - 組件: BudgetPoolForm.tsx
+     - 頁面: budget-pools/page.tsx, new/page.tsx, [id]/page.tsx, [id]/edit/page.tsx
+
+2. ✅ **Batch 3-1 完成** (Vendors 模組, 4 個文件)
+   - vendors/page.tsx (列表頁)
+   - vendors/new/page.tsx (新建頁)
+   - vendors/[id]/page.tsx (詳情頁)
+   - VendorForm.tsx (表單組件)
+
+**進度統計**:
+- 已完成文件: 28/54 (52%)
+- 已完成 Batch: 2 完成 + Batch 3 24% (8/34)
+- 翻譯 Keys 使用: ~500 個
+
+**品質保證**:
+- ✅ 0 個重複 import (已檢查所有遷移文件)
+- ✅ TypeScript 編譯無錯誤
+- ✅ 開發服務器正常運行
+- ✅ 語言切換功能正常 (zh-TW ↔ en)
+
+**技術亮點**:
+1. 使用 surgical-task-executor 代理進行系統化遷移
+2. 每個批次完成後執行 `check-duplicate-imports.js` 驗證
+3. 保持代碼邏輯完全不變,只替換硬編碼文字
+4. 遵循命名空間規範:
+   - proposals.* (提案模組)
+   - budgetPools.* (預算池模組)
+   - vendors.* (廠商模組)
+
+**遷移模式**:
+- Import: `import { useTranslations } from 'next-intl'`
+- Hooks: `const t = useTranslations('namespace')`
+- 使用: `t('key')` 替換所有硬編碼文字
+- Toast 訊息: `useTranslations('toast')`
+- 驗證訊息: `useTranslations('validation')`
+
+**相關文件**:
+- `claudedocs/I18N-PROGRESS.md` - 詳細遷移記錄
+- `claudedocs/I18N-MIGRATION-STATUS.md` - 進度追蹤 (已更新至 52%)
+- `apps/web/src/messages/zh-TW.json` - 繁體中文翻譯
+- `apps/web/src/messages/en.json` - 英文翻譯
+
+**下一步計劃**:
+- Batch 3-2: Quotes 模組 (3 個文件)
+- Batch 3-3: PurchaseOrders 模組 (5 個文件)
+- Batch 3-4: Expenses 模組 (5 個文件)
+
+---
+
 ### 2025-10-29 18:30 | 🔧 修復 | NextAuth v5 升級繼續 - 修正導入路徑和環境配置
 
 **類型**: 修復 | **負責人**: AI 助手 | **狀態**: ✅ 路徑修正完成 | ⚠️ CSRF 錯誤待解決

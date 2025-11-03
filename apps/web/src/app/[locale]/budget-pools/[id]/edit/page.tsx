@@ -23,6 +23,7 @@ const BudgetPoolForm = dynamic(
 
 export default function EditBudgetPoolPage() {
   const t = useTranslations('budgetPools');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const id = params.id as string;
 
@@ -75,15 +76,15 @@ export default function EditBudgetPoolPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+                <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{t('edit.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -94,11 +95,11 @@ export default function EditBudgetPoolPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到預算池。此預算池可能不存在或已被刪除。
+                  {t('messages.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/budget-pools">
-                <Button>返回預算池列表</Button>
+                <Button>{t('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -114,11 +115,11 @@ export default function EditBudgetPoolPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/budget-pools">預算池</BreadcrumbLink>
+              <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -126,16 +127,16 @@ export default function EditBudgetPoolPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯</BreadcrumbPage>
+              <BreadcrumbPage>{t('edit.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯預算池</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('edit.title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            更新預算池資訊
+            {t('edit.subtitle')}
           </p>
         </div>
 
