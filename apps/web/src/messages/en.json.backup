@@ -1,0 +1,1015 @@
+{
+  "common": {
+    "actions": {
+      "save": "儲存",
+      "cancel": "取消",
+      "delete": "刪除",
+      "edit": "編輯",
+      "create": "新增",
+      "submit": "提交",
+      "search": "搜尋",
+      "filter": "篩選",
+      "export": "匯出",
+      "import": "匯入",
+      "confirm": "確認",
+      "back": "返回",
+      "next": "下一步",
+      "previous": "上一步",
+      "close": "關閉",
+      "yes": "是",
+      "no": "否",
+      "view": "查看",
+      "viewAll": "查看全部",
+      "download": "下載",
+      "upload": "上傳",
+      "approve": "批准",
+      "reject": "駁回",
+      "withdraw": "撤回",
+      "requestMoreInfo": "要求更多資訊",
+      "refresh": "重新整理"
+    },
+    "status": {
+      "draft": "草稿",
+      "pending": "待審批",
+      "pendingApproval": "待審批",
+      "approved": "已批准",
+      "rejected": "已駁回",
+      "moreInfoRequired": "需要更多資訊",
+      "completed": "已完成",
+      "paid": "已支付",
+      "cancelled": "已取消",
+      "active": "進行中",
+      "inactive": "非活動"
+    },
+    "loading": "載入中...",
+    "saving": "儲存中...",
+    "submitting": "提交中...",
+    "processing": "處理中...",
+    "error": "發生錯誤",
+    "success": "操作成功",
+    "noData": "無資料",
+    "noResults": "無搜尋結果",
+    "selectPlaceholder": "請選擇",
+    "searchPlaceholder": "搜尋...",
+    "required": "必填",
+    "optional": "選填",
+    "all": "全部",
+    "pagination": {
+      "page": "頁",
+      "of": "共",
+      "rowsPerPage": "每頁顯示",
+      "showing": "顯示",
+      "to": "至",
+      "entries": "筆資料"
+    },
+    "date": {
+      "today": "今天",
+      "yesterday": "昨天",
+      "lastWeek": "上週",
+      "lastMonth": "上月",
+      "thisMonth": "本月",
+      "thisYear": "今年",
+      "startDate": "開始日期",
+      "endDate": "結束日期"
+    },
+    "currency": {
+      "myr": "RM",
+      "amount": "金額"
+    }
+  },
+  "navigation": {
+    "brand": {
+      "title": "IT 專案管理",
+      "subtitle": "流程平台"
+    },
+    "sections": {
+      "overview": "概覽",
+      "projectBudget": "專案與預算",
+      "procurement": "採購管理",
+      "system": "系統管理"
+    },
+    "menu": {
+      "dashboard": "儀表板",
+      "projects": "專案管理",
+      "proposals": "預算提案",
+      "budgetPools": "預算池",
+      "vendors": "供應商",
+      "quotes": "報價單",
+      "purchaseOrders": "採購單",
+      "expenses": "費用記錄",
+      "omExpenses": "OM 費用",
+      "chargeOuts": "費用轉嫁",
+      "users": "用戶管理",
+      "notifications": "通知",
+      "settings": "系統設定",
+      "help": "幫助中心"
+    },
+    "descriptions": {
+      "dashboard": "專案總覽和關鍵指標",
+      "projects": "專案資料和進度管理",
+      "proposals": "預算提案申請與審批",
+      "budgetPools": "年度預算分配管理",
+      "vendors": "供應商資料管理",
+      "quotes": "供應商報價管理",
+      "purchaseOrders": "採購訂單追蹤",
+      "expenses": "費用發票與核銷",
+      "omExpenses": "操作與維護費用管理",
+      "chargeOuts": "ChargeOut 費用轉嫁管理",
+      "users": "用戶帳號和權限",
+      "settings": "系統參數設定",
+      "help": "使用指南和支援"
+    },
+    "user": {
+      "profile": "個人資料",
+      "logout": "登出",
+      "role": "角色",
+      "status": {
+        "online": "在線",
+        "offline": "離線"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "登入",
+      "subtitle": "歡迎回到 IT 專案管理平台",
+      "email": "電子郵件",
+      "password": "密碼",
+      "rememberMe": "記住我",
+      "forgotPassword": "忘記密碼？",
+      "noAccount": "還沒有帳號？",
+      "signUp": "註冊",
+      "loginButton": "登入",
+      "orLoginWith": "或使用以下方式登入",
+      "azureAD": "Azure AD",
+      "loggingIn": "登入中..."
+    },
+    "register": {
+      "title": "註冊",
+      "subtitle": "建立您的帳號",
+      "name": "姓名",
+      "email": "電子郵件",
+      "password": "密碼",
+      "confirmPassword": "確認密碼",
+      "hasAccount": "已有帳號？",
+      "signIn": "登入",
+      "registerButton": "註冊",
+      "registering": "註冊中..."
+    },
+    "forgotPassword": {
+      "title": "忘記密碼",
+      "subtitle": "輸入您的電子郵件以重設密碼",
+      "email": "電子郵件",
+      "sendResetLink": "發送重設連結",
+      "backToLogin": "返回登入",
+      "sending": "發送中...",
+      "success": "重設連結已發送至您的信箱"
+    }
+  },
+  "dashboard": {
+    "title": "儀表板",
+    "subtitle": "歡迎回來！查看您的專案進度和最新動態",
+    "stats": {
+      "monthlyBudget": {
+        "title": "本月預算額",
+        "change": "較上月"
+      },
+      "activeProjects": {
+        "title": "進行中項目",
+        "change": "較上月"
+      },
+      "pendingProposals": {
+        "title": "待審批提案",
+        "change": "較上月"
+      },
+      "budgetUtilization": {
+        "title": "預算執行率",
+        "change": "較上月"
+      }
+    },
+    "budgetTrends": {
+      "title": "預算趨勢",
+      "period": {
+        "last6Months": "近 6 個月",
+        "last3Months": "近 3 個月",
+        "thisMonth": "本月"
+      },
+      "metrics": {
+        "currentBudget": "本月預算額",
+        "growthRate": "月增長率",
+        "totalProposals": "總提案數"
+      }
+    },
+    "quickActions": {
+      "title": "快速操作",
+      "subtitle": "常用功能快捷入口",
+      "actions": {
+        "newProject": {
+          "name": "新增專案",
+          "description": "建立新的 IT 專案"
+        },
+        "newProposal": {
+          "name": "建立提案",
+          "description": "提交預算提案申請"
+        },
+        "newBudgetPool": {
+          "name": "新增預算池",
+          "description": "創建財政年度預算池"
+        },
+        "manageVendors": {
+          "name": "供應商管理",
+          "description": "管理供應商資料"
+        },
+        "viewPurchaseOrders": {
+          "name": "查看採購單",
+          "description": "檢視採購訂單狀態"
+        },
+        "recordExpense": {
+          "name": "費用記錄",
+          "description": "記錄專案費用支出"
+        }
+      }
+    },
+    "recentActivities": {
+      "title": "最近活動",
+      "viewAll": "查看全部",
+      "timeAgo": {
+        "hour": "小時前",
+        "hours": "小時前",
+        "day": "天前",
+        "days": "天前"
+      }
+    },
+    "aiInsights": {
+      "title": "AI 洞察",
+      "subtitle": "基於數據分析的智能建議",
+      "confidence": "信心度",
+      "viewDetails": "查看詳情",
+      "todayStats": "今日統計",
+      "pendingProposalsCount": "待處理提案",
+      "meetingsToday": "今日會議"
+    }
+  },
+  "projects": {
+    "title": "專案管理",
+    "list": {
+      "title": "專案列表",
+      "subtitle": "管理所有 IT 專案",
+      "newProject": "新增專案",
+      "search": "搜尋專案...",
+      "filter": {
+        "all": "全部",
+        "active": "進行中",
+        "completed": "已完成",
+        "onHold": "暫停"
+      },
+      "table": {
+        "name": "專案名稱",
+        "budgetPool": "預算池",
+        "manager": "專案經理",
+        "supervisor": "主管",
+        "startDate": "開始日期",
+        "endDate": "結束日期",
+        "budget": "預算",
+        "status": "狀態",
+        "actions": "操作"
+      },
+      "empty": "尚無專案資料"
+    },
+    "detail": {
+      "title": "專案詳情",
+      "overview": "概覽",
+      "budget": "預算資訊",
+      "proposals": "預算提案",
+      "purchaseOrders": "採購單",
+      "expenses": "費用記錄",
+      "tabs": {
+        "overview": "概覽",
+        "proposals": "提案",
+        "quotes": "報價",
+        "purchaseOrders": "採購單",
+        "expenses": "費用"
+      }
+    },
+    "form": {
+      "create": {
+        "title": "新增專案",
+        "subtitle": "建立新的 IT 專案"
+      },
+      "edit": {
+        "title": "編輯專案",
+        "subtitle": "更新專案資訊"
+      },
+      "fields": {
+        "name": {
+          "label": "專案名稱",
+          "placeholder": "例如：雲端遷移第一階段"
+        },
+        "description": {
+          "label": "專案描述",
+          "placeholder": "描述專案目標和範圍..."
+        },
+        "budgetPool": {
+          "label": "預算池",
+          "placeholder": "選擇預算池"
+        },
+        "budgetCategory": {
+          "label": "預算類別",
+          "placeholder": "選擇預算類別（選填）",
+          "selectPoolFirst": "請先選擇預算池"
+        },
+        "requestedBudget": {
+          "label": "請求預算金額",
+          "placeholder": "0.00"
+        },
+        "manager": {
+          "label": "專案經理",
+          "placeholder": "選擇專案經理"
+        },
+        "supervisor": {
+          "label": "主管",
+          "placeholder": "選擇主管"
+        },
+        "startDate": {
+          "label": "開始日期"
+        },
+        "endDate": {
+          "label": "結束日期"
+        }
+      },
+      "actions": {
+        "creating": "創建專案",
+        "updating": "更新專案",
+        "create": "創建專案",
+        "update": "更新專案"
+      }
+    }
+  },
+  "proposals": {
+    "title": "預算提案",
+    "list": {
+      "title": "預算提案列表",
+      "subtitle": "管理所有預算提案",
+      "newProposal": "新增提案",
+      "search": "搜尋提案...",
+      "filter": {
+        "all": "全部",
+        "draft": "草稿",
+        "pending": "待審批",
+        "approved": "已批准",
+        "rejected": "已駁回"
+      },
+      "table": {
+        "id": "提案編號",
+        "project": "所屬專案",
+        "amount": "申請金額",
+        "status": "狀態",
+        "submittedBy": "提交人",
+        "submittedAt": "提交時間",
+        "approvedBy": "審批人",
+        "approvedAt": "審批時間",
+        "actions": "操作"
+      }
+    },
+    "detail": {
+      "title": "提案詳情",
+      "basicInfo": "基本資訊",
+      "budgetDetails": "預算明細",
+      "attachments": "附件",
+      "comments": "討論",
+      "history": "審批歷史"
+    },
+    "form": {
+      "create": {
+        "title": "新增預算提案",
+        "subtitle": "建立新的預算申請"
+      },
+      "edit": {
+        "title": "編輯預算提案",
+        "subtitle": "更新提案資訊"
+      },
+      "fields": {
+        "project": {
+          "label": "所屬專案",
+          "placeholder": "選擇專案"
+        },
+        "amount": {
+          "label": "申請金額",
+          "placeholder": "0.00"
+        },
+        "description": {
+          "label": "提案說明",
+          "placeholder": "詳細描述預算需求..."
+        },
+        "justification": {
+          "label": "申請理由",
+          "placeholder": "說明為何需要此預算..."
+        }
+      }
+    },
+    "actions": {
+      "submit": "提交審批",
+      "approve": "批准",
+      "reject": "駁回",
+      "requestMoreInfo": "要求更多資訊",
+      "withdraw": "撤回",
+      "confirmApprove": "確認批准此提案？",
+      "confirmReject": "確認駁回此提案？",
+      "rejectReason": "駁回原因",
+      "moreInfoReason": "需要補充的資訊"
+    },
+    "comments": {
+      "title": "討論區",
+      "addComment": "新增評論",
+      "placeholder": "輸入您的評論...",
+      "submit": "發送",
+      "empty": "尚無評論"
+    },
+    "history": {
+      "title": "審批歷史",
+      "action": {
+        "created": "建立提案",
+        "submitted": "提交審批",
+        "approved": "批准",
+        "rejected": "駁回",
+        "moreInfoRequested": "要求更多資訊",
+        "withdrawn": "撤回"
+      }
+    }
+  },
+  "budgetPools": {
+    "title": "預算池",
+    "list": {
+      "title": "預算池列表",
+      "subtitle": "管理財政年度預算分配",
+      "newBudgetPool": "新增預算池",
+      "search": "搜尋預算池...",
+      "filter": {
+        "all": "所有年度",
+        "current": "當前年度",
+        "previous": "過往年度"
+      },
+      "table": {
+        "name": "預算池名稱",
+        "financialYear": "財政年度",
+        "totalAmount": "總金額",
+        "usedAmount": "已使用",
+        "remainingAmount": "剩餘",
+        "utilization": "使用率",
+        "categories": "預算類別",
+        "projects": "專案數",
+        "actions": "操作"
+      }
+    },
+    "detail": {
+      "title": "預算池詳情",
+      "overview": "概覽",
+      "categories": "預算類別",
+      "projects": "關聯專案",
+      "utilization": "使用情況"
+    },
+    "form": {
+      "create": {
+        "title": "新增預算池",
+        "subtitle": "建立新的財政年度預算池"
+      },
+      "edit": {
+        "title": "編輯預算池",
+        "subtitle": "更新預算池資訊"
+      },
+      "fields": {
+        "name": {
+          "label": "預算池名稱",
+          "placeholder": "例如：2024 財政年度 IT 預算"
+        },
+        "financialYear": {
+          "label": "財政年度",
+          "placeholder": "選擇年度"
+        },
+        "totalAmount": {
+          "label": "總預算金額",
+          "placeholder": "0.00"
+        },
+        "description": {
+          "label": "描述",
+          "placeholder": "預算池描述..."
+        }
+      },
+      "categories": {
+        "title": "預算類別",
+        "add": "新增類別",
+        "remove": "移除",
+        "fields": {
+          "name": "類別名稱",
+          "amount": "分配金額",
+          "description": "說明"
+        },
+        "placeholder": {
+          "name": "例如：硬體設備",
+          "amount": "0.00",
+          "description": "類別說明..."
+        }
+      }
+    },
+    "utilization": {
+      "total": "總預算",
+      "used": "已使用",
+      "remaining": "剩餘",
+      "percentage": "使用率",
+      "health": {
+        "good": "良好",
+        "warning": "警告",
+        "critical": "超支"
+      }
+    }
+  },
+  "vendors": {
+    "title": "供應商",
+    "list": {
+      "title": "供應商列表",
+      "subtitle": "管理供應商資料",
+      "newVendor": "新增供應商",
+      "search": "搜尋供應商...",
+      "table": {
+        "name": "供應商名稱",
+        "contactName": "聯絡人",
+        "email": "電子郵件",
+        "phone": "電話",
+        "address": "地址",
+        "quotesCount": "報價單數",
+        "purchaseOrdersCount": "採購單數",
+        "actions": "操作"
+      }
+    },
+    "detail": {
+      "title": "供應商詳情",
+      "info": "基本資訊",
+      "quotes": "報價記錄",
+      "purchaseOrders": "採購記錄"
+    },
+    "form": {
+      "create": {
+        "title": "新增供應商",
+        "subtitle": "建立新的供應商資料"
+      },
+      "edit": {
+        "title": "編輯供應商",
+        "subtitle": "更新供應商資訊"
+      },
+      "fields": {
+        "name": {
+          "label": "供應商名稱",
+          "placeholder": "例如：Tech Solutions Ltd"
+        },
+        "contactName": {
+          "label": "聯絡人姓名",
+          "placeholder": "例如：張三"
+        },
+        "email": {
+          "label": "電子郵件",
+          "placeholder": "例如：contact@techsolutions.com"
+        },
+        "phone": {
+          "label": "電話",
+          "placeholder": "例如：+60 12-345 6789"
+        },
+        "address": {
+          "label": "地址",
+          "placeholder": "供應商地址..."
+        },
+        "website": {
+          "label": "網站",
+          "placeholder": "https://"
+        },
+        "notes": {
+          "label": "備註",
+          "placeholder": "其他資訊..."
+        }
+      }
+    }
+  },
+  "quotes": {
+    "title": "報價單",
+    "list": {
+      "title": "報價單列表",
+      "subtitle": "管理供應商報價",
+      "newQuote": "新增報價",
+      "search": "搜尋報價單...",
+      "table": {
+        "vendor": "供應商",
+        "project": "所屬專案",
+        "amount": "報價金額",
+        "date": "報價日期",
+        "file": "附件",
+        "status": "狀態",
+        "actions": "操作"
+      }
+    },
+    "form": {
+      "create": {
+        "title": "新增報價單",
+        "subtitle": "上傳供應商報價"
+      },
+      "fields": {
+        "vendor": {
+          "label": "供應商",
+          "placeholder": "選擇供應商"
+        },
+        "project": {
+          "label": "所屬專案",
+          "placeholder": "選擇專案"
+        },
+        "amount": {
+          "label": "報價金額",
+          "placeholder": "0.00"
+        },
+        "file": {
+          "label": "報價單檔案",
+          "placeholder": "上傳 PDF 或圖片"
+        },
+        "notes": {
+          "label": "備註",
+          "placeholder": "其他說明..."
+        }
+      }
+    }
+  },
+  "purchaseOrders": {
+    "title": "採購單",
+    "list": {
+      "title": "採購單列表",
+      "subtitle": "管理採購訂單",
+      "newPurchaseOrder": "新增採購單",
+      "search": "搜尋採購單...",
+      "filter": {
+        "all": "全部",
+        "pending": "待處理",
+        "completed": "已完成",
+        "cancelled": "已取消"
+      },
+      "table": {
+        "poNumber": "採購單號",
+        "project": "所屬專案",
+        "vendor": "供應商",
+        "amount": "採購金額",
+        "date": "採購日期",
+        "status": "狀態",
+        "actions": "操作"
+      }
+    },
+    "detail": {
+      "title": "採購單詳情",
+      "info": "基本資訊",
+      "items": "採購項目",
+      "expenses": "關聯費用"
+    },
+    "form": {
+      "create": {
+        "title": "新增採購單",
+        "subtitle": "建立新的採購訂單"
+      },
+      "fields": {
+        "project": {
+          "label": "所屬專案",
+          "placeholder": "選擇專案"
+        },
+        "vendor": {
+          "label": "供應商",
+          "placeholder": "選擇供應商"
+        },
+        "quote": {
+          "label": "報價單",
+          "placeholder": "選擇報價單（選填）"
+        },
+        "amount": {
+          "label": "採購金額",
+          "placeholder": "0.00"
+        },
+        "date": {
+          "label": "採購日期"
+        },
+        "notes": {
+          "label": "備註",
+          "placeholder": "其他說明..."
+        }
+      }
+    }
+  },
+  "expenses": {
+    "title": "費用記錄",
+    "list": {
+      "title": "費用列表",
+      "subtitle": "管理專案費用",
+      "newExpense": "新增費用",
+      "search": "搜尋費用...",
+      "filter": {
+        "all": "全部",
+        "draft": "草稿",
+        "pending": "待審批",
+        "approved": "已批准",
+        "paid": "已支付"
+      },
+      "table": {
+        "purchaseOrder": "採購單",
+        "amount": "費用金額",
+        "invoiceNumber": "發票號碼",
+        "date": "費用日期",
+        "status": "狀態",
+        "actions": "操作"
+      }
+    },
+    "detail": {
+      "title": "費用詳情",
+      "info": "基本資訊",
+      "invoice": "發票資訊",
+      "approval": "審批狀態"
+    },
+    "form": {
+      "create": {
+        "title": "新增費用",
+        "subtitle": "記錄新的費用支出"
+      },
+      "edit": {
+        "title": "編輯費用",
+        "subtitle": "更新費用資訊"
+      },
+      "fields": {
+        "purchaseOrder": {
+          "label": "採購單",
+          "placeholder": "選擇採購單"
+        },
+        "amount": {
+          "label": "費用金額",
+          "placeholder": "0.00"
+        },
+        "date": {
+          "label": "費用日期"
+        },
+        "invoiceNumber": {
+          "label": "發票號碼",
+          "placeholder": "例如：INV-2024-001"
+        },
+        "invoiceFile": {
+          "label": "發票檔案",
+          "placeholder": "上傳發票 PDF 或圖片"
+        },
+        "notes": {
+          "label": "備註",
+          "placeholder": "其他說明..."
+        }
+      }
+    },
+    "actions": {
+      "submit": "提交審批",
+      "approve": "批准",
+      "reject": "駁回",
+      "markAsPaid": "標記為已支付"
+    }
+  },
+  "omExpenses": {
+    "title": "OM 費用",
+    "subtitle": "操作與維護費用管理",
+    "list": {
+      "title": "OM 費用列表",
+      "newOMExpense": "新增 OM 費用",
+      "search": "搜尋 OM 費用..."
+    },
+    "form": {
+      "create": {
+        "title": "新增 OM 費用",
+        "subtitle": "記錄操作與維護費用"
+      },
+      "fields": {
+        "month": {
+          "label": "費用月份"
+        },
+        "category": {
+          "label": "費用類別",
+          "placeholder": "選擇類別"
+        },
+        "amount": {
+          "label": "金額",
+          "placeholder": "0.00"
+        },
+        "description": {
+          "label": "說明",
+          "placeholder": "費用說明..."
+        }
+      }
+    },
+    "monthlyGrid": {
+      "title": "月度費用統計",
+      "total": "總計"
+    }
+  },
+  "chargeOuts": {
+    "title": "費用轉嫁",
+    "subtitle": "ChargeOut 費用管理",
+    "list": {
+      "title": "費用轉嫁列表",
+      "newChargeOut": "新增費用轉嫁",
+      "search": "搜尋費用轉嫁..."
+    },
+    "form": {
+      "create": {
+        "title": "新增費用轉嫁",
+        "subtitle": "建立新的費用轉嫁記錄"
+      },
+      "fields": {
+        "fromProject": {
+          "label": "來源專案",
+          "placeholder": "選擇專案"
+        },
+        "toProject": {
+          "label": "目標專案",
+          "placeholder": "選擇專案"
+        },
+        "amount": {
+          "label": "轉嫁金額",
+          "placeholder": "0.00"
+        },
+        "reason": {
+          "label": "轉嫁原因",
+          "placeholder": "說明轉嫁原因..."
+        }
+      }
+    }
+  },
+  "users": {
+    "title": "用戶管理",
+    "list": {
+      "title": "用戶列表",
+      "subtitle": "管理系統用戶",
+      "newUser": "新增用戶",
+      "search": "搜尋用戶...",
+      "table": {
+        "name": "姓名",
+        "email": "電子郵件",
+        "role": "角色",
+        "status": "狀態",
+        "lastLogin": "最後登入",
+        "actions": "操作"
+      }
+    },
+    "detail": {
+      "title": "用戶詳情",
+      "info": "基本資訊",
+      "activity": "活動記錄",
+      "permissions": "權限設定"
+    },
+    "form": {
+      "create": {
+        "title": "新增用戶",
+        "subtitle": "建立新的用戶帳號"
+      },
+      "edit": {
+        "title": "編輯用戶",
+        "subtitle": "更新用戶資訊"
+      },
+      "fields": {
+        "name": {
+          "label": "姓名",
+          "placeholder": "例如：張三"
+        },
+        "email": {
+          "label": "電子郵件",
+          "placeholder": "例如：user@company.com"
+        },
+        "password": {
+          "label": "密碼",
+          "placeholder": "設定密碼"
+        },
+        "role": {
+          "label": "角色",
+          "placeholder": "選擇角色"
+        },
+        "status": {
+          "label": "狀態",
+          "active": "啟用",
+          "inactive": "停用"
+        }
+      }
+    },
+    "roles": {
+      "projectManager": "專案經理",
+      "supervisor": "主管",
+      "admin": "管理員"
+    }
+  },
+  "notifications": {
+    "title": "通知",
+    "list": {
+      "title": "通知中心",
+      "markAllRead": "全部標記為已讀",
+      "empty": "目前沒有通知"
+    },
+    "types": {
+      "proposalSubmitted": "提案已提交",
+      "proposalApproved": "提案已批准",
+      "proposalRejected": "提案已駁回",
+      "expenseSubmitted": "費用已提交",
+      "expenseApproved": "費用已批准",
+      "expenseRejected": "費用已駁回"
+    },
+    "actions": {
+      "markRead": "標記為已讀",
+      "delete": "刪除"
+    }
+  },
+  "settings": {
+    "title": "系統設定",
+    "subtitle": "個人設定和偏好",
+    "sections": {
+      "profile": "個人資料",
+      "preferences": "偏好設定",
+      "security": "安全設定",
+      "notifications": "通知設定"
+    },
+    "profile": {
+      "title": "個人資料",
+      "updateSuccess": "資料更新成功"
+    },
+    "preferences": {
+      "title": "偏好設定",
+      "language": "語言",
+      "theme": "主題",
+      "themes": {
+        "light": "淺色",
+        "dark": "深色",
+        "system": "跟隨系統"
+      }
+    },
+    "security": {
+      "title": "安全設定",
+      "changePassword": "變更密碼",
+      "currentPassword": "當前密碼",
+      "newPassword": "新密碼",
+      "confirmNewPassword": "確認新密碼"
+    }
+  },
+  "validation": {
+    "required": "此欄位為必填",
+    "email": "請輸入有效的電子郵件地址",
+    "minLength": "至少需要 {min} 個字元",
+    "maxLength": "不能超過 {max} 個字元",
+    "min": "最小值為 {min}",
+    "max": "最大值為 {max}",
+    "passwordMismatch": "密碼不一致",
+    "invalidDate": "無效的日期",
+    "endDateBeforeStart": "結束日期必須晚於開始日期",
+    "invalidAmount": "請輸入有效的金額",
+    "positiveNumber": "必須為正數",
+    "duplicateEntry": "此項目已存在",
+    "invalidFileType": "不支援的檔案類型",
+    "fileTooLarge": "檔案大小不能超過 {size}MB",
+    "invalidUrl": "請輸入有效的網址"
+  },
+  "toast": {
+    "success": {
+      "title": "成功",
+      "created": "{entity} 創建成功！",
+      "updated": "{entity} 更新成功！",
+      "deleted": "{entity} 刪除成功！",
+      "submitted": "{entity} 提交成功！",
+      "approved": "{entity} 批准成功！",
+      "rejected": "{entity} 駁回成功！",
+      "saved": "儲存成功！"
+    },
+    "error": {
+      "title": "錯誤",
+      "general": "操作失敗，請稍後再試",
+      "network": "網路錯誤，請檢查您的連線",
+      "unauthorized": "您沒有權限執行此操作",
+      "notFound": "找不到資源",
+      "validation": "請檢查輸入的資料",
+      "server": "伺服器錯誤，請稍後再試"
+    },
+    "warning": {
+      "title": "警告",
+      "unsavedChanges": "您有未儲存的變更",
+      "confirmDelete": "確認刪除此項目？此操作無法復原"
+    },
+    "info": {
+      "title": "提示",
+      "loading": "載入中...",
+      "processing": "處理中..."
+    }
+  },
+  "errors": {
+    "404": {
+      "title": "頁面未找到",
+      "message": "抱歉，您訪問的頁面不存在",
+      "backHome": "返回首頁"
+    },
+    "500": {
+      "title": "伺服器錯誤",
+      "message": "抱歉，伺服器發生錯誤",
+      "retry": "重試"
+    },
+    "unauthorized": {
+      "title": "未授權",
+      "message": "您沒有權限訪問此頁面",
+      "login": "登入"
+    }
+  }
+}

@@ -14,6 +14,7 @@
 import { useState } from "react"
 import { Search, Menu, LogOut, User, Settings, ChevronDown, Bell } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
+import { useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +34,7 @@ interface TopBarProps {
 
 export function TopBar({ onMenuClick }: TopBarProps) {
   const { data: session } = useSession()
+  const t = useTranslations('navigation')
   const [notifications] = useState([
     {
       id: 1,
@@ -75,8 +77,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   // 處理登出
   const handleSignOut = async () => {
-    // 使用當前的 origin 以確保重定向到正確的端口
-    const loginUrl = `${window.location.origin}/login`
+    // 獲取當前語言並重定向到對應的登入頁面
+    const currentLocale = window.location.pathname.split('/')[1] || 'zh-TW';
+    const loginUrl = `${window.location.origin}/${currentLocale}/login`;
     await signOut({
       callbackUrl: loginUrl,
       redirect: true
@@ -101,7 +104,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           {/* 搜索欄 */}
           <div className="w-full max-w-lg lg:max-w-xs">
             <label htmlFor="search" className="sr-only">
-              搜索
+              {t('search.label')}
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -111,7 +114,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 id="search"
                 name="search"
                 type="search"
-                placeholder="搜索專案、提案、供應商..."
+                placeholder={t('search.placeholder')}
                 className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
@@ -136,14 +139,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                     {unreadCount}
                   </Badge>
                 )}
-                <span className="sr-only">查看通知</span>
+                <span className="sr-only">{t('notifications.view')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
               <div className="flex items-center justify-between px-4 py-2 border-b">
-                <h3 className="text-sm font-medium">通知</h3>
+                <h3 className="text-sm font-medium">{t('notifications.title')}</h3>
                 <Button variant="ghost" size="sm" className="text-xs text-blue-600">
-                  全部標記為已讀
+                  {t('notifications.markAllRead')}
                 </Button>
               </div>
               <div className="max-h-96 overflow-y-auto">
@@ -172,7 +175,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </div>
               <div className="border-t p-2">
                 <Button variant="ghost" size="sm" className="w-full text-center text-blue-600">
-                  查看全部通知
+                  {t('notifications.viewAll')}
                 </Button>
               </div>
             </DropdownMenuContent>
@@ -189,7 +192,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 </div>
                 <div className="hidden lg:block text-left">
                   <div className="text-sm font-medium text-gray-900">
-                    {session?.user?.name || "用戶"}
+                    {session?.user?.name || t('userMenu.defaultUser')}
                   </div>
                   <div className="text-xs text-gray-500">
                     {session?.user?.email}
@@ -201,22 +204,22 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-3 py-2 border-b">
                 <div className="text-sm font-medium text-gray-900">
-                  {session?.user?.name || "用戶"}
+                  {session?.user?.name || t('userMenu.defaultUser')}
                 </div>
                 <div className="text-xs text-gray-500">
                   {session?.user?.email}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {(session?.user as any)?.role?.name || "角色"}
+                  {(session?.user as any)?.role?.name || t('userMenu.defaultRole')}
                 </div>
               </div>
               <DropdownMenuItem className="flex items-center space-x-2 cursor-pointer">
                 <User className="h-4 w-4" />
-                <span>個人資料</span>
+                <span>{t('userMenu.profile')}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="flex items-center space-x-2 cursor-pointer">
                 <Settings className="h-4 w-4" />
-                <span>帳戶設定</span>
+                <span>{t('userMenu.settings')}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -224,7 +227,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 onClick={handleSignOut}
               >
                 <LogOut className="h-4 w-4" />
-                <span>登出</span>
+                <span>{t('userMenu.logout')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

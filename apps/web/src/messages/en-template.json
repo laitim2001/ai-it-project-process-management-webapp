@@ -1,0 +1,39 @@
+{
+  "auth": {
+    "login": {
+      "title": "Login",
+      "subtitle": "Welcome back to IT Project Management Platform",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "loginButton": "Login",
+      "orLoginWith": "Or login with",
+      "azureAD": "Azure AD",
+      "loggingIn": "Logging in..."
+    },
+    "register": {
+      "title": "Sign Up",
+      "subtitle": "Create your account",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "registerButton": "Sign Up",
+      "registering": "Signing up..."
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email to reset password",
+      "email": "Email",
+      "sendResetLink": "Send Reset Link",
+      "backToLogin": "Back to Login",
+      "sending": "Sending...",
+      "success": "Reset link sent to your email"
+    }
+  }
+}

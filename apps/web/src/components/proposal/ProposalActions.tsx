@@ -7,7 +7,8 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from "@/i18n/routing";
 import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui';
@@ -18,6 +19,7 @@ interface ProposalActionsProps {
 }
 
 export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
+  const t = useTranslations('proposals');
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = useSession();

@@ -10,6 +10,8 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2025-11-03 | 🌐 i18n/編譯 | ✅ 已解決 | [FIX-060: 大規模重複 Import - 39 檔案 327 重複語句](#fix-060-大規模重複-import---39-檔案-327-重複語句) |
+| 2025-11-03 | 🎨 前端/React | ✅ 已解決 | [FIX-059: Nested Links 導致 React Hydration 警告](#fix-059-nested-links-導致-react-hydration-警告) |
 | 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-058: Toast Provider 錯誤修復第三輪 - 子組件檢查](#fix-058-toast-provider-錯誤修復第三輪---子組件檢查) |
 | 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-057: Toast 自動關閉與評論刷新問題](#fix-057-toast-自動關閉與評論刷新問題) |
 | 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-056: Toast 通知系統遷移第一輪](#fix-056-toast-通知系統遷移第一輪) |
@@ -33,13 +35,15 @@
 
 ## 🔍 快速搜索
 
+- **i18n 國際化問題**: FIX-059, FIX-060 (React 警告 + 大規模重複 Import) ⭐ 最新
 - **Toast 系統問題**: FIX-056, FIX-057, FIX-058 (三輪完整修復) ⭐
 - **文檔/索引問題**: FIX-001, FIX-002
 - **環境/部署問題**: FIX-005
 - **版本控制問題**: FIX-004
-- **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008, FIX-056, FIX-057, FIX-058
+- **前端問題**: FIX-003, FIX-006, FIX-007, FIX-008, FIX-056, FIX-057, FIX-058, FIX-059
 - **表單問題**: FIX-007, FIX-008 (Shadcn Select DOM Nesting)
 - **子組件問題**: FIX-058 (QuoteUploadForm, OMExpenseMonthlyGrid)
+- **編譯問題**: FIX-060 (重複 Import 阻止編譯)
 - **配置問題**:
 - **認證問題**: FIX-009 (NextAuth v5 升級), FIX-014 (MissingCSRF)
 - **架構問題**: FIX-009 (Edge Runtime 兼容性)
@@ -48,6 +52,7 @@
 - **測試問題**: FIX-015 (Jest Worker 崩潰)
 - **UI 刷新問題**: FIX-057 (tRPC invalidate)
 - **穩定性問題**: FIX-015 (Next.js 14.2.33 升級)
+- **React 警告問題**: FIX-059 (Nested Links Hydration)
 
 ---
 
@@ -61,6 +66,156 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-060: 大規模重複 Import - 39 檔案 327 重複語句
+
+**問題類型**: 🌐 i18n/編譯
+**發現日期**: 2025-11-03 15:30
+**解決日期**: 2025-11-03 16:00
+**嚴重程度**: P0 (Blocker) - 阻止應用程式編譯
+**狀態**: ✅ 已解決
+**相關檔案**: 39 個 .tsx 文件 (詳見 I18N-ISSUES-LOG.md FIX-057)
+
+### 問題描述
+
+在 i18n 遷移過程中,surgical-task-executor 代理錯誤地在每個檔案中重複添加 `import { useTranslations } from 'next-intl'` 語句,導致:
+
+1. **編譯失敗**: Next.js 顯示 "the name `useTranslations` is defined multiple times"
+2. **開發服務器崩潰**: http://localhost:3006 完全無法訪問
+3. **大規模影響**: 39 個檔案,總計 327 個重複 import 語句
+
+**最嚴重案例**:
+- `proposals/[id]/page.tsx`: 20 次重複
+- `projects/[id]/quotes/page.tsx`: 15 次重複
+- `purchase-orders/page.tsx`: 15 次重複
+
+### 根本原因
+
+surgical-task-executor 代理在執行遷移時:
+1. 每次讀取/編輯循環都添加一次 import
+2. 缺少去重檢查,沒有檢查 import 是否已存在
+3. 批量操作中在同一檔案上執行多次 Edit 操作
+
+### 解決方案
+
+**創建批量修復工具**:
+
+1. `scripts/check-duplicate-imports.js` - 檢測工具
+   ```javascript
+   // 掃描所有 .tsx 文件,找出重複的 useTranslations import
+   // 執行: node scripts/check-duplicate-imports.js
+   ```
+
+2. `scripts/fix-duplicate-imports.py` - 批量修復工具
+   ```python
+   # 移除所有重複的 import,保留第一個
+   # 執行: python scripts/fix-duplicate-imports.py
+   ```
+
+**遇到的子問題**: Unicode 編碼錯誤
+**解決**: 移除腳本中的 emoji 字元,改用純文本標記 ([START], [SUCCESS], [ERROR])
+
+### 修復結果
+
+| 項目 | 數量 |
+|------|------|
+| 受影響檔案 | 39 個 |
+| 成功修復 | 39 個 (100%) |
+| 移除重複 import | 327 個 |
+| 執行時間 | ~5 秒 |
+
+**驗證結果**:
+- ✅ 所有檔案無重複 import
+- ✅ 開發服務器正常運行
+- ✅ Dashboard 頁面返回 200 OK
+
+### 預防措施
+
+1. 在 package.json 添加 `check:imports` 腳本
+2. 設置 Git Pre-commit Hook 檢查重複 import
+3. CI/CD 整合 import 檢查
+4. 改進代理操作:
+   - Always validate after Edit
+   - Check for existing imports before adding
+   - Use idempotent operations
+   - Run type checker after batch changes
+
+### 經驗教訓
+
+1. **批量操作風險**: 大規模自動化修改需要嚴格驗證
+2. **增量提交**: 應該在完成每個模組後立即提交
+3. **自動化測試**: CI/CD 中需加入 import 檢查
+4. **代理監督**: AI 代理的批量操作需要人工抽查驗證
+
+**詳細資訊**: 參見 `claudedocs/I18N-ISSUES-LOG.md` FIX-057 章節
+
+---
+
+## FIX-059: Nested Links 導致 React Hydration 警告
+
+**問題類型**: 🎨 前端/React
+**發現日期**: 2025-11-03 15:00
+**解決日期**: 2025-11-03 15:15
+**嚴重程度**: P1 (High) - React 警告,影響用戶體驗
+**狀態**: ✅ 已解決
+**相關檔案**: `apps/web/src/app/[locale]/proposals/page.tsx`
+
+### 問題描述
+
+在 Proposals 列表頁的卡片視圖中出現 React hydration 警告:
+
+```
+Warning: In HTML, <a> cannot be a descendant of <a>.
+This will cause a hydration error.
+```
+
+**根本原因**: 外層 `<Link>` 包裹整個卡片,內層編輯按鈕也使用 `<Link>`,違反 HTML 規範。
+
+### 錯誤代碼
+
+```typescript
+// ❌ 錯誤寫法 (Nested Links)
+<Link href={`/proposals/${proposal.id}`}>
+  <Card>
+    {/* ... */}
+    <Link href={`/proposals/${proposal.id}/edit`}>編輯提案</Link>
+  </Card>
+</Link>
+```
+
+### 解決方案
+
+**方法**: 改用 onClick 事件處理外層導航,內層 Link 使用 stopPropagation 防止事件冒泡
+
+```typescript
+// ✅ 正確寫法 (Event Delegation)
+<Card onClick={() => router.push(`/proposals/${proposal.id}`)}>
+  {/* ... */}
+  <Link
+    href={`/proposals/${proposal.id}/edit`}
+    onClick={(e) => e.stopPropagation()}
+  >
+    編輯提案
+  </Link>
+</Card>
+```
+
+### 修復結果
+
+- ✅ React hydration 警告消失
+- ✅ 卡片點擊導航正常
+- ✅ 編輯按鈕點擊正常
+- ✅ 事件冒泡正確阻止
+
+### 經驗教訓
+
+1. **HTML 規範驗證**: 始終遵守 HTML 規範,`<a>` 不能嵌套
+2. **事件委派模式**: 使用 onClick + stopPropagation 處理嵌套導航
+3. **及早測試**: 開發過程中及時檢查 console 警告
+
+**詳細資訊**: 參見 `claudedocs/I18N-ISSUES-LOG.md` FIX-056 章節
+
+---
 
 ## FIX-058: Toast Provider 錯誤修復第三輪 - 子組件檢查
 

@@ -6,6 +6,9 @@
  * 顯示所有預算池的財務摘要
  */
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { DollarSign, TrendingUp, TrendingDown, Briefcase } from 'lucide-react';
@@ -26,11 +29,13 @@ interface BudgetPoolOverviewProps {
 }
 
 export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
+  const t = useTranslations('dashboard.budgetPool');
+
   if (budgetPools.length === 0) {
     return (
       <div className="text-center py-12">
         <DollarSign className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-        <p className="text-gray-600">尚無預算池數據</p>
+        <p className="text-gray-600">{t('noData')}</p>
       </div>
     );
   }
@@ -46,7 +51,7 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
           <Card key={pool.id}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{pool.fiscalYear} 年度預算池</span>
+                <span>{t('fiscalYearPool', { year: pool.fiscalYear })}</span>
                 <DollarSign
                   className={`h-5 w-5 ${
                     isHealthy
@@ -61,7 +66,7 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
             <CardContent className="space-y-4">
               {/* 總預算 */}
               <div>
-                <p className="text-sm text-gray-600">總預算</p>
+                <p className="text-sm text-gray-600">{t('totalBudget')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   ${pool.totalAmount.toLocaleString()}
                 </p>
@@ -69,7 +74,7 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
 
               {/* 已用金額 */}
               <div>
-                <p className="text-sm text-gray-600">已使用</p>
+                <p className="text-sm text-gray-600">{t('used')}</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-xl font-semibold text-orange-600">
                     ${pool.usedAmount.toLocaleString()}
@@ -82,7 +87,7 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
 
               {/* 剩餘金額 */}
               <div>
-                <p className="text-sm text-gray-600">剩餘</p>
+                <p className="text-sm text-gray-600">{t('remaining')}</p>
                 <div className="flex items-baseline gap-2">
                   <p
                     className={`text-xl font-semibold ${
@@ -104,7 +109,7 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
               {/* 使用進度條 */}
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-600">使用率</span>
+                  <span className="text-gray-600">{t('utilizationRate')}</span>
                   <span
                     className={`font-medium ${
                       isHealthy
@@ -134,14 +139,14 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">關聯專案</span>
+                    <span className="text-gray-600">{t('relatedProjects')}</span>
                   </div>
                   <div className="flex gap-2">
                     <span className="font-medium text-gray-900">
-                      {pool.projectCount} 個
+                      {t('projectCount', { count: pool.projectCount })}
                     </span>
                     <span className="text-gray-500">
-                      ({pool.activeProjectCount} 進行中)
+                      ({t('activeCount', { count: pool.activeProjectCount })})
                     </span>
                   </div>
                 </div>
@@ -150,12 +155,12 @@ export function BudgetPoolOverview({ budgetPools }: BudgetPoolOverviewProps) {
               {/* 健康狀態提示 */}
               {isDanger && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-2 text-sm text-red-700">
-                  ⚠️ 預算即將用盡，請謹慎審批
+                  ⚠️ {t('warningAlmostDepleted')}
                 </div>
               )}
               {isWarning && !isDanger && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 text-sm text-orange-700">
-                  ⚡ 預算使用率偏高，需要關注
+                  ⚡ {t('warningHighUsage')}
                 </div>
               )}
             </CardContent>

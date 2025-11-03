@@ -1,32 +1,12 @@
-'use client';
+/**
+ * Root Page - 重定向到默認語言
+ *
+ * 當用戶訪問根路徑 `/` 時，自動重定向到默認語言 `/zh-TW`
+ */
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'loading') return;
-
-    if (session) {
-      // 已登入，重定向到 Dashboard
-      router.push('/dashboard');
-    } else {
-      // 未登入，重定向到登入頁面
-      router.push('/login');
-    }
-  }, [session, status, router]);
-
-  // 顯示載入畫面
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <div className="text-center">
-        <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-        <p className="text-muted-foreground">載入中...</p>
-      </div>
-    </div>
-  );
+export default function RootPage() {
+  // 重定向到繁體中文版本
+  redirect('/zh-TW');
 }

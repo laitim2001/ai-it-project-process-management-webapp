@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -22,6 +23,13 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ initialData, mode }: ProjectFormProps) {
+  const tForm = useTranslations('projects.form');
+  const tFields = useTranslations('projects.form.fields');
+  const tActions = useTranslations('projects.form.actions');
+  const tCommon = useTranslations('common');
+  const tValidation = useTranslations('validation');
+  const tToast = useTranslations('toast');
+
   const router = useRouter();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -67,8 +75,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const createMutation = api.project.create.useMutation({
     onSuccess: (project) => {
       toast({
-        title: '成功',
-        description: '專案創建成功！',
+        title: tToast('success.title'),
+        description: tToast('success.created', { entity: tForm('entityName') }),
         variant: 'success',
       });
       router.push(`/projects/${project.id}`);
@@ -76,7 +84,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tToast('error.title'),
         description: error.message,
         variant: 'destructive',
       });
@@ -86,8 +94,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const updateMutation = api.project.update.useMutation({
     onSuccess: () => {
       toast({
-        title: '成功',
-        description: '專案更新成功！',
+        title: tToast('success.title'),
+        description: tToast('success.updated', { entity: tForm('entityName') }),
         variant: 'success',
       });
       router.push(`/projects/${initialData?.id}`);
@@ -95,7 +103,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
+        title: tToast('error.title'),
         description: error.message,
         variant: 'destructive',
       });
@@ -106,30 +114,30 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = '專案名稱為必填';
+      newErrors.name = tValidation('required');
     }
 
     if (!formData.budgetPoolId) {
-      newErrors.budgetPoolId = '預算池為必填';
+      newErrors.budgetPoolId = tValidation('required');
     }
 
     if (!formData.managerId) {
-      newErrors.managerId = '專案經理為必填';
+      newErrors.managerId = tValidation('required');
     }
 
     if (!formData.supervisorId) {
-      newErrors.supervisorId = '主管為必填';
+      newErrors.supervisorId = tValidation('required');
     }
 
     if (!formData.startDate) {
-      newErrors.startDate = '開始日期為必填';
+      newErrors.startDate = tValidation('required');
     }
 
     if (formData.endDate && formData.startDate) {
       const start = new Date(formData.startDate);
       const end = new Date(formData.endDate);
       if (end <= start) {
-        newErrors.endDate = '結束日期必須晚於開始日期';
+        newErrors.endDate = tValidation('endDateBeforeStart');
       }
     }
 
@@ -172,7 +180,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          專案名稱 *
+          {tFields('name.label')} {tCommon('required')}
         </label>
         <input
           type="text"
@@ -181,7 +189,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="例如：雲端遷移第一階段"
+          placeholder={tFields('name.placeholder')}
         />
         {errors.name && (
           <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -190,7 +198,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          專案描述
+          {tFields('description.label')}
         </label>
         <textarea
           id="description"
@@ -199,13 +207,13 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          placeholder="描述專案目標和範圍..."
+          placeholder={tFields('description.placeholder')}
         />
       </div>
 
       <div>
         <label htmlFor="budgetPoolId" className="block text-sm font-medium text-gray-700">
-          預算池 *
+          {tFields('budgetPool.label')} {tCommon('required')}
         </label>
         <select
           id="budgetPoolId"
@@ -226,11 +234,11 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         )}
       </div>
 
-      {/* Module 2: 預算類別和請求預算金額 */}
+      {/* Module 2: {tFields('budgetCategory.label')}和請求預算金額 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="budgetCategoryId" className="block text-sm font-medium text-gray-700">
-            預算類別
+            {tFields('budgetCategory.label')}
           </label>
           <select
             id="budgetCategoryId"
@@ -240,7 +248,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             disabled={!formData.budgetPoolId}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            <option value="">選擇預算類別（選填）</option>
+            <option value="">{tFields('budgetCategory.placeholder')}</option>
             {budgetCategories?.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.categoryName}
@@ -248,7 +256,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             ))}
           </select>
           {!formData.budgetPoolId && (
-            <p className="mt-1 text-sm text-gray-500">請先選擇預算池</p>
+            <p className="mt-1 text-sm text-gray-500">{tFields('budgetCategory.selectPoolFirst')}</p>
           )}
           {errors.budgetCategoryId && (
             <p className="mt-1 text-sm text-red-600">{errors.budgetCategoryId}</p>
@@ -270,7 +278,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             min="0"
             step="0.01"
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            placeholder="0.00"
+            placeholder={tFields('requestedBudget.placeholder')}
           />
           {errors.requestedBudget && (
             <p className="mt-1 text-sm text-red-600">{errors.requestedBudget}</p>
@@ -281,7 +289,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="managerId" className="block text-sm font-medium text-gray-700">
-            專案經理 *
+            {tFields('manager.label')} {tCommon('required')}
           </label>
           <select
             id="managerId"
@@ -304,7 +312,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="supervisorId" className="block text-sm font-medium text-gray-700">
-            主管 *
+            {tFields('supervisor.label')} {tCommon('required')}
           </label>
           <select
             id="supervisorId"
@@ -329,7 +337,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-            開始日期 *
+            {tFields('startDate.label')} {tCommon('required')}
           </label>
           <input
             type="date"
@@ -346,7 +354,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-            結束日期
+            {tFields('endDate.label')}
           </label>
           <input
             type="date"
@@ -368,14 +376,14 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
         >
-          {isSubmitting ? '儲存中...' : mode === 'create' ? '創建專案' : '更新專案'}
+          {isSubmitting ? tCommon('saving') : mode === 'create' ? tActions('create') : tActions('update')}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
           className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50"
         >
-          取消
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </form>

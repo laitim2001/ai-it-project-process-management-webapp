@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "@/i18n/routing";
 import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui';

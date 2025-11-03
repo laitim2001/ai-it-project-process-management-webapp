@@ -1,0 +1,590 @@
+/**
+ * Project 列表頁面
+ *
+ * 功能說明：
+ * - 顯示所有專案的列表，支援卡片式檢視
+ * - 提供搜尋、篩選、排序功能
+ * - 支援分頁瀏覽
+ * - 提供導出 CSV 功能
+ * - 支援快速創建新專案
+ *
+ * 篩選條件：
+ * - 搜尋：專案名稱模糊搜尋
+ * - 狀態：Draft, InProgress, Completed, Archived
+ * - 預算池：根據預算池 ID 篩選
+ * - 排序：名稱、狀態、創建時間
+ *
+ * UI 特性：
+ * - 響應式網格佈局（手機 1列、平板 2列、桌面 3列）
+ * - 懸停效果提升用戶體驗
+ * - 加載中顯示骨架屏
+ * - 錯誤狀態友好提示
+ */
+
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { api } from '@/lib/trpc';
+import { Link } from "@/i18n/routing";
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import {
+  Search,
+  Plus,
+  Download,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List
+} from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
+
+export default function ProjectsPage() {
+  // ============================================================
+  // Translations & State 管理
+  // ============================================================
+  const t = useTranslations('projects');
+  const tCommon = useTranslations('common');
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<
+    'Draft' | 'InProgress' | 'Completed' | 'Archived' | undefined
+  >(undefined);
+  const [budgetPoolFilter, setBudgetPoolFilter] = useState<string | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isExporting, setIsExporting] = useState(false);
+
+  // 使用 ref 保持輸入框 focus
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+
+  const utils = api.useContext();
+
+  // Debounce 搜尋，避免過多 API 請求
+  const debouncedSearch = useDebounce(search, 300);
+
+  // ============================================================
+  // API 查詢
+  // ============================================================
+
+  /**
+   * 查詢專案列表
+   * 使用 tRPC 的 useQuery hook 進行數據獲取
+   */
+  const { data, isLoading, error } = api.project.getAll.useQuery({
+    page,
+    limit: 9,
+    search: debouncedSearch || undefined,
+    status: statusFilter,
+    budgetPoolId: budgetPoolFilter,
+    sortBy,
+    sortOrder,
+  });
+
+  // 在查詢完成後恢復搜索框焦點，避免用戶輸入時被打斷
+  useEffect(() => {
+    // 只在搜索框之前有焦點且查詢完成時才恢復焦點
+    if (!isLoading && searchInputRef.current) {
+      const activeElement = document.activeElement;
+      // 如果當前焦點不在搜索框，且用戶正在輸入（search 不為空），則恢復焦點
+      if (activeElement !== searchInputRef.current && search.length > 0) {
+        const cursorPosition = searchInputRef.current.selectionStart;
+        searchInputRef.current.focus();
+        // 恢復光標位置
+        if (cursorPosition !== null) {
+          searchInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      }
+    }
+  }, [isLoading, debouncedSearch, search]);
+
+  /**
+   * 查詢所有預算池（用於篩選下拉選單）
+   * 只獲取最近 5 年的預算池
+   */
+  const currentYear = new Date().getFullYear();
+  const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery({
+    page: 1,
+    limit: 100,
+    year: undefined,
+    sortBy: 'year',
+    sortOrder: 'desc',
+  });
+
+  const budgetPools = budgetPoolsData?.items ?? [];
+
+  // ============================================================
+  // 事件處理函數
+  // ============================================================
+
+  /**
+   * 處理導出 CSV 功能
+   * 根據當前篩選條件導出所有符合條件的專案
+   */
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+
+      // 使用 tRPC 客戶端獲取導出數據
+      const exportData = await utils.client.project.export.query({
+        search: debouncedSearch || undefined,
+        status: statusFilter,
+        budgetPoolId: budgetPoolFilter,
+      });
+
+      // 轉換為 CSV 並下載
+      const csvContent = convertToCSV(exportData);
+      const filename = generateExportFilename('projects');
+      downloadCSV(csvContent, filename);
+
+      // TODO: Add toast notification
+      alert(t('messages.exportSuccess'));
+    } catch (error) {
+      // TODO: Add toast notification
+      alert(t('messages.exportFailed'));
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // ============================================================
+  // 加載狀態渲染
+  // ============================================================
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-1 text-muted-foreground">{tCommon('loading')}</p>
+          </div>
+          {/* 骨架屏加載動畫 */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="h-6 bg-muted rounded mb-4 animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted rounded animate-pulse"></div>
+                    <div className="h-4 bg-muted rounded animate-pulse"></div>
+                    <div className="h-4 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // ============================================================
+  // 錯誤狀態渲染
+  // ============================================================
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-8">
+          {/* 麵包屑導航 */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">{tCommon('nav.dashboard')}</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{t('title')}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+          </div>
+          <Card className="border-destructive bg-destructive/10">
+            <CardContent className="pt-6">
+              <p className="text-destructive text-center">{t('error.loadFailed', { message: error.message })}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const projects = data?.items ?? [];
+  const pagination = data?.pagination;
+
+  // ============================================================
+  // 主要內容渲染
+  // ============================================================
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* 麵包屑導航 */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">{tCommon('nav.dashboard')}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{t('title')}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {/* 頁面標題和操作按鈕 */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-1 text-muted-foreground">{t('description')}</p>
+          </div>
+          <div className="flex gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={projects.length === 0 || isExporting}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isExporting ? t('actions.exporting') : t('actions.exportCSV')}
+            </Button>
+            <Link href="/projects/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('actions.createNew')}
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* 搜尋和篩選欄 */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              {/* 搜尋框 */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder={t('search.placeholder')}
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1); // 搜索時重置到第一頁
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* 篩選選項 */}
+              <div className="flex gap-2">
+                <select
+                  value={statusFilter ?? ''}
+                  onChange={(e) => {
+                    setStatusFilter(
+                      e.target.value
+                        ? (e.target.value as 'Draft' | 'InProgress' | 'Completed' | 'Archived')
+                        : undefined
+                    );
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.allStatuses')}</option>
+                  <option value="Draft">{tCommon('status.draft')}</option>
+                  <option value="InProgress">{tCommon('status.inProgress')}</option>
+                  <option value="Completed">{tCommon('status.completed')}</option>
+                  <option value="Archived">{tCommon('status.archived')}</option>
+                </select>
+
+                <select
+                  value={budgetPoolFilter ?? ''}
+                  onChange={(e) => {
+                    setBudgetPoolFilter(e.target.value || undefined);
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.allBudgetPools')}</option>
+                  {budgetPools.map((pool) => (
+                    <option key={pool.id} value={pool.id}>
+                      {pool.name} (FY {pool.financialYear})
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => {
+                    const [newSortBy, newSortOrder] = e.target.value.split('-') as [
+                      'name' | 'status' | 'createdAt',
+                      'asc' | 'desc'
+                    ];
+                    setSortBy(newSortBy);
+                    setSortOrder(newSortOrder);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="createdAt-desc">{t('sort.createdAtDesc')}</option>
+                  <option value="createdAt-asc">{t('sort.createdAtAsc')}</option>
+                  <option value="name-asc">{t('sort.nameAsc')}</option>
+                  <option value="name-desc">{t('sort.nameDesc')}</option>
+                  <option value="status-asc">{t('sort.statusAsc')}</option>
+                  <option value="status-desc">{t('sort.statusDesc')}</option>
+                </select>
+
+                <Button variant="outline" size="icon">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 結果數量統計 */}
+        {pagination && (
+          <div className="text-sm text-muted-foreground">
+            {t('pagination.showing', {
+              start: (pagination.page - 1) * pagination.limit + 1,
+              end: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total
+            })}
+          </div>
+        )}
+
+        {/* 專案顯示區域 - 根據視圖模式切換 */}
+        {projects.length === 0 ? (
+          <Card className="bg-muted">
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground text-center">
+                {search || statusFilter || budgetPoolFilter
+                  ? t('empty.noResults')
+                  : t('empty.noProjects')}
+              </p>
+            </CardContent>
+          </Card>
+        ) : viewMode === 'card' ? (
+          <>
+            {/* 卡片視圖 */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="block"
+                >
+                  <Card className="h-full transition-all hover:border-primary hover:shadow-md">
+                    <CardHeader>
+                      {/* 專案標題 */}
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-xl flex-1">{project.name}</CardTitle>
+                        {/* 狀態標籤 */}
+                        <Badge
+                          variant={
+                            project.status === 'Draft' ? 'secondary' :
+                            project.status === 'InProgress' ? 'info' :
+                            project.status === 'Completed' ? 'success' : 'secondary'
+                          }
+                        >
+                          {tCommon(`status.${project.status.charAt(0).toLowerCase() + project.status.slice(1)}`)}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {/* 專案詳細資訊 */}
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        {/* 預算池 */}
+                        <div className="flex justify-between">
+                          <span>{t('fields.budgetPool')}：</span>
+                          <span className="font-medium text-right">
+                            {project.budgetPool.name}
+                          </span>
+                        </div>
+
+                        {/* 專案經理 */}
+                        <div className="flex justify-between">
+                          <span>{t('fields.manager')}：</span>
+                          <span className="font-medium">{project.manager.name}</span>
+                        </div>
+
+                        {/* 主管 */}
+                        <div className="flex justify-between">
+                          <span>{t('fields.supervisor')}：</span>
+                          <span className="font-medium">{project.supervisor.name}</span>
+                        </div>
+
+                        {/* 提案數量 */}
+                        <div className="flex justify-between">
+                          <span>{t('fields.proposals')}：</span>
+                          <span className="font-medium">{project._count.proposals} {tCommon('units.items')}</span>
+                        </div>
+
+                        {/* 採購單數量 */}
+                        <div className="flex justify-between">
+                          <span>{t('fields.purchaseOrders')}：</span>
+                          <span className="font-medium">{project._count.purchaseOrders} {tCommon('units.items')}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* 列表視圖 */}
+            <div className="rounded-lg border bg-card shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('table.name')}</TableHead>
+                    <TableHead>{t('table.status')}</TableHead>
+                    <TableHead>{t('table.budgetPool')}</TableHead>
+                    <TableHead>{t('table.manager')}</TableHead>
+                    <TableHead>{t('table.supervisor')}</TableHead>
+                    <TableHead className="text-center">{t('table.proposals')}</TableHead>
+                    <TableHead className="text-center">{t('table.purchaseOrders')}</TableHead>
+                    <TableHead className="text-right">{tCommon('actions.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects.map((project) => (
+                    <TableRow key={project.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {project.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            project.status === 'Draft' ? 'secondary' :
+                            project.status === 'InProgress' ? 'info' :
+                            project.status === 'Completed' ? 'success' : 'secondary'
+                          }
+                        >
+                          {tCommon(`status.${project.status.charAt(0).toLowerCase() + project.status.slice(1)}`)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{project.budgetPool.name}</TableCell>
+                      <TableCell>{project.manager.name}</TableCell>
+                      <TableCell>{project.supervisor.name}</TableCell>
+                      <TableCell className="text-center">{project._count.proposals}</TableCell>
+                      <TableCell className="text-center">{project._count.purchaseOrders}</TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {tCommon('actions.view')}
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
+
+        {/* 分頁控件 */}
+        {projects.length > 0 && pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {t('pagination.pageInfo', { current: pagination.page, total: pagination.totalPages })}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === 1}
+                onClick={() => setPage(pagination.page - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {/* 頁碼按鈕 */}
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (pagination.page <= 3) {
+                  pageNum = i + 1;
+                } else if (pagination.page >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = pagination.page - 2 + i;
+                }
+
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pagination.page === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === pagination.totalPages}
+                onClick={() => setPage(pagination.page + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

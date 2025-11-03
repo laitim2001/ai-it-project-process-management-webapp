@@ -12,7 +12,7 @@
  */
 
 import { Fragment } from 'react';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { api } from '@/lib/trpc';

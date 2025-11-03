@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from "@/i18n/routing"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -36,91 +36,92 @@ interface NavigationSection {
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const t = useTranslations('navigation')
 
   const navigation: NavigationSection[] = [
     {
-      title: "概覽",
+      title: t('sections.overview'),
       items: [
         {
-          name: "儀表板",
+          name: t('menu.dashboard'),
           href: "/dashboard",
           icon: LayoutDashboard,
-          description: "專案總覽和關鍵指標"
+          description: t('descriptions.dashboard')
         },
       ]
     },
     {
-      title: "專案與預算",
+      title: t('sections.projectBudget'),
       items: [
         {
-          name: "專案管理",
+          name: t('menu.projects'),
           href: "/projects",
           icon: FolderKanban,
-          description: "專案資料和進度管理"
+          description: t('descriptions.projects')
         },
         {
-          name: "預算提案",
+          name: t('menu.proposals'),
           href: "/proposals",
           icon: FileText,
-          description: "預算提案申請與審批"
+          description: t('descriptions.proposals')
         },
         {
-          name: "預算池",
+          name: t('menu.budgetPools'),
           href: "/budget-pools",
           icon: Wallet,
-          description: "年度預算分配管理"
+          description: t('descriptions.budgetPools')
         },
       ]
     },
     {
-      title: "採購管理", // 包含費用轉嫁
+      title: t('sections.procurement'),
       items: [
         {
-          name: "供應商",
+          name: t('menu.vendors'),
           href: "/vendors",
           icon: Building,
-          description: "供應商資料管理"
+          description: t('descriptions.vendors')
         },
         {
-          name: "報價單",
+          name: t('menu.quotes'),
           href: "/quotes",
           icon: FileCheck,
-          description: "供應商報價管理"
+          description: t('descriptions.quotes')
         },
         {
-          name: "採購單",
+          name: t('menu.purchaseOrders'),
           href: "/purchase-orders",
           icon: ShoppingCart,
-          description: "採購訂單追蹤"
+          description: t('descriptions.purchaseOrders')
         },
         {
-          name: "費用記錄",
+          name: t('menu.expenses'),
           href: "/expenses",
           icon: Receipt,
-          description: "費用發票與核銷"
+          description: t('descriptions.expenses')
         },
         {
-          name: "OM 費用",
+          name: t('menu.omExpenses'),
           href: "/om-expenses",
           icon: Target,
-          description: "操作與維護費用管理"
+          description: t('descriptions.omExpenses')
         },
         {
-          name: "費用轉嫁",
+          name: t('menu.chargeOuts'),
           href: "/charge-outs",
           icon: ArrowRightLeft,
-          description: "ChargeOut 費用轉嫁管理"
+          description: t('descriptions.chargeOuts')
         },
       ]
     },
     {
-      title: "系統管理",
+      title: t('sections.system'),
       items: [
         {
-          name: "用戶管理",
+          name: t('menu.users'),
           href: "/users",
           icon: Users,
-          description: "用戶帳號和權限"
+          description: t('descriptions.users')
         },
       ]
     },
@@ -128,16 +129,16 @@ export function Sidebar() {
 
   const bottomNavigation = [
     {
-      name: "系統設定",
+      name: t('menu.settings'),
       href: "/settings",
       icon: Settings,
-      description: "系統參數設定"
+      description: t('descriptions.settings')
     },
     {
-      name: "幫助中心",
+      name: t('menu.help'),
       href: "/help",
       icon: HelpCircle,
-      description: "使用指南和支援"
+      description: t('descriptions.help')
     },
   ]
 
@@ -161,8 +162,8 @@ export function Sidebar() {
             <Building className="h-5 w-5 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-foreground">IT 專案管理</span>
-            <span className="text-xs text-muted-foreground">流程平台</span>
+            <span className="text-sm font-semibold text-foreground">{t('brand.title')}</span>
+            <span className="text-xs text-muted-foreground">{t('brand.subtitle')}</span>
           </div>
         </Link>
       </div>
@@ -176,13 +177,13 @@ export function Sidebar() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">
-            {session?.user?.name || "用戶"}
+            {session?.user?.name || t('user.profile')}
           </p>
           <p className="text-xs text-muted-foreground truncate">
-            {(session?.user as any)?.role?.name || "角色"}
+            {(session?.user as any)?.role?.name || t('user.role')}
           </p>
         </div>
-        <div className="flex h-2 w-2 rounded-full bg-green-400"></div>
+        <div className="flex h-2 w-2 rounded-full bg-green-400" title={t('user.status.online')}></div>
       </div>
 
       {/* 主導航 */}

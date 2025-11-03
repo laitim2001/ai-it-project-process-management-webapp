@@ -19,7 +19,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/Input';
@@ -41,6 +42,7 @@ interface BudgetPoolFormProps {
 }
 
 export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
+  const t = useTranslations('budgetPools');
   const router = useRouter();
   const { toast } = useToast();
 

@@ -21,7 +21,7 @@ import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "@/i18n/routing";
 
 interface QuoteUploadFormProps {
   projectId: string;

@@ -1,17 +1,10 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { TRPCProvider } from '@/lib/trpc-provider';
-import { Toaster } from '@/components/ui/toaster';
-import { SessionProvider } from '@/components/providers/SessionProvider';
-
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'IT Project Management Platform',
-  description:
-    'Centralized workflow management from budget allocation to expense charge-out',
-};
+/**
+ * Root Layout - 根路徑重定向頁面的 layout
+ *
+ * 注意：此 layout 僅用於根 page.tsx 的重定向
+ * 實際的應用 layout 在 [locale]/layout.tsx
+ * 使用 suppressHydrationWarning 避免與 [locale]/layout.tsx 的 html/body 衝突
+ */
 
 export default function RootLayout({
   children,
@@ -19,15 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-TW">
-      <body className={inter.className}>
-        <SessionProvider>
-          <TRPCProvider>
-            {children}
-            <Toaster />
-          </TRPCProvider>
-        </SessionProvider>
-      </body>
+    <html suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

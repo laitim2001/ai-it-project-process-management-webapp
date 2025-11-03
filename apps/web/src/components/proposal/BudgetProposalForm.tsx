@@ -7,7 +7,8 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -22,6 +23,7 @@ interface BudgetProposalFormProps {
 }
 
 export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProps) {
+  const t = useTranslations('proposals');
   const router = useRouter();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
