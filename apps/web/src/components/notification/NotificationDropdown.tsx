@@ -12,6 +12,7 @@
  */
 
 import { Fragment } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link } from "@/i18n/routing";
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -32,6 +33,7 @@ export function NotificationDropdown({
   onClose,
   unreadCount,
 }: NotificationDropdownProps) {
+  const t = useTranslations('notifications');
   const utils = api.useUtils();
 
   // 獲取最近的通知 (限制10條)
@@ -87,7 +89,7 @@ export function NotificationDropdown({
     <div className="absolute right-0 z-50 mt-2 w-96 rounded-lg border border-gray-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5">
       {/* 標題列 */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <h3 className="text-base font-semibold text-gray-900">通知</h3>
+        <h3 className="text-base font-semibold text-gray-900">{t('dropdown.title')}</h3>
         {unreadCount > 0 && (
           <button
             type="button"
@@ -95,7 +97,7 @@ export function NotificationDropdown({
             onClick={() => markAllAsRead.mutate()}
             disabled={markAllAsRead.isPending}
           >
-            標記全部已讀
+            {t('dropdown.markAllRead')}
           </button>
         )}
       </div>
@@ -104,11 +106,11 @@ export function NotificationDropdown({
       <div className="max-h-96 overflow-y-auto">
         {isLoading ? (
           <div className="px-4 py-8 text-center text-sm text-gray-500">
-            載入中...
+            {t('dropdown.loading')}
           </div>
         ) : notifications.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-gray-500">
-            暫無通知
+            {t('dropdown.empty')}
           </div>
         ) : (
           <ul className="divide-y divide-gray-200">
@@ -152,7 +154,7 @@ export function NotificationDropdown({
           className="block text-center text-sm font-medium text-blue-600 hover:text-blue-800"
           onClick={onClose}
         >
-          查看全部通知
+          {t('dropdown.viewAll')}
         </Link>
       </div>
     </div>

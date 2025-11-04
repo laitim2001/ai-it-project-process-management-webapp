@@ -42,11 +42,11 @@ import {
 /**
  * 採購單狀態徽章組件
  */
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: any }) {
   const statusConfig = {
-    Draft: { label: '草稿', variant: 'outline' as const },
-    Submitted: { label: '已提交', variant: 'default' as const },
-    Approved: { label: '已批准', variant: 'secondary' as const },
+    Draft: { label: t('status.draft'), variant: 'outline' as const },
+    Submitted: { label: t('status.submitted'), variant: 'default' as const },
+    Approved: { label: t('status.approved'), variant: 'secondary' as const },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'outline' as const };
@@ -57,12 +57,12 @@ function StatusBadge({ status }: { status: string }) {
 /**
  * 費用狀態徽章組件
  */
-function ExpenseStatusBadge({ status }: { status: string }) {
+function ExpenseStatusBadge({ status, t }: { status: string; t: any }) {
   const statusConfig = {
-    Draft: { label: '草稿', variant: 'outline' as const },
-    PendingApproval: { label: '待審批', variant: 'default' as const },
-    Approved: { label: '已批准', variant: 'secondary' as const },
-    Paid: { label: '已支付', variant: 'default' as const },
+    Draft: { label: t('expenseStatus.draft'), variant: 'outline' as const },
+    PendingApproval: { label: t('expenseStatus.pending'), variant: 'default' as const },
+    Approved: { label: t('expenseStatus.approved'), variant: 'secondary' as const },
+    Paid: { label: t('expenseStatus.paid'), variant: 'default' as const },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'outline' as const };
@@ -79,6 +79,7 @@ function formatCurrency(amount: number): string {
 
 export default function PurchaseOrderDetailPage() {
   const t = useTranslations('purchaseOrders');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -121,15 +122,15 @@ export default function PurchaseOrderDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/purchase-orders">採購單管理</BreadcrumbLink>
+                <BreadcrumbLink href="/purchase-orders">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>詳情</BreadcrumbPage>
+                <BreadcrumbPage>{t('detail.breadcrumb')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -138,11 +139,11 @@ export default function PurchaseOrderDetailPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到採購單。此採購單可能不存在或已被刪除。
+                  {t('errors.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/purchase-orders">
-                <Button>返回採購單列表</Button>
+                <Button>{t('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -158,11 +159,11 @@ export default function PurchaseOrderDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/purchase-orders">採購單管理</BreadcrumbLink>
+              <BreadcrumbLink href="/purchase-orders">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -178,10 +179,10 @@ export default function PurchaseOrderDetailPage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-foreground">{purchaseOrder.name}</h1>
-                <StatusBadge status={purchaseOrder.status} />
+                <StatusBadge status={purchaseOrder.status} t={t} />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                創建於 {new Date(purchaseOrder.date).toLocaleDateString('zh-TW')}
+                {t('detail.createdAt', { date: new Date(purchaseOrder.date).toLocaleDateString('zh-TW') })}
               </p>
             </div>
           </div>
@@ -190,7 +191,7 @@ export default function PurchaseOrderDetailPage() {
             <Link href={`/purchase-orders/${purchaseOrder.id}/edit`}>
               <Button>
                 <Edit className="h-4 w-4 mr-2" />
-                編輯
+                {t('actions.edit')}
               </Button>
             </Link>
           )}
@@ -200,14 +201,14 @@ export default function PurchaseOrderDetailPage() {
           {/* 基本資訊卡片 */}
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>採購資訊</CardTitle>
+              <CardTitle>{t('detail.purchaseInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* 採購單名稱 */}
               <div className="flex items-start gap-3">
                 <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground">採購單名稱</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.name')}</p>
                   <p className="text-base text-foreground font-medium">{purchaseOrder.name}</p>
                 </div>
               </div>
@@ -217,7 +218,7 @@ export default function PurchaseOrderDetailPage() {
                 <div className="flex items-start gap-3">
                   <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-muted-foreground">描述</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('fields.description')}</p>
                     <p className="text-base text-foreground">{purchaseOrder.description}</p>
                   </div>
                 </div>
@@ -227,7 +228,7 @@ export default function PurchaseOrderDetailPage() {
               <div className="flex items-start gap-3">
                 <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">採購日期</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.date')}</p>
                   <p className="text-base text-foreground">
                     {new Date(purchaseOrder.date).toLocaleDateString('zh-TW', {
                       year: 'numeric',
@@ -242,7 +243,7 @@ export default function PurchaseOrderDetailPage() {
               <div className="flex items-start gap-3">
                 <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">總金額</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.totalAmount')}</p>
                   <p className="text-2xl font-bold text-primary">
                     {formatCurrency(purchaseOrder.totalAmount)}
                   </p>
@@ -261,14 +262,14 @@ export default function PurchaseOrderDetailPage() {
           {/* 關聯資訊卡片 */}
           <Card className="md:col-span-3">
             <CardHeader>
-              <CardTitle>關聯資訊</CardTitle>
+              <CardTitle>{t('detail.relatedInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-3">
               {/* 專案 */}
               <div className="flex items-start gap-3">
                 <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground">專案</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.project')}</p>
                   <Link
                     href={`/projects/${purchaseOrder.project.id}`}
                     className="text-base text-primary hover:underline"
@@ -282,7 +283,7 @@ export default function PurchaseOrderDetailPage() {
               <div className="flex items-start gap-3">
                 <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground">供應商</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.vendor')}</p>
                   <Link
                     href={`/vendors/${purchaseOrder.vendor.id}`}
                     className="text-base text-primary hover:underline"
@@ -297,12 +298,12 @@ export default function PurchaseOrderDetailPage() {
                 <div className="flex items-start gap-3">
                   <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-muted-foreground">關聯報價單</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('fields.relatedQuote')}</p>
                     <p className="text-base text-foreground">
                       {formatCurrency(purchaseOrder.quote.amount)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      上傳於 {new Date(purchaseOrder.quote.uploadDate).toLocaleDateString('zh-TW')}
+                      {t('detail.uploadedAt', { date: new Date(purchaseOrder.quote.uploadDate).toLocaleDateString('zh-TW') })}
                     </p>
                   </div>
                 </div>
@@ -317,10 +318,10 @@ export default function PurchaseOrderDetailPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                採購品項明細
+                {t('detail.items.title')}
               </CardTitle>
               <Badge variant="outline">
-                共 {purchaseOrder.items?.length || 0} 項
+                {t('detail.items.count', { count: purchaseOrder.items?.length || 0 })}
               </Badge>
             </div>
           </CardHeader>
@@ -331,11 +332,11 @@ export default function PurchaseOrderDetailPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[50px]">#</TableHead>
-                      <TableHead>品項名稱</TableHead>
-                      <TableHead>描述</TableHead>
-                      <TableHead className="text-right w-[100px]">數量</TableHead>
-                      <TableHead className="text-right w-[120px]">單價</TableHead>
-                      <TableHead className="text-right w-[140px]">小計</TableHead>
+                      <TableHead>{t('items.itemName')}</TableHead>
+                      <TableHead>{t('items.description')}</TableHead>
+                      <TableHead className="text-right w-[100px]">{t('items.quantity')}</TableHead>
+                      <TableHead className="text-right w-[120px]">{t('items.unitPrice')}</TableHead>
+                      <TableHead className="text-right w-[140px]">{t('items.subtotal')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -373,7 +374,7 @@ export default function PurchaseOrderDetailPage() {
                 <div className="flex justify-end pt-4 border-t border-border">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-8">
-                      <span className="text-base font-medium text-muted-foreground">總計</span>
+                      <span className="text-base font-medium text-muted-foreground">{t('detail.items.total')}</span>
                       <span className="text-2xl font-bold text-primary">
                         {formatCurrency(purchaseOrder.totalAmount)}
                       </span>
@@ -384,7 +385,7 @@ export default function PurchaseOrderDetailPage() {
             ) : (
               <div className="text-center py-8">
                 <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">尚無採購品項</p>
+                <p className="text-muted-foreground">{t('detail.items.empty')}</p>
               </div>
             )}
           </CardContent>
@@ -394,11 +395,11 @@ export default function PurchaseOrderDetailPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>費用記錄</CardTitle>
+              <CardTitle>{t('detail.expenses.title')}</CardTitle>
               <Link href={`/expenses/new?purchaseOrderId=${purchaseOrder.id}`}>
                 <Button size="sm">
                   <Receipt className="h-4 w-4 mr-2" />
-                  新增費用
+                  {t('detail.expenses.addExpense')}
                 </Button>
               </Link>
             </div>
@@ -418,14 +419,14 @@ export default function PurchaseOrderDetailPage() {
                           <p className="font-medium text-foreground">
                             ${expense.totalAmount.toLocaleString()}
                           </p>
-                          <ExpenseStatusBadge status={expense.status} />
+                          <ExpenseStatusBadge status={expense.status} t={t} />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          費用日期: {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
+                          {t('detail.expenses.expenseDate')}: {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
                         </p>
                         {expense.invoiceFilePath && (
                           <p className="text-sm text-muted-foreground">
-                            發票: {expense.invoiceFilePath.split('/').pop()}
+                            {t('detail.expenses.invoice')}: {expense.invoiceFilePath.split('/').pop()}
                           </p>
                         )}
                       </div>
@@ -438,13 +439,13 @@ export default function PurchaseOrderDetailPage() {
                 <div className="mt-4 pt-4 border-t border-border">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">總費用記錄</p>
+                      <p className="text-sm text-muted-foreground">{t('detail.expenses.totalCount')}</p>
                       <p className="text-xl font-bold text-foreground">
-                        {purchaseOrder.expenses.length} 筆
+                        {t('detail.expenses.countLabel', { count: purchaseOrder.expenses.length })}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">累計金額</p>
+                      <p className="text-sm text-muted-foreground">{t('detail.expenses.cumulativeAmount')}</p>
                       <p className="text-xl font-bold text-foreground">
                         ${purchaseOrder.expenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
                       </p>
@@ -455,10 +456,10 @@ export default function PurchaseOrderDetailPage() {
             ) : (
               <div className="text-center py-8">
                 <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">尚無費用記錄</p>
+                <p className="text-muted-foreground">{t('detail.expenses.empty')}</p>
                 <Link href={`/expenses/new?purchaseOrderId=${purchaseOrder.id}`}>
                   <Button variant="outline" size="sm" className="mt-3">
-                    新增第一筆費用
+                    {t('detail.expenses.addFirst')}
                   </Button>
                 </Link>
               </div>

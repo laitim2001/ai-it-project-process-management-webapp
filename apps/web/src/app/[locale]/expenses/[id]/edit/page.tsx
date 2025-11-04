@@ -33,6 +33,8 @@ import { Link } from "@/i18n/routing";
 
 export default function EditExpensePage() {
   const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const id = params.id as string;
 
@@ -58,15 +60,15 @@ export default function EditExpensePage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
+                <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -76,11 +78,11 @@ export default function EditExpensePage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到費用記錄。此費用記錄可能不存在或已被刪除。
+                  {t('detail.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/expenses">
-                <Button>返回費用記錄列表</Button>
+                <Button>{t('detail.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -97,15 +99,15 @@ export default function EditExpensePage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
+                <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -115,11 +117,11 @@ export default function EditExpensePage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  只有草稿狀態的費用記錄才能編輯。當前狀態：{expense.status}
+                  {t('messages.onlyDraftCanEdit')} {t('status.'+expense.status.toLowerCase())}
                 </AlertDescription>
               </Alert>
               <Link href={`/expenses/${id}`}>
-                <Button>返回詳情頁面</Button>
+                <Button>{t('detail.backToDetail')}</Button>
               </Link>
             </div>
           </div>
@@ -135,11 +137,11 @@ export default function EditExpensePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
+              <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -149,16 +151,16 @@ export default function EditExpensePage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯</BreadcrumbPage>
+              <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯費用記錄</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('form.edit.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            修改費用記錄信息和項目明細
+            {t('form.edit.subtitle')}
           </p>
         </div>
 

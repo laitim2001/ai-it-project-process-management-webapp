@@ -1,21 +1,32 @@
 /**
- * Next.js Middleware - 認證保護 (NextAuth v5)
+ * Next.js Middleware - 認證保護 (NextAuth v5) + i18n 路由 (next-intl)
  *
- * 此中間件保護需要認證的路由
- * 未登入的用戶將被重定向到登入頁面
+ * 此中間件整合：
+ * 1. NextAuth v5 認證保護
+ * 2. next-intl 國際化路由處理
  *
  * 重要：
  * - 此文件只 import auth.config.ts（Edge-compatible）
  * - 不 import auth.ts（包含 Prisma，無法在 Edge Runtime 運行）
- * - 使用 NextAuth(authConfig) 來初始化，不是 import { auth }
+ * - next-intl middleware 在 NextAuth 內部執行，確保 locale 正確設置
  */
 
 import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+
+// 創建 next-intl middleware 處理 i18n 路由
+const handleI18nRouting = createMiddleware(routing);
 
 // 使用 Edge-compatible 配置初始化 NextAuth
-// 直接導出 auth middleware（不解構）
-export default NextAuth(authConfig).auth;
+const { auth } = NextAuth(authConfig);
+
+// 整合 NextAuth 和 next-intl middleware
+// NextAuth 的 auth() 包裝 next-intl middleware，確保認證後正確處理 locale
+export default auth((req) => {
+  return handleI18nRouting(req);
+});
 
 /**
  * 配置需要保護的路徑

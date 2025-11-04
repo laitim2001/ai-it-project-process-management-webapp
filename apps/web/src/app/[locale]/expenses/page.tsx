@@ -33,24 +33,27 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
  * 費用狀態配置
  */
 const EXPENSE_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const },
-  PendingApproval: { label: '待審批', variant: 'default' as const },
-  Approved: { label: '已批准', variant: 'secondary' as const },
-  Paid: { label: '已支付', variant: 'default' as const },
+  Draft: { label: 'list.filter.draft', variant: 'outline' as const },
+  PendingApproval: { label: 'list.filter.pendingApproval', variant: 'default' as const },
+  Approved: { label: 'list.filter.approved', variant: 'secondary' as const },
+  Paid: { label: 'list.filter.paid', variant: 'default' as const },
 } as const;
 
 /**
  * 安全獲取費用狀態配置
  */
-const getExpenseStatusConfig = (status: string) => {
-  return EXPENSE_STATUS_CONFIG[status as keyof typeof EXPENSE_STATUS_CONFIG] || {
-    label: status || '未知',
-    variant: 'outline' as const,
+const getExpenseStatusConfig = (status: string, t: any) => {
+  const config = EXPENSE_STATUS_CONFIG[status as keyof typeof EXPENSE_STATUS_CONFIG];
+  return {
+    label: config ? t(config.label) : status || t('common.noData'),
+    variant: config?.variant || ('outline' as const),
   };
 };
 
 export default function ExpensesPage() {
   const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   // 狀態管理
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -130,11 +133,11 @@ export default function ExpensesPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>費用管理</BreadcrumbPage>
+                <BreadcrumbPage>{tNav('menu.expenses')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -143,7 +146,7 @@ export default function ExpensesPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  載入費用失敗: {error.message}
+                  {t('messages.loadError')}: {error.message}
                 </AlertDescription>
               </Alert>
             </div>
@@ -163,11 +166,11 @@ export default function ExpensesPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>費用管理</BreadcrumbPage>
+              <BreadcrumbPage>{tNav('menu.expenses')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -175,8 +178,8 @@ export default function ExpensesPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">費用管理</h1>
-            <p className="mt-2 text-muted-foreground">管理和審批所有費用記錄</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-2 text-muted-foreground">{t('description')}</p>
           </div>
           <div className="flex gap-2">
             {/* 視圖切換按鈕 */}
@@ -186,7 +189,7 @@ export default function ExpensesPage() {
                 size="sm"
                 onClick={() => setViewMode('card')}
                 className="rounded-r-none"
-                aria-label="卡片視圖"
+                aria-label={tCommon('viewMode.card')}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
@@ -195,7 +198,7 @@ export default function ExpensesPage() {
                 size="sm"
                 onClick={() => setViewMode('list')}
                 className="rounded-l-none"
-                aria-label="列表視圖"
+                aria-label={tCommon('viewMode.list')}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -203,7 +206,7 @@ export default function ExpensesPage() {
             <Link href="/expenses/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                新增費用
+                {t('list.newExpense')}
               </Button>
             </Link>
           </div>
@@ -216,7 +219,7 @@ export default function ExpensesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">總費用記錄</p>
+                    <p className="text-sm text-muted-foreground">{t('list.stats.totalRecords')}</p>
                     <p className="text-2xl font-bold text-foreground">{stats.totalExpenses}</p>
                   </div>
                   <Receipt className="h-8 w-8 text-muted-foreground" />
@@ -228,7 +231,7 @@ export default function ExpensesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">總金額</p>
+                    <p className="text-sm text-muted-foreground">{t('list.stats.totalAmount')}</p>
                     <p className="text-2xl font-bold text-primary">
                       ${stats.totalAmount?.toLocaleString() ?? 0}
                     </p>
@@ -242,7 +245,7 @@ export default function ExpensesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">待審批</p>
+                    <p className="text-sm text-gray-600">{t('list.stats.pendingCount')}</p>
                     <p className="text-2xl font-bold text-orange-600">
                       {stats.statusCounts?.PendingApproval ?? 0}
                     </p>
@@ -256,7 +259,7 @@ export default function ExpensesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">已支付</p>
+                    <p className="text-sm text-gray-600">{t('list.stats.paidCount')}</p>
                     <p className="text-2xl font-bold text-green-600">
                       {stats.statusCounts?.Paid ?? 0}
                     </p>
@@ -278,11 +281,11 @@ export default function ExpensesPage() {
                 setPage(1);
               }}
             >
-              <option value="">所有狀態</option>
-              <option value="Draft">草稿</option>
-              <option value="PendingApproval">待審批</option>
-              <option value="Approved">已批准</option>
-              <option value="Paid">已支付</option>
+              <option value="">{t('list.filter.allStatus')}</option>
+              <option value="Draft">{t('list.filter.draft')}</option>
+              <option value="PendingApproval">{t('list.filter.pendingApproval')}</option>
+              <option value="Approved">{t('list.filter.approved')}</option>
+              <option value="Paid">{t('list.filter.paid')}</option>
             </Select>
           </div>
 
@@ -294,7 +297,7 @@ export default function ExpensesPage() {
                 setPage(1);
               }}
             >
-              <option value="">所有採購單</option>
+              <option value="">{t('list.filter.allPurchaseOrders')}</option>
               {purchaseOrders?.items.map((po) => (
                 <option key={po.id} value={po.id}>
                   {po.poNumber} - {po.project.name}
@@ -307,8 +310,11 @@ export default function ExpensesPage() {
         {/* 結果計數 */}
         {pagination && (
           <div className="text-sm text-muted-foreground">
-            顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} 筆費用
+            {t('list.showing', {
+              from: ((pagination.page - 1) * pagination.limit) + 1,
+              to: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total
+            })}
           </div>
         )}
 
@@ -318,14 +324,14 @@ export default function ExpensesPage() {
             <CardContent className="py-12">
               <div className="text-center">
                 <Receipt className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-lg font-medium text-foreground">尚無費用記錄</h3>
+                <h3 className="mt-2 text-lg font-medium text-foreground">{t('list.empty')}</h3>
                 <p className="mt-1 text-muted-foreground">
-                  {status || purchaseOrderId ? '該篩選條件下沒有費用記錄' : '開始記錄專案費用'}
+                  {status || purchaseOrderId ? t('list.noResults') : t('list.startRecording')}
                 </p>
                 <Link href="/expenses/new">
                   <Button className="mt-4">
                     <Plus className="h-4 w-4 mr-2" />
-                    新增第一筆費用
+                    {t('list.addFirstExpense')}
                   </Button>
                 </Link>
               </div>
@@ -364,7 +370,7 @@ export default function ExpensesPage() {
                             <div className="flex items-center gap-2">
                               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-xs text-muted-foreground">採購單</p>
+                                <p className="text-xs text-muted-foreground">{t('list.card.purchaseOrder')}</p>
                                 <p className="text-sm font-medium text-foreground">
                                   {expense.purchaseOrder.poNumber}
                                 </p>
@@ -375,7 +381,7 @@ export default function ExpensesPage() {
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-xs text-muted-foreground">專案</p>
+                                <p className="text-xs text-muted-foreground">{t('list.card.project')}</p>
                                 <p className="text-sm font-medium text-foreground">
                                   {expense.purchaseOrder.project.name}
                                 </p>
@@ -420,13 +426,13 @@ export default function ExpensesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">金額</TableHead>
-                    <TableHead>狀態</TableHead>
-                    <TableHead>採購單</TableHead>
-                    <TableHead>專案</TableHead>
-                    <TableHead>費用日期</TableHead>
-                    <TableHead>發票</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead className="text-right">{t('list.table.amount')}</TableHead>
+                    <TableHead>{t('list.table.status')}</TableHead>
+                    <TableHead>{t('list.table.purchaseOrder')}</TableHead>
+                    <TableHead>{t('list.table.project')}</TableHead>
+                    <TableHead>{t('list.table.date')}</TableHead>
+                    <TableHead>{t('list.table.invoice')}</TableHead>
+                    <TableHead className="text-right">{t('list.table.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -442,8 +448,8 @@ export default function ExpensesPage() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getExpenseStatusConfig(expense.status).variant}>
-                          {getExpenseStatusConfig(expense.status).label}
+                        <Badge variant={getExpenseStatusConfig(expense.status, t).variant}>
+                          {getExpenseStatusConfig(expense.status, t).label}
                         </Badge>
                       </TableCell>
                       <TableCell>{expense.purchaseOrder.poNumber}</TableCell>
@@ -465,7 +471,7 @@ export default function ExpensesPage() {
                           href={`/expenses/${expense.id}`}
                           className="text-primary hover:underline"
                         >
-                          查看
+                          {tCommon('actions.view')}
                         </Link>
                       </TableCell>
                     </TableRow>

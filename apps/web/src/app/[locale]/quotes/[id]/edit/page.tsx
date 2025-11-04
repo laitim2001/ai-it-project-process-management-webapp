@@ -39,6 +39,9 @@ import { Link } from "@/i18n/routing";
 
 export default function EditQuotePage() {
   const t = useTranslations('quotes');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
+  const tToast = useTranslations('toast');
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -55,16 +58,16 @@ export default function EditQuotePage() {
   const updateMutation = api.quote.update.useMutation({
     onSuccess: () => {
       toast({
-        title: '成功',
-        description: '報價單更新成功！',
+        title: tToast('success'),
+        description: t('messages.updateSuccess'),
         variant: 'success',
       });
       router.push('/quotes');
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
-        description: `更新失敗: ${error.message}`,
+        title: tToast('error'),
+        description: `${tToast('error')}: ${error.message}`,
         variant: 'destructive',
       });
     },
@@ -87,8 +90,8 @@ export default function EditQuotePage() {
     // 驗證表單
     if (!amount || parseFloat(amount) <= 0) {
       toast({
-        title: '驗證錯誤',
-        description: '請輸入有效的報價金額',
+        title: tToast('error'),
+        description: t('validation.amountRequired'),
         variant: 'destructive',
       });
       return;
@@ -125,15 +128,15 @@ export default function EditQuotePage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/quotes">報價單管理</BreadcrumbLink>
+                <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -143,11 +146,11 @@ export default function EditQuotePage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到報價單。此報價單可能不存在或已被刪除。
+                  {t('messages.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/quotes">
-                <Button>返回報價單列表</Button>
+                <Button>{tCommon('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -166,15 +169,15 @@ export default function EditQuotePage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/quotes">報價單管理</BreadcrumbLink>
+                <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -184,11 +187,11 @@ export default function EditQuotePage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  該報價單已被選為採購單，無法修改。
+                  {t('messages.hasRelatedPO')}
                 </AlertDescription>
               </Alert>
               <Link href="/quotes">
-                <Button>返回報價單列表</Button>
+                <Button>{tCommon('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -204,29 +207,29 @@ export default function EditQuotePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/quotes">報價單管理</BreadcrumbLink>
+              <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯報價單</BreadcrumbPage>
+              <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯報價單</h1>
-          <p className="mt-2 text-muted-foreground">修改報價金額和說明資訊</p>
+          <h1 className="text-3xl font-bold text-foreground">{tCommon('actions.edit')} {t('title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('edit.description')}</p>
         </div>
 
         {/* 報價單基本資訊（只讀） */}
         <Card>
           <CardHeader>
-            <CardTitle>報價單資訊（不可修改）</CardTitle>
+            <CardTitle>{t('edit.readOnlyInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -234,7 +237,7 @@ export default function EditQuotePage() {
               <div className="flex items-start gap-3">
                 <FolderKanban className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">專案</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.project')}</p>
                   <p className="text-base text-foreground">{quote.project.name}</p>
                 </div>
               </div>
@@ -243,7 +246,7 @@ export default function EditQuotePage() {
               <div className="flex items-start gap-3">
                 <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">供應商</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('fields.vendor')}</p>
                   <p className="text-base text-foreground">{quote.vendor.name}</p>
                 </div>
               </div>
@@ -252,7 +255,7 @@ export default function EditQuotePage() {
               <div className="flex items-start gap-3">
                 <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">報價文件</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('form.file.label')}</p>
                   <p className="text-sm text-foreground">{quote.filePath.split('/').pop()}</p>
                 </div>
               </div>
@@ -265,7 +268,7 @@ export default function EditQuotePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Save className="h-5 w-5" />
-              可編輯資訊
+              {t('edit.editableInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -273,7 +276,7 @@ export default function EditQuotePage() {
               {/* 報價金額 */}
               <div className="space-y-2">
                 <Label htmlFor="amount">
-                  報價金額 (TWD) <span className="text-destructive">*</span>
+                  {t('form.amount.label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="amount"
@@ -282,7 +285,7 @@ export default function EditQuotePage() {
                   step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="請輸入報價金額"
+                  placeholder={t('form.amount.placeholder')}
                   required
                   disabled={updateMutation.isLoading}
                 />
@@ -290,12 +293,12 @@ export default function EditQuotePage() {
 
               {/* 報價說明 */}
               <div className="space-y-2">
-                <Label htmlFor="description">報價說明（選填）</Label>
+                <Label htmlFor="description">{t('form.fields.notes.label')}</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="請輸入報價說明或備註"
+                  placeholder={t('form.fields.notes.placeholder')}
                   rows={4}
                   disabled={updateMutation.isLoading}
                 />
@@ -306,7 +309,7 @@ export default function EditQuotePage() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <p className="text-sm">
-                    專案、供應商和報價文件不可修改。如需更改，請刪除此報價單並重新上傳。
+                    {t('messages.cannotModify')}
                   </p>
                 </AlertDescription>
               </Alert>
@@ -319,7 +322,7 @@ export default function EditQuotePage() {
                   onClick={() => router.back()}
                   disabled={updateMutation.isLoading}
                 >
-                  取消
+                  {tCommon('actions.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -328,12 +331,12 @@ export default function EditQuotePage() {
                   {updateMutation.isLoading ? (
                     <>
                       <Save className="h-4 w-4 mr-2 animate-spin" />
-                      更新中...
+                      {tToast('updating')}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      保存更改
+                      {tCommon('actions.save')}
                     </>
                   )}
                 </Button>

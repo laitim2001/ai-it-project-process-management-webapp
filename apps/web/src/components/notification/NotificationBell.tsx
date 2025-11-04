@@ -11,11 +11,13 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Bell } from 'lucide-react';
 import { api } from '@/lib/trpc';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export function NotificationBell() {
+  const t = useTranslations('notifications');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,7 @@ export function NotificationBell() {
         type="button"
         className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="通知"
+        aria-label={t('aria.notifications')}
       >
         <Bell className="h-6 w-6" aria-hidden="true" />
 

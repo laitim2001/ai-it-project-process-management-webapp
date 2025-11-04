@@ -25,6 +25,7 @@ import {
 
 export default function NewPurchaseOrderPage() {
   const t = useTranslations('purchaseOrders');
+  const tNav = useTranslations('navigation');
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -32,24 +33,24 @@ export default function NewPurchaseOrderPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/purchase-orders">採購單</BreadcrumbLink>
+              <BreadcrumbLink href="/purchase-orders">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新建</BreadcrumbPage>
+              <BreadcrumbPage>{t('new.breadcrumb')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">創建新採購單</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('new.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            填寫採購單基本信息並添加採購品項明細
+            {t('new.description')}
           </p>
         </div>
 

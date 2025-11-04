@@ -14,6 +14,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,8 @@ interface QuoteUploadFormProps {
 }
 
 export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) {
+  const t = useTranslations('quotes');
+  const tToast = useTranslations('toast');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -62,8 +65,8 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
 
       if (!allowedTypes.includes(selectedFile.type)) {
         toast({
-          title: '錯誤',
-          description: '不支援的文件類型。請上傳 PDF, Word 或 Excel 文件。',
+          title: tToast('error'),
+          description: t('validation.invalidFileType'),
           variant: 'destructive',
         });
         return;
@@ -72,8 +75,8 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
       // 驗證文件大小 (10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         toast({
-          title: '錯誤',
-          description: '文件大小超過限制（最大 10MB）',
+          title: tToast('error'),
+          description: t('validation.fileTooLarge'),
           variant: 'destructive',
         });
         return;
@@ -92,8 +95,8 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
     // 驗證表單
     if (!file) {
       toast({
-        title: '錯誤',
-        description: '請選擇要上傳的文件',
+        title: tToast('error'),
+        description: t('validation.fileRequired'),
         variant: 'destructive',
       });
       return;
@@ -101,8 +104,8 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
 
     if (!vendorId) {
       toast({
-        title: '錯誤',
-        description: '請選擇供應商',
+        title: tToast('error'),
+        description: t('validation.vendorRequired'),
         variant: 'destructive',
       });
       return;
@@ -110,8 +113,8 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
 
     if (!amount || parseFloat(amount) <= 0) {
       toast({
-        title: '錯誤',
-        description: '請輸入有效的報價金額',
+        title: tToast('error'),
+        description: t('validation.amountRequired'),
         variant: 'destructive',
       });
       return;
@@ -136,12 +139,12 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || '上傳失敗');
+        throw new Error(result.error || tToast('error'));
       }
 
       toast({
-        title: '成功',
-        description: '報價單上傳成功！',
+        title: tToast('success'),
+        description: t('messages.uploadSuccess'),
         variant: 'success',
       });
 
@@ -167,8 +170,8 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
     } catch (error) {
       console.error('上傳錯誤:', error);
       toast({
-        title: '錯誤',
-        description: error instanceof Error ? error.message : '上傳失敗，請稍後再試',
+        title: tToast('error'),
+        description: error instanceof Error ? error.message : tToast('error'),
         variant: 'destructive',
       });
     } finally {
@@ -192,7 +195,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
-          上傳報價單
+          {t('form.title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -200,7 +203,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
           {/* 文件選擇 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              報價文件 <span className="text-red-500">*</span>
+              {t('form.file.label')} <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-4">
               <input
@@ -216,7 +219,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"
               >
                 <Upload className="h-4 w-4" />
-                選擇文件
+                {t('form.file.select')}
               </label>
               {file && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -227,14 +230,14 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
               )}
             </div>
             <p className="mt-2 text-sm text-gray-500">
-              支援格式: PDF, Word (.doc, .docx), Excel (.xls, .xlsx)，最大 10MB
+              {t('form.file.hint')}
             </p>
           </div>
 
           {/* 供應商選擇 */}
           <div>
             <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mb-2">
-              供應商 <span className="text-red-500">*</span>
+              {t('form.vendor.label')} <span className="text-red-500">*</span>
             </label>
             <Select
               id="vendor"
@@ -243,7 +246,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
               required
               disabled={uploading}
             >
-              <option value="">請選擇供應商</option>
+              <option value="">{t('form.vendor.placeholder')}</option>
               {vendors?.items.map((vendor) => (
                 <option key={vendor.id} value={vendor.id}>
                   {vendor.name}
@@ -255,7 +258,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
           {/* 報價金額 */}
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-              報價金額 (TWD) <span className="text-red-500">*</span>
+              {t('form.amount.label')} <span className="text-red-500">*</span>
             </label>
             <Input
               id="amount"
@@ -264,7 +267,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="請輸入報價金額"
+              placeholder={t('form.amount.placeholder')}
               required
               disabled={uploading}
             />
@@ -274,11 +277,11 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
           <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-900">
-              <p className="font-medium mb-1">上傳須知</p>
+              <p className="font-medium mb-1">{t('form.uploadNotice.title')}</p>
               <ul className="list-disc list-inside space-y-1 text-blue-700">
-                <li>只有已批准提案的專案才能上傳報價</li>
-                <li>請確保報價文件內容完整清晰</li>
-                <li>上傳後可在報價比較頁面查看和選擇</li>
+                <li>{t('form.uploadNotice.approvedOnly')}</li>
+                <li>{t('form.uploadNotice.contentQuality')}</li>
+                <li>{t('form.uploadNotice.comparison')}</li>
               </ul>
             </div>
           </div>
@@ -292,12 +295,12 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
               {uploading ? (
                 <>
                   <Upload className="h-4 w-4 mr-2 animate-spin" />
-                  上傳中...
+                  {tToast('uploading')}
                 </>
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  上傳報價單
+                  {t('actions.upload')}
                 </>
               )}
             </Button>

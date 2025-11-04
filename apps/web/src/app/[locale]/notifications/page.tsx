@@ -28,6 +28,7 @@ import {
 
 export default function NotificationsPage() {
   const t = useTranslations('notifications');
+  const tCommon = useTranslations('common');
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
   const utils = api.useUtils();
 
@@ -84,8 +85,8 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       {/* 頁面標題 */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">通知中心</h1>
-        <p className="mt-1 text-sm text-muted-foreground">查看和管理您的通知</p>
+        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t('description')}</p>
       </div>
 
       {/* 篩選和操作列 */}
@@ -101,7 +102,7 @@ export default function NotificationsPage() {
             }`}
             onClick={() => setFilter('all')}
           >
-            全部
+            {t('filters.all')}
           </button>
           <button
             type="button"
@@ -112,7 +113,7 @@ export default function NotificationsPage() {
             }`}
             onClick={() => setFilter('unread')}
           >
-            未讀
+            {t('filters.unread')}
           </button>
           <button
             type="button"
@@ -123,7 +124,7 @@ export default function NotificationsPage() {
             }`}
             onClick={() => setFilter('read')}
           >
-            已讀
+            {t('filters.read')}
           </button>
         </div>
 
@@ -136,7 +137,7 @@ export default function NotificationsPage() {
             disabled={markAllAsRead.isPending}
           >
             <CheckIcon className="mr-1.5 h-4 w-4" />
-            標記全部已讀
+            {t('actions.markAllRead')}
           </button>
         )}
       </div>
@@ -144,17 +145,17 @@ export default function NotificationsPage() {
       {/* 通知列表 */}
       {isLoading ? (
         <div className="rounded-lg bg-background p-12 text-center shadow">
-          <p className="text-sm text-muted-foreground">載入中...</p>
+          <p className="text-sm text-muted-foreground">{t('states.loading')}</p>
         </div>
       ) : notifications.length === 0 ? (
         <div className="rounded-lg bg-background p-12 text-center shadow">
           <BellAlertIcon className="mx-auto h-12 w-12 text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">
             {filter === 'all'
-              ? '暫無通知'
+              ? t('states.empty.all')
               : filter === 'unread'
-                ? '暫無未讀通知'
-                : '暫無已讀通知'}
+                ? t('states.empty.unread')
+                : t('states.empty.read')}
           </p>
         </div>
       ) : (
@@ -208,7 +209,7 @@ export default function NotificationsPage() {
                               }
                             }}
                           >
-                            查看詳情 →
+                            {t('actions.viewDetails')} →
                           </Link>
                         )}
                         {!notification.isRead && (
@@ -220,7 +221,7 @@ export default function NotificationsPage() {
                             }
                             disabled={markAsRead.isPending}
                           >
-                            標記為已讀
+                            {t('actions.markAsRead')}
                           </button>
                         )}
                       </div>
@@ -235,7 +236,7 @@ export default function NotificationsPage() {
                       deleteNotification.mutate({ id: notification.id })
                     }
                     disabled={deleteNotification.isPending}
-                    aria-label="刪除通知"
+                    aria-label={t('actions.delete')}
                   >
                     <TrashIcon className="h-5 w-5" />
                   </button>
@@ -255,7 +256,7 @@ export default function NotificationsPage() {
             onClick={() => void fetchNextPage()}
             disabled={isFetchingNextPage}
           >
-            {isFetchingNextPage ? '載入中...' : '加載更多'}
+            {isFetchingNextPage ? t('states.loading') : t('states.loadMore')}
           </button>
         </div>
       )}

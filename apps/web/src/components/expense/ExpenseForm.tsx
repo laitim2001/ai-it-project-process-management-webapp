@@ -15,6 +15,7 @@
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -62,22 +63,23 @@ interface ExpenseItemFormData {
 
 /**
  * 表單驗證 Schema
+ * 注意:Zod 驗證消息使用翻譯 keys
  */
-const formSchema = z.object({
-  name: z.string().min(1, '費用名稱為必填'),
+const getFormSchema = (t: any) => z.object({
+  name: z.string().min(1, t('validation.nameRequired')),
   description: z.string().optional(),
-  purchaseOrderId: z.string().min(1, '請選擇採購單'),
-  projectId: z.string().min(1, '請選擇專案'),
+  purchaseOrderId: z.string().min(1, t('validation.purchaseOrderRequired')),
+  projectId: z.string().min(1, t('validation.projectRequired')),
   budgetCategoryId: z.string().optional(),
   vendorId: z.string().optional(),
-  invoiceNumber: z.string().min(1, '發票號碼為必填'),
-  invoiceDate: z.string().min(1, '發票日期為必填'),
+  invoiceNumber: z.string().min(1, t('validation.invoiceNumberRequired')),
+  invoiceDate: z.string().min(1, t('validation.invoiceDateRequired')),
   expenseDate: z.string().optional(),
   requiresChargeOut: z.boolean().default(false),
   isOperationMaint: z.boolean().default(false),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
 /**
  * 組件 Props
@@ -108,6 +110,8 @@ const formatCurrency = (amount: number): string => {
 // ========================================
 
 export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
+  const t = useTranslations('expenses');
+  const commonT = useTranslations('common');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -118,7 +122,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
 
   // ===== React Hook Form =====
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(getFormSchema(t)),
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
@@ -163,14 +167,14 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const createMutation = api.expense.create.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '創建成功',
-        description: `費用記錄 ${data.name} 已成功創建`,
+        title: t('messages.createSuccess'),
+        description: t('messages.createSuccess').replace('{name}', data.name),
       });
       router.push(`/expenses/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '創建失敗',
+        title: t('messages.createError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -180,14 +184,14 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const updateMutation = api.expense.update.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '更新成功',
-        description: `費用記錄 ${data.name} 已成功更新`,
+        title: t('messages.updateSuccess'),
+        description: t('messages.updateSuccess').replace('{name}', data.name),
       });
       router.push(`/expenses/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '更新失敗',
+        title: t('messages.updateError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -230,8 +234,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const handleRemoveItem = (index: number) => {
     if (items.length === 1) {
       toast({
-        title: '無法刪除',
-        description: '至少需要保留一個費用項目',
+        title: tCommon('messages.error'),
+        description: t('form.validation.atLeastOneItem'),
         variant: 'destructive',
       });
       return;
@@ -244,8 +248,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
     // 驗證費用項目
     if (items.length === 0) {
       toast({
-        title: '驗證失敗',
-        description: '至少需要一個費用項目',
+        title: tCommon('messages.validationError'),
+        description: t('form.validation.atLeastOneItem'),
         variant: 'destructive',
       });
       return;
@@ -258,8 +262,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
 
     if (invalidItems.length > 0) {
       toast({
-        title: '驗證失敗',
-        description: '請填寫所有費用項目的必填信息（名稱、金額）',
+        title: tCommon('messages.validationError'),
+        description: t('form.validation.itemNameRequired'),
         variant: 'destructive',
       });
       return;
@@ -306,7 +310,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
         {/* 基本信息卡片 */}
         <Card>
           <CardHeader>
-            <CardTitle>基本信息</CardTitle>
+            <CardTitle>{t('form.basicInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* 費用名稱 */}
@@ -315,9 +319,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>費用名稱 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.name.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="如: Q1 伺服器維運費用" {...field} />
+                    <Input placeholder={t('form.fields.name.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -330,9 +334,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="invoiceNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>發票號碼 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.invoiceNumber.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="如: AB-12345678" {...field} />
+                    <Input placeholder={t('form.fields.invoiceNumber.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -345,13 +349,13 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="purchaseOrderId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>關聯採購單 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.purchaseOrder.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">選擇採購單</option>
+                      <option value="">{t('form.fields.purchaseOrder.placeholder')}</option>
                       {purchaseOrders?.items.map((po) => (
                         <option key={po.id} value={po.id}>
                           {po.name}
@@ -370,13 +374,13 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="projectId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>關聯專案 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.project.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">選擇專案</option>
+                      <option value="">{t('form.fields.project.placeholder')}</option>
                       {projects?.items.map((proj) => (
                         <option key={proj.id} value={proj.id}>
                           {proj.name}
@@ -395,7 +399,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="invoiceDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>發票日期 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.invoiceDate.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -410,7 +414,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="expenseDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>費用日期</FormLabel>
+                  <FormLabel>{t('form.fields.expenseDate.label')}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -425,13 +429,13 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="vendorId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>供應商（可選）</FormLabel>
+                  <FormLabel>{t('form.fields.vendor.label')}</FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">無</option>
+                      <option value="">{t('form.fields.vendor.placeholder')}</option>
                       {vendors?.items.map((vendor) => (
                         <option key={vendor.id} value={vendor.id}>
                           {vendor.name}
@@ -450,13 +454,13 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               name="budgetCategoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>預算類別（可選）</FormLabel>
+                  <FormLabel>{t('form.fields.budgetCategory.label')}</FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">無</option>
+                      <option value="">{t('form.fields.budgetCategory.placeholder')}</option>
                       {budgetCategories?.items.map((category) => (
                         <option key={category.id} value={category.id}>
                           {category.name}
@@ -483,9 +487,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>需要從預算池扣款</FormLabel>
+                      <FormLabel>{t('form.fields.requiresChargeOut.label')}</FormLabel>
                       <FormDescription>
-                        勾選此項表示此費用需要從專案預算池中扣除金額
+                        {t('form.fields.requiresChargeOut.description')}
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -504,9 +508,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>維運費用</FormLabel>
+                      <FormLabel>{t('form.fields.isOperationMaint.label')}</FormLabel>
                       <FormDescription>
-                        勾選此項表示此費用屬於系統維運費用
+                        {t('form.fields.isOperationMaint.description')}
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -521,9 +525,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>描述（可選）</FormLabel>
+                    <FormLabel>{t('form.fields.description.label')}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="費用記錄描述..." rows={3} {...field} />
+                      <Textarea placeholder={t('form.fields.description.placeholder')} rows={3} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -537,10 +541,10 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>費用項目</CardTitle>
+              <CardTitle>{t('form.expenseItems')}</CardTitle>
               <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
                 <Plus className="h-4 w-4 mr-2" />
-                新增費用項目
+                {t('form.addItem')}
               </Button>
             </div>
           </CardHeader>
@@ -553,13 +557,14 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                   index={index}
                   onUpdate={handleUpdateItem}
                   onRemove={handleRemoveItem}
+                  t={t}
                 />
               ))}
 
               {items.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>尚未添加費用項目</p>
+                  <p>{t('form.noItems')}</p>
                   <Button
                     type="button"
                     variant="outline"
@@ -567,7 +572,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                     onClick={handleAddItem}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    新增第一個費用項目
+                    {t('form.addFirstItem')}
                   </Button>
                 </div>
               )}
@@ -577,11 +582,11 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                 <div className="mt-6 p-4 bg-primary/5 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-muted-foreground">總項目數</p>
+                      <p className="text-sm text-muted-foreground">{t('form.totalItems')}</p>
                       <p className="text-2xl font-bold">{items.length}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">費用總金額</p>
+                      <p className="text-sm text-muted-foreground">{t('form.totalAmount')}</p>
                       <p className="text-3xl font-bold text-primary">
                         {formatCurrency(totalAmount)}
                       </p>
@@ -597,10 +602,12 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
         <div className="flex gap-4">
           <Button type="submit" disabled={isSubmitting || items.length === 0}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEdit ? '更新費用記錄' : '創建費用記錄'}
+            {isEdit
+              ? t('form.edit.title')
+              : t('form.create.title')}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            取消
+            {tCommon('actions.cancel')}
           </Button>
         </div>
       </form>
@@ -617,50 +624,51 @@ interface ExpenseItemFormRowProps {
   index: number;
   onUpdate: (index: number, field: keyof ExpenseItemFormData, value: any) => void;
   onRemove: (index: number) => void;
+  t: (key: string) => string;
 }
 
-function ExpenseItemFormRow({ item, index, onUpdate, onRemove }: ExpenseItemFormRowProps) {
+function ExpenseItemFormRow({ item, index, onUpdate, onRemove, t }: ExpenseItemFormRowProps) {
   return (
     <div className="grid grid-cols-12 gap-4 p-4 border rounded-lg bg-card">
       {/* 費用項目名稱 */}
       <div className="col-span-4">
-        <Label>費用項目名稱 <span className="text-destructive">*</span></Label>
+        <Label>{t('form.itemFields.itemName.label')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].itemName`}
           value={item.itemName}
           onChange={(e) => onUpdate(index, 'itemName', e.target.value)}
-          placeholder="如: 伺服器維護費"
+          placeholder={t('form.itemFields.itemName.placeholder')}
         />
       </div>
 
       {/* 金額 */}
       <div className="col-span-3">
-        <Label>金額 <span className="text-destructive">*</span></Label>
+        <Label>{t('form.itemFields.amount.label')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].amount`}
           type="number"
           step="0.01"
           value={item.amount}
           onChange={(e) => onUpdate(index, 'amount', parseFloat(e.target.value) || 0)}
-          placeholder="0.00"
+          placeholder={t('form.itemFields.amount.placeholder')}
         />
       </div>
 
       {/* 類別 */}
       <div className="col-span-4">
-        <Label>類別（可選）</Label>
+        <Label>{t('form.itemFields.category.label')}</Label>
         <select
           name={`items[${index}].category`}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           value={item.category || ''}
           onChange={(e) => onUpdate(index, 'category', e.target.value)}
         >
-          <option value="">無</option>
-          <option value="Hardware">Hardware</option>
-          <option value="Software">Software</option>
-          <option value="Consulting">Consulting</option>
-          <option value="Maintenance">Maintenance</option>
-          <option value="Other">Other</option>
+          <option value="">{t('form.itemFields.category.placeholder')}</option>
+          <option value="Hardware">{t('form.itemFields.category.options.hardware')}</option>
+          <option value="Software">{t('form.itemFields.category.options.software')}</option>
+          <option value="Consulting">{t('form.itemFields.category.options.consulting')}</option>
+          <option value="Maintenance">{t('form.itemFields.category.options.maintenance')}</option>
+          <option value="Other">{t('form.itemFields.category.options.other')}</option>
         </select>
       </div>
 
@@ -673,12 +681,12 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove }: ExpenseItemForm
 
       {/* 描述 */}
       <div className="col-span-12">
-        <Label>描述（可選）</Label>
+        <Label>{t('form.itemFields.description.label')}</Label>
         <Textarea
           name={`items[${index}].description`}
           value={item.description || ''}
           onChange={(e) => onUpdate(index, 'description', e.target.value)}
-          placeholder="費用項目描述..."
+          placeholder={t('form.itemFields.description.placeholder')}
           rows={2}
         />
       </div>

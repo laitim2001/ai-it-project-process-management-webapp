@@ -55,20 +55,18 @@ import {
 /**
  * 費用記錄狀態徽章組件
  */
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: any }) {
   const statusConfig = {
-    Draft: { label: '草稿', variant: 'outline' as const },
-    Submitted: { label: '已提交', variant: 'default' as const },
-    Approved: { label: '已批准', variant: 'secondary' as const },
-    Paid: { label: '已支付', variant: 'default' as const },
+    Draft: { labelKey: 'status.draft', variant: 'outline' as const },
+    Submitted: { labelKey: 'status.submitted', variant: 'default' as const },
+    Approved: { labelKey: 'status.approved', variant: 'secondary' as const },
+    Paid: { labelKey: 'status.paid', variant: 'default' as const },
   };
 
-  const config = statusConfig[status as keyof typeof statusConfig] || {
-    label: status,
-    variant: 'outline' as const,
-  };
+  const config = statusConfig[status as keyof typeof statusConfig];
+  const label = config ? t(config.labelKey) : status;
 
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+  return <Badge variant={config?.variant || 'outline'}>{label}</Badge>;
 }
 
 /**
@@ -83,6 +81,8 @@ function formatCurrency(amount: number): string {
 
 export default function ExpenseDetailPage() {
   const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const id = params.id as string;
 
@@ -123,15 +123,15 @@ export default function ExpenseDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
+                <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>詳情</BreadcrumbPage>
+                <BreadcrumbPage>{t('detail.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -140,11 +140,11 @@ export default function ExpenseDetailPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到費用記錄。此費用記錄可能不存在或已被刪除。
+                  {t('detail.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/expenses">
-                <Button>返回費用記錄列表</Button>
+                <Button>{t('detail.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -160,11 +160,11 @@ export default function ExpenseDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
+              <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -182,10 +182,10 @@ export default function ExpenseDetailPage() {
                 <h1 className="text-3xl font-bold text-foreground">
                   {expense.name}
                 </h1>
-                <StatusBadge status={expense.status} />
+                <StatusBadge status={expense.status} t={t} />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                費用日期：{new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
+                {t('detail.fields.expenseDate')}：{new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
               </p>
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function ExpenseDetailPage() {
             <Link href={`/expenses/${expense.id}/edit`}>
               <Button>
                 <Edit className="h-4 w-4 mr-2" />
-                編輯
+                {tCommon('actions.edit')}
               </Button>
             </Link>
           )}
@@ -204,7 +204,7 @@ export default function ExpenseDetailPage() {
           {/* 基本資訊卡片 */}
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>費用資訊</CardTitle>
+              <CardTitle>{t('detail.expenseInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* 費用記錄名稱 */}
@@ -212,7 +212,7 @@ export default function ExpenseDetailPage() {
                 <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    費用記錄名稱
+                    {t('detail.fields.name')}
                   </p>
                   <p className="text-base text-foreground font-medium">
                     {expense.name}
@@ -225,7 +225,7 @@ export default function ExpenseDetailPage() {
                 <div className="flex items-start gap-3">
                   <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-muted-foreground">描述</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('detail.fields.description')}</p>
                     <p className="text-base text-foreground">{expense.description}</p>
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export default function ExpenseDetailPage() {
                 <Receipt className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    發票號碼
+                    {t('detail.fields.invoiceNumber')}
                   </p>
                   <p className="text-base text-foreground">{expense.invoiceNumber}</p>
                 </div>
@@ -246,7 +246,7 @@ export default function ExpenseDetailPage() {
                 <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    發票日期
+                    {t('detail.fields.invoiceDate')}
                   </p>
                   <p className="text-base text-foreground">
                     {new Date(expense.invoiceDate).toLocaleDateString('zh-TW', {
@@ -263,7 +263,7 @@ export default function ExpenseDetailPage() {
                 <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    費用日期
+                    {t('detail.fields.expenseDate')}
                   </p>
                   <p className="text-base text-foreground">
                     {new Date(expense.expenseDate).toLocaleDateString('zh-TW', {
@@ -279,7 +279,7 @@ export default function ExpenseDetailPage() {
               <div className="flex items-start gap-3">
                 <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">總金額</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('detail.fields.totalAmount')}</p>
                   <p className="text-2xl font-bold text-primary">
                     {formatCurrency(expense.totalAmount)}
                   </p>
@@ -290,10 +290,10 @@ export default function ExpenseDetailPage() {
               {(expense.requiresChargeOut || expense.isOperationMaint) && (
                 <div className="flex flex-wrap gap-2 pt-2">
                   {expense.requiresChargeOut && (
-                    <Badge variant="outline">需要 Charge-Out</Badge>
+                    <Badge variant="outline">{t('detail.fields.chargeOut')}</Badge>
                   )}
                   {expense.isOperationMaint && (
-                    <Badge variant="outline">營運維護費用</Badge>
+                    <Badge variant="outline">{t('detail.fields.operationMaint')}</Badge>
                   )}
                 </div>
               )}
@@ -310,7 +310,7 @@ export default function ExpenseDetailPage() {
           {/* 關聯資訊卡片 */}
           <Card className="md:col-span-3">
             <CardHeader>
-              <CardTitle>關聯資訊</CardTitle>
+              <CardTitle>{t('detail.relatedInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-3">
               {/* 專案 */}
@@ -318,7 +318,7 @@ export default function ExpenseDetailPage() {
                 <div className="flex items-start gap-3">
                   <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-muted-foreground">專案</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('detail.fields.project')}</p>
                     <Link
                       href={`/projects/${expense.project.id}`}
                       className="text-base text-primary hover:underline"
@@ -335,7 +335,7 @@ export default function ExpenseDetailPage() {
                   <ShoppingCart className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-muted-foreground">
-                      採購單
+                      {t('detail.fields.purchaseOrder')}
                     </p>
                     <Link
                       href={`/purchase-orders/${expense.purchaseOrder.id}`}
@@ -356,7 +356,7 @@ export default function ExpenseDetailPage() {
                   <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-muted-foreground">
-                      供應商
+                      {t('detail.fields.vendor')}
                     </p>
                     <Link
                       href={`/vendors/${expense.vendor.id}`}
@@ -377,10 +377,10 @@ export default function ExpenseDetailPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Receipt className="h-5 w-5" />
-                費用項目明細
+                {t('detail.items')}
               </CardTitle>
               <Badge variant="outline">
-                共 {expense.items?.length || 0} 項
+                {t('detail.itemsCount', { count: expense.items?.length || 0 })}
               </Badge>
             </div>
           </CardHeader>
@@ -391,10 +391,10 @@ export default function ExpenseDetailPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[50px]">#</TableHead>
-                      <TableHead>費用項目名稱</TableHead>
-                      <TableHead>描述</TableHead>
-                      <TableHead>類別</TableHead>
-                      <TableHead className="text-right w-[140px]">金額</TableHead>
+                      <TableHead>{t('form.itemFields.itemName.label')}</TableHead>
+                      <TableHead>{t('form.itemFields.description.label')}</TableHead>
+                      <TableHead>{t('form.itemFields.category.label')}</TableHead>
+                      <TableHead className="text-right w-[140px]">{tCommon('currency.amount')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -429,7 +429,7 @@ export default function ExpenseDetailPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-8">
                       <span className="text-base font-medium text-muted-foreground">
-                        總計
+                        {t('detail.total')}
                       </span>
                       <span className="text-2xl font-bold text-primary">
                         {formatCurrency(expense.totalAmount)}
@@ -441,7 +441,7 @@ export default function ExpenseDetailPage() {
             ) : (
               <div className="text-center py-8">
                 <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">尚無費用項目</p>
+                <p className="text-muted-foreground">{t('detail.noItems')}</p>
               </div>
             )}
           </CardContent>

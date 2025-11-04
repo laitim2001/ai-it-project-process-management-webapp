@@ -15,6 +15,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -51,19 +52,14 @@ interface POItemFormData {
   sortOrder: number;
 }
 
-/**
- * 表單驗證 Schema
- */
-const formSchema = z.object({
-  name: z.string().min(1, 'PO 名稱為必填'),
-  description: z.string().optional(),
-  projectId: z.string().min(1, '請選擇項目'),
-  vendorId: z.string().min(1, '請選擇供應商'),
-  quoteId: z.string().optional(),
-  date: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  name: string;
+  description?: string;
+  projectId: string;
+  vendorId: string;
+  quoteId?: string;
+  date?: string;
+};
 
 /**
  * 組件 Props
@@ -95,12 +91,24 @@ const formatCurrency = (amount: number): string => {
 
 export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrderFormProps) {
   const router = useRouter();
+  const t = useTranslations('purchaseOrders');
+  const tCommon = useTranslations('common');
   const { toast } = useToast();
 
   // ===== State Management =====
   const [items, setItems] = useState<POItemFormData[]>(
     initialData?.items || [{ itemName: '', quantity: 1, unitPrice: 0, sortOrder: 0 }]
   );
+
+  // ===== 表單驗證 Schema (with i18n) =====
+  const formSchema = z.object({
+    name: z.string().min(1, t('form.toast.validationFailed')),
+    description: z.string().optional(),
+    projectId: z.string().min(1, tCommon('selectPlaceholder')),
+    vendorId: z.string().min(1, tCommon('selectPlaceholder')),
+    quoteId: z.string().optional(),
+    date: z.string().optional(),
+  });
 
   // ===== React Hook Form =====
   const form = useForm<FormValues>({
@@ -137,14 +145,14 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
   const createMutation = api.purchaseOrder.create.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '創建成功',
-        description: `採購單 ${data.name} 已成功創建`,
+        title: t('form.toast.createSuccess'),
+        description: t('form.toast.createSuccessDesc', { name: data.name }),
       });
       router.push(`/purchase-orders/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '創建失敗',
+        title: t('form.toast.createFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -154,14 +162,14 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
   const updateMutation = api.purchaseOrder.update.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '更新成功',
-        description: `採購單 ${data.name} 已成功更新`,
+        title: t('form.toast.updateSuccess'),
+        description: t('form.toast.updateSuccessDesc', { name: data.name }),
       });
       router.push(`/purchase-orders/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '更新失敗',
+        title: t('form.toast.updateFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -205,8 +213,8 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
   const handleRemoveItem = (index: number) => {
     if (items.length === 1) {
       toast({
-        title: '無法刪除',
-        description: '至少需要保留一個採購品項',
+        title: t('form.toast.cannotDelete'),
+        description: t('form.toast.minOneItem'),
         variant: 'destructive',
       });
       return;
@@ -219,8 +227,8 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
     // 驗證品項
     if (items.length === 0) {
       toast({
-        title: '驗證失敗',
-        description: '至少需要一個採購品項',
+        title: t('form.toast.validationFailed'),
+        description: t('form.toast.minOneItem'),
         variant: 'destructive',
       });
       return;
@@ -233,8 +241,8 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
 
     if (invalidItems.length > 0) {
       toast({
-        title: '驗證失敗',
-        description: '請填寫所有品項的必填信息（名稱、數量、單價）',
+        title: t('form.toast.validationFailed'),
+        description: t('form.toast.completeAllItems'),
         variant: 'destructive',
       });
       return;
@@ -278,7 +286,7 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
         {/* 基本信息卡片 */}
         <Card>
           <CardHeader>
-            <CardTitle>基本信息</CardTitle>
+            <CardTitle>{t('form.basicInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* PO 名稱 */}
@@ -287,9 +295,9 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>採購單名稱 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.name.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="如: Q1 伺服器採購" {...field} />
+                    <Input placeholder={t('form.fields.name.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -302,7 +310,7 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>採購日期</FormLabel>
+                  <FormLabel>{t('form.fields.date.label')}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -317,13 +325,13 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               name="projectId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>關聯項目 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.project.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">選擇項目</option>
+                      <option value="">{t('form.fields.project.placeholder')}</option>
                       {projects?.items.map((proj) => (
                         <option key={proj.id} value={proj.id}>
                           {proj.name}
@@ -342,13 +350,13 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               name="vendorId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>供應商 <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>{t('form.fields.vendor.label')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">選擇供應商</option>
+                      <option value="">{t('form.fields.vendor.placeholder')}</option>
                       {vendors?.items.map((vendor) => (
                         <option key={vendor.id} value={vendor.id}>
                           {vendor.name}
@@ -367,13 +375,13 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
               name="quoteId"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>關聯報價（可選）</FormLabel>
+                  <FormLabel>{t('form.fields.quote.label')}</FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">選擇報價（可選）</option>
+                      <option value="">{t('form.fields.quote.placeholder')}</option>
                       {quotes?.items.map((quote) => (
                         <option key={quote.id} value={quote.id}>
                           Quote #{quote.id} - {formatCurrency(quote.amount)}
@@ -393,9 +401,9 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>描述（可選）</FormLabel>
+                    <FormLabel>{t('form.fields.description.label')}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="採購單描述..." rows={3} {...field} />
+                      <Textarea placeholder={t('form.fields.description.placeholder')} rows={3} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -409,10 +417,10 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>採購品項</CardTitle>
+              <CardTitle>{t('form.itemsSection.title')}</CardTitle>
               <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
                 <Plus className="h-4 w-4 mr-2" />
-                新增品項
+                {t('form.itemsSection.addItem')}
               </Button>
             </div>
           </CardHeader>
@@ -425,13 +433,14 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
                   index={index}
                   onUpdate={handleUpdateItem}
                   onRemove={handleRemoveItem}
+                  t={t}
                 />
               ))}
 
               {items.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>尚未添加採購品項</p>
+                  <p>{t('form.itemsSection.noItems')}</p>
                   <Button
                     type="button"
                     variant="outline"
@@ -439,7 +448,7 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
                     onClick={handleAddItem}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    新增第一個品項
+                    {t('form.itemsSection.addFirstItem')}
                   </Button>
                 </div>
               )}
@@ -449,11 +458,11 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
                 <div className="mt-6 p-4 bg-primary/5 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-muted-foreground">總品項數</p>
+                      <p className="text-sm text-muted-foreground">{t('form.itemsSection.totalItems')}</p>
                       <p className="text-2xl font-bold">{items.length}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">採購總金額</p>
+                      <p className="text-sm text-muted-foreground">{t('form.itemsSection.totalAmount')}</p>
                       <p className="text-3xl font-bold text-primary">
                         {formatCurrency(totalAmount)}
                       </p>
@@ -469,10 +478,10 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
         <div className="flex gap-4">
           <Button type="submit" disabled={isSubmitting || items.length === 0}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEdit ? '更新採購單' : '創建採購單'}
+            {isEdit ? t('form.buttons.update') : t('form.buttons.create')}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            取消
+            {t('form.buttons.cancel')}
           </Button>
         </div>
       </form>
@@ -489,27 +498,28 @@ interface POItemFormRowProps {
   index: number;
   onUpdate: (index: number, field: keyof POItemFormData, value: any) => void;
   onRemove: (index: number) => void;
+  t: any;
 }
 
-function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) {
+function POItemFormRow({ item, index, onUpdate, onRemove, t }: POItemFormRowProps) {
   const subtotal = item.quantity * item.unitPrice;
 
   return (
     <div className="grid grid-cols-12 gap-4 p-4 border rounded-lg bg-card">
       {/* 品項名稱 */}
       <div className="col-span-4">
-        <Label>品項名稱 <span className="text-destructive">*</span></Label>
+        <Label>{t('items.itemName')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].itemName`}
           value={item.itemName}
           onChange={(e) => onUpdate(index, 'itemName', e.target.value)}
-          placeholder="如: Dell Server R740"
+          placeholder={t('form.itemRow.itemNamePlaceholder')}
         />
       </div>
 
       {/* 數量 */}
       <div className="col-span-2">
-        <Label>數量 <span className="text-destructive">*</span></Label>
+        <Label>{t('items.quantity')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].quantity`}
           type="number"
@@ -521,7 +531,7 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
 
       {/* 單價 */}
       <div className="col-span-2">
-        <Label>單價 <span className="text-destructive">*</span></Label>
+        <Label>{t('items.unitPrice')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].unitPrice`}
           type="number"
@@ -534,7 +544,7 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
 
       {/* 小計 */}
       <div className="col-span-3">
-        <Label>小計</Label>
+        <Label>{t('items.subtotal')}</Label>
         <div className="p-2 bg-muted rounded-lg">
           <p className="text-lg font-semibold">{formatCurrency(subtotal)}</p>
         </div>
@@ -549,12 +559,12 @@ function POItemFormRow({ item, index, onUpdate, onRemove }: POItemFormRowProps) 
 
       {/* 描述 */}
       <div className="col-span-12">
-        <Label>描述（可選）</Label>
+        <Label>{t('items.description')}</Label>
         <Textarea
           name={`items[${index}].description`}
           value={item.description || ''}
           onChange={(e) => onUpdate(index, 'description', e.target.value)}
-          placeholder="品項描述..."
+          placeholder={t('form.itemRow.descriptionPlaceholder')}
           rows={2}
         />
       </div>

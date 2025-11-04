@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +42,7 @@ export function PurchaseOrderActions({
   itemsCount,
 }: PurchaseOrderActionsProps) {
   const router = useRouter();
+  const t = useTranslations('purchaseOrders');
   const { toast } = useToast();
   const utils = api.useUtils();
 
@@ -51,15 +53,15 @@ export function PurchaseOrderActions({
   const submitMutation = api.purchaseOrder.submit.useMutation({
     onSuccess: () => {
       toast({
-        title: '提交成功',
-        description: '採購單已提交，等待主管審批',
+        title: t('actions.toast.submitSuccess'),
+        description: t('actions.toast.submitSuccessDesc'),
       });
       utils.purchaseOrder.getById.invalidate({ id: purchaseOrderId });
       router.refresh();
     },
     onError: (error) => {
       toast({
-        title: '提交失敗',
+        title: t('actions.toast.submitFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -69,15 +71,15 @@ export function PurchaseOrderActions({
   const approveMutation = api.purchaseOrder.approve.useMutation({
     onSuccess: () => {
       toast({
-        title: '批准成功',
-        description: '採購單已批准',
+        title: t('actions.toast.approveSuccess'),
+        description: t('actions.toast.approveSuccessDesc'),
       });
       utils.purchaseOrder.getById.invalidate({ id: purchaseOrderId });
       router.refresh();
     },
     onError: (error) => {
       toast({
-        title: '批准失敗',
+        title: t('actions.toast.approveFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -88,8 +90,8 @@ export function PurchaseOrderActions({
   const handleSubmit = () => {
     if (itemsCount === 0) {
       toast({
-        title: '無法提交',
-        description: '採購單至少需要一個品項才能提交',
+        title: t('actions.toast.cannotSubmit'),
+        description: t('actions.toast.minOneItemToSubmit'),
         variant: 'destructive',
       });
       return;
@@ -117,7 +119,7 @@ export function PurchaseOrderActions({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>操作</CardTitle>
+          <CardTitle>{t('actions.title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {/* Draft 狀態 - 提交按鈕 */}
@@ -130,12 +132,12 @@ export function PurchaseOrderActions({
               {submitMutation.isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  提交中...
+                  {t('actions.submitting')}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  提交審批
+                  {t('actions.submit')}
                 </>
               )}
             </Button>
@@ -151,12 +153,12 @@ export function PurchaseOrderActions({
               {approveMutation.isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  批准中...
+                  {t('actions.approving')}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="mr-2 h-4 w-4" />
-                  批准採購單
+                  {t('actions.approve')}
                 </>
               )}
             </Button>
@@ -167,7 +169,7 @@ export function PurchaseOrderActions({
             <div className="flex items-center justify-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
               <CheckCircle2 className="mr-2 h-5 w-5 text-green-600" />
               <span className="font-medium text-green-700 dark:text-green-300">
-                已批准
+                {t('status.approved')}
               </span>
             </div>
           )}
@@ -175,13 +177,13 @@ export function PurchaseOrderActions({
           {/* 提示信息 */}
           {status === 'Draft' && itemsCount === 0 && (
             <p className="text-sm text-muted-foreground text-center">
-              請至少添加一個採購品項才能提交
+              {t('actions.hints.minOneItem')}
             </p>
           )}
 
           {status === 'Submitted' && (
             <p className="text-sm text-muted-foreground text-center">
-              等待主管審批
+              {t('actions.hints.waitingApproval')}
             </p>
           )}
         </CardContent>
@@ -191,17 +193,17 @@ export function PurchaseOrderActions({
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認提交審批？</AlertDialogTitle>
+            <AlertDialogTitle>{t('actions.dialogs.submitTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              提交後，採購單將進入審批流程。
+              {t('actions.dialogs.submitDesc')}
               <br />
-              提交後將無法再編輯，請確認所有信息正確。
+              {t('actions.dialogs.submitWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('actions.dialogs.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmSubmit}>
-              確認提交
+              {t('actions.dialogs.confirmSubmit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -211,17 +213,17 @@ export function PurchaseOrderActions({
       <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認批准採購單？</AlertDialogTitle>
+            <AlertDialogTitle>{t('actions.dialogs.approveTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              批准後，採購單狀態將更新為「已批准」。
+              {t('actions.dialogs.approveDesc')}
               <br />
-              批准操作無法撤銷，請確認採購信息無誤。
+              {t('actions.dialogs.approveWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('actions.dialogs.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmApprove}>
-              確認批准
+              {t('actions.dialogs.confirmApprove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

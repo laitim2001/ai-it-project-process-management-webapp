@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +41,8 @@ export function ExpenseActions({
   status,
   itemsCount,
 }: ExpenseActionsProps) {
+  const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { toast } = useToast();
   const utils = api.useUtils();
@@ -51,8 +54,8 @@ export function ExpenseActions({
   const submitMutation = api.expense.submit.useMutation({
     onSuccess: () => {
       toast({
-        title: '提交成功',
-        description: '費用記錄已提交，等待主管審批',
+        title: t('actions.submit'),
+        description: t('messages.submitSuccess'),
       });
       utils.expense.getById.invalidate({ id: expenseId });
       // FIX-044: 移除 router.refresh() 以避免開發模式下的 HotReload 問題
@@ -61,7 +64,7 @@ export function ExpenseActions({
     },
     onError: (error) => {
       toast({
-        title: '提交失敗',
+        title: t('actions.submit'),
         description: error.message,
         variant: 'destructive',
       });
@@ -71,8 +74,8 @@ export function ExpenseActions({
   const approveMutation = api.expense.approve.useMutation({
     onSuccess: () => {
       toast({
-        title: '批准成功',
-        description: '費用記錄已批准',
+        title: t('actions.approve'),
+        description: t('messages.approveSuccess'),
       });
       utils.expense.getById.invalidate({ id: expenseId });
       // FIX-044: 移除 router.refresh() 以避免開發模式下的 HotReload 問題
@@ -81,7 +84,7 @@ export function ExpenseActions({
     },
     onError: (error) => {
       toast({
-        title: '批准失敗',
+        title: t('actions.approve'),
         description: error.message,
         variant: 'destructive',
       });
@@ -92,8 +95,8 @@ export function ExpenseActions({
   const handleSubmit = () => {
     if (itemsCount === 0) {
       toast({
-        title: '無法提交',
-        description: '費用記錄至少需要一個費用項目才能提交',
+        title: t('actions.submit'),
+        description: t('actions.needItems'),
         variant: 'destructive',
       });
       return;
@@ -121,7 +124,7 @@ export function ExpenseActions({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>操作</CardTitle>
+          <CardTitle>{t('actions.operations')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {/* Draft 狀態 - 提交按鈕 */}
@@ -134,12 +137,12 @@ export function ExpenseActions({
               {submitMutation.isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  提交中...
+                  {t('actions.submitting')}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  提交審批
+                  {t('actions.submit')}
                 </>
               )}
             </Button>
@@ -155,12 +158,12 @@ export function ExpenseActions({
               {approveMutation.isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  批准中...
+                  {t('actions.approving')}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="mr-2 h-4 w-4" />
-                  批准費用記錄
+                  {t('actions.approve')}
                 </>
               )}
             </Button>
@@ -171,7 +174,7 @@ export function ExpenseActions({
             <div className="flex items-center justify-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
               <CheckCircle2 className="mr-2 h-5 w-5 text-green-600" />
               <span className="font-medium text-green-700 dark:text-green-300">
-                已批准
+                {t('actions.approved')}
               </span>
             </div>
           )}
@@ -179,13 +182,13 @@ export function ExpenseActions({
           {/* 提示信息 */}
           {status === 'Draft' && itemsCount === 0 && (
             <p className="text-sm text-muted-foreground text-center">
-              請至少添加一個費用項目才能提交
+              {t('actions.needItems')}
             </p>
           )}
 
           {status === 'Submitted' && (
             <p className="text-sm text-muted-foreground text-center">
-              等待主管審批
+              {t('actions.waitingApproval')}
             </p>
           )}
         </CardContent>
@@ -195,17 +198,15 @@ export function ExpenseActions({
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認提交審批？</AlertDialogTitle>
+            <AlertDialogTitle>{t('actions.submitConfirm')}</AlertDialogTitle>
             <AlertDialogDescription>
-              提交後，費用記錄將進入審批流程。
-              <br />
-              提交後將無法再編輯，請確認所有信息正確。
+              {t('actions.submitConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmSubmit}>
-              確認提交
+              {tCommon('actions.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -215,17 +216,15 @@ export function ExpenseActions({
       <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認批准費用記錄？</AlertDialogTitle>
+            <AlertDialogTitle>{t('actions.approveConfirm')}</AlertDialogTitle>
             <AlertDialogDescription>
-              批准後，費用記錄狀態將更新為「已批准」。
-              <br />
-              批准操作無法撤銷，請確認費用信息無誤。
+              {t('actions.approveConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmApprove}>
-              確認批准
+              {tCommon('actions.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

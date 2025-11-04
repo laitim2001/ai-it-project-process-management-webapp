@@ -29,6 +29,8 @@ import { Settings, User, Bell, Eye, Shield, Save } from 'lucide-react';
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const { data: session } = useSession();
   const { toast } = useToast();
 
@@ -51,8 +53,8 @@ export default function SettingsPage() {
   const handleSaveProfile = () => {
     // TODO: 實現 API 調用保存個人資料
     toast({
-      title: '成功',
-      description: '個人資料已更新',
+      title: t('toast.success'),
+      description: t('toast.profileUpdated'),
       variant: 'success',
     });
   };
@@ -60,8 +62,8 @@ export default function SettingsPage() {
   const handleSaveNotifications = () => {
     // TODO: 實現 API 調用保存通知設定
     toast({
-      title: '成功',
-      description: '通知設定已更新',
+      title: t('toast.success'),
+      description: t('toast.notificationsUpdated'),
       variant: 'success',
     });
   };
@@ -69,8 +71,8 @@ export default function SettingsPage() {
   const handleSavePreferences = () => {
     // TODO: 實現 API 調用保存顯示偏好
     toast({
-      title: '成功',
-      description: '顯示偏好已更新',
+      title: t('toast.success'),
+      description: t('toast.preferencesUpdated'),
       variant: 'success',
     });
   };
@@ -82,11 +84,11 @@ export default function SettingsPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>系統設定</BreadcrumbPage>
+              <BreadcrumbPage>{t('title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -94,8 +96,8 @@ export default function SettingsPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">系統設定</h1>
-            <p className="mt-2 text-muted-foreground">管理您的帳號設定和偏好</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+            <p className="mt-2 text-muted-foreground">{t('description')}</p>
           </div>
         </div>
 
@@ -104,19 +106,19 @@ export default function SettingsPage() {
           <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              <span className="hidden sm:inline">個人資料</span>
+              <span className="hidden sm:inline">{t('tabs.profile')}</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">通知設定</span>
+              <span className="hidden sm:inline">{t('tabs.notifications')}</span>
             </TabsTrigger>
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
-              <span className="hidden sm:inline">顯示偏好</span>
+              <span className="hidden sm:inline">{t('tabs.preferences')}</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">安全設定</span>
+              <span className="hidden sm:inline">{t('tabs.security')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -126,40 +128,40 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  個人資料
+                  {t('profile.title')}
                 </CardTitle>
                 <CardDescription>
-                  更新您的個人資訊
+                  {t('profile.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">姓名</Label>
+                  <Label htmlFor="name">{t('profile.name')}</Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="輸入您的姓名"
+                    placeholder={t('profile.name')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('profile.email')}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="輸入您的 Email"
+                    placeholder={t('profile.email')}
                     disabled
                   />
                   <p className="text-xs text-muted-foreground">
-                    Email 地址由系統管理員管理，無法自行修改
+                    {t('profile.emailNote')}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="role">角色</Label>
+                  <Label htmlFor="role">{t('profile.role')}</Label>
                   <Input
                     id="role"
                     value={(session?.user as any)?.role?.name || ''}
@@ -170,7 +172,7 @@ export default function SettingsPage() {
                 <div className="flex justify-end">
                   <Button onClick={handleSaveProfile}>
                     <Save className="mr-2 h-4 w-4" />
-                    儲存變更
+                    {t('profile.save')}
                   </Button>
                 </div>
               </CardContent>
@@ -183,18 +185,18 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5" />
-                  通知設定
+                  {t('notificationSettings.title')}
                 </CardTitle>
                 <CardDescription>
-                  管理您接收通知的方式
+                  {t('notificationSettings.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Email 通知</Label>
+                    <Label>{t('notificationSettings.emailNotifications')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      接收系統 Email 通知
+                      {t('notificationSettings.emailNotificationsDesc')}
                     </p>
                   </div>
                   <Switch
@@ -205,9 +207,9 @@ export default function SettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>預算提案通知</Label>
+                    <Label>{t('notificationSettings.proposalNotifications')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      當提案狀態變更時通知
+                      {t('notificationSettings.proposalNotificationsDesc')}
                     </p>
                   </div>
                   <Switch
@@ -218,9 +220,9 @@ export default function SettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>費用審批通知</Label>
+                    <Label>{t('notificationSettings.expenseNotifications')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      當費用需要審批時通知
+                      {t('notificationSettings.expenseNotificationsDesc')}
                     </p>
                   </div>
                   <Switch
@@ -231,9 +233,9 @@ export default function SettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>專案更新通知</Label>
+                    <Label>{t('notificationSettings.projectUpdates')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      當專案有重要更新時通知
+                      {t('notificationSettings.projectUpdatesDesc')}
                     </p>
                   </div>
                   <Switch
@@ -245,7 +247,7 @@ export default function SettingsPage() {
                 <div className="flex justify-end">
                   <Button onClick={handleSaveNotifications}>
                     <Save className="mr-2 h-4 w-4" />
-                    儲存變更
+                    {tCommon('actions.save')}
                   </Button>
                 </div>
               </CardContent>
@@ -258,15 +260,15 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="h-5 w-5" />
-                  顯示偏好
+                  {t('preferences.title')}
                 </CardTitle>
                 <CardDescription>
-                  自訂系統顯示設定
+                  {t('preferences.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="language">語言</Label>
+                  <Label htmlFor="language">{t('preferences.language')}</Label>
                   <Select
                     id="language"
                     value={language}
@@ -278,7 +280,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="timezone">時區</Label>
+                  <Label htmlFor="timezone">{t('preferences.timezone')}</Label>
                   <Select
                     id="timezone"
                     value={timezone}
@@ -292,7 +294,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dateFormat">日期格式</Label>
+                  <Label htmlFor="dateFormat">{t('preferences.dateFormat')}</Label>
                   <Select
                     id="dateFormat"
                     value={dateFormat}
@@ -307,7 +309,7 @@ export default function SettingsPage() {
                 <div className="flex justify-end">
                   <Button onClick={handleSavePreferences}>
                     <Save className="mr-2 h-4 w-4" />
-                    儲存變更
+                    {tCommon('actions.save')}
                   </Button>
                 </div>
               </CardContent>
@@ -320,40 +322,40 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  安全設定
+                  {t('security.title')}
                 </CardTitle>
                 <CardDescription>
-                  管理您的帳號安全性
+                  {t('security.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>密碼</Label>
+                  <Label>{t('security.password')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    您的密碼透過 Azure AD B2C 管理
+                    {t('security.passwordNote')}
                   </p>
                   <Button variant="outline" disabled>
-                    變更密碼
+                    {t('security.changePassword')}
                   </Button>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>雙因素驗證</Label>
+                  <Label>{t('security.twoFactor')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    增強帳號安全性（未來功能）
+                    {t('security.twoFactorNote')}
                   </p>
                   <Button variant="outline" disabled>
-                    啟用雙因素驗證
+                    {t('security.enableTwoFactor')}
                   </Button>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>活動記錄</Label>
+                  <Label>{t('security.activityLog')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    查看您的帳號活動歷史
+                    {t('security.activityLogNote')}
                   </p>
                   <Button variant="outline" disabled>
-                    查看活動記錄
+                    {t('security.viewActivityLog')}
                   </Button>
                 </div>
               </CardContent>

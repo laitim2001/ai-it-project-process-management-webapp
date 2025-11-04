@@ -25,6 +25,8 @@ import {
 
 export default function NewExpensePage() {
   const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -32,24 +34,24 @@ export default function NewExpensePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/expenses">費用記錄</BreadcrumbLink>
+              <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新建</BreadcrumbPage>
+              <BreadcrumbPage>{tCommon('actions.create')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">創建新費用記錄</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('new.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            填寫費用記錄基本信息並添加費用項目明細
+            {t('new.subtitle')}
           </p>
         </div>
 

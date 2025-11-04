@@ -35,6 +35,9 @@ import { Upload, FileText, AlertCircle, Save } from 'lucide-react';
 
 export default function NewQuotePage() {
   const t = useTranslations('quotes');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
+  const tToast = useTranslations('toast');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -73,13 +76,13 @@ export default function NewQuotePage() {
       ];
 
       if (!allowedTypes.includes(selectedFile.type)) {
-        toast({ title: "錯誤", description: "不支援的文件類型。請上傳 PDF, Word 或 Excel 文件。", variant: "destructive" });
+        toast({ title: tToast('error'), description: t('validation.invalidFileType'), variant: "destructive" });
         return;
       }
 
       // 驗證文件大小 (10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
-        toast({ title: "錯誤", description: "文件大小超過限制（最大 10MB）", variant: "destructive" });
+        toast({ title: tToast('error'), description: t('validation.fileTooLarge'), variant: "destructive" });
         return;
       }
 
@@ -95,22 +98,22 @@ export default function NewQuotePage() {
 
     // 驗證表單
     if (!projectId) {
-      toast({ title: "錯誤", description: "請選擇專案", variant: "destructive" });
+      toast({ title: tToast('error'), description: t('validation.projectRequired'), variant: "destructive" });
       return;
     }
 
     if (!vendorId) {
-      toast({ title: "錯誤", description: "請選擇供應商", variant: "destructive" });
+      toast({ title: tToast('error'), description: t('validation.vendorRequired'), variant: "destructive" });
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      toast({ title: "錯誤", description: "請輸入有效的報價金額", variant: "destructive" });
+      toast({ title: tToast('error'), description: t('validation.amountRequired'), variant: "destructive" });
       return;
     }
 
     if (!file) {
-      toast({ title: "錯誤", description: "請選擇要上傳的文件", variant: "destructive" });
+      toast({ title: tToast('error'), description: t('validation.fileRequired'), variant: "destructive" });
       return;
     }
 
@@ -133,18 +136,18 @@ export default function NewQuotePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || '上傳失敗');
+        throw new Error(result.error || tToast('error'));
       }
 
-      toast({ title: "成功", description: "報價單創建成功！", variant: "success" });
+      toast({ title: tToast('success'), description: t('messages.createSuccess'), variant: "success" });
 
       // 跳轉到報價單列表頁
       router.push('/quotes');
     } catch (error) {
       console.error('創建報價單錯誤:', error);
       toast({
-        title: '錯誤',
-        description: error instanceof Error ? error.message : '創建失敗，請稍後再試',
+        title: tToast('error'),
+        description: error instanceof Error ? error.message : tToast('error'),
         variant: 'destructive',
       });
     } finally {
@@ -170,23 +173,23 @@ export default function NewQuotePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/quotes">報價單管理</BreadcrumbLink>
+              <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新增報價單</BreadcrumbPage>
+              <BreadcrumbPage>{t('actions.create')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">新增報價單</h1>
-          <p className="mt-2 text-muted-foreground">上傳供應商報價文件並記錄報價資訊</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('actions.create')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('new.description')}</p>
         </div>
 
         {/* 表單卡片 */}
@@ -194,7 +197,7 @@ export default function NewQuotePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              報價單資訊
+              {t('form.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -202,7 +205,7 @@ export default function NewQuotePage() {
               {/* 專案選擇 */}
               <div className="space-y-2">
                 <Label htmlFor="project">
-                  專案 <span className="text-destructive">*</span>
+                  {t('form.project.label')} <span className="text-destructive">*</span>
                 </Label>
                 <select
                   id="project"
@@ -212,7 +215,7 @@ export default function NewQuotePage() {
                   disabled={uploading}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="">請選擇專案</option>
+                  <option value="">{t('form.project.placeholder')}</option>
                   {projects?.items.map((project) => (
                     <option key={project.id} value={project.id}>
                       {project.name}
@@ -220,14 +223,14 @@ export default function NewQuotePage() {
                   ))}
                 </select>
                 <p className="text-sm text-muted-foreground">
-                  只能為已批准提案的專案上傳報價單
+                  {t('form.project.hint')}
                 </p>
               </div>
 
               {/* 供應商選擇 */}
               <div className="space-y-2">
                 <Label htmlFor="vendor">
-                  供應商 <span className="text-destructive">*</span>
+                  {t('form.vendor.label')} <span className="text-destructive">*</span>
                 </Label>
                 <select
                   id="vendor"
@@ -237,7 +240,7 @@ export default function NewQuotePage() {
                   disabled={uploading}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="">請選擇供應商</option>
+                  <option value="">{t('form.vendor.placeholder')}</option>
                   {vendors?.items.map((vendor) => (
                     <option key={vendor.id} value={vendor.id}>
                       {vendor.name}
@@ -249,7 +252,7 @@ export default function NewQuotePage() {
               {/* 報價金額 */}
               <div className="space-y-2">
                 <Label htmlFor="amount">
-                  報價金額 (TWD) <span className="text-destructive">*</span>
+                  {t('form.amount.label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="amount"
@@ -258,7 +261,7 @@ export default function NewQuotePage() {
                   step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="請輸入報價金額"
+                  placeholder={t('form.amount.placeholder')}
                   required
                   disabled={uploading}
                 />
@@ -267,7 +270,7 @@ export default function NewQuotePage() {
               {/* 文件選擇 */}
               <div className="space-y-2">
                 <Label htmlFor="file">
-                  報價文件 <span className="text-destructive">*</span>
+                  {t('form.file.label')} <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex items-center gap-4">
                   <input
@@ -283,7 +286,7 @@ export default function NewQuotePage() {
                     className="flex items-center gap-2 px-4 py-2 border border-input rounded-lg cursor-pointer hover:bg-muted transition disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Upload className="h-4 w-4" />
-                    選擇文件
+                    {t('form.file.select')}
                   </label>
                   {file && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -294,7 +297,7 @@ export default function NewQuotePage() {
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  支援格式: PDF, Word (.doc, .docx), Excel (.xls, .xlsx)，最大 10MB
+                  {t('form.file.hint')}
                 </p>
               </div>
 
@@ -302,11 +305,11 @@ export default function NewQuotePage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <p className="font-medium mb-1">上傳須知</p>
+                  <p className="font-medium mb-1">{t('form.uploadNotice.title')}</p>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>只有已批准提案的專案才能上傳報價</li>
-                    <li>請確保報價文件內容完整清晰</li>
-                    <li>上傳後可在報價比較頁面查看和選擇</li>
+                    <li>{t('form.uploadNotice.approvedOnly')}</li>
+                    <li>{t('form.uploadNotice.contentQuality')}</li>
+                    <li>{t('form.uploadNotice.comparison')}</li>
                   </ul>
                 </AlertDescription>
               </Alert>
@@ -319,18 +322,18 @@ export default function NewQuotePage() {
                   onClick={() => router.back()}
                   disabled={uploading}
                 >
-                  取消
+                  {tCommon('actions.cancel')}
                 </Button>
                 <Button type="submit" disabled={uploading || !file || !vendorId || !amount || !projectId}>
                   {uploading ? (
                     <>
                       <Upload className="h-4 w-4 mr-2 animate-spin" />
-                      創建中...
+                      {tToast('creating')}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      創建報價單
+                      {t('actions.create')}
                     </>
                   )}
                 </Button>
