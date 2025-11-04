@@ -15,6 +15,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -41,32 +42,43 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-/**
- * 專案狀態配置
- */
-const PROJECT_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const, icon: FileText },
-  InProgress: { label: '進行中', variant: 'secondary' as const, icon: TrendingUp },
-  Completed: { label: '已完成', variant: 'default' as const, icon: CheckCircle2 },
-  Archived: { label: '已歸檔', variant: 'outline' as const, icon: XCircle },
-};
-
-/**
- * 提案狀態配置
- */
-const PROPOSAL_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const },
-  PendingApproval: { label: '待審批', variant: 'default' as const },
-  Approved: { label: '已批准', variant: 'secondary' as const },
-  Rejected: { label: '已拒絕', variant: 'destructive' as const },
-  MoreInfoRequired: { label: '需補充資訊', variant: 'default' as const },
-};
-
 export default function SupervisorDashboard() {
+  const t = useTranslations('dashboardSupervisor');
+  const tCommon = useTranslations('common');
+
   // 狀態管理
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const [managerId, setManagerId] = useState<string | null>(null);
+
+  // 專案狀態配置
+  const getProjectStatusConfig = (status: string) => {
+    const configs = {
+      Draft: { variant: 'outline' as const, icon: FileText },
+      InProgress: { variant: 'secondary' as const, icon: TrendingUp },
+      Completed: { variant: 'default' as const, icon: CheckCircle2 },
+      Archived: { variant: 'outline' as const, icon: XCircle },
+    };
+    return {
+      label: t(`projectStatus.${status}` as any),
+      ...configs[status as keyof typeof configs],
+    };
+  };
+
+  // 提案狀態配置
+  const getProposalStatusConfig = (status: string) => {
+    const configs = {
+      Draft: { variant: 'outline' as const },
+      PendingApproval: { variant: 'default' as const },
+      Approved: { variant: 'secondary' as const },
+      Rejected: { variant: 'destructive' as const },
+      MoreInfoRequired: { variant: 'default' as const },
+    };
+    return {
+      label: t(`proposalStatus.${status}` as any),
+      ...configs[status as keyof typeof configs],
+    };
+  };
 
   // 查詢儀表板數據
   const { data, isLoading, error } = api.dashboard.getSupervisorDashboard.useQuery({
@@ -106,8 +118,8 @@ export default function SupervisorDashboard() {
       link.download = `projects_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
     } catch (error) {
-      console.error('導出失敗:', error);
-      alert('導出失敗，請稍後再試');
+      console.error(t('error.exportFailed'), error);
+      alert(t('error.exportFailed'));
     }
   };
 
@@ -141,10 +153,10 @@ export default function SupervisorDashboard() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                載入失敗: {error.message}
+                {t('error.message', { error: error.message })}
                 {error.message.includes('主管') && (
                   <div className="mt-2 text-sm">
-                    此頁面僅限部門主管訪問
+                    {t('error.supervisorOnly')}
                   </div>
                 )}
               </AlertDescription>
@@ -166,32 +178,32 @@ export default function SupervisorDashboard() {
       <div className="space-y-8">
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">主管儀表板</h1>
-          <p className="mt-2 text-muted-foreground">部門專案總覽與預算監控</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('subtitle')}</p>
         </div>
 
         {/* 統計卡片 */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="總專案數"
+            title={t('stats.totalProjects')}
             value={stats.totalProjects}
             icon={Briefcase}
             iconColor="text-blue-600"
           />
           <StatCard
-            title="進行中"
+            title={t('stats.activeProjects')}
             value={stats.activeProjects}
             icon={TrendingUp}
             iconColor="text-green-600"
           />
           <StatCard
-            title="已完成"
+            title={t('stats.completedProjects')}
             value={stats.completedProjects}
             icon={CheckCircle2}
             iconColor="text-gray-600"
           />
           <StatCard
-            title="待審批提案"
+            title={t('stats.pendingApprovals')}
             value={stats.pendingApprovals}
             icon={Clock}
             iconColor="text-orange-600"
@@ -201,7 +213,7 @@ export default function SupervisorDashboard() {
         {/* Story 7.4: 預算池概覽 */}
         <Card>
           <CardHeader>
-            <CardTitle>預算池概覽</CardTitle>
+            <CardTitle>{t('budgetPools.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <BudgetPoolOverview budgetPools={budgetPoolOverview} />
@@ -211,14 +223,14 @@ export default function SupervisorDashboard() {
         {/* 專案列表區塊 */}
         <Card>
           <CardHeader>
-            <CardTitle>部門專案總覽</CardTitle>
+            <CardTitle>{t('projects.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* 篩選欄 */}
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[200px]">
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  專案狀態
+                  {t('filters.status.label')}
                 </label>
                 <Select
                   value={status || ''}
@@ -227,17 +239,17 @@ export default function SupervisorDashboard() {
                     setPage(1);
                   }}
                 >
-                  <option value="">所有狀態</option>
-                  <option value="Draft">草稿</option>
-                  <option value="InProgress">進行中</option>
-                  <option value="Completed">已完成</option>
-                  <option value="Archived">已歸檔</option>
+                  <option value="">{t('filters.status.all')}</option>
+                  <option value="Draft">{t('projectStatus.Draft')}</option>
+                  <option value="InProgress">{t('projectStatus.InProgress')}</option>
+                  <option value="Completed">{t('projectStatus.Completed')}</option>
+                  <option value="Archived">{t('projectStatus.Archived')}</option>
                 </Select>
               </div>
 
               <div className="flex-1 min-w-[200px]">
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  專案經理
+                  {t('filters.manager.label')}
                 </label>
                 <Select
                   value={managerId || ''}
@@ -246,10 +258,13 @@ export default function SupervisorDashboard() {
                     setPage(1);
                   }}
                 >
-                  <option value="">所有專案經理</option>
+                  <option value="">{t('filters.manager.all')}</option>
                   {managers?.map((manager) => (
                     <option key={manager.id} value={manager.id}>
-                      {manager.name} ({manager._count.managedProjects} 個專案)
+                      {t('filters.manager.projectCount', {
+                        name: manager.name,
+                        count: manager._count.managedProjects
+                      })}
                     </option>
                   ))}
                 </Select>
@@ -258,7 +273,7 @@ export default function SupervisorDashboard() {
               <div className="flex items-end">
                 <Button onClick={handleExport} variant="outline">
                   <Download className="h-4 w-4 mr-2" />
-                  導出數據
+                  {t('filters.export')}
                 </Button>
               </div>
             </div>
@@ -266,9 +281,11 @@ export default function SupervisorDashboard() {
             {/* 結果計數 */}
             {pagination && (
               <div className="text-sm text-muted-foreground">
-                顯示 {((pagination.page - 1) * pagination.limit) + 1} -{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} /{' '}
-                {pagination.total} 個專案
+                {t('projects.showing', {
+                  start: ((pagination.page - 1) * pagination.limit) + 1,
+                  end: Math.min(pagination.page * pagination.limit, pagination.total),
+                  total: pagination.total
+                })}
               </div>
             )}
 
@@ -277,16 +294,13 @@ export default function SupervisorDashboard() {
               <div className="text-center py-12">
                 <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
                 <p className="text-muted-foreground">
-                  {status || managerId ? '該篩選條件下沒有專案' : '尚無專案'}
+                  {status || managerId ? t('projects.emptyFiltered') : t('projects.empty')}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {projects.map((project) => {
-                  const config =
-                    PROJECT_STATUS_CONFIG[
-                      project.status as keyof typeof PROJECT_STATUS_CONFIG
-                    ];
+                  const config = getProjectStatusConfig(project.status);
                   const latestProposal = project.proposals[0];
                   const totalExpenses = project.purchaseOrders.reduce(
                     (sum, po) =>
@@ -317,7 +331,7 @@ export default function SupervisorDashboard() {
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-xs text-muted-foreground">專案經理</p>
+                                <p className="text-xs text-muted-foreground">{t('projects.manager')}</p>
                                 <p className="text-sm font-medium text-foreground">
                                   {project.manager.name}
                                 </p>
@@ -328,9 +342,9 @@ export default function SupervisorDashboard() {
                             <div className="flex items-center gap-2">
                               <DollarSign className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-xs text-muted-foreground">預算池</p>
+                                <p className="text-xs text-muted-foreground">{t('projects.budgetPool')}</p>
                                 <p className="text-sm font-medium text-foreground">
-                                  {project.budgetPool.fiscalYear} 年度
+                                  {t('projects.fiscalYear', { year: project.budgetPool.fiscalYear })}
                                 </p>
                               </div>
                             </div>
@@ -340,20 +354,12 @@ export default function SupervisorDashboard() {
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
                                 <div>
-                                  <p className="text-xs text-muted-foreground">最新提案</p>
+                                  <p className="text-xs text-muted-foreground">{t('projects.latestProposal')}</p>
                                   <Badge
-                                    variant={
-                                      PROPOSAL_STATUS_CONFIG[
-                                        latestProposal.status as keyof typeof PROPOSAL_STATUS_CONFIG
-                                      ].variant
-                                    }
+                                    variant={getProposalStatusConfig(latestProposal.status).variant}
                                     className="text-xs"
                                   >
-                                    {
-                                      PROPOSAL_STATUS_CONFIG[
-                                        latestProposal.status as keyof typeof PROPOSAL_STATUS_CONFIG
-                                      ].label
-                                    }
+                                    {getProposalStatusConfig(latestProposal.status).label}
                                   </Badge>
                                 </div>
                               </div>
@@ -364,7 +370,7 @@ export default function SupervisorDashboard() {
                               <div className="flex items-center gap-2">
                                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                                 <div>
-                                  <p className="text-xs text-muted-foreground">已批准費用</p>
+                                  <p className="text-xs text-muted-foreground">{t('projects.approvedExpenses')}</p>
                                   <p className="text-sm font-medium text-green-600">
                                     ${totalExpenses.toLocaleString()}
                                   </p>
@@ -376,7 +382,9 @@ export default function SupervisorDashboard() {
                           {/* 採購單數量 */}
                           {project.purchaseOrders.length > 0 && (
                             <div className="mt-3 text-sm text-muted-foreground">
-                              採購單: {project.purchaseOrders.length} 筆
+                              {t('projects.purchaseOrders')}: {t('projects.purchaseOrdersCount', {
+                                count: project.purchaseOrders.length
+                              })}
                             </div>
                           )}
                         </div>

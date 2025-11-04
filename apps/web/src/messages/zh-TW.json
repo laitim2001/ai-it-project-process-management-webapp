@@ -1510,6 +1510,65 @@
       "processing": "處理中..."
     }
   },
+  "dashboardSupervisor": {
+    "title": "主管儀表板",
+    "subtitle": "部門專案總覽與預算監控",
+    "loading": "載入儀表板中...",
+    "error": {
+      "loadFailed": "載入失敗",
+      "message": "載入失敗: {error}",
+      "supervisorOnly": "此頁面僅限部門主管訪問",
+      "exportFailed": "導出失敗，請稍後再試"
+    },
+    "stats": {
+      "totalProjects": "總專案數",
+      "activeProjects": "進行中",
+      "completedProjects": "已完成",
+      "pendingApprovals": "待審批提案"
+    },
+    "budgetPools": {
+      "title": "預算池概覽"
+    },
+    "projects": {
+      "title": "部門專案總覽",
+      "empty": "尚無專案",
+      "emptyFiltered": "該篩選條件下沒有專案",
+      "showing": "顯示 {start} - {end} / {total} 個專案",
+      "manager": "專案經理",
+      "budgetPool": "預算池",
+      "fiscalYear": "{year} 年度",
+      "latestProposal": "最新提案",
+      "approvedExpenses": "已批准費用",
+      "purchaseOrders": "採購單",
+      "purchaseOrdersCount": "{count} 筆",
+      "lastUpdated": "最後更新"
+    },
+    "filters": {
+      "status": {
+        "label": "專案狀態",
+        "all": "所有狀態"
+      },
+      "manager": {
+        "label": "專案經理",
+        "all": "所有專案經理",
+        "projectCount": "{name} ({count} 個專案)"
+      },
+      "export": "導出數據"
+    },
+    "projectStatus": {
+      "Draft": "草稿",
+      "InProgress": "進行中",
+      "Completed": "已完成",
+      "Archived": "已歸檔"
+    },
+    "proposalStatus": {
+      "Draft": "草稿",
+      "PendingApproval": "待審批",
+      "Approved": "已批准",
+      "Rejected": "已拒絕",
+      "MoreInfoRequired": "需補充資訊"
+    }
+  },
   "dashboardPM": {
     "title": "我的儀表板",
     "subtitle": "專案經理工作概覽",

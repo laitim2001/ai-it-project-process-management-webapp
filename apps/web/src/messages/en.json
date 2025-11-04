@@ -1441,6 +1441,65 @@
       "processing": "Processing..."
     }
   },
+  "dashboardSupervisor": {
+    "title": "Supervisor Dashboard",
+    "subtitle": "Department Project Overview & Budget Monitoring",
+    "loading": "Loading dashboard...",
+    "error": {
+      "loadFailed": "Failed to load",
+      "message": "Failed to load: {error}",
+      "supervisorOnly": "This page is only accessible to supervisors",
+      "exportFailed": "Export failed, please try again later"
+    },
+    "stats": {
+      "totalProjects": "Total Projects",
+      "activeProjects": "Active",
+      "completedProjects": "Completed",
+      "pendingApprovals": "Pending Approvals"
+    },
+    "budgetPools": {
+      "title": "Budget Pool Overview"
+    },
+    "projects": {
+      "title": "Department Project Overview",
+      "empty": "No projects yet",
+      "emptyFiltered": "No projects match the filter criteria",
+      "showing": "Showing {start} - {end} / {total} projects",
+      "manager": "Project Manager",
+      "budgetPool": "Budget Pool",
+      "fiscalYear": "FY {year}",
+      "latestProposal": "Latest Proposal",
+      "approvedExpenses": "Approved Expenses",
+      "purchaseOrders": "Purchase Orders",
+      "purchaseOrdersCount": "{count} PO(s)",
+      "lastUpdated": "Last Updated"
+    },
+    "filters": {
+      "status": {
+        "label": "Project Status",
+        "all": "All Statuses"
+      },
+      "manager": {
+        "label": "Project Manager",
+        "all": "All Managers",
+        "projectCount": "{name} ({count} projects)"
+      },
+      "export": "Export Data"
+    },
+    "projectStatus": {
+      "Draft": "Draft",
+      "InProgress": "In Progress",
+      "Completed": "Completed",
+      "Archived": "Archived"
+    },
+    "proposalStatus": {
+      "Draft": "Draft",
+      "PendingApproval": "Pending Approval",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "MoreInfoRequired": "More Info Required"
+    }
+  },
   "dashboardPM": {
     "title": "My Dashboard",
     "subtitle": "Project Manager Overview",
