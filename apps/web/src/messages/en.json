@@ -1441,20 +1441,86 @@
       "processing": "Processing..."
     }
   },
+  "dashboardPM": {
+    "title": "My Dashboard",
+    "subtitle": "Project Manager Overview",
+    "loading": "Loading dashboard...",
+    "error": {
+      "loadFailed": "Failed to load dashboard",
+      "message": "Failed to load dashboard: {error}"
+    },
+    "stats": {
+      "totalProjects": "Total Projects",
+      "activeProjects": "Active Projects",
+      "pendingApprovals": "Pending Approvals",
+      "pendingTasks": "Pending Tasks"
+    },
+    "budget": {
+      "title": "Budget Overview",
+      "totalBudget": "Total Budget",
+      "usedBudget": "Used Budget",
+      "remainingBudget": "Remaining Budget"
+    },
+    "projects": {
+      "title": "My Projects",
+      "viewAll": "View All",
+      "viewAllCount": "View All {count} Projects",
+      "createFirst": "Create First Project",
+      "empty": "No projects yet",
+      "budgetPool": "Budget Pool",
+      "fiscalYear": "FY {year}",
+      "latestProposal": "Latest Proposal",
+      "purchaseOrders": "Purchase Orders",
+      "purchaseOrdersCount": "{count} PO(s)"
+    },
+    "tasks": {
+      "title": "Pending Tasks",
+      "empty": "Great! No pending tasks at the moment",
+      "tabs": {
+        "proposals": "Proposals Needing Info",
+        "expenses": "Draft Expenses"
+      },
+      "proposals": {
+        "empty": "No proposals needing additional information",
+        "badge": "More Info Required",
+        "lastUpdated": "Last updated: {date}"
+      },
+      "expenses": {
+        "empty": "No draft expenses",
+        "badge": "Draft",
+        "purchaseOrder": "PO: {poNumber}",
+        "project": "Project: {projectName}",
+        "expenseDate": "Expense date: {date}"
+      }
+    },
+    "projectStatus": {
+      "Draft": "Draft",
+      "InProgress": "In Progress",
+      "Completed": "Completed",
+      "Archived": "Archived"
+    },
+    "proposalStatus": {
+      "Draft": "Draft",
+      "PendingApproval": "Pending Approval",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "MoreInfoRequired": "More Info Required"
+    }
+  },
   "errors": {
     "404": {
-      "title": "頁面未找到",
-      "message": "抱歉，您訪問的頁面不存在",
-      "backHome": "返回首頁"
+      "title": "Page Not Found",
+      "message": "Sorry, the page you are looking for does not exist",
+      "backHome": "Back to Home"
     },
     "500": {
-      "title": "伺服器錯誤",
-      "message": "抱歉，伺服器發生錯誤",
-      "retry": "重試"
+      "title": "Server Error",
+      "message": "Sorry, a server error occurred",
+      "retry": "Retry"
     },
     "unauthorized": {
-      "title": "未授權",
-      "message": "您沒有權限訪問此頁面",
+      "title": "Unauthorized",
+      "message": "You don't have permission to access this page",
       "login": "Login"
     }
   }

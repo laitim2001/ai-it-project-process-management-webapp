@@ -12,6 +12,7 @@
  * - 快速導航到詳情頁面
  */
 
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -35,30 +36,41 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-/**
- * 專案狀態配置
- */
-const PROJECT_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const, color: 'text-muted-foreground' },
-  InProgress: { label: '進行中', variant: 'secondary' as const, color: 'text-green-600' },
-  Completed: { label: '已完成', variant: 'default' as const, color: 'text-primary' },
-  Archived: { label: '已歸檔', variant: 'outline' as const, color: 'text-muted-foreground' },
-};
-
-/**
- * 提案狀態配置
- */
-const PROPOSAL_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'outline' as const },
-  PendingApproval: { label: '待審批', variant: 'default' as const },
-  Approved: { label: '已批准', variant: 'secondary' as const },
-  Rejected: { label: '已拒絕', variant: 'destructive' as const },
-  MoreInfoRequired: { label: '需補充資訊', variant: 'default' as const },
-};
-
 export default function ProjectManagerDashboard() {
+  const t = useTranslations('dashboardPM');
+  const tCommon = useTranslations('common');
+
   // 查詢儀表板數據
   const { data, isLoading, error } = api.dashboard.getProjectManagerDashboard.useQuery();
+
+  // 專案狀態配置
+  const getProjectStatusConfig = (status: string) => {
+    const configs = {
+      Draft: { variant: 'outline' as const, color: 'text-muted-foreground' },
+      InProgress: { variant: 'secondary' as const, color: 'text-green-600' },
+      Completed: { variant: 'default' as const, color: 'text-primary' },
+      Archived: { variant: 'outline' as const, color: 'text-muted-foreground' },
+    };
+    return {
+      label: t(`projectStatus.${status}` as any),
+      ...configs[status as keyof typeof configs],
+    };
+  };
+
+  // 提案狀態配置
+  const getProposalStatusConfig = (status: string) => {
+    const configs = {
+      Draft: { variant: 'outline' as const },
+      PendingApproval: { variant: 'default' as const },
+      Approved: { variant: 'secondary' as const },
+      Rejected: { variant: 'destructive' as const },
+      MoreInfoRequired: { variant: 'default' as const },
+    };
+    return {
+      label: t(`proposalStatus.${status}` as any),
+      ...configs[status as keyof typeof configs],
+    };
+  };
 
   // 載入狀態
   if (isLoading) {
@@ -91,7 +103,7 @@ export default function ProjectManagerDashboard() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                載入儀表板失敗: {error.message}
+                {t('error.message', { error: error.message })}
               </AlertDescription>
             </Alert>
           </div>
@@ -111,32 +123,32 @@ export default function ProjectManagerDashboard() {
       <div className="space-y-8">
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">我的儀表板</h1>
-          <p className="mt-2 text-muted-foreground">專案經理工作概覽</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('subtitle')}</p>
         </div>
 
         {/* 統計卡片 */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="總專案數"
+            title={t('stats.totalProjects')}
             value={stats.totalProjects}
             icon={Briefcase}
             iconColor="text-blue-600"
           />
           <StatCard
-            title="進行中專案"
+            title={t('stats.activeProjects')}
             value={stats.activeProjects}
             icon={TrendingUp}
             iconColor="text-green-600"
           />
           <StatCard
-            title="待審批提案"
+            title={t('stats.pendingApprovals')}
             value={stats.pendingApprovals}
             icon={Clock}
             iconColor="text-orange-600"
           />
           <StatCard
-            title="待處理任務"
+            title={t('stats.pendingTasks')}
             value={stats.pendingTasks}
             icon={AlertCircle}
             iconColor="text-red-600"
@@ -147,24 +159,24 @@ export default function ProjectManagerDashboard() {
         {stats.totalBudget > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>預算概覽</CardTitle>
+              <CardTitle>{t('budget.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">總預算額度</p>
+                  <p className="text-sm text-muted-foreground">{t('budget.totalBudget')}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">
                     ${stats.totalBudget.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">已使用預算</p>
+                  <p className="text-sm text-muted-foreground">{t('budget.usedBudget')}</p>
                   <p className="text-2xl font-bold text-orange-600 mt-1">
                     ${stats.usedBudget.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">剩餘預算</p>
+                  <p className="text-sm text-muted-foreground">{t('budget.remainingBudget')}</p>
                   <p className="text-2xl font-bold text-green-600 mt-1">
                     ${(stats.totalBudget - stats.usedBudget).toLocaleString()}
                   </p>
@@ -177,10 +189,10 @@ export default function ProjectManagerDashboard() {
         {/* 我負責的專案 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>我負責的專案</CardTitle>
+            <CardTitle>{t('projects.title')}</CardTitle>
             <Link href="/projects">
               <Button variant="outline" size="sm">
-                查看全部
+                {t('projects.viewAll')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -189,16 +201,16 @@ export default function ProjectManagerDashboard() {
             {myProjects.length === 0 ? (
               <div className="text-center py-12">
                 <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">尚無專案</p>
+                <p className="text-muted-foreground">{t('projects.empty')}</p>
                 <Link href="/projects/new">
-                  <Button className="mt-4">創建第一個專案</Button>
+                  <Button className="mt-4">{t('projects.createFirst')}</Button>
                 </Link>
               </div>
             ) : (
               <div className="space-y-4">
                 {myProjects.slice(0, 5).map((project) => {
                   const latestProposal = project.proposals[0];
-                  const config = PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG];
+                  const config = getProjectStatusConfig(project.status);
 
                   return (
                     <Link
@@ -220,9 +232,9 @@ export default function ProjectManagerDashboard() {
                             <div className="flex items-center gap-2 text-sm">
                               <DollarSign className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-muted-foreground">預算池</p>
+                                <p className="text-muted-foreground">{t('projects.budgetPool')}</p>
                                 <p className="font-medium text-foreground">
-                                  {project.budgetPool.fiscalYear} 年度
+                                  {t('projects.fiscalYear', { year: project.budgetPool.fiscalYear })}
                                 </p>
                               </div>
                             </div>
@@ -232,20 +244,12 @@ export default function ProjectManagerDashboard() {
                               <div className="flex items-center gap-2 text-sm">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
                                 <div>
-                                  <p className="text-muted-foreground">最新提案</p>
+                                  <p className="text-muted-foreground">{t('projects.latestProposal')}</p>
                                   <Badge
-                                    variant={
-                                      PROPOSAL_STATUS_CONFIG[
-                                        latestProposal.status as keyof typeof PROPOSAL_STATUS_CONFIG
-                                      ].variant
-                                    }
+                                    variant={getProposalStatusConfig(latestProposal.status).variant}
                                     className="text-xs"
                                   >
-                                    {
-                                      PROPOSAL_STATUS_CONFIG[
-                                        latestProposal.status as keyof typeof PROPOSAL_STATUS_CONFIG
-                                      ].label
-                                    }
+                                    {getProposalStatusConfig(latestProposal.status).label}
                                   </Badge>
                                 </div>
                               </div>
@@ -255,9 +259,9 @@ export default function ProjectManagerDashboard() {
                             <div className="flex items-center gap-2 text-sm">
                               <Receipt className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-muted-foreground">採購單</p>
+                                <p className="text-muted-foreground">{t('projects.purchaseOrders')}</p>
                                 <p className="font-medium text-foreground">
-                                  {project.purchaseOrders.length} 筆
+                                  {t('projects.purchaseOrdersCount', { count: project.purchaseOrders.length })}
                                 </p>
                               </div>
                             </div>
@@ -274,7 +278,7 @@ export default function ProjectManagerDashboard() {
                   <div className="text-center pt-4">
                     <Link href="/projects">
                       <Button variant="outline">
-                        查看全部 {myProjects.length} 個專案
+                        {t('projects.viewAllCount', { count: myProjects.length })}
                       </Button>
                     </Link>
                   </div>
@@ -287,20 +291,20 @@ export default function ProjectManagerDashboard() {
         {/* 等待我處理的任務 */}
         <Card>
           <CardHeader>
-            <CardTitle>等待我處理</CardTitle>
+            <CardTitle>{t('tasks.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {pendingTasks.proposalsNeedingInfo.length === 0 &&
             pendingTasks.draftExpenses.length === 0 ? (
               <div className="text-center py-12">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-green-600 mb-3" />
-                <p className="text-muted-foreground">太棒了！目前沒有待處理的任務</p>
+                <p className="text-muted-foreground">{t('tasks.empty')}</p>
               </div>
             ) : (
               <Tabs defaultValue="proposals" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="proposals">
-                    需補充資訊的提案
+                    {t('tasks.tabs.proposals')}
                     {pendingTasks.proposalsNeedingInfo.length > 0 && (
                       <Badge variant="warning" className="ml-2">
                         {pendingTasks.proposalsNeedingInfo.length}
@@ -308,7 +312,7 @@ export default function ProjectManagerDashboard() {
                     )}
                   </TabsTrigger>
                   <TabsTrigger value="expenses">
-                    草稿費用
+                    {t('tasks.tabs.expenses')}
                     {pendingTasks.draftExpenses.length > 0 && (
                       <Badge variant="secondary" className="ml-2">
                         {pendingTasks.draftExpenses.length}
@@ -321,7 +325,7 @@ export default function ProjectManagerDashboard() {
                 <TabsContent value="proposals" className="space-y-3">
                   {pendingTasks.proposalsNeedingInfo.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-muted-foreground">沒有需要補充資訊的提案</p>
+                      <p className="text-muted-foreground">{t('tasks.proposals.empty')}</p>
                     </div>
                   ) : (
                     pendingTasks.proposalsNeedingInfo.map((proposal) => (
@@ -337,11 +341,12 @@ export default function ProjectManagerDashboard() {
                               <h4 className="font-semibold text-foreground">
                                 {proposal.project.name}
                               </h4>
-                              <Badge variant="warning">需補充資訊</Badge>
+                              <Badge variant="warning">{t('tasks.proposals.badge')}</Badge>
                             </div>
                             <p className="text-sm text-muted-foreground mt-2">
-                              最後更新:{' '}
-                              {new Date(proposal.updatedAt).toLocaleDateString('zh-TW')}
+                              {t('tasks.proposals.lastUpdated', {
+                                date: new Date(proposal.updatedAt).toLocaleDateString()
+                              })}
                             </p>
                           </div>
                           <ArrowRight className="h-5 w-5 text-orange-600" />
@@ -355,7 +360,7 @@ export default function ProjectManagerDashboard() {
                 <TabsContent value="expenses" className="space-y-3">
                   {pendingTasks.draftExpenses.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-muted-foreground">沒有草稿費用</p>
+                      <p className="text-muted-foreground">{t('tasks.expenses.empty')}</p>
                     </div>
                   ) : (
                     pendingTasks.draftExpenses.map((expense) => (
@@ -371,17 +376,18 @@ export default function ProjectManagerDashboard() {
                               <h4 className="font-semibold text-foreground">
                                 ${expense.totalAmount.toLocaleString()}
                               </h4>
-                              <Badge variant="secondary">草稿</Badge>
+                              <Badge variant="secondary">{t('tasks.expenses.badge')}</Badge>
                             </div>
                             <p className="text-sm text-foreground">
-                              採購單: {expense.purchaseOrder.poNumber}
+                              {t('tasks.expenses.purchaseOrder', { poNumber: expense.purchaseOrder.poNumber })}
                             </p>
                             <p className="text-sm text-foreground">
-                              專案: {expense.purchaseOrder.project.name}
+                              {t('tasks.expenses.project', { projectName: expense.purchaseOrder.project.name })}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              費用日期:{' '}
-                              {new Date(expense.expenseDate).toLocaleDateString('zh-TW')}
+                              {t('tasks.expenses.expenseDate', {
+                                date: new Date(expense.expenseDate).toLocaleDateString()
+                              })}
                             </p>
                           </div>
                           <ArrowRight className="h-5 w-5 text-muted-foreground" />

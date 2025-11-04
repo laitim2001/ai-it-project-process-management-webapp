@@ -1510,6 +1510,72 @@
       "processing": "處理中..."
     }
   },
+  "dashboardPM": {
+    "title": "我的儀表板",
+    "subtitle": "專案經理工作概覽",
+    "loading": "載入儀表板中...",
+    "error": {
+      "loadFailed": "載入儀表板失敗",
+      "message": "載入儀表板失敗: {error}"
+    },
+    "stats": {
+      "totalProjects": "總專案數",
+      "activeProjects": "進行中專案",
+      "pendingApprovals": "待審批提案",
+      "pendingTasks": "待處理任務"
+    },
+    "budget": {
+      "title": "預算概覽",
+      "totalBudget": "總預算額度",
+      "usedBudget": "已使用預算",
+      "remainingBudget": "剩餘預算"
+    },
+    "projects": {
+      "title": "我負責的專案",
+      "viewAll": "查看全部",
+      "viewAllCount": "查看全部 {count} 個專案",
+      "createFirst": "創建第一個專案",
+      "empty": "尚無專案",
+      "budgetPool": "預算池",
+      "fiscalYear": "{year} 年度",
+      "latestProposal": "最新提案",
+      "purchaseOrders": "採購單",
+      "purchaseOrdersCount": "{count} 筆"
+    },
+    "tasks": {
+      "title": "等待我處理",
+      "empty": "太棒了！目前沒有待處理的任務",
+      "tabs": {
+        "proposals": "需補充資訊的提案",
+        "expenses": "草稿費用"
+      },
+      "proposals": {
+        "empty": "沒有需要補充資訊的提案",
+        "badge": "需補充資訊",
+        "lastUpdated": "最後更新: {date}"
+      },
+      "expenses": {
+        "empty": "沒有草稿費用",
+        "badge": "草稿",
+        "purchaseOrder": "採購單: {poNumber}",
+        "project": "專案: {projectName}",
+        "expenseDate": "費用日期: {date}"
+      }
+    },
+    "projectStatus": {
+      "Draft": "草稿",
+      "InProgress": "進行中",
+      "Completed": "已完成",
+      "Archived": "已歸檔"
+    },
+    "proposalStatus": {
+      "Draft": "草稿",
+      "PendingApproval": "待審批",
+      "Approved": "已批准",
+      "Rejected": "已拒絕",
+      "MoreInfoRequired": "需補充資訊"
+    }
+  },
   "errors": {
     "404": {
       "title": "頁面未找到",
