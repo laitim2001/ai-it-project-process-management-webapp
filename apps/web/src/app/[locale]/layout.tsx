@@ -34,14 +34,17 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  // 獲取對應語言的翻譯文件
-  const messages = await getMessages();
+  // 🔧 FIX-060: 明確傳遞 locale 參數給 getMessages()
+  // 之前：const messages = await getMessages();
+  // 問題：getMessages() 可能沒有正確獲取當前 locale
+  // 修復：明確傳遞 { locale } 參數
+  const messages = await getMessages({ locale });
 
   return (
     <html lang={locale}>
       <body className={inter.className}>
         <SessionProvider>
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <TRPCProvider>
               {children}
               <Toaster />

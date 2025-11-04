@@ -10,8 +10,9 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
-| 2025-11-03 | 🌐 i18n/編譯 | ✅ 已解決 | [FIX-060: 大規模重複 Import - 39 檔案 327 重複語句](#fix-060-大規模重複-import---39-檔案-327-重複語句) |
+| **2025-11-04** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-060: 英文版顯示中文內容 - getMessages() 參數缺失](#fix-060-英文版顯示中文內容---getmessages-參數缺失)** ⭐ **重大修復** |
 | 2025-11-03 | 🎨 前端/React | ✅ 已解決 | [FIX-059: Nested Links 導致 React Hydration 警告](#fix-059-nested-links-導致-react-hydration-警告) |
+| 2025-11-03 | 🔧 編譯/Import | ✅ 已解決 | [FIX-057: 大規模重複 Import - 39 檔案 327 重複語句](#fix-057-大規模重複-import---39-檔案-327-重複語句) |
 | 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-058: Toast Provider 錯誤修復第三輪 - 子組件檢查](#fix-058-toast-provider-錯誤修復第三輪---子組件檢查) |
 | 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-057: Toast 自動關閉與評論刷新問題](#fix-057-toast-自動關閉與評論刷新問題) |
 | 2025-11-01 | 🎨 前端/Toast | ✅ 已解決 | [FIX-056: Toast 通知系統遷移第一輪](#fix-056-toast-通知系統遷移第一輪) |
@@ -35,8 +36,10 @@
 
 ## 🔍 快速搜索
 
-- **i18n 國際化問題**: FIX-059, FIX-060 (React 警告 + 大規模重複 Import) ⭐ 最新
-- **Toast 系統問題**: FIX-056, FIX-057, FIX-058 (三輪完整修復) ⭐
+- **i18n 國際化問題**: FIX-060 (英文版顯示中文 - getMessages 參數缺失) ⭐ **最新重大修復**
+- **i18n React 警告**: FIX-059 (Nested Links 警告)
+- **i18n 編譯問題**: FIX-057 (大規模重複 Import)
+- **Toast 系統問題**: FIX-056, FIX-058 (三輪完整修復)
 - **文檔/索引問題**: FIX-001, FIX-002
 - **環境/部署問題**: FIX-005
 - **版本控制問題**: FIX-004
@@ -67,9 +70,89 @@
 
 # 詳細修復記錄 (最新在上)
 
-## FIX-060: 大規模重複 Import - 39 檔案 327 重複語句
+## FIX-060: 英文版顯示中文內容 - getMessages() 參數缺失
 
-**問題類型**: 🌐 i18n/編譯
+**問題類型**: 🌐 i18n/國際化
+**發現日期**: 2025-11-04 00:30
+**解決日期**: 2025-11-04 01:30
+**嚴重程度**: P0 (Blocker) - 國際化功能完全失效
+**狀態**: ✅ 已解決
+**相關檔案**:
+- `apps/web/src/app/[locale]/layout.tsx`
+- `apps/web/src/messages/en.json`
+- `apps/web/src/components/layout/Sidebar.tsx` (Debug 工具)
+
+### 問題現象
+訪問 `/en/dashboard` 時，雖然 URL 路徑正確，但頁面內容（Sidebar 導航菜單、TopBar、所有組件）仍然顯示**中文**而非英文。
+
+```
+URL: http://localhost:3001/en/dashboard  ✅ 正確
+Sidebar: 儀表板、專案、預算提案         ❌ 顯示中文
+預期: Dashboard, Projects, Budget Proposals ✅ 應顯示英文
+```
+
+### 根本原因
+`apps/web/src/app/[locale]/layout.tsx` 中的 `getMessages()` 調用**未傳遞 `locale` 參數**，導致總是加載默認語言 (zh-TW) 的翻譯文件：
+
+```typescript
+// ❌ 錯誤代碼
+const messages = await getMessages();  // 未傳遞 locale，使用默認語言
+```
+
+**技術分析**:
+- `getMessages()` 是 next-intl 的 Server Component 函數
+- 沒有參數時，使用默認語言 (zh-TW)
+- `NextIntlClientProvider` 雖然接收了 `locale='en'` prop
+- 但 `messages` 已經是中文內容，導致翻譯錯誤
+
+### 診斷過程
+1. **階段 1 - 初步排查**: 檢查配置、翻譯文件 → FIX-060A 翻譯 `navigation.descriptions`
+2. **階段 2 - Provider 檢查**: 發現缺少 `locale` prop → FIX-060B 添加 prop
+3. **階段 3 - 深入調查**: 添加 Debug Logging，發現矛盾現象
+4. **階段 4 - 根本原因**: 確認 `getMessages()` 未傳遞參數
+
+### 解決方案
+
+**修復代碼** (`apps/web/src/app/[locale]/layout.tsx:41`):
+```typescript
+// 🔧 FIX-060: 明確傳遞 locale 參數給 getMessages()
+const messages = await getMessages({ locale });  // ✅ 正確傳遞 locale
+```
+
+**修復邏輯**:
+1. `getMessages({ locale })` 根據參數動態加載對應語言文件
+2. 調用 `i18n/request.ts` 中的配置邏輯
+3. 確保 `messages` 是當前語言的翻譯內容
+4. `NextIntlClientProvider` 傳遞正確的 `locale` 和 `messages`
+
+### 修復結果
+- ✅ `/en/dashboard` 完整顯示英文內容
+- ✅ `/zh-TW/dashboard` 完整顯示中文內容
+- ✅ Sidebar、TopBar、所有組件正確翻譯
+- ✅ 語言切換功能完全正常
+- ✅ 國際化功能 100% 運作
+
+### 關鍵學習
+1. **明確傳參**: Server Component 的所有配置都應明確傳遞參數
+2. **Debug 策略**: 使用 `useLocale()` 確認 locale 值
+3. **分層診斷**: 從配置層 → Provider 層 → Component 層逐層排查
+4. **文檔記錄**: 詳細記錄診斷過程，形成知識庫
+
+### 修復時間
+- **診斷時間**: 1.5 小時（含 4 個階段的系統性調查）
+- **修復時間**: 5 分鐘（修改 1 行代碼）
+- **驗證時間**: 10 分鐘
+
+### 相關文檔
+- 📄 完整診斷報告: `FIX-060-ENGLISH-DISPLAYS-CHINESE-DIAGNOSIS.md`
+- 📊 進度記錄: `I18N-PROGRESS.md` (2025-11-04)
+- 📝 問題記錄: `I18N-ISSUES-LOG.md` (FIX-060 章節)
+
+---
+
+## FIX-057: 大規模重複 Import - 39 檔案 327 重複語句
+
+**問題類型**: 🔧 編譯/Import
 **發現日期**: 2025-11-03 15:30
 **解決日期**: 2025-11-03 16:00
 **嚴重程度**: P0 (Blocker) - 阻止應用程式編譯

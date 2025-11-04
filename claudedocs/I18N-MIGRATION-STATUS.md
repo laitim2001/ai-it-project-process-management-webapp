@@ -1,8 +1,8 @@
 # i18n 遷移狀態報告
 
-> **更新日期**: 2025-11-03
-> **階段**: Batch 3 進行中 (Vendors 模組完成)
-> **完成度**: 約 52% (28/54 核心文件)
+> **更新日期**: 2025-11-03 (晚間最終更新)
+> **階段**: Batch 3 大幅完成 (Vendors + Quotes + PurchaseOrders + Expenses)
+> **完成度**: 約 81.5% (44/54 核心文件)
 
 ---
 
@@ -104,24 +104,27 @@ validation, toast, status
 - ✅ `app/[locale]/vendors/new/page.tsx` (新建頁)
 - ✅ `components/vendor/VendorForm.tsx` (表單組件)
 
-#### Quotes 模組 (3 個)
-- `app/[locale]/quotes/page.tsx`
-- `app/[locale]/quotes/new/page.tsx`
-- `components/quote/QuoteUploadForm.tsx`
+#### Quotes 模組 (4 個) ✅
+- ✅ `app/[locale]/quotes/page.tsx` (列表頁)
+- ✅ `app/[locale]/quotes/new/page.tsx` (新建頁)
+- ✅ `app/[locale]/quotes/[id]/edit/page.tsx` (編輯頁)
+- ✅ `components/quote/QuoteUploadForm.tsx` (上傳表單組件)
 
-#### PurchaseOrders 模組 (5 個)
-- `app/[locale]/purchase-orders/page.tsx`
-- `app/[locale]/purchase-orders/[id]/page.tsx`
-- `app/[locale]/purchase-orders/new/page.tsx`
-- `components/purchase-order/PurchaseOrderForm.tsx`
-- `components/purchase-order/PurchaseOrderActions.tsx`
+#### PurchaseOrders 模組 (6 個) ✅
+- ✅ `app/[locale]/purchase-orders/page.tsx` (列表頁)
+- ✅ `app/[locale]/purchase-orders/[id]/page.tsx` (詳情頁)
+- ✅ `app/[locale]/purchase-orders/new/page.tsx` (新建頁)
+- ✅ `components/purchase-order/PurchaseOrderForm.tsx` (表單組件 - 含 Zod schema 重構)
+- ✅ `components/purchase-order/PurchaseOrderActions.tsx` (操作按鈕)
+- ✅ `app/[locale]/purchase-orders/[id]/edit/page.tsx` (編輯頁)
 
-#### Expenses 模組 (5 個)
-- `app/[locale]/expenses/page.tsx`
-- `app/[locale]/expenses/[id]/page.tsx`
-- `app/[locale]/expenses/new/page.tsx`
-- `components/expense/ExpenseForm.tsx`
-- `components/expense/ExpenseActions.tsx`
+#### Expenses 模組 (6 個) ✅
+- ✅ `app/[locale]/expenses/page.tsx` (列表頁)
+- ✅ `app/[locale]/expenses/[id]/page.tsx` (詳情頁)
+- ✅ `app/[locale]/expenses/new/page.tsx` (新建頁)
+- ✅ `app/[locale]/expenses/[id]/edit/page.tsx` (編輯頁)
+- ✅ `components/expense/ExpenseForm.tsx` (表單組件 - 含 ChargeOut 邏輯)
+- ✅ `components/expense/ExpenseActions.tsx` (操作按鈕)
 
 #### 其他模組 (6 個)
 - `app/[locale]/notifications/page.tsx`
@@ -155,6 +158,20 @@ validation, toast, status
 - **解決時間**: 2025-11-03 16:00
 - **詳細記錄**: 見 `I18N-ISSUES-LOG.md` FIX-057 章節
 
+### 問題 3: Webpack 緩存導致翻譯未更新 (✅ 已解決 - FIX-058)
+- **描述**: JSON 翻譯文件變更後，開發服務器仍顯示 MISSING_MESSAGE 錯誤
+- **影響**: 添加的翻譯 keys 未生效，頁面顯示混合結果 (部分翻譯正確，部分顯示字面量)
+- **根本原因**: Next.js Webpack HMR 未偵測到 JSON 文件變更，仍使用舊的編譯版本
+- **嘗試的修復**: 清除 `.next/cache`、Touch 文件觸發 HMR - 均未完全解決
+- **最終修復方案**:
+  - 完全刪除 `.next` 目錄
+  - 在新 port (3009) 重啟開發服務器
+- **修復結果**: ✅ 100% 成功，所有翻譯正確顯示，無字面量殘留
+- **優先級**: P0 (已解決) ✅
+- **解決時間**: 2025-11-03 21:30
+- **經驗教訓**: JSON 翻譯文件變更需要完全清除 .next 目錄並重啟服務器才能保證 Webpack 重新編譯
+- **詳細記錄**: 見 `I18N-ISSUES-LOG.md` FIX-058 章節
+
 ### 預防措施 (新增)
 - [ ] 集成 `check-duplicate-imports.js` 到 CI/CD 流程
 - [ ] 建立 pre-commit hook 防止重複 import
@@ -170,51 +187,86 @@ validation, toast, status
 | **Phase 2** | 2 | 2 | 0 | 0 | 100% |
 | **Batch 1** | 9 | 9 | 0 | 0 | 100% |
 | **Batch 2** | 11 | 11 | 0 | 0 | 100% |
-| **Batch 3** | 34 | 8 | 0 | 26 | 24% |
-| **總計** | 54 | 28 | 0 | 26 | 52% |
+| **Batch 3** | 34 | 24 | 0 | 10 | 70.6% |
+| **總計** | 54 | 44 | 0 | 10 | 81.5% |
 
-**文件統計**:
+**文件統計** (更新: 2025-11-03 晚間):
 - 核心頁面文件: 54 個 (頁面 + 組件)
-- 已完成: 28 個 (52%)
+- 已完成: 44 個 (81.5%) 🎉
 - 進行中: 0 個 (0%)
-- 待處理: 26 個 (48%)
+- 待處理: 10 個 (18.5%)
+
+**今日完成** (2025-11-03):
+- Batch 3-1 (Vendors): 4 個文件 ✅
+- Batch 3-2 (Quotes): 4 個文件 ✅
+- Batch 3-3 (PurchaseOrders): 6 個文件 ✅
+- Batch 3-4 (Expenses): 6 個文件 ✅
+- **總計今日**: 20 個文件完成!
 
 ---
 
 ## 🎯 下一步建議
 
-### 立即行動 (P0)
-1. **修復 quotes/page.tsx 重複 import**
-   - 清理 14 次重複的 `useTranslations` import
-   - 驗證文件可正常編譯
+### 立即行動 (P0) - 僅剩 10 個文件! 🎯
+1. **完成 Batch 3-5: 其他模組 (約 10 個文件)**
+   - `app/[locale]/notifications/page.tsx`
+   - `app/[locale]/settings/page.tsx`
+   - `components/notification/NotificationBell.tsx`
+   - `components/theme/ThemeToggle.tsx`
+   - 以及其他剩餘輔助組件
+   - **估計工作量**: 2-3 小時
 
-2. **完成 projects/[id]/page.tsx**
-   - 遷移主要內容區域 (約 300 行)
-   - 測試詳情頁所有功能
+2. **完成 Projects 模組剩餘文件 (約 2 個)**
+   - `app/[locale]/projects/[id]/page.tsx` (詳情頁 - 約 300 行)
+   - `app/[locale]/projects/[id]/quotes/page.tsx` (若需要)
+   - **估計工作量**: 1-1.5 小時
 
-3. **完成 Batch 2 - Proposals 模組**
-   - 使用已建立的遷移模式
-   - 估計工作量: 2-3 小時
-
-### 短期計劃 (P1)
-4. **完成 Batch 2 - BudgetPools 模組**
-   - 5 個文件遷移
-   - 估計工作量: 1.5 小時
-
-5. **測試 Batch 2 完整功能**
-   - 語言切換測試
+### 短期計劃 (P1) - 完成後即達成 100% 目標! 🏆
+3. **執行完整 E2E 測試**
+   - 語言切換測試 (zh-TW ↔ en)
    - 完整 CRUD 流程測試
    - 表單驗證測試
+   - 所有翻譯 key 顯示檢查
+   - **估計工作量**: 1 小時
 
-### 中期計劃 (P2)
-6. **創建遷移工具腳本**
+4. **文檔最終化**
+   - 更新所有 I18N 相關文檔
+   - 創建遷移總結報告
+   - 記錄經驗教訓和最佳實踐
+   - **估計工作量**: 30 分鐘
+
+5. **提交到 GitHub**
+   - Git commit with detailed message
+   - Push to remote repository
+   - 創建 Pull Request (若需要)
+
+### 中期計劃 (P2) - 優化和改進
+6. **創建遷移工具腳本** (已有基礎工具)
    - 自動化硬編碼文字識別
    - 自動化翻譯 key 替換建議
-   - 減少手動工作量
+   - 減少未來手動工作量
 
-7. **完成 Batch 3 所有模組**
-   - 34 個文件遷移
-   - 可分多次完成,每次 5-10 個文件
+7. **CI/CD 集成**
+   - 集成 `check-duplicate-imports.js` 到 CI/CD 流程
+   - 建立 pre-commit hook 防止重複 import
+   - 更新開發規範文檔
+
+---
+
+## 🎉 重大里程碑
+
+### 已達成
+- ✅ **81.5% 完成** - 44/54 文件遷移完成
+- ✅ **Batch 1-2 100%** - 所有基礎模組完成
+- ✅ **Batch 3 主要模組完成** - Vendors, Quotes, PurchaseOrders, Expenses
+- ✅ **3 個重大問題修復** - FIX-056, FIX-057, FIX-058
+
+### 即將達成 (預計 2025-11-04)
+- 🎯 **100% 完成** - 剩餘 10 個文件
+- 🎯 **完整測試驗證** - 所有功能語言切換正常
+- 🎯 **生產就緒** - i18n 系統完全可上線
+
+**預計剩餘時間**: 4-5 小時 (連續執行)
 
 ---
 

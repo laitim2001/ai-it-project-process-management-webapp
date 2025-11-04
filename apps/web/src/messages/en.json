@@ -75,9 +75,20 @@
     "currency": {
       "myr": "RM",
       "amount": "Amount"
+    },
+    "viewMode": {
+      "card": "Card View",
+      "list": "List View"
+    },
+    "theme": {
+      "toggle": "Toggle theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
     }
   },
   "navigation": {
+    "dashboard": "Home",
     "brand": {
       "title": "IT Project Management",
       "subtitle": "Process Platform"
@@ -105,19 +116,36 @@
       "help": "Help Center"
     },
     "descriptions": {
-      "dashboard": "專案總覽和關鍵指標",
-      "projects": "專案資料和進度管理",
-      "proposals": "預算提案申請與審批",
-      "budgetPools": "年度預算分配管理",
-      "vendors": "供應商資料管理",
-      "quotes": "供應商報價管理",
-      "purchaseOrders": "採購訂單追蹤",
-      "expenses": "費用發票與核銷",
-      "omExpenses": "操作與維護費用管理",
-      "chargeOuts": "ChargeOut 費用轉嫁管理",
-      "users": "用戶帳號和權限",
-      "settings": "系統參數設定",
-      "help": "使用指南和支援"
+      "dashboard": "Project overview and key metrics",
+      "projects": "Project data and progress management",
+      "proposals": "Budget proposal submission and approval",
+      "budgetPools": "Annual budget allocation management",
+      "vendors": "Vendor information management",
+      "quotes": "Vendor quote management",
+      "purchaseOrders": "Purchase order tracking",
+      "expenses": "Expense invoices and reimbursement",
+      "omExpenses": "Operation and maintenance expense management",
+      "chargeOuts": "ChargeOut expense transfer management",
+      "users": "User accounts and permissions",
+      "settings": "System parameter configuration",
+      "help": "User guide and support"
+    },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search projects, proposals, or vendors..."
+    },
+    "notifications": {
+      "view": "View notifications",
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "viewAll": "View all notifications"
+    },
+    "userMenu": {
+      "defaultUser": "User",
+      "defaultRole": "Role",
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout"
     },
     "user": {
       "profile": "Profile",
@@ -168,86 +196,74 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "歡迎回來！查看您的專案進度和最新動態",
+    "welcome": "Welcome back! View your project progress and latest updates",
     "stats": {
-      "monthlyBudget": {
-        "title": "本月預算額",
-        "change": "較上月"
-      },
-      "activeProjects": {
-        "title": "進行中項目",
-        "change": "較上月"
-      },
-      "pendingProposals": {
-        "title": "待審批提案",
-        "change": "較上月"
-      },
-      "budgetUtilization": {
-        "title": "預算執行率",
-        "change": "較上月"
-      }
+      "monthlyBudget": "Monthly Budget",
+      "activeProjects": "Active Projects",
+      "pendingProposals": "Pending Proposals",
+      "budgetUtilization": "Budget Utilization",
+      "vsLastMonth": "vs Last Month"
     },
-    "budgetTrends": {
-      "title": "預算趨勢",
-      "period": {
-        "last6Months": "近 6 個月",
-        "last3Months": "近 3 個月",
-        "thisMonth": "This Month"
-      },
-      "metrics": {
-        "currentBudget": "本月預算額",
-        "growthRate": "月增長率",
-        "totalProposals": "總提案數"
-      }
+    "budgetTrend": {
+      "title": "Budget Trend",
+      "last6Months": "Last 6 Months",
+      "last3Months": "Last 3 Months",
+      "thisMonth": "This Month",
+      "monthlyBudget": "Monthly Budget",
+      "monthlyGrowth": "Monthly Growth",
+      "totalProposals": "Total Proposals"
     },
     "quickActions": {
-      "title": "快速操作",
-      "subtitle": "常用功能快捷入口",
+      "title": "Quick Actions",
+      "description": "Shortcuts to frequently used features",
       "actions": {
         "newProject": {
-          "name": "新增專案",
-          "description": "建立新的 IT 專案"
+          "name": "New Project",
+          "description": "Create a new IT project"
         },
         "newProposal": {
-          "name": "建立提案",
-          "description": "提交預算提案申請"
+          "name": "New Proposal",
+          "description": "Submit a budget proposal"
         },
         "newBudgetPool": {
-          "name": "新增預算池",
-          "description": "創建財政年度預算池"
+          "name": "New Budget Pool",
+          "description": "Create fiscal year budget pool"
         },
         "manageVendors": {
-          "name": "供應商管理",
-          "description": "管理供應商資料"
+          "name": "Vendor Management",
+          "description": "Manage vendor information"
         },
         "viewPurchaseOrders": {
-          "name": "查看採購單",
-          "description": "檢視採購訂單狀態"
+          "name": "Purchase Orders",
+          "description": "View purchase order status"
         },
         "recordExpense": {
-          "name": "Expenses",
-          "description": "記錄專案費用支出"
+          "name": "Record Expense",
+          "description": "Record project expenses"
         }
       }
     },
     "recentActivities": {
-      "title": "最近活動",
+      "title": "Recent Activities",
       "viewAll": "View All",
+      "completed": "Completed",
       "timeAgo": {
-        "hour": "小時前",
-        "hours": "小時前",
-        "day": "天前",
-        "days": "天前"
+        "hour": "hour ago",
+        "hours": "hours ago",
+        "day": "day ago",
+        "days": "days ago"
       }
     },
     "aiInsights": {
-      "title": "AI 洞察",
-      "subtitle": "基於數據分析的智能建議",
-      "confidence": "信心度",
-      "viewDetails": "查看詳情",
-      "todayStats": "今日統計",
-      "pendingProposalsCount": "待處理提案",
-      "meetingsToday": "今日會議"
+      "title": "AI Insights",
+      "description": "Data-driven intelligent recommendations",
+      "budgetOptimization": "Budget Optimization",
+      "suggestion": "Recommend reallocating unused budget to high-priority projects",
+      "confidence": "Confidence {percent}%",
+      "viewDetails": "View Details",
+      "todayStats": "Today's Stats",
+      "pendingProposals": "Pending Proposals",
+      "todayMeetings": "Today's Meetings"
     }
   },
   "projects": {
@@ -589,181 +605,547 @@
     }
   },
   "quotes": {
-    "title": "Quotes",
+    "title": "Quote Management",
+    "description": "View and manage all vendor quotes",
     "list": {
-      "title": "報價單列表",
-      "subtitle": "管理供應商報價",
-      "newQuote": "新增報價",
-      "search": "搜尋報價單...",
+      "title": "Quote List",
+      "subtitle": "Manage vendor quotes",
+      "newQuote": "New Quote",
+      "search": "Search quotes...",
+      "showing": "Showing {from} - {to} / {total} quotes",
+      "empty": "No quotes yet",
+      "noResults": "No quotes found for this filter",
+      "uploadHint": "Please upload quotes from project page",
       "table": {
-        "vendor": "Vendors",
-        "project": "所屬專案",
-        "amount": "報價金額",
-        "date": "報價日期",
-        "file": "附件",
-        "status": "狀態",
-        "actions": "操作"
+        "vendor": "Vendor",
+        "project": "Project",
+        "amount": "Quote Amount",
+        "date": "Quote Date",
+        "file": "Attachment",
+        "status": "Status",
+        "actions": "Actions"
       }
     },
+    "fields": {
+      "vendor": "Vendor",
+      "project": "Project",
+      "amount": "Quote Amount",
+      "uploadDate": "Upload Date"
+    },
+    "filters": {
+      "allProjects": "All Projects",
+      "allVendors": "All Vendors"
+    },
+    "actions": {
+      "create": "Create Quote",
+      "upload": "Upload Quote"
+    },
+    "new": {
+      "description": "Upload vendor quote documents and record quote information"
+    },
+    "edit": {
+      "description": "Modify quote amount and description",
+      "readOnlyInfo": "Quote Information (Read Only)",
+      "editableInfo": "Editable Information"
+    },
     "form": {
+      "title": "Quote Information",
       "create": {
-        "title": "新增報價單",
-        "subtitle": "上傳供應商報價"
+        "title": "Create Quote",
+        "subtitle": "Upload vendor quote"
+      },
+      "project": {
+        "label": "Project",
+        "placeholder": "Select project",
+        "hint": "Can only upload quotes for projects with approved proposals"
+      },
+      "vendor": {
+        "label": "Vendor",
+        "placeholder": "Select vendor"
+      },
+      "amount": {
+        "label": "Quote Amount (TWD)",
+        "placeholder": "Enter quote amount"
+      },
+      "file": {
+        "label": "Quote Document",
+        "select": "Select File",
+        "hint": "Supported formats: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), max 10MB"
+      },
+      "uploadNotice": {
+        "title": "Upload Notice",
+        "approvedOnly": "Can only upload quotes for projects with approved proposals",
+        "contentQuality": "Please ensure quote document content is complete and clear",
+        "comparison": "After upload, you can view and select from the quote comparison page"
       },
       "fields": {
         "vendor": {
-          "label": "Vendors",
-          "placeholder": "選擇供應商"
+          "label": "Vendor",
+          "placeholder": "Select vendor"
         },
         "project": {
-          "label": "所屬專案",
-          "placeholder": "選擇專案"
+          "label": "Project",
+          "placeholder": "Select project"
         },
         "amount": {
-          "label": "報價金額",
+          "label": "Quote Amount",
           "placeholder": "0.00"
         },
         "file": {
-          "label": "報價單檔案",
-          "placeholder": "上傳 PDF 或圖片"
+          "label": "Quote File",
+          "placeholder": "Upload PDF or image"
         },
         "notes": {
-          "label": "備註",
-          "placeholder": "其他說明..."
+          "label": "Notes",
+          "placeholder": "Additional information..."
         }
       }
+    },
+    "validation": {
+      "invalidFileType": "Unsupported file type. Please upload PDF, Word or Excel files.",
+      "fileTooLarge": "File size exceeds limit (max 10MB)",
+      "projectRequired": "Please select a project",
+      "vendorRequired": "Please select a vendor",
+      "amountRequired": "Please enter a valid quote amount",
+      "fileRequired": "Please select a file to upload"
+    },
+    "messages": {
+      "createSuccess": "Quote created successfully!",
+      "uploadSuccess": "Quote uploaded successfully!",
+      "updateSuccess": "Quote updated successfully!",
+      "loadError": "Failed to load quotes",
+      "notFound": "Quote not found. This quote may not exist or has been deleted.",
+      "hasRelatedPO": "This quote has been selected for a purchase order and cannot be modified.",
+      "cannotModify": "Project, vendor, and quote file cannot be modified. To change these, please delete this quote and upload a new one."
     }
   },
   "purchaseOrders": {
     "title": "Purchase Orders",
+    "description": "Manage and track purchase orders",
+    "viewMode": {
+      "cardView": "Card View",
+      "listView": "List View"
+    },
     "list": {
-      "title": "採購單列表",
-      "subtitle": "管理採購訂單",
-      "newPurchaseOrder": "新增採購單",
-      "search": "搜尋採購單...",
+      "title": "Purchase Order List",
+      "subtitle": "Manage purchase orders",
+      "search": "Search purchase orders...",
       "filter": {
         "all": "All",
-        "pending": "待處理",
+        "pending": "Pending",
         "completed": "Completed",
         "cancelled": "Cancelled"
-      },
-      "table": {
-        "poNumber": "採購單號",
-        "project": "所屬專案",
-        "vendor": "Vendors",
-        "amount": "採購金額",
-        "date": "採購日期",
-        "status": "狀態",
-        "actions": "操作"
       }
+    },
+    "filters": {
+      "allProjects": "All Projects",
+      "allVendors": "All Vendors"
+    },
+    "table": {
+      "poNumber": "PO Number",
+      "project": "Project",
+      "vendor": "Vendor",
+      "amount": "Amount",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions",
+      "expenses": "Expenses"
+    },
+    "fields": {
+      "name": "PO Name",
+      "description": "Description",
+      "project": "Project",
+      "vendor": "Vendor",
+      "relatedQuote": "Related Quote",
+      "date": "PO Date",
+      "totalAmount": "Total Amount"
+    },
+    "card": {
+      "expenseCount": "{count} expense(s)"
+    },
+    "pagination": {
+      "showing": "Showing {start} - {end} / {total} purchase orders"
+    },
+    "empty": {
+      "title": "No purchase orders",
+      "noItems": "Create your first purchase order",
+      "noFiltered": "No purchase orders match the current filters"
+    },
+    "errors": {
+      "loadFailed": "Failed to load purchase orders",
+      "notFound": "Purchase order not found. It may have been deleted or does not exist."
     },
     "detail": {
-      "title": "採購單詳情",
-      "info": "基本資訊",
-      "items": "採購項目",
-      "expenses": "關聯費用"
+      "breadcrumb": "Purchase Order Details",
+      "title": "Purchase Order Details",
+      "createdAt": "Created on: {date}",
+      "uploadedAt": "Uploaded on: {date}",
+      "purchaseInfo": "Purchase Information",
+      "relatedInfo": "Related Information",
+      "sections": {
+        "basic": "Basic Information",
+        "items": "Item Details",
+        "related": "Related Information",
+        "expenses": "Expense Records"
+      },
+      "items": {
+        "title": "Purchase Order Items",
+        "count": "{count} item(s)",
+        "empty": "No items",
+        "total": "Total"
+      },
+      "expenses": {
+        "title": "Expense Records",
+        "addExpense": "Add Expense",
+        "expenseDate": "Expense Date",
+        "invoice": "Invoice",
+        "empty": "No expense records",
+        "addFirst": "Add first expense",
+        "totalCount": "Total Expense Records",
+        "countLabel": "{count} record(s)",
+        "cumulativeAmount": "Cumulative Expense Amount"
+      }
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved"
+    },
+    "expenseStatus": {
+      "draft": "Draft",
+      "pending": "Pending Approval",
+      "approved": "Approved",
+      "paid": "Paid"
+    },
+    "items": {
+      "itemName": "Item Name",
+      "description": "Description",
+      "quantity": "Quantity",
+      "unitPrice": "Unit Price",
+      "subtotal": "Subtotal"
+    },
+    "new": {
+      "breadcrumb": "New Purchase Order",
+      "title": "New Purchase Order",
+      "description": "Fill in purchase order information and add item details"
     },
     "form": {
-      "create": {
-        "title": "新增採購單",
-        "subtitle": "建立新的採購訂單"
+      "newTitle": "New Purchase Order",
+      "editTitle": "Edit Purchase Order",
+      "title": "Purchase Order Information",
+      "basicInfo": "Basic Information",
+      "itemsSection": {
+        "title": "Purchase Order Items",
+        "addItem": "Add Item",
+        "addFirstItem": "Add First Item",
+        "noItems": "No items added yet",
+        "totalItems": "Total Items",
+        "totalAmount": "Total Amount"
       },
       "fields": {
+        "name": {
+          "label": "PO Name",
+          "placeholder": "e.g., Server Equipment Purchase"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Purchase order description..."
+        },
         "project": {
-          "label": "所屬專案",
-          "placeholder": "選擇專案"
+          "label": "Project",
+          "placeholder": "Select project"
         },
         "vendor": {
-          "label": "Vendors",
-          "placeholder": "選擇供應商"
+          "label": "Vendor",
+          "placeholder": "Select vendor"
         },
         "quote": {
-          "label": "Quotes",
-          "placeholder": "選擇報價單（選填）"
-        },
-        "amount": {
-          "label": "採購金額",
-          "placeholder": "0.00"
+          "label": "Related Quote (Optional)",
+          "placeholder": "Select quote (optional)"
         },
         "date": {
-          "label": "採購日期"
-        },
-        "notes": {
-          "label": "備註",
-          "placeholder": "其他說明..."
+          "label": "PO Date"
         }
+      },
+      "itemRow": {
+        "itemNamePlaceholder": "e.g., Dell PowerEdge R750",
+        "descriptionPlaceholder": "Detailed item description..."
+      },
+      "buttons": {
+        "create": "Create Purchase Order",
+        "update": "Update Purchase Order",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "createSuccess": "Purchase order created successfully",
+        "createSuccessDesc": "Purchase order {name} has been created",
+        "createFailed": "Failed to create",
+        "updateSuccess": "Purchase order updated successfully",
+        "updateSuccessDesc": "Purchase order {name} has been updated",
+        "updateFailed": "Failed to update",
+        "cannotDelete": "Cannot delete",
+        "minOneItem": "At least one item is required",
+        "validationFailed": "Validation failed",
+        "completeAllItems": "Please fill in all required fields for all items (name, quantity, unit price)"
       }
+    },
+    "actions": {
+      "create": "New Purchase Order",
+      "edit": "Edit",
+      "view": "View",
+      "delete": "Delete",
+      "backToList": "Back to Purchase Order List",
+      "title": "Actions",
+      "submit": "Submit for Approval",
+      "submitting": "Submitting...",
+      "approve": "Approve",
+      "approving": "Approving...",
+      "dialogs": {
+        "submitTitle": "Confirm Submission?",
+        "submitDesc": "After submission, the purchase order will enter the approval process.",
+        "submitWarning": "You will not be able to edit after submission. Please confirm all information is correct.",
+        "approveTitle": "Confirm Approval?",
+        "approveDesc": "After approval, the purchase order status will be updated to 'Approved'.",
+        "approveWarning": "Approval cannot be undone. Please confirm the purchase information is correct.",
+        "cancel": "Cancel",
+        "confirmSubmit": "Confirm Submit",
+        "confirmApprove": "Confirm Approve"
+      },
+      "toast": {
+        "submitSuccess": "Purchase order submitted",
+        "submitSuccessDesc": "Purchase order has been submitted, awaiting approval",
+        "submitFailed": "Failed to submit",
+        "approveSuccess": "Purchase order approved",
+        "approveSuccessDesc": "Purchase order status updated to 'Approved'",
+        "approveFailed": "Failed to approve",
+        "cannotSubmit": "Cannot submit",
+        "minOneItemToSubmit": "Please add at least one item before submitting"
+      },
+      "hints": {
+        "minOneItem": "Please add at least one item before submitting",
+        "waitingApproval": "Awaiting supervisor approval"
+      }
+    },
+    "messages": {
+      "createSuccess": "Purchase order created successfully",
+      "updateSuccess": "Purchase order updated successfully",
+      "submitSuccess": "Purchase order submitted, awaiting approval",
+      "approveSuccess": "Purchase order approved"
     }
   },
   "expenses": {
     "title": "Expenses",
+    "description": "Manage and approve all expense records",
+    "breadcrumb": "Expense Management",
     "list": {
-      "title": "費用列表",
-      "subtitle": "管理專案費用",
-      "newExpense": "新增費用",
-      "search": "搜尋費用...",
+      "title": "Expense List",
+      "subtitle": "Manage project expenses",
+      "newExpense": "New Expense",
+      "search": "Search expenses...",
+      "showing": "Showing {from} - {to} / {total} expenses",
+      "empty": "No expense records yet",
+      "noResults": "No expense records found for this filter",
+      "startRecording": "Start recording project expenses",
+      "addFirstExpense": "Add first expense",
       "filter": {
+        "allStatus": "All Status",
         "all": "All",
         "draft": "Draft",
         "pending": "Pending Approval",
+        "pendingApproval": "Pending Approval",
         "approved": "Approved",
-        "paid": "Paid"
+        "paid": "Paid",
+        "allPurchaseOrders": "All Purchase Orders"
+      },
+      "card": {
+        "purchaseOrder": "Purchase Order",
+        "project": "Project"
       },
       "table": {
-        "purchaseOrder": "Purchase Orders",
-        "amount": "費用金額",
-        "invoiceNumber": "發票號碼",
-        "date": "費用日期",
-        "status": "狀態",
-        "actions": "操作"
+        "amount": "Amount",
+        "status": "Status",
+        "purchaseOrder": "Purchase Order",
+        "project": "Project",
+        "date": "Expense Date",
+        "invoice": "Invoice",
+        "actions": "Actions"
+      },
+      "stats": {
+        "totalRecords": "Total Expenses",
+        "totalAmount": "Total Amount",
+        "pendingCount": "Pending Approval",
+        "paidCount": "Paid"
       }
     },
     "detail": {
-      "title": "費用詳情",
-      "info": "基本資訊",
-      "invoice": "發票資訊",
-      "approval": "審批狀態"
+      "title": "Expense Details",
+      "notFound": "Expense record not found. This record may not exist or has been deleted.",
+      "backToList": "Back to expense list",
+      "backToDetail": "Back to detail page",
+      "expenseInfo": "Expense Information",
+      "relatedInfo": "Related Information",
+      "items": "Expense Items",
+      "itemsCount": "{count} items total",
+      "noItems": "No expense items yet",
+      "total": "Total",
+      "fields": {
+        "name": "Expense Record Name",
+        "description": "Description",
+        "invoiceNumber": "Invoice Number",
+        "invoiceDate": "Invoice Date",
+        "expenseDate": "Expense Date",
+        "totalAmount": "Total Amount",
+        "project": "Project",
+        "purchaseOrder": "Purchase Order",
+        "vendor": "Vendor",
+        "chargeOut": "Requires Charge-Out",
+        "operationMaint": "Operation & Maintenance"
+      }
+    },
+    "new": {
+      "title": "Create New Expense Record",
+      "subtitle": "Fill in expense information and add expense items"
     },
     "form": {
       "create": {
-        "title": "新增費用",
-        "subtitle": "記錄新的費用支出"
+        "title": "New Expense",
+        "subtitle": "Record a new expense"
       },
       "edit": {
-        "title": "編輯費用",
-        "subtitle": "更新費用資訊"
+        "title": "Edit Expense",
+        "subtitle": "Update expense information"
       },
+      "basicInfo": "Basic Information",
+      "expenseItems": "Expense Items",
+      "addItem": "Add Expense Item",
+      "addFirstItem": "Add first expense item",
+      "noItems": "No expense items added yet",
+      "totalItems": "Total Items",
+      "totalAmount": "Total Expense Amount",
       "fields": {
+        "name": {
+          "label": "Expense Name",
+          "placeholder": "e.g. Q1 Server Maintenance",
+          "required": true
+        },
+        "description": {
+          "label": "Description (Optional)",
+          "placeholder": "Expense record description..."
+        },
         "purchaseOrder": {
-          "label": "Purchase Orders",
-          "placeholder": "選擇採購單"
+          "label": "Related Purchase Order",
+          "placeholder": "Select purchase order",
+          "required": true
         },
-        "amount": {
-          "label": "費用金額",
-          "placeholder": "0.00"
+        "project": {
+          "label": "Related Project",
+          "placeholder": "Select project",
+          "required": true
         },
-        "date": {
-          "label": "費用日期"
+        "vendor": {
+          "label": "Vendor (Optional)",
+          "placeholder": "None"
+        },
+        "budgetCategory": {
+          "label": "Budget Category (Optional)",
+          "placeholder": "None"
         },
         "invoiceNumber": {
-          "label": "發票號碼",
-          "placeholder": "例如：INV-2024-001"
+          "label": "Invoice Number",
+          "placeholder": "e.g. AB-12345678",
+          "required": true
         },
-        "invoiceFile": {
-          "label": "發票檔案",
-          "placeholder": "上傳發票 PDF 或圖片"
+        "invoiceDate": {
+          "label": "Invoice Date",
+          "required": true
         },
-        "notes": {
-          "label": "備註",
-          "placeholder": "其他說明..."
+        "expenseDate": {
+          "label": "Expense Date"
+        },
+        "requiresChargeOut": {
+          "label": "Deduct from Budget Pool",
+          "description": "Check this if this expense needs to be deducted from the project budget pool"
+        },
+        "isOperationMaint": {
+          "label": "Operation & Maintenance Expense",
+          "description": "Check this if this is an operation and maintenance expense"
         }
+      },
+      "itemFields": {
+        "itemName": {
+          "label": "Item Name",
+          "placeholder": "e.g. Server Maintenance",
+          "required": true
+        },
+        "amount": {
+          "label": "Amount",
+          "placeholder": "0.00",
+          "required": true
+        },
+        "category": {
+          "label": "Category (Optional)",
+          "placeholder": "None",
+          "options": {
+            "hardware": "Hardware",
+            "software": "Software",
+            "consulting": "Consulting",
+            "maintenance": "Maintenance",
+            "other": "Other"
+          }
+        },
+        "description": {
+          "label": "Description (Optional)",
+          "placeholder": "Item description..."
+        }
+      },
+      "validation": {
+        "atLeastOneItem": "At least one expense item is required",
+        "itemNameRequired": "Please fill in all required information (name, amount)"
       }
     },
     "actions": {
-      "submit": "提交審批",
-      "approve": "Approve",
-      "reject": "Reject",
-      "markAsPaid": "標記為已支付"
+      "operations": "Operations",
+      "submit": "Submit for Approval",
+      "submitDescription": "Submit expense record for approval",
+      "submitting": "Submitting...",
+      "submitConfirm": "Confirm submit for approval?",
+      "submitConfirmDesc": "Once submitted, the expense record will enter the approval workflow.\nYou cannot edit after submission. Please confirm all information is correct.",
+      "approve": "Approve Expense",
+      "approving": "Approving...",
+      "approveConfirm": "Confirm approve this expense record?",
+      "approveConfirmDesc": "Once approved, the status will be updated to \"Approved\".\nThis action cannot be undone. Please verify all information is correct.",
+      "approved": "Approved",
+      "needItems": "Please add at least one expense item before submitting",
+      "waitingApproval": "Awaiting supervisor approval",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "pendingApproval": "Pending Approval",
+      "approved": "Approved",
+      "paid": "Paid"
+    },
+    "validation": {
+      "nameRequired": "Expense name is required",
+      "purchaseOrderRequired": "Please select a purchase order",
+      "projectRequired": "Please select a project",
+      "invoiceNumberRequired": "Invoice number is required",
+      "invoiceDateRequired": "Invoice date is required",
+      "noItems": "Cannot submit. At least one expense item is required"
+    },
+    "messages": {
+      "createSuccess": "Expense record {name} created successfully",
+      "updateSuccess": "Expense record {name} updated successfully",
+      "submitSuccess": "Expense submitted. Awaiting supervisor approval.",
+      "approveSuccess": "Expense approved",
+      "createError": "Create failed",
+      "updateError": "Update failed",
+      "submitError": "Submit failed",
+      "approveError": "Approve failed",
+      "loadError": "Failed to load expenses",
+      "onlyDraftCanEdit": "Only draft expenses can be edited. Current status:"
     }
   },
   "omExpenses": {
@@ -898,6 +1280,37 @@
   },
   "notifications": {
     "title": "Notifications",
+    "description": "View and manage your notifications",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "actions": {
+      "markAllRead": "Mark all as read",
+      "markAsRead": "Mark as read",
+      "viewDetails": "View details",
+      "delete": "Delete notification"
+    },
+    "states": {
+      "loading": "Loading...",
+      "empty": {
+        "all": "No notifications",
+        "unread": "No unread notifications",
+        "read": "No read notifications"
+      },
+      "loadMore": "Load more"
+    },
+    "dropdown": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "loading": "Loading...",
+      "empty": "No notifications",
+      "viewAll": "View all notifications"
+    },
+    "aria": {
+      "notifications": "Notifications"
+    },
     "list": {
       "title": "通知中心",
       "markAllRead": "全部標記為已讀",
@@ -910,41 +1323,70 @@
       "expenseSubmitted": "費用已提交",
       "expenseApproved": "費用已批准",
       "expenseRejected": "費用已駁回"
-    },
-    "actions": {
-      "markRead": "標記為已讀",
-      "delete": "Delete"
     }
   },
   "settings": {
     "title": "Settings",
+    "description": "Manage your account settings and preferences",
+    "tabs": {
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "preferences": "Preferences",
+      "security": "Security"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Update your personal information",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "emailNote": "Email address is managed by system administrator and cannot be changed",
+      "save": "Save changes"
+    },
+    "notificationSettings": {
+      "title": "Notification Settings",
+      "description": "Manage how you receive notifications",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive system email notifications",
+      "proposalNotifications": "Budget Proposal Notifications",
+      "proposalNotificationsDesc": "Notify when proposal status changes",
+      "expenseNotifications": "Expense Approval Notifications",
+      "expenseNotificationsDesc": "Notify when expenses need approval",
+      "projectUpdates": "Project Update Notifications",
+      "projectUpdatesDesc": "Notify when projects have important updates"
+    },
+    "preferences": {
+      "title": "Display Preferences",
+      "description": "Customize system display settings",
+      "language": "Language",
+      "timezone": "Timezone",
+      "dateFormat": "Date Format"
+    },
+    "security": {
+      "title": "Security Settings",
+      "description": "Manage your account security",
+      "password": "Password",
+      "passwordNote": "Your password is managed through Azure AD B2C",
+      "changePassword": "Change Password",
+      "twoFactor": "Two-Factor Authentication",
+      "twoFactorNote": "Enhance account security (future feature)",
+      "enableTwoFactor": "Enable Two-Factor Authentication",
+      "activityLog": "Activity Log",
+      "activityLogNote": "View your account activity history",
+      "viewActivityLog": "View Activity Log"
+    },
+    "toast": {
+      "success": "Success",
+      "profileUpdated": "Profile updated",
+      "notificationsUpdated": "Notification settings updated",
+      "preferencesUpdated": "Preferences updated"
+    },
     "subtitle": "個人設定和偏好",
     "sections": {
       "profile": "Profile",
       "preferences": "偏好設定",
       "security": "安全設定",
       "notifications": "通知設定"
-    },
-    "profile": {
-      "title": "Profile",
-      "updateSuccess": "資料更新成功"
-    },
-    "preferences": {
-      "title": "偏好設定",
-      "language": "語言",
-      "theme": "主題",
-      "themes": {
-        "light": "淺色",
-        "dark": "深色",
-        "system": "跟隨系統"
-      }
-    },
-    "security": {
-      "title": "安全設定",
-      "changePassword": "變更密碼",
-      "currentPassword": "當前密碼",
-      "newPassword": "新密碼",
-      "confirmNewPassword": "確認新密碼"
     }
   },
   "validation": {
@@ -965,32 +1407,36 @@
     "invalidUrl": "請輸入有效的網址"
   },
   "toast": {
+    "success": "Success",
+    "error": "Error",
+    "creating": "Creating...",
+    "uploading": "Uploading...",
     "success": {
-      "title": "成功",
-      "created": "{entity} 創建成功！",
-      "updated": "{entity} 更新成功！",
-      "deleted": "{entity} 刪除成功！",
-      "submitted": "{entity} 提交成功！",
-      "approved": "{entity} 批准成功！",
-      "rejected": "{entity} 駁回成功！",
-      "saved": "儲存成功！"
+      "title": "Success",
+      "created": "{entity} created successfully!",
+      "updated": "{entity} updated successfully!",
+      "deleted": "{entity} deleted successfully!",
+      "submitted": "{entity} submitted successfully!",
+      "approved": "{entity} approved successfully!",
+      "rejected": "{entity} rejected successfully!",
+      "saved": "Saved successfully!"
     },
     "error": {
-      "title": "錯誤",
-      "general": "操作失敗，請稍後再試",
-      "network": "網路錯誤，請檢查您的連線",
-      "unauthorized": "您沒有權限執行此操作",
-      "notFound": "找不到資源",
-      "validation": "請檢查輸入的資料",
-      "server": "伺服器錯誤，請稍後再試"
+      "title": "Error",
+      "general": "Operation failed, please try again later",
+      "network": "Network error, please check your connection",
+      "unauthorized": "You don't have permission for this action",
+      "notFound": "Resource not found",
+      "validation": "Please check the input data",
+      "server": "Server error, please try again later"
     },
     "warning": {
-      "title": "警告",
-      "unsavedChanges": "您有未儲存的變更",
-      "confirmDelete": "確認刪除此項目？此操作無法復原"
+      "title": "Warning",
+      "unsavedChanges": "You have unsaved changes",
+      "confirmDelete": "Confirm delete? This action cannot be undone"
     },
     "info": {
-      "title": "提示",
+      "title": "Info",
       "loading": "Loading...",
       "processing": "Processing..."
     }
