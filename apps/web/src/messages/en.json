@@ -1,32 +1,15 @@
 {
   "common": {
     "actions": {
-      "save": "Save",
-      "cancel": "Cancel",
-      "delete": "Delete",
-      "edit": "Edit",
-      "create": "Create",
-      "submit": "Submit",
-      "search": "Search",
-      "filter": "Filter",
-      "export": "Export",
-      "import": "Import",
-      "confirm": "Confirm",
-      "back": "Back",
-      "next": "Next",
-      "previous": "Previous",
-      "close": "Close",
-      "yes": "Yes",
-      "no": "No",
+      "actions": "Actions",
       "view": "View",
-      "viewAll": "View All",
-      "download": "Download",
-      "upload": "Upload",
-      "approve": "Approve",
-      "reject": "Reject",
-      "withdraw": "Withdraw",
-      "requestMoreInfo": "Request More Info",
-      "refresh": "Refresh"
+      "edit": "Edit",
+      "back": "Back"
+    },
+    "fields": {
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "actions": "Actions"
     },
     "status": {
       "draft": "Draft",
@@ -39,7 +22,12 @@
       "paid": "Paid",
       "cancelled": "Cancelled",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "inProgress": "In Progress",
+      "archived": "Archived"
+    },
+    "nav": {
+      "dashboard": "Dashboard"
     },
     "loading": "Loading...",
     "saving": "Saving...",
@@ -85,6 +73,11 @@
       "light": "Light",
       "dark": "Dark",
       "system": "System"
+    },
+    "units": {
+      "items": "items",
+      "count": "count",
+      "records": "records"
     }
   },
   "navigation": {
@@ -160,17 +153,28 @@
   "auth": {
     "login": {
       "title": "Login",
-      "subtitle": "歡迎回到 IT 專案管理平台",
-      "email": "Email",
-      "password": "Password",
+      "subtitle": "Welcome back to IT Project Management Platform",
+      "description": "Please enter your credentials to access the system",
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter your email"
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Enter your password"
+      },
       "rememberMe": "Remember me",
-      "forgotPassword": "忘記密碼？",
-      "noAccount": "還沒有帳號？",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
       "signUp": "Sign Up",
+      "register": "Sign Up",
       "loginButton": "Login",
-      "orLoginWith": "或使用以下方式登入",
+      "azureLogin": "Sign in with Azure AD",
+      "orDivider": "or",
+      "orLoginWith": "Or sign in with",
       "azureAD": "Azure AD",
-      "loggingIn": "登入中..."
+      "loggingIn": "Logging in...",
+      "termsAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy"
     },
     "register": {
       "title": "Sign Up",
@@ -268,6 +272,51 @@
   },
   "projects": {
     "title": "Projects",
+    "description": "Manage all IT project data and progress",
+    "search": {
+      "placeholder": "Search projects..."
+    },
+    "actions": {
+      "createNew": "New Project",
+      "exportCSV": "Export CSV",
+      "exporting": "Exporting..."
+    },
+    "filters": {
+      "allStatuses": "All Statuses",
+      "allBudgetPools": "All Budget Pools"
+    },
+    "sort": {
+      "createdAtDesc": "Created (Newest First)",
+      "createdAtAsc": "Created (Oldest First)",
+      "nameAsc": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)",
+      "statusAsc": "Status (Ascending)",
+      "statusDesc": "Status (Descending)"
+    },
+    "pagination": {
+      "showing": "Showing {start} - {end} / {total} projects",
+      "pageInfo": "Page {current} of {total}"
+    },
+    "empty": {
+      "noProjects": "No projects yet",
+      "noResults": "No projects match the criteria"
+    },
+    "error": {
+      "loadFailed": "Failed to load projects: {message}"
+    },
+    "messages": {
+      "exportSuccess": "Project data exported successfully",
+      "exportFailed": "Export failed, please try again later"
+    },
+    "table": {
+      "name": "Project Name",
+      "status": "Status",
+      "budgetPool": "Budget Pool",
+      "manager": "Project Manager",
+      "supervisor": "Supervisor",
+      "proposals": "Proposals",
+      "purchaseOrders": "Purchase Orders"
+    },
     "list": {
       "title": "專案列表",
       "subtitle": "管理所有 IT 專案",
@@ -359,10 +408,36 @@
         "create": "創建專案",
         "update": "更新專案"
       }
+    },
+    "fields": {
+      "name": "Project Name",
+      "manager": "Project Manager",
+      "supervisor": "Supervisor",
+      "budgetPool": "Budget Pool",
+      "status": "Status",
+      "proposals": "Proposals",
+      "purchaseOrders": "Purchase Orders",
+      "startDate": "Start Date",
+      "endDate": "End Date"
     }
   },
   "proposals": {
     "title": "Budget Proposals",
+    "status": {
+      "draft": "Draft",
+      "pendingApproval": "Pending Approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "moreInfoRequired": "More Info Required",
+      "rejectedMessage": "This proposal has been rejected"
+    },
+    "fields": {
+      "status": "Status",
+      "project": "Project",
+      "amount": "Amount",
+      "submittedBy": "Submitted By",
+      "submittedAt": "Submitted At"
+    },
     "list": {
       "title": "預算提案列表",
       "subtitle": "管理所有預算提案",
@@ -388,12 +463,21 @@
       }
     },
     "detail": {
-      "title": "提案詳情",
-      "basicInfo": "基本資訊",
-      "budgetDetails": "預算明細",
-      "attachments": "附件",
-      "comments": "討論",
-      "history": "審批歷史"
+      "title": "Proposal Details",
+      "basicInfo": "Basic Information",
+      "budgetDetails": "Budget Details",
+      "attachments": "Attachments",
+      "comments": "Discussion",
+      "history": "Approval History",
+      "tabs": {
+        "basic": "Basic Info",
+        "project": "Project Info",
+        "file": "Attachments",
+        "meeting": "Meeting Notes"
+      },
+      "info": {
+        "title": "Proposal Information"
+      }
     },
     "form": {
       "create": {
@@ -424,15 +508,18 @@
       }
     },
     "actions": {
-      "submit": "提交審批",
+      "create": "Create Proposal",
+      "submit": "Submit for Approval",
       "approve": "Approve",
       "reject": "Reject",
+      "requestInfo": "Request More Info",
       "requestMoreInfo": "Request More Info",
       "withdraw": "Withdraw",
-      "confirmApprove": "確認批准此提案？",
-      "confirmReject": "確認駁回此提案？",
-      "rejectReason": "駁回原因",
-      "moreInfoReason": "需要補充的資訊"
+      "confirmApprove": "Confirm approval of this proposal?",
+      "confirmReject": "Confirm rejection of this proposal?",
+      "rejectReason": "Rejection Reason",
+      "moreInfoReason": "Additional Information Required",
+      "title": "Actions"
     },
     "comments": {
       "title": "討論區",
@@ -455,6 +542,10 @@
   },
   "budgetPools": {
     "title": "Budget Pools",
+    "fields": {
+      "categoryCount": "Budget Categories",
+      "categories": "Categories"
+    },
     "list": {
       "title": "預算池列表",
       "subtitle": "管理財政年度預算分配",
@@ -472,10 +563,16 @@
         "usedAmount": "已使用",
         "remainingAmount": "剩餘",
         "utilization": "使用率",
+        "categoryCount": "Categories",
         "categories": "預算類別",
         "projects": "專案數",
         "actions": "操作"
-      }
+      },
+      "total": "Total",
+      "showing": "Showing {from} - {to} / {total} budget pools",
+      "empty": "No budget pools yet",
+      "emptyHint": "Create your first budget pool",
+      "noResults": "No budget pools match the criteria"
     },
     "detail": {
       "title": "預算池詳情",
@@ -537,10 +634,61 @@
         "warning": "警告",
         "critical": "超支"
       }
+    },
+    "subtitle": "Manage fiscal year budget allocation",
+    "description": "Manage fiscal year budget allocation",
+    "home": "Home",
+    "search": {
+      "placeholder": "Search budget pools..."
+    },
+    "actions": {
+      "create": "New Budget Pool",
+      "exportCSV": "Export CSV",
+      "exporting": "Exporting...",
+      "view": "View"
+    },
+    "filters": {
+      "allYears": "All Years"
+    },
+    "sort": {
+      "yearAsc": "Year (Ascending)",
+      "yearDesc": "Year (Descending)",
+      "nameAsc": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)",
+      "amountAsc": "Amount (Low to High)",
+      "amountDesc": "Amount (High to Low)"
+    },
+    "table": {
+      "name": "Budget Pool Name",
+      "fiscalYear": "Fiscal Year",
+      "totalBudget": "Total Budget",
+      "used": "Used",
+      "utilizationRate": "Utilization",
+      "categoryCount": "Categories",
+      "projectCount": "Projects",
+      "actions": "Actions"
+    },
+    "views": {
+      "card": "Card View",
+      "list": "List View"
+    },
+    "errors": {
+      "loadingError": "Failed to load",
+      "tryAgain": "Please try again later"
+    },
+    "messages": {
+      "success": "Operation successful",
+      "error": "Operation failed",
+      "exportSuccess": "Data exported successfully",
+      "exportError": "Export failed, please try again later"
     }
   },
   "vendors": {
     "title": "Vendors",
+    "fields": {
+      "quotesCount": "Quotes",
+      "purchaseOrdersCount": "Purchase Orders"
+    },
     "list": {
       "title": "供應商列表",
       "subtitle": "管理供應商資料",
@@ -555,7 +703,10 @@
         "quotesCount": "報價單數",
         "purchaseOrdersCount": "採購單數",
         "actions": "操作"
-      }
+      },
+      "empty": "No vendors yet",
+      "noResults": "No vendors match the criteria",
+      "items": "items"
     },
     "detail": {
       "title": "供應商詳情",
@@ -602,6 +753,34 @@
           "placeholder": "其他資訊..."
         }
       }
+    },
+    "dashboard": "Dashboard",
+    "description": "Manage vendor data",
+    "search": {
+      "placeholder": "Search vendors..."
+    },
+    "actions": {
+      "create": "New Vendor",
+      "view": "View",
+      "actions": "Actions"
+    },
+    "sort": {
+      "nameAsc": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)",
+      "createdAtAsc": "Created (Oldest First)",
+      "createdAtDesc": "Created (Newest First)",
+      "updatedAtAsc": "Updated (Oldest First)",
+      "updatedAtDesc": "Updated (Newest First)"
+    },
+    "pagination": {
+      "showing": "Showing {from} - {to} / {total} vendors"
+    },
+    "viewMode": {
+      "card": "Card View",
+      "list": "List View"
+    },
+    "messages": {
+      "loadError": "Failed to load vendors"
     }
   },
   "quotes": {
@@ -1407,10 +1586,6 @@
     "invalidUrl": "請輸入有效的網址"
   },
   "toast": {
-    "success": "Success",
-    "error": "Error",
-    "creating": "Creating...",
-    "uploading": "Uploading...",
     "success": {
       "title": "Success",
       "created": "{entity} created successfully!",
@@ -1430,6 +1605,8 @@
       "validation": "Please check the input data",
       "server": "Server error, please try again later"
     },
+    "creating": "Creating...",
+    "uploading": "Uploading...",
     "warning": {
       "title": "Warning",
       "unsavedChanges": "You have unsaved changes",

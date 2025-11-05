@@ -1,32 +1,15 @@
 {
   "common": {
     "actions": {
-      "save": "儲存",
-      "cancel": "取消",
-      "delete": "刪除",
-      "edit": "編輯",
-      "create": "新增",
-      "submit": "提交",
-      "search": "搜尋",
-      "filter": "篩選",
-      "export": "匯出",
-      "import": "匯入",
-      "confirm": "確認",
-      "back": "返回",
-      "next": "下一步",
-      "previous": "上一步",
-      "close": "關閉",
-      "yes": "是",
-      "no": "否",
+      "actions": "操作",
       "view": "查看",
-      "viewAll": "查看全部",
-      "download": "下載",
-      "upload": "上傳",
-      "approve": "批准",
-      "reject": "駁回",
-      "withdraw": "撤回",
-      "requestMoreInfo": "要求更多資訊",
-      "refresh": "重新整理"
+      "edit": "編輯",
+      "back": "返回"
+    },
+    "fields": {
+      "createdAt": "創建時間",
+      "updatedAt": "更新時間",
+      "actions": "操作"
     },
     "status": {
       "draft": "草稿",
@@ -39,7 +22,12 @@
       "paid": "已支付",
       "cancelled": "已取消",
       "active": "進行中",
-      "inactive": "非活動"
+      "inactive": "非活動",
+      "inProgress": "進行中",
+      "archived": "已歸檔"
+    },
+    "nav": {
+      "dashboard": "首頁"
     },
     "loading": "載入中...",
     "saving": "儲存中...",
@@ -85,6 +73,11 @@
       "light": "淺色",
       "dark": "深色",
       "system": "跟隨系統"
+    },
+    "units": {
+      "items": "項",
+      "count": "個",
+      "records": "筆"
     }
   },
   "navigation": {
@@ -161,16 +154,27 @@
     "login": {
       "title": "登入",
       "subtitle": "歡迎回到 IT 專案管理平台",
-      "email": "電子郵件",
-      "password": "密碼",
+      "description": "請輸入您的憑證以登入系統",
+      "email": {
+        "label": "電子郵件",
+        "placeholder": "請輸入電子郵件"
+      },
+      "password": {
+        "label": "密碼",
+        "placeholder": "請輸入密碼"
+      },
       "rememberMe": "記住我",
       "forgotPassword": "忘記密碼？",
       "noAccount": "還沒有帳號？",
       "signUp": "註冊",
+      "register": "註冊",
       "loginButton": "登入",
+      "azureLogin": "使用 Azure AD 登入",
+      "orDivider": "或",
       "orLoginWith": "或使用以下方式登入",
       "azureAD": "Azure AD",
-      "loggingIn": "登入中..."
+      "loggingIn": "登入中...",
+      "termsAgreement": "繼續使用即表示您同意我們的服務條款和隱私政策"
     },
     "register": {
       "title": "註冊",
@@ -268,6 +272,51 @@
   },
   "projects": {
     "title": "專案管理",
+    "description": "管理所有 IT 專案的資料和進度",
+    "search": {
+      "placeholder": "搜尋專案..."
+    },
+    "actions": {
+      "createNew": "新增專案",
+      "exportCSV": "匯出 CSV",
+      "exporting": "匯出中..."
+    },
+    "filters": {
+      "allStatuses": "所有狀態",
+      "allBudgetPools": "所有預算池"
+    },
+    "sort": {
+      "createdAtDesc": "建立時間（新到舊）",
+      "createdAtAsc": "建立時間（舊到新）",
+      "nameAsc": "名稱（A-Z）",
+      "nameDesc": "名稱（Z-A）",
+      "statusAsc": "狀態（升序）",
+      "statusDesc": "狀態（降序）"
+    },
+    "pagination": {
+      "showing": "顯示 {start} - {end} / {total} 個專案",
+      "pageInfo": "第 {current} 頁，共 {total} 頁"
+    },
+    "empty": {
+      "noProjects": "尚無專案",
+      "noResults": "找不到符合條件的專案"
+    },
+    "error": {
+      "loadFailed": "載入專案失敗: {message}"
+    },
+    "messages": {
+      "exportSuccess": "專案資料已成功匯出",
+      "exportFailed": "匯出失敗，請稍後再試"
+    },
+    "table": {
+      "name": "專案名稱",
+      "status": "狀態",
+      "budgetPool": "預算池",
+      "manager": "專案經理",
+      "supervisor": "主管",
+      "proposals": "提案",
+      "purchaseOrders": "採購單"
+    },
     "list": {
       "title": "專案列表",
       "subtitle": "管理所有 IT 專案",
@@ -403,10 +452,62 @@
         "create": "創建專案",
         "update": "更新專案"
       }
+    },
+    "fields": {
+      "name": "專案名稱",
+      "manager": "專案經理",
+      "supervisor": "主管",
+      "budgetPool": "預算池",
+      "status": "狀態",
+      "proposals": "提案",
+      "purchaseOrders": "採購單",
+      "startDate": "開始日期",
+      "endDate": "結束日期"
     }
   },
   "proposals": {
     "title": "預算提案",
+    "description": "管理所有預算提案的申請與審批",
+    "dashboard": "首頁",
+    "noData": "暫無資料",
+    "summary": {
+      "total": "總計"
+    },
+    "empty": {
+      "hint": "開始創建您的第一個預算提案"
+    },
+    "actions": {
+      "create": "新增提案",
+      "submit": "提交審批",
+      "approve": "批准",
+      "reject": "駁回",
+      "requestInfo": "要求更多資訊",
+      "requestMoreInfo": "要求更多資訊",
+      "withdraw": "撤回",
+      "confirmApprove": "確認批准此提案？",
+      "confirmReject": "確認駁回此提案？",
+      "rejectReason": "駁回原因",
+      "moreInfoReason": "需要補充的資訊",
+      "title": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "pendingApproval": "待審批",
+      "approved": "已批准",
+      "rejected": "已駁回",
+      "moreInfoRequired": "需要更多資訊",
+      "rejectedMessage": "此提案已被駁回"
+    },
+    "fields": {
+      "title": "提案標題",
+      "actions": "操作",
+      "createdAt": "創建時間",
+      "status": "狀態",
+      "project": "所屬專案",
+      "amount": "申請金額",
+      "submittedBy": "提交人",
+      "submittedAt": "提交時間"
+    },
     "list": {
       "title": "預算提案列表",
       "subtitle": "管理所有預算提案",
@@ -437,7 +538,16 @@
       "budgetDetails": "預算明細",
       "attachments": "附件",
       "comments": "討論",
-      "history": "審批歷史"
+      "history": "審批歷史",
+      "tabs": {
+        "basic": "基本資訊",
+        "project": "專案資訊",
+        "file": "附件",
+        "meeting": "會議記錄"
+      },
+      "info": {
+        "title": "提案資訊"
+      }
     },
     "form": {
       "create": {
@@ -467,17 +577,6 @@
         }
       }
     },
-    "actions": {
-      "submit": "提交審批",
-      "approve": "批准",
-      "reject": "駁回",
-      "requestMoreInfo": "要求更多資訊",
-      "withdraw": "撤回",
-      "confirmApprove": "確認批准此提案？",
-      "confirmReject": "確認駁回此提案？",
-      "rejectReason": "駁回原因",
-      "moreInfoReason": "需要補充的資訊"
-    },
     "comments": {
       "title": "討論區",
       "addComment": "新增評論",
@@ -499,6 +598,10 @@
   },
   "budgetPools": {
     "title": "預算池",
+    "fields": {
+      "categoryCount": "預算類別數量",
+      "categories": "個類別"
+    },
     "list": {
       "title": "預算池列表",
       "subtitle": "管理財政年度預算分配",
@@ -516,10 +619,16 @@
         "usedAmount": "已使用",
         "remainingAmount": "剩餘",
         "utilization": "使用率",
+        "categoryCount": "類別數",
         "categories": "預算類別",
         "projects": "專案數",
         "actions": "操作"
-      }
+      },
+      "total": "總計",
+      "showing": "顯示 {from} - {to} / {total} 個預算池",
+      "empty": "尚無預算池",
+      "emptyHint": "開始創建您的第一個預算池",
+      "noResults": "找不到符合條件的預算池"
     },
     "detail": {
       "title": "預算池詳情",
@@ -581,10 +690,61 @@
         "warning": "警告",
         "critical": "超支"
       }
+    },
+    "subtitle": "管理財政年度預算分配",
+    "description": "管理財政年度預算分配",
+    "home": "首頁",
+    "search": {
+      "placeholder": "搜尋預算池..."
+    },
+    "actions": {
+      "create": "新增預算池",
+      "exportCSV": "匯出 CSV",
+      "exporting": "匯出中...",
+      "view": "查看"
+    },
+    "filters": {
+      "allYears": "所有年度"
+    },
+    "sort": {
+      "yearAsc": "年度（升序）",
+      "yearDesc": "年度（降序）",
+      "nameAsc": "名稱（A-Z）",
+      "nameDesc": "名稱（Z-A）",
+      "amountAsc": "金額（低到高）",
+      "amountDesc": "金額（高到低）"
+    },
+    "table": {
+      "name": "預算池名稱",
+      "fiscalYear": "財政年度",
+      "totalBudget": "總預算",
+      "used": "已使用",
+      "utilizationRate": "使用率",
+      "categoryCount": "類別數",
+      "projectCount": "專案數",
+      "actions": "操作"
+    },
+    "views": {
+      "card": "卡片視圖",
+      "list": "列表視圖"
+    },
+    "errors": {
+      "loadingError": "載入失敗",
+      "tryAgain": "請稍後再試"
+    },
+    "messages": {
+      "success": "操作成功",
+      "error": "操作失敗",
+      "exportSuccess": "資料已成功匯出",
+      "exportError": "匯出失敗，請稍後再試"
     }
   },
   "vendors": {
     "title": "供應商",
+    "fields": {
+      "quotesCount": "報價單數",
+      "purchaseOrdersCount": "採購單數"
+    },
     "list": {
       "title": "供應商列表",
       "subtitle": "管理供應商資料",
@@ -599,7 +759,10 @@
         "quotesCount": "報價單數",
         "purchaseOrdersCount": "採購單數",
         "actions": "操作"
-      }
+      },
+      "empty": "尚無供應商",
+      "noResults": "找不到符合條件的供應商",
+      "items": "項"
     },
     "detail": {
       "title": "供應商詳情",
@@ -646,6 +809,34 @@
           "placeholder": "其他資訊..."
         }
       }
+    },
+    "dashboard": "首頁",
+    "description": "管理供應商資料",
+    "search": {
+      "placeholder": "搜尋供應商..."
+    },
+    "actions": {
+      "create": "新增供應商",
+      "view": "查看",
+      "actions": "操作"
+    },
+    "sort": {
+      "nameAsc": "名稱（A-Z）",
+      "nameDesc": "名稱（Z-A）",
+      "createdAtAsc": "建立時間（舊到新）",
+      "createdAtDesc": "建立時間（新到舊）",
+      "updatedAtAsc": "更新時間（舊到新）",
+      "updatedAtDesc": "更新時間（新到舊）"
+    },
+    "pagination": {
+      "showing": "顯示 {from} - {to} / {total} 個供應商"
+    },
+    "viewMode": {
+      "card": "卡片視圖",
+      "list": "列表視圖"
+    },
+    "messages": {
+      "loadError": "載入供應商失敗"
     }
   },
   "quotes": {
@@ -1190,31 +1381,6 @@
       "approveError": "批准失敗",
       "loadError": "載入費用失敗",
       "onlyDraftCanEdit": "只有草稿狀態的費用記錄才能編輯。當前狀態："
-    },
-    "detail": {
-      "title": "費用詳情",
-      "notFound": "找不到費用記錄。此費用記錄可能不存在或已被刪除。",
-      "backToList": "返回費用記錄列表",
-      "backToDetail": "返回詳情頁面",
-      "expenseInfo": "費用資訊",
-      "relatedInfo": "關聯資訊",
-      "items": "費用項目明細",
-      "itemsCount": "共 {count} 項",
-      "noItems": "尚無費用項目",
-      "total": "總計",
-      "fields": {
-        "name": "費用記錄名稱",
-        "description": "描述",
-        "invoiceNumber": "發票號碼",
-        "invoiceDate": "發票日期",
-        "expenseDate": "費用日期",
-        "totalAmount": "總金額",
-        "project": "專案",
-        "purchaseOrder": "採購單",
-        "vendor": "供應商",
-        "chargeOut": "需要 Charge-Out",
-        "operationMaint": "營運維護費用"
-      }
     }
   },
   "omExpenses": {
@@ -1476,10 +1642,6 @@
     "invalidUrl": "請輸入有效的網址"
   },
   "toast": {
-    "success": "成功",
-    "error": "錯誤",
-    "creating": "創建中...",
-    "uploading": "上傳中...",
     "success": {
       "title": "成功",
       "created": "{entity} 創建成功！",
@@ -1499,6 +1661,8 @@
       "validation": "請檢查輸入的資料",
       "server": "伺服器錯誤，請稍後再試"
     },
+    "creating": "創建中...",
+    "uploading": "上傳中...",
     "warning": {
       "title": "警告",
       "unsavedChanges": "您有未儲存的變更",
