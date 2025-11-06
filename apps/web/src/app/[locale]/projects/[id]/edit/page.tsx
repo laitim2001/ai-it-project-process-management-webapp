@@ -28,6 +28,7 @@ export default function EditProjectPage() {
 
   const params = useParams();
   const projectId = params.id as string;
+  const locale = params.locale as string;
 
   const { data: project, isLoading } = api.project.getById.useQuery({ id: projectId });
 
@@ -90,11 +91,11 @@ export default function EditProjectPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/projects">{tNav('projects')}</BreadcrumbLink>
+                <BreadcrumbLink href={`/${locale}/projects`}>{tNav('projects')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -129,15 +130,15 @@ export default function EditProjectPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/projects">{tNav('projects')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/projects`}>{tNav('projects')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/projects/${projectId}`}>{project.name}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/projects/${projectId}`}>{project.name}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

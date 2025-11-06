@@ -193,7 +193,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
       {/* 已拒絕狀態 */}
       {status === 'Rejected' && (
         <div className="rounded-md bg-red-50 p-4 text-center">
-          <p className="text-sm font-medium text-red-800">{t('status.rejected.message')}</p>
+          <p className="text-sm font-medium text-red-800">{t('status.rejectedMessage')}</p>
         </div>
       )}
     </div>

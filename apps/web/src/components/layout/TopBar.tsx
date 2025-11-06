@@ -16,7 +16,7 @@ import { Search, Menu, LogOut, User, Settings, ChevronDown, Bell } from "lucide-
 import { useSession, signOut } from "next-auth/react"
 import { useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/Button"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/Input"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,

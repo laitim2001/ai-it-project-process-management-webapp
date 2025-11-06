@@ -35,6 +35,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 export default function ProjectDetailPage() {
   const t = useTranslations('projects.detail');
   const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation.menu');
   const tStatus = useTranslations('common.status');
   const tToast = useTranslations('toast');
 
@@ -46,6 +47,7 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const { toast } = useToast();
   const id = params.id as string;
+  const locale = params.locale as string;
 
   // 專案狀態映射
   const getProjectStatusLabel = (status: string) => {
@@ -56,6 +58,21 @@ export default function ProjectDetailPage() {
       Archived: tStatus('inactive'),
     };
     return statusMap[status] || status;
+  };
+
+  // 專案狀態配置 (包含 variant) - FIX-061
+  const getProjectStatusConfig = (status: string) => {
+    const configs = {
+      Draft: { variant: 'outline' as const },
+      InProgress: { variant: 'secondary' as const },
+      Completed: { variant: 'default' as const },
+      Archived: { variant: 'outline' as const },
+    };
+    const config = configs[status as keyof typeof configs];
+    return {
+      label: getProjectStatusLabel(status),
+      variant: config?.variant || ('outline' as const),
+    };
   };
 
   // 專案狀態 variant 映射
@@ -91,6 +108,14 @@ export default function ProjectDetailPage() {
       MoreInfoRequired: 'warning',
     };
     return variantMap[status] || 'default';
+  };
+
+  // 提案狀態配置 (組合 label 和 variant) - FIX-061
+  const getProposalStatusConfig = (status: string) => {
+    return {
+      label: getProposalStatusLabel(status),
+      variant: getProposalStatusVariant(status),
+    };
   };
 
   // ============================================================
@@ -197,11 +222,11 @@ export default function ProjectDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/projects">專案</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/projects`}>{tNav('projects')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -216,8 +241,8 @@ export default function ProjectDetailPage() {
             <div>
               <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant={PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].variant}>
-                  {PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].label}
+                <Badge variant={getProjectStatusConfig(project.status).variant}>
+                  {getProjectStatusConfig(project.status).label}
                 </Badge>
               </div>
             </div>
@@ -226,7 +251,7 @@ export default function ProjectDetailPage() {
             <Link href={`/projects/${id}/edit`}>
               <Button variant="outline" size="default">
                 <Edit className="h-4 w-4 mr-2" />
-                編輯專案
+                {t('editProject')}
               </Button>
             </Link>
             <Button
@@ -235,7 +260,7 @@ export default function ProjectDetailPage() {
               disabled={deleteMutation.isLoading}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {deleteMutation.isLoading ? '刪除中...' : '刪除專案'}
+              {deleteMutation.isLoading ? t('deleting') : t('deleteProject')}
             </Button>
           </div>
         </div>
@@ -246,26 +271,26 @@ export default function ProjectDetailPage() {
             {/* 專案基本資訊 */}
             <Card>
               <CardHeader>
-                <CardTitle>專案資訊</CardTitle>
+                <CardTitle>{t('projectInfo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {project.description && (
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground mb-1">專案描述</dt>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">{t('projectDescription')}</dt>
                     <dd className="text-foreground">{project.description}</dd>
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">創建時間</dt>
+                    <dt className="text-sm font-medium text-muted-foreground">{t('createdAt')}</dt>
                     <dd className="text-foreground font-medium mt-1">
-                      {new Date(project.createdAt).toLocaleDateString('zh-TW')}
+                      {new Date(project.createdAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">最後更新</dt>
+                    <dt className="text-sm font-medium text-muted-foreground">{t('updatedAt')}</dt>
                     <dd className="text-foreground font-medium mt-1">
-                      {new Date(project.updatedAt).toLocaleDateString('zh-TW')}
+                      {new Date(project.updatedAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
                     </dd>
                   </div>
                 </div>
@@ -278,7 +303,7 @@ export default function ProjectDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    專案統計
+                    {t('projectStats')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -287,27 +312,27 @@ export default function ProjectDetailPage() {
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <FileText className="h-4 w-4" />
-                        預算提案
+                        {t('budgetProposals')}
                       </h3>
                       <dl className="space-y-2">
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">提案總數</dt>
+                          <dt className="text-sm text-muted-foreground">{t('totalProposals')}</dt>
                           <dd className="font-medium text-foreground">{stats.totalProposals}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">已批准</dt>
+                          <dt className="text-sm text-muted-foreground">{t('approvedProposals')}</dt>
                           <dd className="font-medium text-green-600">
                             {stats.approvedProposals}
                           </dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">提案總金額</dt>
+                          <dt className="text-sm text-muted-foreground">{t('totalProposedAmount')}</dt>
                           <dd className="font-medium text-foreground">
                             ${stats.totalProposedAmount.toLocaleString()}
                           </dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">已批准金額</dt>
+                          <dt className="text-sm text-muted-foreground">{t('approvedAmount')}</dt>
                           <dd className="font-medium text-green-600">
                             ${stats.approvedAmount.toLocaleString()}
                           </dd>
@@ -319,25 +344,25 @@ export default function ProjectDetailPage() {
                     <div className="space-y-3 border-l pl-6">
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <Package className="h-4 w-4" />
-                        採購與費用
+                        {t('procurementAndExpenses')}
                       </h3>
                       <dl className="space-y-2">
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">採購單數量</dt>
+                          <dt className="text-sm text-muted-foreground">{t('totalPurchaseOrders')}</dt>
                           <dd className="font-medium text-foreground">{stats.totalPurchaseOrders}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">採購總金額</dt>
+                          <dt className="text-sm text-muted-foreground">{t('totalPurchaseAmount')}</dt>
                           <dd className="font-medium text-foreground">
                             ${stats.totalPurchaseAmount.toLocaleString()}
                           </dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">費用記錄數</dt>
+                          <dt className="text-sm text-muted-foreground">{t('totalExpenses')}</dt>
                           <dd className="font-medium text-foreground">{stats.totalExpenses}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-sm text-muted-foreground">已支付金額</dt>
+                          <dt className="text-sm text-muted-foreground">{t('paidExpenseAmount')}</dt>
                           <dd className="font-medium text-primary">
                             ${stats.paidExpenseAmount.toLocaleString()}
                           </dd>
@@ -355,19 +380,19 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    預算提案 ({project.proposals.length})
+                    {t('proposalsList')} ({project.proposals.length})
                   </CardTitle>
                   <Link href={`/proposals/new?projectId=${id}`}>
                     <Button variant="outline" size="sm">
                       <Plus className="h-4 w-4 mr-1" />
-                      新增提案
+                      {t('newProposal')}
                     </Button>
                   </Link>
                 </div>
               </CardHeader>
               <CardContent>
                 {project.proposals.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">尚未有任何提案</p>
+                  <p className="text-muted-foreground text-center py-8">{t('noProposals')}</p>
                 ) : (
                   <div className="space-y-3">
                     {project.proposals.map((proposal) => (
@@ -386,12 +411,12 @@ export default function ProjectDetailPage() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(proposal.createdAt).toLocaleDateString('zh-TW')}
+                                {new Date(proposal.createdAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
                               </span>
                             </div>
                           </div>
-                          <Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].variant}>
-                            {PROPOSAL_STATUS_CONFIG[proposal.status as keyof typeof PROPOSAL_STATUS_CONFIG].label}
+                          <Badge variant={getProposalStatusConfig(proposal.status).variant}>
+                            {getProposalStatusConfig(proposal.status).label}
                           </Badge>
                         </div>
                       </Link>
@@ -407,11 +432,11 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    報價管理
+                    {t('quoteManagement')}
                   </CardTitle>
                   <Link href={`/projects/${id}/quotes`}>
                     <Button variant="outline" size="sm">
-                      查看報價
+                      {t('viewQuotes')}
                     </Button>
                   </Link>
                 </div>
@@ -419,11 +444,11 @@ export default function ProjectDetailPage() {
               <CardContent>
                 <div className="text-center py-6">
                   <p className="text-muted-foreground mb-4">
-                    在報價管理頁面中可以上傳供應商報價、比較報價，並選擇最終供應商生成採購單
+                    {t('quoteManagementDesc')}
                   </p>
                   <Link href={`/projects/${id}/quotes`}>
                     <Button>
-                      管理報價
+                      {t('manageQuotes')}
                     </Button>
                   </Link>
                 </div>
@@ -436,19 +461,19 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingCart className="h-5 w-5" />
-                    採購單 ({project.purchaseOrders.length})
+                    {t('purchaseOrdersList')} ({project.purchaseOrders.length})
                   </CardTitle>
                   <Link href={`/purchase-orders/new?projectId=${id}`}>
                     <Button variant="outline" size="sm">
                       <Plus className="h-4 w-4 mr-1" />
-                      新增採購單
+                      {t('newPurchaseOrder')}
                     </Button>
                   </Link>
                 </div>
               </CardHeader>
               <CardContent>
                 {project.purchaseOrders.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">尚未有任何採購單</p>
+                  <p className="text-muted-foreground text-center py-8">{t('noPurchaseOrders')}</p>
                 ) : (
                   <div className="space-y-3">
                     {project.purchaseOrders.map((po) => (
@@ -461,14 +486,14 @@ export default function ProjectDetailPage() {
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-foreground">PO #{po.poNumber}</h3>
                             <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                              <span>供應商：{po.vendor.name}</span>
+                              <span>{t('vendor')}: {po.vendor.name}</span>
                               <span className="flex items-center gap-1">
                                 <DollarSign className="h-3 w-3" />
                                 ${po.totalAmount.toLocaleString()}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(po.date).toLocaleDateString('zh-TW')}
+                                {new Date(po.date).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
                               </span>
                             </div>
                           </div>
@@ -488,7 +513,7 @@ export default function ProjectDetailPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  預算池
+                  {t('budgetPoolInfo')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -499,11 +524,11 @@ export default function ProjectDetailPage() {
                   <p className="font-medium text-lg text-foreground mb-3">{project.budgetPool.name}</p>
                   <dl className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <dt className="text-muted-foreground">財務年度</dt>
+                      <dt className="text-muted-foreground">{t('financialYear')}</dt>
                       <dd className="font-medium text-foreground">{project.budgetPool.financialYear}</dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-muted-foreground">總預算</dt>
+                      <dt className="text-muted-foreground">{t('totalBudget')}</dt>
                       <dd className="font-medium text-foreground">
                         ${project.budgetPool.totalAmount.toLocaleString()}
                       </dd>
@@ -519,14 +544,14 @@ export default function ProjectDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <PieChart className="h-5 w-5" />
-                    預算使用情況
+                    {t('budgetUsage')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* 預算類別 */}
                   {budgetUsage.budgetCategory && (
                     <div className="pb-3 border-b border-border">
-                      <dt className="text-sm font-medium text-muted-foreground mb-1">預算類別</dt>
+                      <dt className="text-sm font-medium text-muted-foreground mb-1">{t('budgetCategory')}</dt>
                       <dd className="text-foreground font-medium">{budgetUsage.budgetCategory.categoryName}</dd>
                     </div>
                   )}
@@ -535,7 +560,7 @@ export default function ProjectDetailPage() {
                   <dl className="space-y-3">
                     {budgetUsage.requestedBudget > 0 && (
                       <div className="flex justify-between items-center">
-                        <dt className="text-sm text-muted-foreground">請求預算</dt>
+                        <dt className="text-sm text-muted-foreground">{t('requestedBudget')}</dt>
                         <dd className="font-medium text-foreground">
                           ${budgetUsage.requestedBudget.toLocaleString()}
                         </dd>
@@ -544,7 +569,7 @@ export default function ProjectDetailPage() {
 
                     {budgetUsage.approvedBudget > 0 && (
                       <div className="flex justify-between items-center">
-                        <dt className="text-sm text-muted-foreground">批准預算</dt>
+                        <dt className="text-sm text-muted-foreground">{t('approvedBudget')}</dt>
                         <dd className="font-semibold text-primary text-lg">
                           ${budgetUsage.approvedBudget.toLocaleString()}
                         </dd>
@@ -552,7 +577,7 @@ export default function ProjectDetailPage() {
                     )}
 
                     <div className="flex justify-between items-center">
-                      <dt className="text-sm text-muted-foreground">實際支出</dt>
+                      <dt className="text-sm text-muted-foreground">{t('actualSpent')}</dt>
                       <dd className="font-medium text-foreground">
                         ${budgetUsage.actualSpent.toLocaleString()}
                       </dd>
@@ -561,7 +586,7 @@ export default function ProjectDetailPage() {
                     {budgetUsage.approvedBudget > 0 && (
                       <>
                         <div className="flex justify-between items-center">
-                          <dt className="text-sm text-muted-foreground">剩餘預算</dt>
+                          <dt className="text-sm text-muted-foreground">{t('remainingBudget')}</dt>
                           <dd className={`font-medium ${budgetUsage.remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             ${budgetUsage.remainingBudget.toLocaleString()}
                           </dd>
@@ -570,7 +595,7 @@ export default function ProjectDetailPage() {
                         {/* 使用率進度條 */}
                         <div className="pt-2">
                           <div className="flex justify-between items-center mb-2">
-                            <dt className="text-sm text-muted-foreground">預算使用率</dt>
+                            <dt className="text-sm text-muted-foreground">{t('utilizationRate')}</dt>
                             <dd className={`font-semibold ${
                               budgetUsage.utilizationRate > 100 ? 'text-red-600' :
                               budgetUsage.utilizationRate > 90 ? 'text-orange-500' :
@@ -594,7 +619,7 @@ export default function ProjectDetailPage() {
                           {budgetUsage.utilizationRate > 90 && (
                             <div className="flex items-center gap-1 mt-2 text-xs text-orange-600">
                               <AlertCircle className="h-3 w-3" />
-                              <span>預算使用率較高，請注意控制支出</span>
+                              <span>{t('budgetWarning')}</span>
                             </div>
                           )}
                         </div>
@@ -603,7 +628,7 @@ export default function ProjectDetailPage() {
 
                     {budgetUsage.approvedBudget === 0 && budgetUsage.requestedBudget === 0 && (
                       <div className="text-center py-4">
-                        <p className="text-sm text-muted-foreground">尚未設定預算</p>
+                        <p className="text-sm text-muted-foreground">{t('noBudgetSet')}</p>
                       </div>
                     )}
                   </dl>
@@ -616,13 +641,13 @@ export default function ProjectDetailPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  專案團隊
+                  {t('projectTeam')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* 專案經理 */}
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">專案經理</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">{t('projectManager')}</h3>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <span className="text-primary font-medium">
@@ -641,7 +666,7 @@ export default function ProjectDetailPage() {
 
                 {/* 主管 */}
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">主管</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">{t('supervisor')}</h3>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-green-600 font-medium">
@@ -663,25 +688,25 @@ export default function ProjectDetailPage() {
             {/* 快速操作 */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">快速操作</CardTitle>
+                <CardTitle className="text-lg">{t('quickActions')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Link href={`/proposals/new?projectId=${id}`} className="block">
                   <Button variant="outline" className="w-full justify-start">
                     <FileText className="h-4 w-4 mr-2" />
-                    新增預算提案
+                    {t('newBudgetProposal')}
                   </Button>
                 </Link>
                 <Link href={`/purchase-orders/new?projectId=${id}`} className="block">
                   <Button variant="outline" className="w-full justify-start">
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    新增採購單
+                    {t('newPurchaseOrder')}
                   </Button>
                 </Link>
                 <Link href={`/projects/${id}/edit`} className="block">
                   <Button variant="outline" className="w-full justify-start">
                     <Edit className="h-4 w-4 mr-2" />
-                    編輯專案資訊
+                    {t('editProjectInfo')}
                   </Button>
                 </Link>
               </CardContent>

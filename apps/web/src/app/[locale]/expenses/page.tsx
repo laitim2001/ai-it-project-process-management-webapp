@@ -29,31 +29,27 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-/**
- * 費用狀態配置
- */
-const EXPENSE_STATUS_CONFIG = {
-  Draft: { label: 'list.filter.draft', variant: 'outline' as const },
-  PendingApproval: { label: 'list.filter.pendingApproval', variant: 'default' as const },
-  Approved: { label: 'list.filter.approved', variant: 'secondary' as const },
-  Paid: { label: 'list.filter.paid', variant: 'default' as const },
-} as const;
-
-/**
- * 安全獲取費用狀態配置
- */
-const getExpenseStatusConfig = (status: string, t: any) => {
-  const config = EXPENSE_STATUS_CONFIG[status as keyof typeof EXPENSE_STATUS_CONFIG];
-  return {
-    label: config ? t(config.label) : status || t('common.noData'),
-    variant: config?.variant || ('outline' as const),
-  };
-};
-
 export default function ExpensesPage() {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
+
+  /**
+   * 費用狀態配置 (移到組件內部以訪問 t 函數) - FIX-061
+   */
+  const getExpenseStatusConfig = (status: string) => {
+    const configs = {
+      Draft: { variant: 'outline' as const },
+      PendingApproval: { variant: 'default' as const },
+      Approved: { variant: 'secondary' as const },
+      Paid: { variant: 'default' as const },
+    };
+    const config = configs[status as keyof typeof configs];
+    return {
+      label: config ? t(`list.filter.${status.toLowerCase()}` as any) : status || tCommon('noData'),
+      variant: config?.variant || ('outline' as const),
+    };
+  };
   // 狀態管理
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -448,8 +444,8 @@ export default function ExpensesPage() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getExpenseStatusConfig(expense.status, t).variant}>
-                          {getExpenseStatusConfig(expense.status, t).label}
+                        <Badge variant={getExpenseStatusConfig(expense.status).variant}>
+                          {getExpenseStatusConfig(expense.status).label}
                         </Badge>
                       </TableCell>
                       <TableCell>{expense.purchaseOrder.poNumber}</TableCell>

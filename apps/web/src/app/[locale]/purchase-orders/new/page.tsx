@@ -13,6 +13,7 @@
 
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { PurchaseOrderForm } from '@/components/purchase-order/PurchaseOrderForm';
 import {
   Breadcrumb,
@@ -26,6 +27,8 @@ import {
 export default function NewPurchaseOrderPage() {
   const t = useTranslations('purchaseOrders');
   const tNav = useTranslations('navigation');
+  const params = useParams();
+  const locale = params.locale as string;
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -33,11 +36,11 @@ export default function NewPurchaseOrderPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/purchase-orders">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/purchase-orders`}>{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

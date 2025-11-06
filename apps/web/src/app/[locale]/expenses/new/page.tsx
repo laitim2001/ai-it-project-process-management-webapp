@@ -13,6 +13,7 @@
 
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { ExpenseForm } from '@/components/expense/ExpenseForm';
 import {
   Breadcrumb,
@@ -27,6 +28,8 @@ export default function NewExpensePage() {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
+  const params = useParams();
+  const locale = params.locale as string;
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -34,11 +37,11 @@ export default function NewExpensePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('menu.dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('menu.dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/expenses">{tNav('menu.expenses')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/expenses`}>{tNav('menu.expenses')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

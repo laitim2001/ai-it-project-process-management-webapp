@@ -1,5 +1,8 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +19,8 @@ const BudgetProposalForm = dynamic(
 export default function NewProposalPage() {
   const t = useTranslations('proposals');
   const tNav = useTranslations('navigation');
+  const params = useParams();
+  const locale = params.locale as string;
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -23,11 +28,11 @@ export default function NewProposalPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/proposals`}>{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

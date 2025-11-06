@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { PaginationControls, BudgetPoolListSkeleton } from '@/components/ui';
@@ -265,8 +265,11 @@ export default function BudgetPoolsPage() {
         {/* Results Count */}
         {pagination && (
           <div className="text-sm text-muted-foreground">
-            {t('list.showing')} {((pagination.page - 1) * pagination.limit) + 1} -{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} / {pagination.total} {t('list.total')}
+            {t('list.showing', {
+              start: ((pagination.page - 1) * pagination.limit) + 1,
+              end: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total
+            })}
           </div>
         )}
 

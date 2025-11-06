@@ -27,7 +27,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X } from 'lucide-react';
@@ -38,6 +38,7 @@ export default function ProposalDetailPage() {
   const tNav = useTranslations('navigation');
   const params = useParams();
   const id = params.id as string;
+  const locale = params.locale as string;
 
   /**
    * 提案狀態顯示配置
@@ -109,11 +110,11 @@ export default function ProposalDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
+                <BreadcrumbLink href={`/${locale}/proposals`}>{t('title')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -131,7 +132,7 @@ export default function ProposalDetailPage() {
                   {t('detail.notFound')}
                 </AlertDescription>
               </Alert>
-              <Link href="/proposals">
+              <Link href={`/${locale}/proposals`}>
                 <Button>{tCommon('actions.back')}</Button>
               </Link>
             </div>
@@ -150,11 +151,11 @@ export default function ProposalDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/proposals">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/proposals`}>{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -175,7 +176,7 @@ export default function ProposalDetailPage() {
             <p className="text-muted-foreground">
               {t('fields.project')}：
               <Link
-                href={`/projects/${proposal.project.id}`}
+                href={`/${locale}/projects/${proposal.project.id}`}
                 className="ml-1 text-primary hover:text-primary font-medium"
               >
                 {proposal.project.name}
@@ -184,11 +185,11 @@ export default function ProposalDetailPage() {
           </div>
           <div className="flex gap-2">
             {(proposal.status === 'Draft' || proposal.status === 'MoreInfoRequired') && (
-              <Link href={`/proposals/${proposal.id}/edit`}>
+              <Link href={`/${locale}/proposals/${proposal.id}/edit`}>
                 <Button variant="outline">{tCommon('actions.edit')}</Button>
               </Link>
             )}
-            <Link href="/proposals">
+            <Link href={`/${locale}/proposals`}>
               <Button variant="outline">{tCommon('actions.back')}</Button>
             </Link>
           </div>
@@ -282,7 +283,7 @@ export default function ProposalDetailPage() {
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">{t('fields.projectName')}：</span>
                       <Link
-                        href={`/projects/${proposal.project.id}`}
+                        href={`/${locale}/projects/${proposal.project.id}`}
                         className="ml-2 text-primary hover:text-primary font-medium"
                       >
                         {proposal.project.name}
@@ -315,7 +316,7 @@ export default function ProposalDetailPage() {
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">{t('fields.budgetPool')}：</span>
                       <Link
-                        href={`/budget-pools/${proposal.project.budgetPool.id}`}
+                        href={`/${locale}/budget-pools/${proposal.project.budgetPool.id}`}
                         className="ml-2 text-primary hover:text-primary font-medium"
                       >
                         {proposal.project.budgetPool.name}

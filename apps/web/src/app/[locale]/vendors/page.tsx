@@ -16,7 +16,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';

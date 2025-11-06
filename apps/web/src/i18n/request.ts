@@ -2,7 +2,7 @@ import {getRequestConfig} from 'next-intl/server';
 import {routing} from './routing';
 
 export default getRequestConfig(async ({requestLocale}) => {
-  // 從請求中獲取語言設置
+  // 從請求中獲取語言設置 - FIX-061: Force recompile
   let locale = await requestLocale;
 
   // 驗證語言是否在支援列表中，否則使用默認語言

@@ -2,14 +2,34 @@
   "common": {
     "actions": {
       "actions": "操作",
+      "title": "操作",
       "view": "查看",
       "edit": "編輯",
-      "back": "返回"
+      "back": "返回",
+      "cancel": "取消",
+      "confirm": "確認",
+      "save": "儲存",
+      "create": "新增",
+      "exportCSV": "匯出 CSV"
+    },
+    "sort": {
+      "createdAtDesc": "最新優先",
+      "createdAtAsc": "最舊優先",
+      "updatedAtDesc": "最近更新",
+      "updatedAtAsc": "最久未更新"
     },
     "fields": {
       "createdAt": "創建時間",
       "updatedAt": "更新時間",
       "actions": "操作"
+    },
+    "table": {
+      "actions": "操作"
+    },
+    "form": {
+      "description": {
+        "label": "描述"
+      }
     },
     "status": {
       "draft": "草稿",
@@ -81,6 +101,7 @@
     }
   },
   "navigation": {
+    "home": "首頁",
     "dashboard": "首頁",
     "brand": {
       "title": "IT 專案管理",
@@ -273,6 +294,10 @@
   "projects": {
     "title": "專案管理",
     "description": "管理所有 IT 專案的資料和進度",
+    "new": {
+      "title": "新增專案",
+      "description": "建立新的 IT 專案"
+    },
     "search": {
       "placeholder": "搜尋專案..."
     },
@@ -344,7 +369,7 @@
     "detail": {
       "title": "專案詳情",
       "entityName": "專案",
-      "loading": "載入中...",
+      "loading": "載入專案詳情中...",
       "notFound": "找不到專案",
       "notFoundDescription": "此專案不存在或已被刪除。",
       "backToList": "返回專案列表",
@@ -478,6 +503,7 @@
     },
     "actions": {
       "create": "新增提案",
+      "edit": "編輯",
       "submit": "提交審批",
       "approve": "批准",
       "reject": "駁回",
@@ -504,9 +530,13 @@
       "createdAt": "創建時間",
       "status": "狀態",
       "project": "所屬專案",
+      "projectName": "專案名稱",
       "amount": "申請金額",
       "submittedBy": "提交人",
-      "submittedAt": "提交時間"
+      "submittedAt": "提交時間",
+      "manager": "專案經理",
+      "supervisor": "主管",
+      "budgetPool": "預算池"
     },
     "list": {
       "title": "預算提案列表",
@@ -532,13 +562,22 @@
         "actions": "操作"
       }
     },
+    "new": {
+      "title": "新增預算提案",
+      "description": "建立新的預算提案"
+    },
     "detail": {
       "title": "提案詳情",
       "basicInfo": "基本資訊",
       "budgetDetails": "預算明細",
       "attachments": "附件",
       "comments": "討論",
-      "history": "審批歷史",
+      "history": {
+        "title": "審批歷史"
+      },
+      "project": {
+        "title": "專案資訊"
+      },
       "tabs": {
         "basic": "基本資訊",
         "project": "專案資訊",
@@ -557,6 +596,18 @@
       "edit": {
         "title": "編輯預算提案",
         "subtitle": "更新提案資訊"
+      },
+      "title": {
+        "label": "提案標題",
+        "placeholder": "輸入提案標題"
+      },
+      "amount": {
+        "label": "申請金額",
+        "placeholder": "0.00"
+      },
+      "project": {
+        "label": "所屬專案",
+        "placeholder": "選擇專案"
       },
       "fields": {
         "project": {
@@ -600,7 +651,21 @@
     "title": "預算池",
     "fields": {
       "categoryCount": "預算類別數量",
-      "categories": "個類別"
+      "categories": "個類別",
+      "fiscalYear": "財政年度",
+      "totalBudget": "總預算",
+      "used": "已使用金額",
+      "usedAmount": "已使用金額",
+      "utilizationRate": "使用率",
+      "projectCount": "專案數量"
+    },
+    "new": {
+      "title": "新增預算池",
+      "subtitle": "建立新的預算池"
+    },
+    "edit": {
+      "title": "編輯預算池",
+      "subtitle": "更新預算池資訊"
     },
     "list": {
       "title": "預算池列表",
@@ -625,7 +690,7 @@
         "actions": "操作"
       },
       "total": "總計",
-      "showing": "顯示 {from} - {to} / {total} 個預算池",
+      "showing": "顯示 {start} - {end} / {total} 個預算池",
       "empty": "尚無預算池",
       "emptyHint": "開始創建您的第一個預算池",
       "noResults": "找不到符合條件的預算池"
@@ -633,9 +698,32 @@
     "detail": {
       "title": "預算池詳情",
       "overview": "概覽",
-      "categories": "預算類別",
-      "projects": "關聯專案",
-      "utilization": "使用情況"
+      "basicInfo": "基本資訊",
+      "categories": {
+        "title": "預算類別",
+        "table": {
+          "sort": "排序",
+          "name": "類別名稱",
+          "code": "代碼",
+          "totalBudget": "總預算",
+          "used": "已使用",
+          "utilizationRate": "使用率",
+          "projectCount": "專案數",
+          "expenseCount": "費用數"
+        }
+      },
+      "stats": {
+        "title": "預算統計",
+        "allocated": "已分配",
+        "spent": "已支出",
+        "remaining": "剩餘",
+        "progress": "使用進度"
+      },
+      "projects": {
+        "title": "相關專案"
+      },
+      "utilization": "使用情況",
+      "fiscalYearLabel": "財政年度"
     },
     "form": {
       "create": {
@@ -645,6 +733,18 @@
       "edit": {
         "title": "編輯預算池",
         "subtitle": "更新預算池資訊"
+      },
+      "basicInfo": "基本資訊",
+      "name": {
+        "label": "預算池名稱",
+        "placeholder": "例如：FY2024 IT 基礎設施"
+      },
+      "fiscalYear": {
+        "label": "財務年度",
+        "placeholder": "選擇財務年度"
+      },
+      "description": {
+        "placeholder": "描述此預算池的用途和範圍..."
       },
       "fields": {
         "name": {
@@ -666,6 +766,9 @@
       },
       "categories": {
         "title": "預算類別",
+        "subtitle": "預算類別",
+        "totalBudget": "總預算",
+        "addCategory": "新增類別",
         "add": "新增類別",
         "remove": "移除",
         "fields": {
@@ -701,7 +804,10 @@
       "create": "新增預算池",
       "exportCSV": "匯出 CSV",
       "exporting": "匯出中...",
-      "view": "查看"
+      "view": "查看",
+      "edit": "編輯預算池",
+      "delete": "刪除預算池",
+      "update": "更新"
     },
     "filters": {
       "allYears": "所有年度"
@@ -742,8 +848,34 @@
   "vendors": {
     "title": "供應商",
     "fields": {
+      "name": "供應商名稱",
+      "contactPerson": "聯絡人",
+      "email": "電子郵件",
+      "phone": "電話",
       "quotesCount": "報價單數",
       "purchaseOrdersCount": "採購單數"
+    },
+    "new": {
+      "title": "新增供應商",
+      "description": "建立新的供應商資料"
+    },
+    "form": {
+      "name": {
+        "label": "供應商名稱",
+        "placeholder": "輸入供應商名稱"
+      },
+      "contactPerson": {
+        "label": "聯絡人",
+        "placeholder": "輸入聯絡人姓名"
+      },
+      "email": {
+        "label": "電子郵件",
+        "placeholder": "輸入電子郵件地址"
+      },
+      "phone": {
+        "label": "電話",
+        "placeholder": "輸入電話號碼"
+      }
     },
     "list": {
       "title": "供應商列表",

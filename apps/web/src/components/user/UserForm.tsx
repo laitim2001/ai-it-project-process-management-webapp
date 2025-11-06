@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 
 interface UserFormProps {
   initialData?: {
@@ -23,7 +23,7 @@ interface UserFormProps {
 
 export function UserForm({ initialData, mode }: UserFormProps) {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: initialData?.email ?? '',
     name: initialData?.name ?? '',
@@ -37,23 +37,39 @@ export function UserForm({ initialData, mode }: UserFormProps) {
 
   const createMutation = api.user.create.useMutation({
     onSuccess: () => {
-      showToast('使用者建立成功！', 'success');
+      toast({
+        title: '成功',
+        description: '使用者建立成功！',
+        variant: 'success',
+      });
       router.push('/users');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: `錯誤: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 
   const updateMutation = api.user.update.useMutation({
     onSuccess: () => {
-      showToast('使用者更新成功！', 'success');
+      toast({
+        title: '成功',
+        description: '使用者更新成功！',
+        variant: 'success',
+      });
       router.push(`/users/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`錯誤: ${error.message}`, 'error');
+      toast({
+        title: '錯誤',
+        description: `錯誤: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 

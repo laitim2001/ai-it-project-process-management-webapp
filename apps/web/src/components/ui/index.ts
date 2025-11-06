@@ -2,8 +2,8 @@
 export { Button, buttonVariants } from "./Button"
 export type { ButtonProps } from "./Button"
 
-export { Input } from "./input"
-export type { InputProps } from "./input"
+export { Input } from "./Input"
+export type { InputProps } from "./Input"
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "./card"
 

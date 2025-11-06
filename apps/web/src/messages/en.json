@@ -2,14 +2,34 @@
   "common": {
     "actions": {
       "actions": "Actions",
+      "title": "Actions",
       "view": "View",
       "edit": "Edit",
-      "back": "Back"
+      "back": "Back",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "save": "Save",
+      "create": "Create",
+      "exportCSV": "Export CSV"
+    },
+    "sort": {
+      "createdAtDesc": "Newest First",
+      "createdAtAsc": "Oldest First",
+      "updatedAtDesc": "Recently Updated",
+      "updatedAtAsc": "Least Recently Updated"
     },
     "fields": {
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "actions": "Actions"
+    },
+    "table": {
+      "actions": "Actions"
+    },
+    "form": {
+      "description": {
+        "label": "Description"
+      }
     },
     "status": {
       "draft": "Draft",
@@ -81,6 +101,7 @@
     }
   },
   "navigation": {
+    "home": "Home",
     "dashboard": "Home",
     "brand": {
       "title": "IT Project Management",
@@ -273,6 +294,10 @@
   "projects": {
     "title": "Projects",
     "description": "Manage all IT project data and progress",
+    "new": {
+      "title": "Create New Project",
+      "description": "Create a new IT project"
+    },
     "search": {
       "placeholder": "Search projects..."
     },
@@ -342,18 +367,71 @@
       "empty": "尚無專案資料"
     },
     "detail": {
-      "title": "專案詳情",
+      "title": "Project Details",
+      "entityName": "project",
+      "loading": "Loading project details...",
+      "notFound": "Project not found",
+      "notFoundDescription": "This project does not exist or has been deleted.",
+      "backToList": "Back to project list",
+      "editProject": "Edit Project",
+      "deleteProject": "Delete Project",
+      "deleting": "Deleting...",
+      "confirmDelete": "Are you sure you want to delete this project?\n\nNote: Projects with associated proposals or purchase orders cannot be deleted.",
+      "projectInfo": "Project Information",
+      "projectDescription": "Project Description",
+      "createdAt": "Created At",
+      "updatedAt": "Last Updated",
+      "projectStats": "Project Statistics",
+      "budgetProposals": "Budget Proposals",
+      "totalProposals": "Total Proposals",
+      "approvedProposals": "Approved",
+      "totalProposedAmount": "Total Proposed Amount",
+      "approvedAmount": "Approved Amount",
+      "procurementAndExpenses": "Procurement & Expenses",
+      "totalPurchaseOrders": "Purchase Orders",
+      "totalPurchaseAmount": "Total Purchase Amount",
+      "totalExpenses": "Expense Records",
+      "paidExpenseAmount": "Paid Amount",
+      "proposalsList": "Budget Proposals",
+      "newProposal": "New Proposal",
+      "noProposals": "No proposals yet",
+      "quoteManagement": "Quote Management",
+      "viewQuotes": "View Quotes",
+      "quoteManagementDesc": "Upload vendor quotes, compare quotes, and select the final vendor to generate purchase orders",
+      "manageQuotes": "Manage Quotes",
+      "purchaseOrdersList": "Purchase Orders",
+      "newPurchaseOrder": "New Purchase Order",
+      "noPurchaseOrders": "No purchase orders yet",
+      "budgetPoolInfo": "Budget Pool",
+      "financialYear": "Financial Year",
+      "totalBudget": "Total Budget",
+      "budgetUsage": "Budget Usage",
+      "budgetCategory": "Budget Category",
+      "requestedBudget": "Requested Budget",
+      "approvedBudget": "Approved Budget",
+      "actualSpent": "Actual Spent",
+      "remainingBudget": "Remaining Budget",
+      "utilizationRate": "Budget Utilization Rate",
+      "budgetWarning": "Budget utilization is high, please monitor spending",
+      "noBudgetSet": "No budget set yet",
+      "projectTeam": "Project Team",
+      "projectManager": "Project Manager",
+      "supervisor": "Supervisor",
+      "quickActions": "Quick Actions",
+      "newBudgetProposal": "New Budget Proposal",
+      "editProjectInfo": "Edit Project Information",
+      "vendor": "Vendor",
       "overview": "Overview",
-      "budget": "預算資訊",
+      "budget": "Budget Information",
       "proposals": "Budget Proposals",
       "purchaseOrders": "Purchase Orders",
       "expenses": "Expenses",
       "tabs": {
         "overview": "Overview",
-        "proposals": "提案",
-        "quotes": "報價",
+        "proposals": "Proposals",
+        "quotes": "Quotes",
         "purchaseOrders": "Purchase Orders",
-        "expenses": "費用"
+        "expenses": "Expenses"
       }
     },
     "form": {
@@ -423,6 +501,10 @@
   },
   "proposals": {
     "title": "Budget Proposals",
+    "description": "Manage budget proposals and approval workflow",
+    "summary": {
+      "total": "Total Proposals"
+    },
     "status": {
       "draft": "Draft",
       "pendingApproval": "Pending Approval",
@@ -432,11 +514,16 @@
       "rejectedMessage": "This proposal has been rejected"
     },
     "fields": {
+      "title": "Title",
       "status": "Status",
       "project": "Project",
+      "projectName": "Project Name",
       "amount": "Amount",
       "submittedBy": "Submitted By",
-      "submittedAt": "Submitted At"
+      "submittedAt": "Submitted At",
+      "manager": "Project Manager",
+      "supervisor": "Supervisor",
+      "budgetPool": "Budget Pool"
     },
     "list": {
       "title": "預算提案列表",
@@ -462,13 +549,22 @@
         "actions": "操作"
       }
     },
+    "new": {
+      "title": "Create New Proposal",
+      "description": "Create a new budget proposal"
+    },
     "detail": {
       "title": "Proposal Details",
       "basicInfo": "Basic Information",
       "budgetDetails": "Budget Details",
       "attachments": "Attachments",
       "comments": "Discussion",
-      "history": "Approval History",
+      "history": {
+        "title": "Approval History"
+      },
+      "project": {
+        "title": "Project Information"
+      },
       "tabs": {
         "basic": "Basic Info",
         "project": "Project Info",
@@ -487,6 +583,18 @@
       "edit": {
         "title": "編輯預算提案",
         "subtitle": "更新提案資訊"
+      },
+      "title": {
+        "label": "Proposal Title",
+        "placeholder": "Enter proposal title"
+      },
+      "amount": {
+        "label": "Requested Amount",
+        "placeholder": "0.00"
+      },
+      "project": {
+        "label": "Project",
+        "placeholder": "Select project"
       },
       "fields": {
         "project": {
@@ -509,6 +617,7 @@
     },
     "actions": {
       "create": "Create Proposal",
+      "edit": "Edit",
       "submit": "Submit for Approval",
       "approve": "Approve",
       "reject": "Reject",
@@ -544,7 +653,21 @@
     "title": "Budget Pools",
     "fields": {
       "categoryCount": "Budget Categories",
-      "categories": "Categories"
+      "categories": "Categories",
+      "fiscalYear": "Fiscal Year",
+      "totalBudget": "Total Budget",
+      "used": "Used Amount",
+      "usedAmount": "Used Amount",
+      "utilizationRate": "Utilization Rate",
+      "projectCount": "Project Count"
+    },
+    "new": {
+      "title": "Create Budget Pool",
+      "subtitle": "Create a new budget pool"
+    },
+    "edit": {
+      "title": "Edit Budget Pool",
+      "subtitle": "Update budget pool information"
     },
     "list": {
       "title": "預算池列表",
@@ -569,7 +692,7 @@
         "actions": "操作"
       },
       "total": "Total",
-      "showing": "Showing {from} - {to} / {total} budget pools",
+      "showing": "Showing {start} - {end} / {total} budget pools",
       "empty": "No budget pools yet",
       "emptyHint": "Create your first budget pool",
       "noResults": "No budget pools match the criteria"
@@ -577,9 +700,32 @@
     "detail": {
       "title": "預算池詳情",
       "overview": "Overview",
-      "categories": "預算類別",
-      "projects": "關聯專案",
-      "utilization": "使用情況"
+      "basicInfo": "Basic Information",
+      "categories": {
+        "title": "Budget Categories",
+        "table": {
+          "sort": "Sort",
+          "name": "Category Name",
+          "code": "Code",
+          "totalBudget": "Total Budget",
+          "used": "Used",
+          "utilizationRate": "Utilization Rate",
+          "projectCount": "Projects",
+          "expenseCount": "Expenses"
+        }
+      },
+      "stats": {
+        "title": "Budget Statistics",
+        "allocated": "Allocated",
+        "spent": "Spent",
+        "remaining": "Remaining",
+        "progress": "Usage Progress"
+      },
+      "projects": {
+        "title": "Related Projects"
+      },
+      "utilization": "使用情況",
+      "fiscalYearLabel": "Fiscal Year"
     },
     "form": {
       "create": {
@@ -587,8 +733,20 @@
         "subtitle": "建立新的財政年度預算池"
       },
       "edit": {
-        "title": "編輯預算池",
-        "subtitle": "更新預算池資訊"
+        "title": "Edit Budget Pool",
+        "subtitle": "Update budget pool information"
+      },
+      "basicInfo": "Basic Information",
+      "name": {
+        "label": "Budget Pool Name",
+        "placeholder": "e.g., FY2024 IT Infrastructure"
+      },
+      "fiscalYear": {
+        "label": "Fiscal Year",
+        "placeholder": "Select fiscal year"
+      },
+      "description": {
+        "placeholder": "Describe the purpose and scope of this budget pool..."
       },
       "fields": {
         "name": {
@@ -610,6 +768,9 @@
       },
       "categories": {
         "title": "預算類別",
+        "subtitle": "Budget Categories",
+        "totalBudget": "Total Budget",
+        "addCategory": "Add Category",
         "add": "新增類別",
         "remove": "移除",
         "fields": {
@@ -645,7 +806,10 @@
       "create": "New Budget Pool",
       "exportCSV": "Export CSV",
       "exporting": "Exporting...",
-      "view": "View"
+      "view": "View",
+      "edit": "Edit Budget Pool",
+      "delete": "Delete Budget Pool",
+      "update": "Update"
     },
     "filters": {
       "allYears": "All Years"
@@ -686,8 +850,34 @@
   "vendors": {
     "title": "Vendors",
     "fields": {
+      "name": "Vendor Name",
+      "contactPerson": "Contact Person",
+      "email": "Email",
+      "phone": "Phone",
       "quotesCount": "Quotes",
       "purchaseOrdersCount": "Purchase Orders"
+    },
+    "new": {
+      "title": "Create New Vendor",
+      "description": "Create a new vendor record"
+    },
+    "form": {
+      "name": {
+        "label": "Vendor Name",
+        "placeholder": "Enter vendor name"
+      },
+      "contactPerson": {
+        "label": "Contact Person",
+        "placeholder": "Enter contact person name"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter email address"
+      },
+      "phone": {
+        "label": "Phone",
+        "placeholder": "Enter phone number"
+      }
     },
     "list": {
       "title": "供應商列表",

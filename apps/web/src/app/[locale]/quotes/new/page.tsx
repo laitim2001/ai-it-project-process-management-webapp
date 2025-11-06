@@ -15,6 +15,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from "@/i18n/routing";
+import { useParams } from 'next/navigation';
 import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import {
@@ -27,7 +28,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui';
@@ -39,6 +40,8 @@ export default function NewQuotePage() {
   const tNav = useTranslations('navigation');
   const tToast = useTranslations('toast');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const { toast } = useToast();
 
   // 表單狀態
@@ -173,11 +176,11 @@ export default function NewQuotePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/quotes`}>{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

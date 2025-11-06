@@ -21,7 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -607,7 +607,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
               : t('form.create.title')}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            {tCommon('actions.cancel')}
+            {commonT('actions.cancel')}
           </Button>
         </div>
       </form>

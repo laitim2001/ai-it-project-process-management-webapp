@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui';
 
 interface VendorFormProps {
   initialData?: {
@@ -33,7 +33,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
   const t = useTranslations('vendors');
   const tCommon = useTranslations('common');
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
 
   // 表單狀態
   const [formData, setFormData] = useState({
@@ -49,24 +49,40 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
   // 創建 Mutation
   const createMutation = api.vendor.create.useMutation({
     onSuccess: () => {
-      showToast(t('messages.createSuccess'), 'success');
+      toast({
+        title: tCommon('messages.success'),
+        description: t('messages.createSuccess'),
+        variant: 'success',
+      });
       router.push('/vendors');
       router.refresh();
     },
     onError: (error) => {
-      showToast(`${tCommon('messages.createFailed')}: ${error.message}`, 'error');
+      toast({
+        title: tCommon('messages.error'),
+        description: `${tCommon('messages.createFailed')}: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 
   // 更新 Mutation
   const updateMutation = api.vendor.update.useMutation({
     onSuccess: () => {
-      showToast(t('messages.updateSuccess'), 'success');
+      toast({
+        title: tCommon('messages.success'),
+        description: t('messages.updateSuccess'),
+        variant: 'success',
+      });
       router.push(`/vendors/${initialData?.id}`);
       router.refresh();
     },
     onError: (error) => {
-      showToast(`${tCommon('messages.updateFailed')}: ${error.message}`, 'error');
+      toast({
+        title: tCommon('messages.error'),
+        description: `${tCommon('messages.updateFailed')}: ${error.message}`,
+        variant: 'destructive',
+      });
     },
   });
 

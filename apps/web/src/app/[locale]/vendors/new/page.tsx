@@ -13,6 +13,7 @@
 
 import { VendorForm } from '@/components/vendor/VendorForm';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card } from '@/components/ui/card';
@@ -20,6 +21,8 @@ import { Card } from '@/components/ui/card';
 export default function NewVendorPage() {
   const t = useTranslations('vendors');
   const tNav = useTranslations('navigation');
+  const params = useParams();
+  const locale = params.locale as string;
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-3xl">
@@ -27,11 +30,11 @@ export default function NewVendorPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/vendors">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink href={`/${locale}/vendors`}>{t('title')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
