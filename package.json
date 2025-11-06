@@ -43,6 +43,7 @@
     "index:fix": "node scripts/check-index-sync.js --auto-fix",
     "index:health": "node scripts/check-index-sync.js",
     "check:env": "node scripts/check-environment.js",
+    "validate:i18n": "node scripts/validate-i18n.js",
     "setup": "pnpm install && pnpm db:generate && node scripts/check-environment.js",
     "postinstall": "pnpm db:generate"
   },

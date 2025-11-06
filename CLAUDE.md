@@ -574,6 +574,60 @@ Mailhog UI:   localhost:8025
 - Focus on user behavior, not implementation details
 - Test files colocate with source: `*.test.ts`, `*.spec.ts`
 
+### Internationalization (I18N)
+- **Framework**: next-intl with App Router
+- **Supported Locales**: English (`en`), Traditional Chinese (`zh-TW`)
+- **Translation Files**: `apps/web/src/messages/en.json`, `apps/web/src/messages/zh-TW.json`
+- **Key Naming Convention**: `namespace.category.subcategory.field.property` (camelCase)
+- **Component Usage**:
+  ```typescript
+  import { useTranslations } from 'next-intl';
+
+  const t = useTranslations('namespace');
+  <label>{t('form.name.label')}</label>
+  ```
+
+#### I18N Best Practices (CRITICAL - Prevents Duplicate Key Issues)
+
+**🚨 Common Issues to Avoid:**
+1. **Duplicate Keys**: JSON does not allow duplicate keys - later keys silently overwrite earlier ones
+   - Always check for existing keys before adding new ones
+   - Use line-by-line search, not just JSON.parse()
+   - Example: Two "form" objects in same namespace will cause the first one to disappear
+
+2. **Missing Keys in One Locale**: Both `en.json` and `zh-TW.json` must have identical structure
+   - Same key paths in both files
+   - Only translation values should differ
+   - Use validation script to catch inconsistencies
+
+3. **Hardcoded Chinese in Components**: Never hardcode Chinese text directly in JSX
+   - Always use translation keys via `useTranslations()`
+   - Hardcoded text breaks when switching locales
+
+**Validation Workflow:**
+```bash
+# Always run validation before committing translation changes
+pnpm validate:i18n
+
+# What it checks:
+# ✅ JSON syntax correctness
+# ✅ Duplicate key detection (line-by-line parsing)
+# ✅ Empty value detection
+# ✅ Multi-locale key consistency
+```
+
+**Adding New Translation Keys:**
+1. Check existing keys in both `en.json` and `zh-TW.json`
+2. Add keys to both files with identical paths
+3. Run `pnpm validate:i18n` to verify
+4. Clear `.next/` cache if changes don't appear
+5. Test in both English and Chinese modes
+
+**Documentation:**
+- Complete guide: `claudedocs/I18N-TRANSLATION-KEY-GUIDE.md`
+- Validation script: `scripts/validate-i18n.js`
+- Related fixes: FIX-074, FIX-075 (duplicate key issues)
+
 ---
 
 ## Epic Status & Feature Completion
