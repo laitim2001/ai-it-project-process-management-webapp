@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-11-01 22:50 (文件重組 - claudedocs 子目錄分類完成)
+**最後更新**: 2025-11-06 15:30 (新增 I18N 國際化文檔索引 - 340+ 翻譯鍵修復完成)
 
 ---
 
@@ -335,6 +335,28 @@
 | **E2E 測試最終報告** | `claudedocs/e2e-testing/E2E-TESTING-FINAL-REPORT.md` | 基本功能測試最終報告（7/7 測試通過） | 🟡 高 |
 | **登入修復成功總結** | `claudedocs/e2e-testing/E2E-LOGIN-FIX-SUCCESS-SUMMARY.md` | FIX-010 登入流程修復成功總結 | 🟡 高 |
 | **登入問題分析** | `claudedocs/e2e-testing/E2E-LOGIN-ISSUE-ANALYSIS.md` | 登入認證問題深度分析 | 🟡 高 |
+
+#### 🌐 國際化 (I18N)
+
+> **更新日期**: 2025-11-06
+> **狀態**: 完成全面 I18N 修復 - 340+ 翻譯鍵補充，生產就緒
+> **語言支援**: 英文 (en) / 繁體中文 (zh-TW)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **I18N 會話總結** | `claudedocs/I18N-SESSION-SUMMARY.md` | I18N 修復完整會話總結（73+ 問題、340+ 翻譯鍵、技術要點） | 🔴 極高 |
+| **I18N 實施計劃** | `claudedocs/I18N-IMPLEMENTATION-PLAN.md` | 完整的國際化實施計劃與技術架構 | 🔴 極高 |
+| **I18N 問題記錄** | `claudedocs/I18N-ISSUES-LOG.md` | I18N 問題追蹤記錄（FIX-059 至 FIX-073） | 🔴 極高 |
+| **I18N 進度追蹤** | `claudedocs/I18N-PROGRESS.md` | I18N 開發進度追蹤與測試驗證記錄 | 🔴 極高 |
+| **I18N 實施檢查清單** | `claudedocs/I18N-IMPLEMENTATION-CHECKLIST.md` | I18N 實施詳細檢查清單（54 個文件遷移狀態） | 🟡 高 |
+| **I18N 影響分析** | `claudedocs/I18N-IMPACT-ANALYSIS.md` | I18N 遷移影響分析與風險評估 | 🟡 高 |
+| **I18N 測試計劃** | `claudedocs/I18N-TEST-PLAN.md` | I18N 完整測試計劃與驗收標準 | 🟡 高 |
+| **I18N 快速開始指南** | `claudedocs/I18N-QUICK-START-GUIDE.md` | I18N 開發快速參考指南 | 🟡 高 |
+| **I18N 遷移狀態** | `claudedocs/I18N-MIGRATION-STATUS.md` | I18N 遷移階段性狀態報告 | 🟡 高 |
+| **FIX-065 完整修復** | `claudedocs/FIX-065-I18N-COMPLETE-FIXES.md` | FIX-065 詳細修復記錄（Input.tsx、ProposalActions 等） | 🟢 中 |
+| **FIX-067 最終修復** | `claudedocs/FIX-067-FINAL-I18N-FIXES.md` | FIX-067 Projects 頁面硬編碼中文修復 | 🟢 中 |
+| **FIX-063 綜合修復** | `claudedocs/FIX-063-COMPREHENSIVE-I18N-FIX.md` | FIX-063 綜合性 I18N 問題修復記錄 | 🟢 中 |
+| **FIX-064 剩餘問題** | `claudedocs/FIX-064-I18N-REMAINING-ISSUES.md` | FIX-064 剩餘 I18N 問題修復記錄 | 🟢 中 |
 
 ### 文檔總覽
 
