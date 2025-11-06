@@ -872,11 +872,11 @@
       },
       "email": {
         "label": "Email",
-        "placeholder": "Enter email address"
+        "placeholder": "vendor@example.com"
       },
       "phone": {
         "label": "Phone",
-        "placeholder": "Enter phone number"
+        "placeholder": "+1 (555) 123-4567"
       }
     },
     "list": {

@@ -222,7 +222,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           onChange={(e) => setFormData({ ...formData, budgetPoolId: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
         >
-          <option value="">選擇預算池</option>
+          <option value="">{tFields('budgetPool.placeholder')}</option>
           {budgetPools?.map((pool) => (
             <option key={pool.id} value={pool.id}>
               {pool.name} - FY{pool.financialYear} (${pool.totalAmount.toLocaleString()})
@@ -265,7 +265,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="requestedBudget" className="block text-sm font-medium text-gray-700">
-            請求預算金額 ($)
+            {tFields('requestedBudget.label')}
           </label>
           <input
             type="number"
@@ -298,7 +298,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
-            <option value="">選擇專案經理</option>
+            <option value="">{tFields('manager.placeholder')}</option>
             {managers?.map((manager) => (
               <option key={manager.id} value={manager.id}>
                 {manager.name || manager.email}
@@ -321,7 +321,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
-            <option value="">選擇主管</option>
+            <option value="">{tFields('supervisor.placeholder')}</option>
             {supervisors?.map((supervisor) => (
               <option key={supervisor.id} value={supervisor.id}>
                 {supervisor.name || supervisor.email}

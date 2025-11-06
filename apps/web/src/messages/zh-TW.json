@@ -862,19 +862,19 @@
     "form": {
       "name": {
         "label": "供應商名稱",
-        "placeholder": "輸入供應商名稱"
+        "placeholder": "請輸入供應商名稱"
       },
       "contactPerson": {
         "label": "聯絡人",
-        "placeholder": "輸入聯絡人姓名"
+        "placeholder": "請輸入聯絡人姓名"
       },
       "email": {
         "label": "電子郵件",
-        "placeholder": "輸入電子郵件地址"
+        "placeholder": "vendor@example.com"
       },
       "phone": {
         "label": "電話",
-        "placeholder": "輸入電話號碼"
+        "placeholder": "+886 912-345-678"
       }
     },
     "list": {
