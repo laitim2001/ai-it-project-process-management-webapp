@@ -861,6 +861,31 @@
       "title": "Create New Vendor",
       "description": "Create a new vendor record"
     },
+    "list": {
+      "title": "Vendor List",
+      "subtitle": "Manage vendor information",
+      "newVendor": "New Vendor",
+      "search": "Search vendors...",
+      "table": {
+        "name": "Vendor Name",
+        "contactName": "Contact Person",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "quotesCount": "Quotes",
+        "purchaseOrdersCount": "Purchase Orders",
+        "actions": "Actions"
+      },
+      "empty": "No vendors yet",
+      "noResults": "No vendors match the criteria",
+      "items": "items"
+    },
+    "detail": {
+      "title": "Vendor Details",
+      "info": "Basic Information",
+      "quotes": "Quote History",
+      "purchaseOrders": "Purchase Orders"
+    },
     "form": {
       "name": {
         "label": "Vendor Name",
@@ -877,70 +902,43 @@
       "phone": {
         "label": "Phone",
         "placeholder": "+1 (555) 123-4567"
-      }
-    },
-    "list": {
-      "title": "供應商列表",
-      "subtitle": "管理供應商資料",
-      "newVendor": "新增供應商",
-      "search": "搜尋供應商...",
-      "table": {
-        "name": "供應商名稱",
-        "contactName": "聯絡人",
-        "email": "Email",
-        "phone": "電話",
-        "address": "地址",
-        "quotesCount": "報價單數",
-        "purchaseOrdersCount": "採購單數",
-        "actions": "操作"
       },
-      "empty": "No vendors yet",
-      "noResults": "No vendors match the criteria",
-      "items": "items"
-    },
-    "detail": {
-      "title": "供應商詳情",
-      "info": "基本資訊",
-      "quotes": "報價記錄",
-      "purchaseOrders": "採購記錄"
-    },
-    "form": {
       "create": {
-        "title": "新增供應商",
-        "subtitle": "建立新的供應商資料"
+        "title": "Create New Vendor",
+        "subtitle": "Create a new vendor record"
       },
       "edit": {
-        "title": "編輯供應商",
-        "subtitle": "更新供應商資訊"
+        "title": "Edit Vendor",
+        "subtitle": "Update vendor information"
       },
       "fields": {
         "name": {
-          "label": "供應商名稱",
-          "placeholder": "例如：Tech Solutions Ltd"
+          "label": "Vendor Name",
+          "placeholder": "e.g.: Tech Solutions Ltd"
         },
         "contactName": {
-          "label": "聯絡人姓名",
-          "placeholder": "例如：張三"
+          "label": "Contact Person",
+          "placeholder": "e.g.: John Doe"
         },
         "email": {
           "label": "Email",
-          "placeholder": "例如：contact@techsolutions.com"
+          "placeholder": "e.g.: contact@techsolutions.com"
         },
         "phone": {
-          "label": "電話",
-          "placeholder": "例如：+60 12-345 6789"
+          "label": "Phone",
+          "placeholder": "e.g.: +1 (555) 123-4567"
         },
         "address": {
-          "label": "地址",
-          "placeholder": "供應商地址..."
+          "label": "Address",
+          "placeholder": "Vendor address..."
         },
         "website": {
-          "label": "網站",
+          "label": "Website",
           "placeholder": "https://"
         },
         "notes": {
-          "label": "備註",
-          "placeholder": "其他資訊..."
+          "label": "Notes",
+          "placeholder": "Additional information..."
         }
       }
     },

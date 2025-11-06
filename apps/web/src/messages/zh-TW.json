@@ -859,24 +859,6 @@
       "title": "新增供應商",
       "description": "建立新的供應商資料"
     },
-    "form": {
-      "name": {
-        "label": "供應商名稱",
-        "placeholder": "請輸入供應商名稱"
-      },
-      "contactPerson": {
-        "label": "聯絡人",
-        "placeholder": "請輸入聯絡人姓名"
-      },
-      "email": {
-        "label": "電子郵件",
-        "placeholder": "vendor@example.com"
-      },
-      "phone": {
-        "label": "電話",
-        "placeholder": "+886 912-345-678"
-      }
-    },
     "list": {
       "title": "供應商列表",
       "subtitle": "管理供應商資料",
@@ -903,6 +885,22 @@
       "purchaseOrders": "採購記錄"
     },
     "form": {
+      "name": {
+        "label": "供應商名稱",
+        "placeholder": "請輸入供應商名稱"
+      },
+      "contactPerson": {
+        "label": "聯絡人",
+        "placeholder": "請輸入聯絡人姓名"
+      },
+      "email": {
+        "label": "電子郵件",
+        "placeholder": "vendor@example.com"
+      },
+      "phone": {
+        "label": "電話",
+        "placeholder": "+886 912-345-678"
+      },
       "create": {
         "title": "新增供應商",
         "subtitle": "建立新的供應商資料"
@@ -926,7 +924,7 @@
         },
         "phone": {
           "label": "電話",
-          "placeholder": "例如：+60 12-345 6789"
+          "placeholder": "例如：+886 912-345-678"
         },
         "address": {
           "label": "地址",
