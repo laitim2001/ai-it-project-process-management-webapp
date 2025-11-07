@@ -14,6 +14,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/routing";
 import { useRouter } from "@/i18n/routing";
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/trpc';

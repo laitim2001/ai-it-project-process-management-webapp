@@ -47,6 +47,7 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const { toast } = useToast();
   const id = params.id as string;
+  const locale = params.locale as string;
   // 專案狀態映射
   const getProjectStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {

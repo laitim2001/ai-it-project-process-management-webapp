@@ -13,6 +13,7 @@
 
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/routing";
 import { useParams } from 'next/navigation';
 import { PurchaseOrderForm } from '@/components/purchase-order/PurchaseOrderForm';
 import {
