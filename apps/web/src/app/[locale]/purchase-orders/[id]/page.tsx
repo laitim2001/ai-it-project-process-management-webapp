@@ -122,11 +122,11 @@ export default function PurchaseOrderDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/purchase-orders">{t('title')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/purchase-orders">{t('title')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -159,11 +159,11 @@ export default function PurchaseOrderDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/purchase-orders">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/purchase-orders">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

@@ -128,11 +128,11 @@ export default function EditQuotePage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/quotes">{t('title')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -169,11 +169,11 @@ export default function EditQuotePage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/quotes">{t('title')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -207,11 +207,11 @@ export default function EditQuotePage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/quotes">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/quotes">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

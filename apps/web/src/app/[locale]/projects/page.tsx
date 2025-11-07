@@ -209,7 +209,7 @@ export default function ProjectsPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tCommon('nav.dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tCommon('nav.dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -245,7 +245,7 @@ export default function ProjectsPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tCommon('nav.dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tCommon('nav.dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

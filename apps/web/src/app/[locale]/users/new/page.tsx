@@ -22,11 +22,11 @@ export default function NewUserPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/users">使用者</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/users">使用者</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

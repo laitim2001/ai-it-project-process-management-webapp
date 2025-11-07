@@ -12,6 +12,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/routing";
 import { Link, useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -87,7 +88,7 @@ export default function ProposalsPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

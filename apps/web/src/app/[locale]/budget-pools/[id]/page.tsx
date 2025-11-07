@@ -117,11 +117,11 @@ export default function BudgetPoolDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('home')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/budget-pools">{t('title')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -156,11 +156,11 @@ export default function BudgetPoolDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('home')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/budget-pools">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/budget-pools">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

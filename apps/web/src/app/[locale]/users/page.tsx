@@ -63,7 +63,7 @@ export default function UsersPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -93,7 +93,7 @@ export default function UsersPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

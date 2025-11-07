@@ -79,11 +79,11 @@ export default function EditVendorPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/vendors">供應商管理</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/vendors">供應商管理</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -116,15 +116,15 @@ export default function EditVendorPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/vendors">供應商管理</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/vendors">供應商管理</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/vendors/${id}`}>{vendor.name}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href={`/vendors/${id}`}>{vendor.name}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

@@ -110,11 +110,11 @@ export default function ProposalDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${locale}/proposals`}>{t('title')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/proposals">{t('title')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -132,7 +132,7 @@ export default function ProposalDetailPage() {
                   {t('detail.notFound')}
                 </AlertDescription>
               </Alert>
-              <Link href={`/${locale}/proposals`}>
+              <Link href="/proposals">
                 <Button>{tCommon('actions.back')}</Button>
               </Link>
             </div>
@@ -151,11 +151,11 @@ export default function ProposalDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/proposals`}>{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/proposals">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -176,7 +176,7 @@ export default function ProposalDetailPage() {
             <p className="text-muted-foreground">
               {t('fields.project')}：
               <Link
-                href={`/${locale}/projects/${proposal.project.id}`}
+                href="/projects/${proposal.project.id}"
                 className="ml-1 text-primary hover:text-primary font-medium"
               >
                 {proposal.project.name}
@@ -185,11 +185,11 @@ export default function ProposalDetailPage() {
           </div>
           <div className="flex gap-2">
             {(proposal.status === 'Draft' || proposal.status === 'MoreInfoRequired') && (
-              <Link href={`/${locale}/proposals/${proposal.id}/edit`}>
+              <Link href="/proposals/${proposal.id}/edit">
                 <Button variant="outline">{tCommon('actions.edit')}</Button>
               </Link>
             )}
-            <Link href={`/${locale}/proposals`}>
+            <Link href="/proposals">
               <Button variant="outline">{tCommon('actions.back')}</Button>
             </Link>
           </div>
@@ -283,7 +283,7 @@ export default function ProposalDetailPage() {
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">{t('fields.projectName')}：</span>
                       <Link
-                        href={`/${locale}/projects/${proposal.project.id}`}
+                        href="/projects/${proposal.project.id}"
                         className="ml-2 text-primary hover:text-primary font-medium"
                       >
                         {proposal.project.name}
@@ -316,7 +316,7 @@ export default function ProposalDetailPage() {
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">{t('fields.budgetPool')}：</span>
                       <Link
-                        href={`/${locale}/budget-pools/${proposal.project.budgetPool.id}`}
+                        href="/budget-pools/${proposal.project.budgetPool.id}"
                         className="ml-2 text-primary hover:text-primary font-medium"
                       >
                         {proposal.project.budgetPool.name}

@@ -28,8 +28,6 @@ export default function EditProjectPage() {
 
   const params = useParams();
   const projectId = params.id as string;
-  const locale = params.locale as string;
-
   const { data: project, isLoading } = api.project.getById.useQuery({ id: projectId });
 
   if (isLoading) {
@@ -91,11 +89,11 @@ export default function EditProjectPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${locale}/projects`}>{tNav('projects')}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/projects">{tNav('projects')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -130,15 +128,15 @@ export default function EditProjectPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/projects`}>{tNav('projects')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/projects">{tNav('projects')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/projects/${projectId}`}>{project.name}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/projects/${projectId}">{project.name}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

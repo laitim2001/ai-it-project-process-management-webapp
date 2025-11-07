@@ -58,11 +58,11 @@ export default function EditPurchaseOrderPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/purchase-orders">採購單</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/purchase-orders">採購單</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -97,11 +97,11 @@ export default function EditPurchaseOrderPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/purchase-orders">採購單</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/purchase-orders">採購單</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -135,17 +135,17 @@ export default function EditPurchaseOrderPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/purchase-orders">採購單</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/purchase-orders">採購單</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/purchase-orders/${id}`}>
+              <BreadcrumbLink asChild><Link href={`/purchase-orders/${id}`}>
                 {purchaseOrder.name}
-              </BreadcrumbLink>
+              </Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

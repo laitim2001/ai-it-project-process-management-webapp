@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from "@/i18n/routing";
+import { useRouter, Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -81,17 +81,17 @@ export default function EditChargeOutPage({ params }: { params: { id: string } }
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/charge-outs">費用轉嫁</BreadcrumbLink>
+            <BreadcrumbLink asChild><Link href="/charge-outs">費用轉嫁</Link></BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/charge-outs/${chargeOut.id}`}>
+            <BreadcrumbLink asChild><Link href={`/charge-outs/${chargeOut.id}`}>
               {chargeOut.name}
-            </BreadcrumbLink>
+            </Link></BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

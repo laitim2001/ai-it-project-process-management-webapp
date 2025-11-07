@@ -47,8 +47,6 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const { toast } = useToast();
   const id = params.id as string;
-  const locale = params.locale as string;
-
   // 專案狀態映射
   const getProjectStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -222,11 +220,11 @@ export default function ProjectDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/dashboard`}>{tNav('dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${locale}/projects`}>{tNav('projects')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/projects">{tNav('projects')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

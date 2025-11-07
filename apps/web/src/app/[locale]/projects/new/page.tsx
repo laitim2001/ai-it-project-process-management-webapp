@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/routing";
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,11 +25,11 @@ export default function NewProjectPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">{tCommon('nav.dashboard')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tCommon('nav.dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/projects">{t('title')}</BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/projects">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
