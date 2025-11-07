@@ -16,6 +16,7 @@
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import {
@@ -60,6 +61,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   const router = useRouter();
   const { toast } = useToast();
   const utils = api.useUtils();
+  const t = useTranslations('chargeOuts.actions');
 
   // ===== Dialog State =====
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -73,15 +75,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   const submitMutation = api.chargeOut.submit.useMutation({
     onSuccess: () => {
       toast({
-        title: '提交成功',
-        description: `ChargeOut ${chargeOut.name} 已提交審核`,
+        title: t('messages.submitSuccess'),
+        description: t('messages.submitSuccessDesc', { name: chargeOut.name }),
       });
       utils.chargeOut.getById.invalidate({ id: chargeOut.id });
       setShowSubmitDialog(false);
     },
     onError: (error) => {
       toast({
-        title: '提交失敗',
+        title: t('messages.submitError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -91,15 +93,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   const confirmMutation = api.chargeOut.confirm.useMutation({
     onSuccess: () => {
       toast({
-        title: '確認成功',
-        description: `ChargeOut ${chargeOut.name} 已確認`,
+        title: t('messages.confirmSuccess'),
+        description: t('messages.confirmSuccessDesc', { name: chargeOut.name }),
       });
       utils.chargeOut.getById.invalidate({ id: chargeOut.id });
       setShowConfirmDialog(false);
     },
     onError: (error) => {
       toast({
-        title: '確認失敗',
+        title: t('messages.confirmError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -109,15 +111,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   const rejectMutation = api.chargeOut.reject.useMutation({
     onSuccess: () => {
       toast({
-        title: '拒絕成功',
-        description: `ChargeOut ${chargeOut.name} 已拒絕`,
+        title: t('messages.rejectSuccess'),
+        description: t('messages.rejectSuccessDesc', { name: chargeOut.name }),
       });
       utils.chargeOut.getById.invalidate({ id: chargeOut.id });
       setShowRejectDialog(false);
     },
     onError: (error) => {
       toast({
-        title: '拒絕失敗',
+        title: t('messages.rejectError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -127,15 +129,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   const markAsPaidMutation = api.chargeOut.markAsPaid.useMutation({
     onSuccess: () => {
       toast({
-        title: '標記成功',
-        description: `ChargeOut ${chargeOut.name} 已標記為已付款`,
+        title: t('messages.markAsPaidSuccess'),
+        description: t('messages.markAsPaidSuccessDesc', { name: chargeOut.name }),
       });
       utils.chargeOut.getById.invalidate({ id: chargeOut.id });
       setShowPaidDialog(false);
     },
     onError: (error) => {
       toast({
-        title: '標記失敗',
+        title: t('messages.markAsPaidError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -145,14 +147,14 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
   const deleteMutation = api.chargeOut.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: '刪除成功',
-        description: `ChargeOut ${chargeOut.name} 已刪除`,
+        title: t('messages.deleteSuccess'),
+        description: t('messages.deleteSuccessDesc', { name: chargeOut.name }),
       });
       router.push('/charge-outs');
     },
     onError: (error) => {
       toast({
-        title: '刪除失敗',
+        title: t('messages.deleteError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -212,7 +214,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       {canEdit && (
         <Button variant="outline" onClick={handleEdit}>
           <Edit className="mr-2 h-4 w-4" />
-          編輯
+          {t('edit')}
         </Button>
       )}
 
@@ -224,7 +226,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
           ) : (
             <Send className="mr-2 h-4 w-4" />
           )}
-          提交審核
+          {t('submit')}
         </Button>
       )}
 
@@ -240,7 +242,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
           ) : (
             <CheckCircle className="mr-2 h-4 w-4" />
           )}
-          確認
+          {t('confirm')}
         </Button>
       )}
 
@@ -256,7 +258,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
           ) : (
             <XCircle className="mr-2 h-4 w-4" />
           )}
-          拒絕
+          {t('reject')}
         </Button>
       )}
 
@@ -272,7 +274,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
           ) : (
             <DollarSign className="mr-2 h-4 w-4" />
           )}
-          標記為已付款
+          {t('markAsPaid')}
         </Button>
       )}
 
@@ -280,7 +282,7 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       {canDelete && (
         <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
           <Trash2 className="mr-2 h-4 w-4" />
-          刪除
+          {t('delete')}
         </Button>
       )}
 
@@ -288,14 +290,14 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認提交</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.submit.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要提交 ChargeOut「{chargeOut.name}」嗎？提交後將無法編輯，需等待主管審核。
+              {t('dialogs.submit.description', { name: chargeOut.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSubmit}>確認提交</AlertDialogAction>
+            <AlertDialogCancel>{t('dialogs.submit.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmit}>{t('dialogs.submit.confirm')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -304,15 +306,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認 ChargeOut</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.confirm.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要確認 ChargeOut「{chargeOut.name}」嗎？確認後可以標記為已付款。
+              {t('dialogs.confirm.description', { name: chargeOut.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('dialogs.confirm.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirm} className="bg-green-600 hover:bg-green-700">
-              確認
+              {t('dialogs.confirm.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -322,15 +324,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>拒絕 ChargeOut</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.reject.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要拒絕 ChargeOut「{chargeOut.name}」嗎？拒絕後狀態將變為 Rejected。
+              {t('dialogs.reject.description', { name: chargeOut.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('dialogs.reject.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleReject} className="bg-red-600 hover:bg-red-700">
-              拒絕
+              {t('dialogs.reject.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -340,15 +342,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       <AlertDialog open={showPaidDialog} onOpenChange={setShowPaidDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>標記為已付款</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.markAsPaid.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要將 ChargeOut「{chargeOut.name}」標記為已付款嗎？此操作表示費用已完成轉嫁。
+              {t('dialogs.markAsPaid.description', { name: chargeOut.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('dialogs.markAsPaid.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleMarkAsPaid} className="bg-blue-600 hover:bg-blue-700">
-              確認標記
+              {t('dialogs.markAsPaid.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -358,15 +360,15 @@ export function ChargeOutActions({ chargeOut, currentUserRole }: ChargeOutAction
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.delete.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除 ChargeOut「{chargeOut.name}」嗎？此操作無法撤銷，所有相關的費用明細也會被刪除。
+              {t('dialogs.delete.description', { name: chargeOut.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('dialogs.delete.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              確認刪除
+              {t('dialogs.delete.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

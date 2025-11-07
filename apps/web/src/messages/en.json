@@ -1767,7 +1767,18 @@
     },
     "monthlyGrid": {
       "title": "Monthly Expense Statistics",
+      "description": "Edit actual spending amounts for months 1-12, system will automatically calculate total",
+      "saveButton": "Save Monthly Records",
+      "monthColumn": "Month",
+      "amountColumn": "Actual Spending (HKD)",
       "total": "Total",
+      "tips": {
+        "title": "Usage Tips",
+        "enterAmounts": "Enter actual spending amount for each month",
+        "autoCalculate": "System will automatically calculate total actual spending and utilization rate",
+        "clickSave": "Click \"Save Monthly Records\" button to save all changes",
+        "autoUpdate": "After saving, system will automatically update OM expense actualSpent field"
+      },
       "months": {
         "jan": "January",
         "feb": "February",
@@ -1938,6 +1949,63 @@
       "opCoCode": "OpCo Code",
       "opCoName": "OpCo Name",
       "timeline": "Timeline"
+    },
+    "actions": {
+      "edit": "Edit",
+      "submit": "Submit for Review",
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "markAsPaid": "Mark as Paid",
+      "delete": "Delete",
+      "dialogs": {
+        "submit": {
+          "title": "Confirm Submission",
+          "description": "Are you sure you want to submit ChargeOut \"{name}\"? After submission, it cannot be edited and will require supervisor review.",
+          "cancel": "Cancel",
+          "confirm": "Confirm Submit"
+        },
+        "confirm": {
+          "title": "Confirm ChargeOut",
+          "description": "Are you sure you want to confirm ChargeOut \"{name}\"? After confirmation, it can be marked as paid.",
+          "cancel": "Cancel",
+          "confirm": "Confirm"
+        },
+        "reject": {
+          "title": "Reject ChargeOut",
+          "description": "Are you sure you want to reject ChargeOut \"{name}\"? After rejection, the status will change to Rejected.",
+          "cancel": "Cancel",
+          "confirm": "Reject"
+        },
+        "markAsPaid": {
+          "title": "Mark as Paid",
+          "description": "Are you sure you want to mark ChargeOut \"{name}\" as paid? This action indicates the expense has been transferred.",
+          "cancel": "Cancel",
+          "confirm": "Confirm Mark"
+        },
+        "delete": {
+          "title": "Confirm Delete",
+          "description": "Are you sure you want to delete ChargeOut \"{name}\"? This action cannot be undone, and all related expense items will also be deleted.",
+          "cancel": "Cancel",
+          "confirm": "Confirm Delete"
+        }
+      },
+      "messages": {
+        "submitSuccess": "Submitted Successfully",
+        "submitSuccessDesc": "ChargeOut {name} has been submitted for review",
+        "submitError": "Submission Failed",
+        "confirmSuccess": "Confirmed Successfully",
+        "confirmSuccessDesc": "ChargeOut {name} has been confirmed",
+        "confirmError": "Confirmation Failed",
+        "rejectSuccess": "Rejected Successfully",
+        "rejectSuccessDesc": "ChargeOut {name} has been rejected",
+        "rejectError": "Rejection Failed",
+        "markAsPaidSuccess": "Marked Successfully",
+        "markAsPaidSuccessDesc": "ChargeOut {name} has been marked as paid",
+        "markAsPaidError": "Mark Failed",
+        "deleteSuccess": "Deleted Successfully",
+        "deleteSuccessDesc": "ChargeOut {name} has been deleted",
+        "deleteError": "Deletion Failed"
+      }
     }
   },
   "users": {

@@ -1767,7 +1767,18 @@
     },
     "monthlyGrid": {
       "title": "月度費用統計",
+      "description": "編輯 1-12 月的實際支出金額，系統將自動計算總額",
+      "saveButton": "保存月度記錄",
+      "monthColumn": "月份",
+      "amountColumn": "實際支出 (HKD)",
       "total": "總計",
+      "tips": {
+        "title": "使用提示",
+        "enterAmounts": "輸入每個月的實際支出金額",
+        "autoCalculate": "系統會自動計算總實際支出和使用率",
+        "clickSave": "點擊「保存月度記錄」按鈕保存所有更改",
+        "autoUpdate": "保存後，系統會自動更新 OM 費用的 actualSpent 欄位"
+      },
       "months": {
         "jan": "一月",
         "feb": "二月",
@@ -1938,6 +1949,63 @@
       "opCoCode": "OpCo 代碼",
       "opCoName": "OpCo 名稱",
       "timeline": "時間軸"
+    },
+    "actions": {
+      "edit": "編輯",
+      "submit": "提交審核",
+      "confirm": "確認",
+      "reject": "拒絕",
+      "markAsPaid": "標記為已付款",
+      "delete": "刪除",
+      "dialogs": {
+        "submit": {
+          "title": "確認提交",
+          "description": "確定要提交 ChargeOut「{name}」嗎？提交後將無法編輯，需等待主管審核。",
+          "cancel": "取消",
+          "confirm": "確認提交"
+        },
+        "confirm": {
+          "title": "確認 ChargeOut",
+          "description": "確定要確認 ChargeOut「{name}」嗎？確認後可以標記為已付款。",
+          "cancel": "取消",
+          "confirm": "確認"
+        },
+        "reject": {
+          "title": "拒絕 ChargeOut",
+          "description": "確定要拒絕 ChargeOut「{name}」嗎？拒絕後狀態將變為 Rejected。",
+          "cancel": "取消",
+          "confirm": "拒絕"
+        },
+        "markAsPaid": {
+          "title": "標記為已付款",
+          "description": "確定要將 ChargeOut「{name}」標記為已付款嗎？此操作表示費用已完成轉嫁。",
+          "cancel": "取消",
+          "confirm": "確認標記"
+        },
+        "delete": {
+          "title": "確認刪除",
+          "description": "確定要刪除 ChargeOut「{name}」嗎？此操作無法撤銷，所有相關的費用明細也會被刪除。",
+          "cancel": "取消",
+          "confirm": "確認刪除"
+        }
+      },
+      "messages": {
+        "submitSuccess": "提交成功",
+        "submitSuccessDesc": "ChargeOut {name} 已提交審核",
+        "submitError": "提交失敗",
+        "confirmSuccess": "確認成功",
+        "confirmSuccessDesc": "ChargeOut {name} 已確認",
+        "confirmError": "確認失敗",
+        "rejectSuccess": "拒絕成功",
+        "rejectSuccessDesc": "ChargeOut {name} 已拒絕",
+        "rejectError": "拒絕失敗",
+        "markAsPaidSuccess": "標記成功",
+        "markAsPaidSuccessDesc": "ChargeOut {name} 已標記為已付款",
+        "markAsPaidError": "標記失敗",
+        "deleteSuccess": "刪除成功",
+        "deleteSuccessDesc": "ChargeOut {name} 已刪除",
+        "deleteError": "刪除失敗"
+      }
     }
   },
   "users": {
