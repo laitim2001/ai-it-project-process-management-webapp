@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,82 +23,96 @@ import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
 /**
- * OMExpenseForm - OM 費用創建/編輯表單組件
+ * OMExpenseForm - OM Expense Create/Edit Form Component
  *
- * 功能：
- * 1. 創建新 OM 費用
- * 2. 編輯現有 OM 費用基本資訊
- * 3. 完整的表單驗證（Zod + react-hook-form）
- * 4. OpCo、Vendor、Category 選擇器
- * 5. 預算金額、日期範圍輸入
+ * Features:
+ * 1. Create new OM expense
+ * 2. Edit existing OM expense basic information
+ * 3. Complete form validation (Zod + react-hook-form)
+ * 4. OpCo, Vendor, Category selectors
+ * 5. Budget amount, date range inputs
  *
- * 注意：
- * - 創建時會自動初始化 12 個月度記錄（金額為 0）
- * - actualSpent 由系統自動計算，不可手動輸入
- * - 月度記錄在詳情頁單獨編輯
+ * Notes:
+ * - Creation automatically initializes 12 monthly records (amount = 0)
+ * - actualSpent is calculated by system, not manually inputted
+ * - Monthly records are edited separately on detail page
  */
-
-// Zod Schema
-const omExpenseSchema = z
-  .object({
-    name: z.string().min(1, 'OM 費用名稱不能為空').max(200),
-    description: z.string().optional(),
-    financialYear: z.number().int().min(2000).max(2100),
-    category: z.string().min(1, 'OM 類別不能為空').max(100),
-    opCoId: z.string().min(1, '請選擇 OpCo'),
-    budgetAmount: z.number().positive('預算金額必須大於 0'),
-    vendorId: z.string().optional(),
-    startDate: z.string().min(1, '開始日期不能為空'),
-    endDate: z.string().min(1, '結束日期不能為空'),
-  })
-  .refine(
-    (data) => {
-      if (data.startDate && data.endDate) {
-        return new Date(data.startDate) < new Date(data.endDate);
-      }
-      return true;
-    },
-    {
-      message: '結束日期必須晚於開始日期',
-      path: ['endDate'],
-    }
-  );
-
-type OMExpenseFormData = z.infer<typeof omExpenseSchema>;
 
 interface OMExpenseFormProps {
   mode: 'create' | 'edit';
-  initialData?: Partial<OMExpenseFormData> & { id?: string };
+  initialData?: Partial<{
+    id: string;
+    name: string;
+    description: string | undefined;
+    financialYear: number;
+    category: string;
+    opCoId: string;
+    budgetAmount: number;
+    vendorId: string | undefined;
+    startDate: string;
+    endDate: string;
+  }>;
 }
 
 export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps) {
+  const t = useTranslations('omExpenses.form');
+  const tCommon = useTranslations('common');
+  const tValidation = useTranslations('validation');
   const router = useRouter();
   const { toast } = useToast();
 
-  // 獲取 OpCo 列表
+  // Zod Schema with Translations
+  const omExpenseSchema = z
+    .object({
+      name: z.string().min(1, tValidation('required')).max(200),
+      description: z.string().optional(),
+      financialYear: z.number().int().min(2000).max(2100),
+      category: z.string().min(1, tValidation('required')).max(100),
+      opCoId: z.string().min(1, tValidation('required')),
+      budgetAmount: z.number().positive(tValidation('positiveNumber')),
+      vendorId: z.string().optional(),
+      startDate: z.string().min(1, tValidation('required')),
+      endDate: z.string().min(1, tValidation('required')),
+    })
+    .refine(
+      (data) => {
+        if (data.startDate && data.endDate) {
+          return new Date(data.startDate) < new Date(data.endDate);
+        }
+        return true;
+      },
+      {
+        message: tValidation('endDateBeforeStart'),
+        path: ['endDate'],
+      }
+    );
+
+  type OMExpenseFormData = z.infer<typeof omExpenseSchema>;
+
+  // Get OpCo list
   const { data: opCos } = api.operatingCompany.getAll.useQuery();
 
-  // 獲取 Vendor 列表
+  // Get Vendor list
   const { data: vendors } = api.vendor.getAll.useQuery({
     page: 1,
     limit: 100,
   });
 
-  // 獲取 OM 類別列表（用於自動完成）
+  // Get OM Categories list (for autocomplete)
   const { data: categories } = api.omExpense.getCategories.useQuery();
 
   // tRPC Mutations
   const createMutation = api.omExpense.create.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '創建成功',
-        description: `OM 費用 "${data.name}" 已創建，並自動初始化了 12 個月度記錄`,
+        title: tCommon('success'),
+        description: t('messages.createSuccess', { name: data.name }),
       });
       router.push(`/om-expenses/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '創建失敗',
+        title: tCommon('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -107,14 +122,14 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
   const updateMutation = api.omExpense.update.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '更新成功',
-        description: `OM 費用 "${data.name}" 已更新`,
+        title: tCommon('success'),
+        description: t('messages.updateSuccess', { name: data.name }),
       });
       router.push(`/om-expenses/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '更新失敗',
+        title: tCommon('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -137,7 +152,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
     },
   });
 
-  // 當 initialData 更新時，重置表單
+  // Reset form when initialData updates
   useEffect(() => {
     if (initialData && mode === 'edit') {
       form.reset({
@@ -154,9 +169,9 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
     }
   }, [initialData, mode, form]);
 
-  // 表單提交
+  // Form submit
   const onSubmit = (data: OMExpenseFormData) => {
-    // 修復 Bug #9: 將空字符串 vendorId 轉換為 undefined，避免 Foreign Key 錯誤
+    // Fix Bug #9: Convert empty string vendorId to undefined to avoid Foreign Key error
     const formattedData = {
       ...data,
       vendorId: data.vendorId || undefined,
@@ -177,42 +192,42 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* 基本資訊 */}
+        {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>基本資訊</CardTitle>
+            <CardTitle>{t('basicInfo.title', { defaultValue: 'Basic Information' })}</CardTitle>
             <CardDescription>
-              {mode === 'create' ? '創建新的 OM 費用記錄' : '編輯 OM 費用基本資訊'}
+              {mode === 'create' ? t('create.subtitle') : t('edit.subtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* OM 費用名稱 */}
+            {/* OM Expense Name */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    OM 費用名稱 <span className="text-destructive">*</span>
+                    {t('fields.name.label')} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：AWS Cloud Services" {...field} />
+                    <Input placeholder={t('fields.name.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* 描述 */}
+            {/* Description */}
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>描述</FormLabel>
+                  <FormLabel>{t('fields.description.label')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="OM 費用的詳細說明..."
+                      placeholder={t('fields.description.placeholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -223,7 +238,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
               )}
             />
 
-            {/* 財務年度 和 OM 類別 */}
+            {/* Financial Year and OM Category */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -231,13 +246,14 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      財務年度 <span className="text-destructive">*</span>
+                      {t('fields.financialYear.label')} <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min={2000}
                         max={2100}
+                        placeholder={t('fields.financialYear.placeholder')}
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
@@ -253,11 +269,11 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      OM 類別 <span className="text-destructive">*</span>
+                      {t('fields.category.label')} <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="例如：Server Maintenance"
+                        placeholder={t('fields.category.placeholder')}
                         list="category-suggestions"
                         {...field}
                       />
@@ -268,7 +284,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                       ))}
                     </datalist>
                     <FormDescription>
-                      輸入新類別或從現有類別中選擇
+                      {t('categoryDescription', { defaultValue: 'Enter a new category or select from existing categories' })}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -278,28 +294,30 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
           </CardContent>
         </Card>
 
-        {/* OpCo 和供應商 */}
+        {/* OpCo and Vendor */}
         <Card>
           <CardHeader>
-            <CardTitle>OpCo 和供應商</CardTitle>
-            <CardDescription>選擇營運公司和關聯的供應商（可選）</CardDescription>
+            <CardTitle>{t('opCoAndVendor.title', { defaultValue: 'OpCo and Vendor' })}</CardTitle>
+            <CardDescription>
+              {t('opCoAndVendor.description', { defaultValue: 'Select operating company and associated vendor (optional)' })}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* OpCo 選擇 */}
+            {/* OpCo Selection */}
             <FormField
               control={form.control}
               name="opCoId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    營運公司 (OpCo) <span className="text-destructive">*</span>
+                    {t('fields.opCo.label')} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">選擇 OpCo</option>
+                      <option value="">{t('fields.opCo.placeholder')}</option>
                       {opCos?.map((opCo) => (
                         <option key={opCo.id} value={opCo.id}>
                           {opCo.code} - {opCo.name}
@@ -312,19 +330,19 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
               )}
             />
 
-            {/* 供應商選擇（可選） */}
+            {/* Vendor Selection (Optional) */}
             <FormField
               control={form.control}
               name="vendorId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>供應商</FormLabel>
+                  <FormLabel>{t('fields.vendor.label')}</FormLabel>
                   <FormControl>
                     <select
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="">無（不關聯供應商）</option>
+                      <option value="">{t('fields.vendor.placeholder')}</option>
                       {vendors?.items.map((vendor) => (
                         <option key={vendor.id} value={vendor.id}>
                           {vendor.name}
@@ -332,7 +350,9 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                       ))}
                     </select>
                   </FormControl>
-                  <FormDescription>可選：關聯到特定供應商</FormDescription>
+                  <FormDescription>
+                    {t('vendorDescription', { defaultValue: 'Optional: Associate with a specific vendor' })}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -340,41 +360,43 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
           </CardContent>
         </Card>
 
-        {/* 預算和日期 */}
+        {/* Budget and Date Range */}
         <Card>
           <CardHeader>
-            <CardTitle>預算和日期範圍</CardTitle>
-            <CardDescription>設定年度預算金額和費用的有效期間</CardDescription>
+            <CardTitle>{t('budgetAndDates.title', { defaultValue: 'Budget and Date Range' })}</CardTitle>
+            <CardDescription>
+              {t('budgetAndDates.description', { defaultValue: 'Set annual budget amount and expense valid period' })}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 預算金額 */}
+            {/* Budget Amount */}
             <FormField
               control={form.control}
               name="budgetAmount"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    預算金額 (HKD) <span className="text-destructive">*</span>
+                    {t('fields.budgetAmount.label')} <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min={0}
                       step={0.01}
-                      placeholder="0.00"
+                      placeholder={t('fields.budgetAmount.placeholder')}
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value))}
                     />
                   </FormControl>
                   <FormDescription>
-                    年度預算金額，實際支出由月度記錄自動計算
+                    {t('budgetDescription', { defaultValue: 'Annual budget amount, actual spending calculated from monthly records' })}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* 開始日期 和 結束日期 */}
+            {/* Start Date and End Date */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -382,7 +404,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      開始日期 <span className="text-destructive">*</span>
+                      {t('startDate', { defaultValue: 'Start Date' })} <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
@@ -398,7 +420,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      結束日期 <span className="text-destructive">*</span>
+                      {t('endDate', { defaultValue: 'End Date' })} <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
@@ -411,7 +433,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
           </CardContent>
         </Card>
 
-        {/* 表單操作按鈕 */}
+        {/* Form Action Buttons */}
         <div className="flex justify-end gap-4">
           <Button
             type="button"
@@ -419,25 +441,27 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
             onClick={() => router.back()}
             disabled={isSubmitting}
           >
-            取消
+            {t('actions.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
               ? mode === 'create'
-                ? '創建中...'
-                : '更新中...'
+                ? tCommon('submitting')
+                : tCommon('saving')
               : mode === 'create'
-              ? '創建 OM 費用'
-              : '更新 OM 費用'}
+              ? t('actions.create')
+              : t('actions.update')}
           </Button>
         </div>
 
-        {/* 創建模式提示 */}
+        {/* Create Mode Notice */}
         {mode === 'create' && (
           <Card className="bg-muted">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">
-                ℹ️ 創建後將自動生成 12 個月度記錄（1-12月），初始金額為 0。您可以在詳情頁面編輯每月的實際支出。
+                ℹ️ {t('createNotice', {
+                  defaultValue: 'After creation, 12 monthly records (Jan-Dec) will be automatically generated with initial amount of 0. You can edit monthly actual spending on the detail page.'
+                })}
               </p>
             </CardContent>
           </Card>

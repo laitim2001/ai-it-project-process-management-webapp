@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -43,6 +44,8 @@ export function ProposalFileUpload({
 }: ProposalFileUploadProps) {
   const { toast } = useToast();
   const utils = api.useUtils();
+  const t = useTranslations('proposals.attachments');
+  const tCommon = useTranslations('common');
 
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -51,15 +54,15 @@ export function ProposalFileUpload({
   const uploadMutation = api.budgetProposal.uploadProposalFile.useMutation({
     onSuccess: () => {
       toast({
-        title: '上傳成功',
-        description: '提案文件已成功上傳',
+        title: t('uploadSuccess'),
+        description: t('uploadSuccessDesc'),
       });
       setFile(null);
       utils.budgetProposal.getById.invalidate({ id: proposalId });
     },
     onError: (error) => {
       toast({
-        title: '上傳失敗',
+        title: t('uploadError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -84,8 +87,8 @@ export function ProposalFileUpload({
 
     if (!allowedTypes.includes(selectedFile.type)) {
       toast({
-        title: '文件類型不支持',
-        description: '請上傳 PDF、PPT 或 Word 文件',
+        title: t('validation.fileTypeError'),
+        description: t('validation.fileTypeErrorDesc'),
         variant: 'destructive',
       });
       return;
@@ -94,8 +97,8 @@ export function ProposalFileUpload({
     // 驗證文件大小 (20MB)
     if (selectedFile.size > 20 * 1024 * 1024) {
       toast({
-        title: '文件過大',
-        description: '文件大小不能超過 20MB',
+        title: t('validation.fileTooLarge'),
+        description: t('validation.fileTooLargeDesc'),
         variant: 'destructive',
       });
       return;
@@ -127,7 +130,7 @@ export function ProposalFileUpload({
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || '上傳失敗');
+        throw new Error(result.error || t('uploadError'));
       }
 
       // 調用 tRPC mutation 更新數據庫
@@ -141,8 +144,8 @@ export function ProposalFileUpload({
     } catch (error) {
       console.error('上傳錯誤:', error);
       toast({
-        title: '上傳失敗',
-        description: error instanceof Error ? error.message : '上傳失敗，請稍後再試',
+        title: t('uploadError'),
+        description: error instanceof Error ? error.message : t('uploadErrorRetry'),
         variant: 'destructive',
       });
     } finally {
@@ -162,7 +165,7 @@ export function ProposalFileUpload({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          項目計劃書文件
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -174,7 +177,7 @@ export function ProposalFileUpload({
                 <FileText className="h-10 w-10 text-primary flex-shrink-0 mt-1" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground truncate">
-                    {proposalFileName || '提案文件'}
+                    {proposalFileName || t('proposalFile')}
                   </p>
                   {proposalFileSize && (
                     <p className="text-sm text-muted-foreground">
@@ -190,7 +193,7 @@ export function ProposalFileUpload({
               >
                 <a href={proposalFilePath} target="_blank" rel="noopener noreferrer">
                   <Download className="h-4 w-4 mr-2" />
-                  下載
+                  {t('download')}
                 </a>
               </Button>
             </div>
@@ -217,9 +220,9 @@ export function ProposalFileUpload({
                 >
                   <Upload className="h-10 w-10 text-muted-foreground" />
                   <div>
-                    <p className="font-medium text-foreground">點擊上傳文件</p>
+                    <p className="font-medium text-foreground">{t('clickToUpload')}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      支持 PDF、PPT、Word 文件，最大 20MB
+                      {t('supportedFormats')}
                     </p>
                   </div>
                 </label>
@@ -257,7 +260,7 @@ export function ProposalFileUpload({
                   onClick={handleCancel}
                   disabled={uploading}
                 >
-                  取消
+                  {tCommon('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleUpload}
@@ -266,12 +269,12 @@ export function ProposalFileUpload({
                   {uploading ? (
                     <>
                       <Upload className="h-4 w-4 mr-2 animate-spin" />
-                      上傳中...
+                      {t('uploading')}
                     </>
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      上傳文件
+                      {t('uploadFile')}
                     </>
                   )}
                 </Button>
@@ -287,7 +290,7 @@ export function ProposalFileUpload({
               onClick={() => document.getElementById('proposal-file-input')?.click()}
             >
               <Upload className="h-4 w-4 mr-2" />
-              替換文件
+              {t('replaceFile')}
             </Button>
             <input
               id="proposal-file-input"
@@ -304,7 +307,7 @@ export function ProposalFileUpload({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            上傳項目計劃書 (PDF/PPT) 以便審批者查閱完整的項目資訊。
+            {t('hint')}
           </AlertDescription>
         </Alert>
       </CardContent>

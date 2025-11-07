@@ -16,6 +16,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -51,17 +52,12 @@ interface ChargeOutItemFormData {
   sortOrder: number;
 }
 
-/**
- * 表單驗證 Schema
- */
-const formSchema = z.object({
-  name: z.string().min(1, 'ChargeOut 名稱為必填'),
-  description: z.string().optional(),
-  projectId: z.string().min(1, '請選擇項目'),
-  opCoId: z.string().min(1, '請選擇營運公司 (OpCo)'),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  name: string;
+  description?: string;
+  projectId: string;
+  opCoId: string;
+};
 
 /**
  * 組件 Props
@@ -94,6 +90,8 @@ const formatCurrency = (amount: number): string => {
 export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations('chargeOuts.form');
+  const tCommon = useTranslations('common');
 
   // ===== State Management =====
   const [items, setItems] = useState<ChargeOutItemFormData[]>(
@@ -103,6 +101,14 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
   const [selectedProjectId, setSelectedProjectId] = useState<string>(
     initialData?.projectId || ''
   );
+
+  // ===== Form Schema =====
+  const formSchema = z.object({
+    name: z.string().min(1, t('validation.nameRequired')),
+    description: z.string().optional(),
+    projectId: z.string().min(1, t('validation.projectRequired')),
+    opCoId: z.string().min(1, t('validation.opCoRequired')),
+  });
 
   // ===== React Hook Form =====
   const form = useForm<FormValues>({
@@ -136,14 +142,14 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
   const createMutation = api.chargeOut.create.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '創建成功',
-        description: `ChargeOut ${data.name} 已成功創建`,
+        title: t('messages.createSuccess'),
+        description: t('messages.createSuccessDesc', { name: data.name }),
       });
       router.push(`/charge-outs/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '創建失敗',
+        title: t('messages.createError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -153,14 +159,14 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
   const updateMutation = api.chargeOut.update.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '更新成功',
-        description: `ChargeOut ${data.name} 已成功更新`,
+        title: t('messages.updateSuccess'),
+        description: t('messages.updateSuccessDesc', { name: data.name }),
       });
       router.push(`/charge-outs/${data.id}`);
     },
     onError: (error) => {
       toast({
-        title: '更新失敗',
+        title: t('messages.updateError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -226,8 +232,8 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
   const handleRemoveItem = (index: number) => {
     if (items.length === 1) {
       toast({
-        title: '無法刪除',
-        description: '至少需要保留一個費用項目',
+        title: t('messages.cannotDelete'),
+        description: t('messages.minOneItem'),
         variant: 'destructive',
       });
       return;
@@ -240,8 +246,8 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
     // 驗證費用項目
     if (items.length === 0) {
       toast({
-        title: '驗證失敗',
-        description: '至少需要一個費用項目',
+        title: t('validation.validationFailed'),
+        description: t('validation.minOneItem'),
         variant: 'destructive',
       });
       return;
@@ -254,8 +260,8 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
 
     if (invalidItems.length > 0) {
       toast({
-        title: '驗證失敗',
-        description: '請填寫所有費用項目的必填信息（費用、金額）',
+        title: t('validation.validationFailed'),
+        description: t('validation.fillAllRequired'),
         variant: 'destructive',
       });
       return;
@@ -295,7 +301,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              ChargeOut 基本信息
+              {t('sections.basicInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -305,9 +311,9 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ChargeOut 名稱 *</FormLabel>
+                  <FormLabel>{t('fields.name.label')} *</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：2024 Q1 IT 服務費用轉嫁" {...field} />
+                    <Input placeholder={t('fields.name.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -320,10 +326,10 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>描述</FormLabel>
+                  <FormLabel>{t('fields.description.label')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="詳細說明此 ChargeOut 的目的和內容..."
+                      placeholder={t('fields.description.placeholder')}
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -340,13 +346,13 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                 name="projectId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>項目 *</FormLabel>
+                    <FormLabel>{t('fields.project.label')} *</FormLabel>
                     <FormControl>
                       <select
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         {...field}
                       >
-                        <option value="">選擇項目</option>
+                        <option value="">{t('fields.project.placeholder')}</option>
                         {projects?.items?.map((project) => (
                           <option key={project.id} value={project.id}>
                             {project.name}
@@ -365,13 +371,13 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                 name="opCoId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>營運公司 (OpCo) *</FormLabel>
+                    <FormLabel>{t('fields.opCo.label')} *</FormLabel>
                     <FormControl>
                       <select
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         {...field}
                       >
-                        <option value="">選擇 OpCo</option>
+                        <option value="">{t('fields.opCo.placeholder')}</option>
                         {opCos?.map((opCo) => (
                           <option key={opCo.id} value={opCo.id}>
                             {opCo.code} - {opCo.name}
@@ -391,7 +397,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>費用明細</CardTitle>
+              <CardTitle>{t('sections.items')}</CardTitle>
               <Button
                 type="button"
                 variant="outline"
@@ -400,23 +406,23 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                 disabled={!selectedProjectId || isLoadingExpenses}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                新增費用項目
+                {t('actions.addItem')}
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             {!selectedProjectId ? (
               <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-                請先選擇項目以載入可用的費用列表
+                {t('messages.selectProjectFirst')}
               </div>
             ) : isLoadingExpenses ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2 text-sm text-muted-foreground">載入費用列表...</span>
+                <span className="ml-2 text-sm text-muted-foreground">{t('messages.loadingExpenses')}</span>
               </div>
             ) : !eligibleExpenses || eligibleExpenses.length === 0 ? (
               <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-                此項目沒有可用於 ChargeOut 的費用（requiresChargeOut = true）
+                {t('messages.noEligibleExpenses')}
               </div>
             ) : (
               <div className="space-y-4">
@@ -426,10 +432,10 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                     <thead>
                       <tr className="border-b">
                         <th className="p-2 text-left text-sm font-medium">#</th>
-                        <th className="p-2 text-left text-sm font-medium">費用 *</th>
-                        <th className="p-2 text-left text-sm font-medium">金額 (HKD) *</th>
-                        <th className="p-2 text-left text-sm font-medium">描述</th>
-                        <th className="p-2 text-center text-sm font-medium">操作</th>
+                        <th className="p-2 text-left text-sm font-medium">{t('table.expense')} *</th>
+                        <th className="p-2 text-left text-sm font-medium">{t('table.amount')} *</th>
+                        <th className="p-2 text-left text-sm font-medium">{t('table.description')}</th>
+                        <th className="p-2 text-center text-sm font-medium">{tCommon('actions.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -449,7 +455,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                                   handleUpdateItem(index, 'expenseId', e.target.value)
                                 }
                               >
-                                <option value="">選擇費用</option>
+                                <option value="">{t('fields.expense.placeholder')}</option>
                                 {eligibleExpenses?.map((expense) => (
                                   <option key={expense.id} value={expense.id}>
                                     {expense.name} - {formatCurrency(expense.totalAmount)}
@@ -458,7 +464,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                               </select>
                               {selectedExpense && (
                                 <div className="mt-1 text-xs text-muted-foreground">
-                                  發票號碼: {selectedExpense.invoiceNumber || 'N/A'}
+                                  {t('fields.expense.invoiceNumber')}: {selectedExpense.invoiceNumber || 'N/A'}
                                 </div>
                               )}
                             </td>
@@ -486,7 +492,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                                 onChange={(e) =>
                                   handleUpdateItem(index, 'description', e.target.value)
                                 }
-                                placeholder="可選說明"
+                                placeholder={t('fields.itemDescription.placeholder')}
                                 className="h-9"
                               />
                             </td>
@@ -511,7 +517,7 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                 {/* 總計 */}
                 <div className="flex justify-end border-t pt-4">
                   <div className="text-right">
-                    <div className="text-sm text-muted-foreground">總金額</div>
+                    <div className="text-sm text-muted-foreground">{t('table.totalAmount')}</div>
                     <div className="text-2xl font-bold text-primary">
                       {formatCurrency(totalAmount)}
                     </div>
@@ -530,11 +536,11 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
             onClick={() => router.back()}
             disabled={isSubmitting}
           >
-            取消
+            {tCommon('actions.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEdit ? '更新 ChargeOut' : '創建 ChargeOut'}
+            {isEdit ? t('actions.update') : t('actions.create')}
           </Button>
         </div>
       </form>

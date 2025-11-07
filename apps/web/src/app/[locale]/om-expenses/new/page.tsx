@@ -12,7 +12,8 @@ import { useRouter } from "@/i18n/routing";
  */
 
 export default function NewOMExpensePage() {
-  const t = useTranslations('omExpenses');
+  const t = useTranslations('omExpenses.new');
+  const tCommon = useTranslations('common');
   const router = useRouter();
 
   return (
@@ -22,16 +23,16 @@ export default function NewOMExpensePage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push('/om-expenses')}
+          onClick={() => router.back()}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          返回列表
+          {tCommon('actions.back')}
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">新增 OM 費用</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            創建新的操作與維護費用記錄，系統將自動初始化 12 個月度記錄
+            {t('subtitle')}
           </p>
         </div>
       </div>

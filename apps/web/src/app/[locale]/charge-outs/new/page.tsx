@@ -12,6 +12,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
+import { Link } from "@/i18n/routing";
 import { ChargeOutForm } from '@/components/charge-out/ChargeOutForm';
 import { useRouter } from "@/i18n/routing";
 
@@ -25,6 +26,7 @@ import { useRouter } from "@/i18n/routing";
 
 export default function NewChargeOutPage() {
   const t = useTranslations('chargeOuts');
+  const tNav = useTranslations('navigation');
   const router = useRouter();
 
   return (
@@ -33,15 +35,15 @@ export default function NewChargeOutPage() {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            <Link href="/dashboard">{tNav('home')}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/charge-outs">費用轉嫁</BreadcrumbLink>
+            <Link href="/charge-outs">{tNav('menu.chargeOuts')}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>新增 ChargeOut</BreadcrumbPage>
+            <BreadcrumbPage>{t('form.create.title')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -49,13 +51,13 @@ export default function NewChargeOutPage() {
       {/* 頁面標題 */}
       <div className="mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/charge-outs')}>
+          <Button variant="ghost" size="sm" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">新增 ChargeOut</h1>
+            <h1 className="text-3xl font-bold">{t('form.create.title')}</h1>
             <p className="mt-2 text-muted-foreground">
-              創建新的費用轉嫁記錄，將 IT 費用轉嫁至營運公司 (OpCo)
+              {t('form.create.subtitle')}
             </p>
           </div>
         </div>

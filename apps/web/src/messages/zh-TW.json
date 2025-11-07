@@ -10,6 +10,7 @@
       "confirm": "確認",
       "save": "儲存",
       "create": "新增",
+      "delete": "刪除",
       "exportCSV": "匯出 CSV"
     },
     "sort": {
@@ -21,7 +22,10 @@
     "fields": {
       "createdAt": "創建時間",
       "updatedAt": "更新時間",
-      "actions": "操作"
+      "actions": "操作",
+      "amount": "金額",
+      "uploadDate": "上傳日期",
+      "status": "狀態"
     },
     "table": {
       "actions": "操作"
@@ -44,7 +48,9 @@
       "active": "進行中",
       "inactive": "非活動",
       "inProgress": "進行中",
-      "archived": "已歸檔"
+      "archived": "已歸檔",
+      "submitted": "已提交",
+      "confirmed": "已確認"
     },
     "nav": {
       "dashboard": "首頁"
@@ -420,19 +426,28 @@
       "quickActions": "快速操作",
       "newBudgetProposal": "新增預算提案",
       "editProjectInfo": "編輯專案資訊",
-      "vendor": "供應商"
+      "vendor": "供應商",
+      "overview": "概覽",
+      "budget": "預算資訊",
+      "proposals": "預算提案",
+      "purchaseOrders": "採購單",
+      "expenses": "費用",
+      "tabs": {
+        "overview": "概覽",
+        "proposals": "提案",
+        "quotes": "報價",
+        "purchaseOrders": "採購單",
+        "expenses": "費用"
+      }
     },
     "form": {
-      "entityName": "專案",
       "create": {
         "title": "新增專案",
         "subtitle": "建立新的 IT 專案"
       },
       "edit": {
         "title": "編輯專案",
-        "subtitle": "更新專案資訊",
-        "notFound": "找不到專案。此專案可能不存在或已被刪除。",
-        "backToList": "返回專案列表"
+        "subtitle": "更新專案資訊"
       },
       "fields": {
         "name": {
@@ -493,13 +508,8 @@
   "proposals": {
     "title": "預算提案",
     "description": "管理所有預算提案的申請與審批",
-    "dashboard": "首頁",
-    "noData": "暫無資料",
     "summary": {
       "total": "總計"
-    },
-    "empty": {
-      "hint": "開始創建您的第一個預算提案"
     },
     "actions": {
       "create": "新增提案",
@@ -526,8 +536,6 @@
     },
     "fields": {
       "title": "提案標題",
-      "actions": "操作",
-      "createdAt": "創建時間",
       "status": "狀態",
       "project": "所屬專案",
       "projectName": "專案名稱",
@@ -628,13 +636,6 @@
         }
       }
     },
-    "comments": {
-      "title": "討論區",
-      "addComment": "新增評論",
-      "placeholder": "輸入您的評論...",
-      "submit": "發送",
-      "empty": "尚無評論"
-    },
     "history": {
       "title": "審批歷史",
       "action": {
@@ -644,6 +645,76 @@
         "rejected": "駁回",
         "moreInfoRequested": "要求更多資訊",
         "withdrawn": "撤回"
+      }
+    },
+    "comments": {
+      "title": "評論",
+      "noComments": "尚無評論",
+      "addComment": "新增評論",
+      "placeholder": "輸入您的評論...",
+      "submit": "發送評論",
+      "submitting": "發送中...",
+      "addSuccess": "成功",
+      "addSuccessDescription": "評論已新增！",
+      "error": "錯誤",
+      "addError": "無法新增評論",
+      "emptyContent": "請輸入評論內容",
+      "loginRequired": "請先登入"
+    },
+    "attachments": {
+      "title": "項目計劃書文件",
+      "proposalFile": "提案文件",
+      "download": "下載",
+      "clickToUpload": "點擊上傳文件",
+      "supportedFormats": "支持 PDF、PPT、Word 文件,最大 20MB",
+      "uploading": "上傳中...",
+      "uploadFile": "上傳文件",
+      "replaceFile": "替換文件",
+      "hint": "上傳項目計劃書 (PDF/PPT) 以便審批者查閱完整的項目資訊。",
+      "uploadSuccess": "上傳成功",
+      "uploadSuccessDesc": "提案文件已成功上傳",
+      "uploadError": "上傳失敗",
+      "uploadErrorRetry": "上傳失敗,請稍後再試",
+      "validation": {
+        "fileTypeError": "文件類型不支持",
+        "fileTypeErrorDesc": "請上傳 PDF、PPT 或 Word 文件",
+        "fileTooLarge": "文件過大",
+        "fileTooLargeDesc": "文件大小不能超過 20MB"
+      }
+    },
+    "meeting": {
+      "title": "會議記錄",
+      "add": "新增",
+      "edit": "編輯",
+      "save": "保存",
+      "saving": "保存中...",
+      "cancel": "取消",
+      "fields": {
+        "date": {
+          "label": "會議日期"
+        },
+        "presentedBy": {
+          "label": "介紹人員",
+          "placeholder": "例如：張經理、李主管"
+        },
+        "notes": {
+          "label": "會議記錄",
+          "placeholder": "請輸入會議記錄內容..."
+        }
+      },
+      "hints": {
+        "empty": "尚未記錄會議資訊。點擊「新增」按鈕開始記錄。",
+        "notesHelp": "記錄提案介紹會議的討論內容、決議事項等",
+        "info": "記錄提案介紹會議的日期、參與人員和討論內容，便於後續追蹤和審核。"
+      },
+      "messages": {
+        "saveSuccess": "保存成功",
+        "saveSuccessDesc": "會議記錄已成功保存",
+        "saveError": "保存失敗",
+        "validation": {
+          "dateRequired": "請選擇會議日期",
+          "notesRequired": "請輸入會議記錄"
+        }
       }
     }
   },
@@ -881,6 +952,9 @@
     "detail": {
       "title": "供應商詳情",
       "info": "基本資訊",
+      "basicInfo": "基本資訊",
+      "statistics": "統計資訊",
+      "recentQuotes": "最近報價",
       "quotes": "報價記錄",
       "purchaseOrders": "採購記錄"
     },
@@ -995,7 +1069,8 @@
       "vendor": "供應商",
       "project": "專案",
       "amount": "報價金額",
-      "uploadDate": "上傳日期"
+      "uploadDate": "上傳日期",
+      "document": "報價文件"
     },
     "filters": {
       "allProjects": "所有專案",
@@ -1003,7 +1078,9 @@
     },
     "actions": {
       "create": "新增報價單",
-      "upload": "上傳報價單"
+      "upload": "上傳報價單",
+      "processing": "處理中...",
+      "selectVendor": "選擇此供應商"
     },
     "new": {
       "description": "上傳供應商報價文件並記錄報價資訊"
@@ -1081,7 +1158,29 @@
       "loadError": "載入報價單失敗",
       "notFound": "找不到報價單。此報價單可能不存在或已被刪除。",
       "hasRelatedPO": "該報價單已被選為採購單，無法修改。",
-      "cannotModify": "專案、供應商和報價文件不可修改。如需更改，請刪除此報價單並重新上傳。"
+      "cannotModify": "專案、供應商和報價文件不可修改。如需更改，請刪除此報價單並重新上傳。",
+      "success": "成功",
+      "error": "錯誤",
+      "poCreatedSuccess": "採購單 {poNumber} 已成功創建！",
+      "poCreatedError": "創建採購單失敗: {message}",
+      "confirmSelectQuote": "確定選擇此報價並生成採購單嗎？\n\n此操作將創建一張新的採購單記錄。",
+      "quoteSelected": "此報價已被選用",
+      "viewPO": "查看採購單 #{poNumber}"
+    },
+    "stats": {
+      "totalQuotes": "報價數量",
+      "lowestQuote": "最低報價",
+      "highestQuote": "最高報價",
+      "averageQuote": "平均報價"
+    },
+    "comparison": {
+      "title": "報價比較",
+      "noQuotes": "尚無報價記錄",
+      "uploadFirst": "請先上傳報價單以進行比較"
+    },
+    "badges": {
+      "lowest": "最低價",
+      "highest": "最高價"
     }
   },
   "purchaseOrders": {
@@ -1516,23 +1615,115 @@
   "omExpenses": {
     "title": "OM 費用",
     "subtitle": "操作與維護費用管理",
+    "description": "管理年度操作與維護費用、月度支出記錄及增長率追蹤",
+    "breadcrumb": {
+      "home": "首頁",
+      "omExpenses": "OM 費用管理",
+      "backToList": "返回列表"
+    },
     "list": {
       "title": "OM 費用列表",
       "newOMExpense": "新增 OM 費用",
-      "search": "搜尋 OM 費用..."
+      "search": "搜尋 OM 費用...",
+      "filters": {
+        "financialYear": "財務年度",
+        "opCo": "營運公司 (OpCo)",
+        "allOpCos": "所有 OpCo",
+        "category": "OM 類別",
+        "allCategories": "所有類別"
+      },
+      "card": {
+        "opCo": "OpCo",
+        "vendor": "供應商",
+        "budget": "預算金額",
+        "actualSpent": "實際支出",
+        "utilizationRate": "使用率",
+        "monthlyRecords": "月度記錄",
+        "yoyGrowth": "年增長率"
+      },
+      "pagination": {
+        "previous": "上一頁",
+        "next": "下一頁",
+        "page": "第 {current} 頁,共 {total} 頁"
+      },
+      "empty": {
+        "noRecords": "尚無 OM 費用記錄,請創建新的 OM 費用",
+        "noResults": "找不到符合條件的 OM 費用記錄",
+        "createFirst": "創建第一筆 OM 費用",
+        "notFound": "找不到 OM 費用",
+        "notFoundButton": "返回列表"
+      }
+    },
+    "new": {
+      "title": "新增 OM 費用",
+      "subtitle": "創建新的操作與維護費用記錄"
+    },
+    "detail": {
+      "title": "OM 費用詳情",
+      "basicInfo": "基本資訊",
+      "budgetInfo": "預算資訊",
+      "budgetOverview": "預算概覽",
+      "relatedInfo": "關聯資訊",
+      "monthlyRecords": "月度記錄",
+      "loading": "載入中...",
+      "description": "描述",
+      "financialYear": "財務年度",
+      "category": "OM 類別",
+      "dateRange": "日期範圍",
+      "opCo": "營運公司 (OpCo)",
+      "vendor": "供應商",
+      "noVendor": "無關聯供應商",
+      "budgetAmount": "預算金額",
+      "actualSpent": "實際支出",
+      "remainingBudget": "剩餘預算",
+      "utilizationRate": "使用率",
+      "yoyGrowth": "年度增長率",
+      "yoyGrowthDesc": "相比上一財務年度",
+      "growthNotCalculated": "尚未計算增長率",
+      "calculateGrowth": "計算增長率",
+      "calculating": "計算中...",
+      "recalculate": "重新計算",
+      "recalculating": "重新計算中...",
+      "increaseBy": "支出增加 {rate}%",
+      "decreaseBy": "支出減少 {rate}%",
+      "noChange": "支出持平"
     },
     "form": {
       "create": {
         "title": "新增 OM 費用",
         "subtitle": "記錄操作與維護費用"
       },
+      "edit": {
+        "title": "編輯 OM 費用",
+        "subtitle": "更新 OM 費用資訊"
+      },
       "fields": {
-        "month": {
-          "label": "費用月份"
+        "name": {
+          "label": "OM 費用名稱",
+          "placeholder": "例如：2024 伺服器維護"
         },
         "category": {
           "label": "費用類別",
           "placeholder": "選擇類別"
+        },
+        "opCo": {
+          "label": "營運公司 (OpCo)",
+          "placeholder": "選擇 OpCo"
+        },
+        "vendor": {
+          "label": "供應商（選填）",
+          "placeholder": "選擇供應商"
+        },
+        "financialYear": {
+          "label": "財務年度",
+          "placeholder": "選擇年度"
+        },
+        "budgetAmount": {
+          "label": "預算金額",
+          "placeholder": "0.00"
+        },
+        "month": {
+          "label": "費用月份"
         },
         "amount": {
           "label": "金額",
@@ -1542,11 +1733,52 @@
           "label": "說明",
           "placeholder": "費用說明..."
         }
+      },
+      "actions": {
+        "create": "創建 OM 費用",
+        "update": "更新 OM 費用",
+        "cancel": "取消",
+        "edit": "編輯",
+        "delete": "刪除",
+        "deleting": "刪除中..."
       }
     },
     "monthlyGrid": {
       "title": "月度費用統計",
-      "total": "總計"
+      "total": "總計",
+      "months": {
+        "jan": "一月",
+        "feb": "二月",
+        "mar": "三月",
+        "apr": "四月",
+        "may": "五月",
+        "jun": "六月",
+        "jul": "七月",
+        "aug": "八月",
+        "sep": "九月",
+        "oct": "十月",
+        "nov": "十一月",
+        "dec": "十二月"
+      }
+    },
+    "status": {
+      "active": "進行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    },
+    "messages": {
+      "createSuccess": "OM 費用創建成功",
+      "updateSuccess": "OM 費用更新成功",
+      "deleteSuccess": "OM 費用刪除成功",
+      "deleteConfirm": "確定要刪除此 OM 費用嗎？此操作無法撤銷,將同時刪除所有月度記錄。",
+      "createError": "創建 OM 費用失敗",
+      "updateError": "更新 OM 費用失敗",
+      "deleteError": "刪除 OM 費用失敗",
+      "growthCalculated": "增長率計算成功",
+      "growthCalculationDesc": "本年度實際支出：{current},上年度：{previous},增長率：{rate}",
+      "cannotCalculateGrowth": "無法計算增長率",
+      "noPreviousYearData": "無上年度數據可比較",
+      "calculationFailed": "計算失敗"
     }
   },
   "chargeOuts": {
@@ -1560,9 +1792,36 @@
     "form": {
       "create": {
         "title": "新增費用轉嫁",
-        "subtitle": "建立新的費用轉嫁記錄"
+        "subtitle": "創建新的費用轉嫁記錄，將 IT 費用轉嫁至營運公司 (OpCo)"
+      },
+      "sections": {
+        "basicInfo": "ChargeOut 基本信息",
+        "items": "費用明細"
       },
       "fields": {
+        "name": {
+          "label": "ChargeOut 名稱",
+          "placeholder": "例如：2024 Q1 IT 服務費用轉嫁"
+        },
+        "description": {
+          "label": "描述",
+          "placeholder": "詳細說明此 ChargeOut 的目的和內容..."
+        },
+        "project": {
+          "label": "項目",
+          "placeholder": "選擇項目"
+        },
+        "opCo": {
+          "label": "營運公司 (OpCo)",
+          "placeholder": "選擇 OpCo"
+        },
+        "expense": {
+          "placeholder": "選擇費用",
+          "invoiceNumber": "發票號碼"
+        },
+        "itemDescription": {
+          "placeholder": "可選說明"
+        },
         "fromProject": {
           "label": "來源專案",
           "placeholder": "選擇專案"
@@ -1579,7 +1838,65 @@
           "label": "轉嫁原因",
           "placeholder": "說明轉嫁原因..."
         }
+      },
+      "table": {
+        "expense": "費用",
+        "amount": "金額 (HKD)",
+        "description": "描述",
+        "totalAmount": "總金額"
+      },
+      "actions": {
+        "addItem": "新增費用項目",
+        "create": "創建 ChargeOut",
+        "update": "更新 ChargeOut"
+      },
+      "messages": {
+        "createSuccess": "創建成功",
+        "createSuccessDesc": "ChargeOut {name} 已成功創建",
+        "createError": "創建失敗",
+        "updateSuccess": "更新成功",
+        "updateSuccessDesc": "ChargeOut {name} 已成功更新",
+        "updateError": "更新失敗",
+        "cannotDelete": "無法刪除",
+        "minOneItem": "至少需要保留一個費用項目",
+        "selectProjectFirst": "請先選擇項目以載入可用的費用列表",
+        "loadingExpenses": "載入費用列表...",
+        "noEligibleExpenses": "此項目沒有可用於 ChargeOut 的費用（requiresChargeOut = true）"
+      },
+      "validation": {
+        "nameRequired": "ChargeOut 名稱為必填",
+        "projectRequired": "請選擇項目",
+        "opCoRequired": "請選擇營運公司 (OpCo)",
+        "validationFailed": "驗證失敗",
+        "minOneItem": "至少需要一個費用項目",
+        "fillAllRequired": "請填寫所有費用項目的必填信息（費用、金額）"
       }
+    },
+    "detail": {
+      "notFound": "找不到 ChargeOut 記錄",
+      "noDescription": "無描述",
+      "basicInfo": "基本信息",
+      "debitNoteNumber": "借方通知單號",
+      "issueDate": "發單日期",
+      "paymentDate": "付款日期",
+      "confirmer": "確認人",
+      "confirmedAt": "確認時間",
+      "expenseItems": "費用明細",
+      "itemsCount": "{count} 筆費用項目",
+      "table": {
+        "expenseName": "費用名稱",
+        "invoiceNumber": "發票號碼",
+        "amount": "金額 (HKD)"
+      },
+      "total": "總計",
+      "projectInfo": "項目信息",
+      "projectName": "項目名稱",
+      "projectDescription": "項目描述",
+      "projectManager": "項目經理",
+      "opCoInfo": "營運公司 (OpCo)",
+      "opCoCode": "OpCo 代碼",
+      "opCoName": "OpCo 名稱",
+      "timeline": "時間軸"
     }
   },
   "users": {

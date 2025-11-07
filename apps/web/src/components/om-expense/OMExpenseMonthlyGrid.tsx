@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,20 +9,20 @@ import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
 /**
- * OMExpenseMonthlyGrid - OM 費用月度網格編輯器組件
+ * OMExpenseMonthlyGrid - OM Expense Monthly Grid Editor Component
  *
- * 功能：
- * 1. 顯示 1-12 月的月度支出記錄
- * 2. Excel 風格的網格編輯
- * 3. 自動計算總額
- * 4. 批量保存功能
- * 5. 即時更新 actualSpent
+ * Features:
+ * 1. Display monthly expense records for months 1-12
+ * 2. Excel-style grid editing
+ * 3. Automatic total calculation
+ * 4. Batch save functionality
+ * 5. Real-time actualSpent updates
  *
- * 設計：
- * - 使用 Table 組件顯示 12 個月
- * - 每月一個輸入框
- * - 即時計算總額並顯示
- * - 保存時調用 updateMonthlyRecords API
+ * Design:
+ * - Uses Table component to display 12 months
+ * - One input field per month
+ * - Real-time total calculation and display
+ * - Calls updateMonthlyRecords API on save
  */
 
 interface MonthlyRecord {
@@ -33,14 +34,8 @@ interface OMExpenseMonthlyGridProps {
   omExpenseId: string;
   budgetAmount: number;
   initialRecords?: MonthlyRecord[];
-  onSave?: () => void; // 保存後的回調函數（用於重新獲取資料）
+  onSave?: () => void; // Callback function after save (for refetching data)
 }
-
-// 月份名稱（中文）
-const MONTH_NAMES = [
-  '1月', '2月', '3月', '4月', '5月', '6月',
-  '7月', '8月', '9月', '10月', '11月', '12月'
-];
 
 export default function OMExpenseMonthlyGrid({
   omExpenseId,
@@ -48,9 +43,27 @@ export default function OMExpenseMonthlyGrid({
   initialRecords = [],
   onSave,
 }: OMExpenseMonthlyGridProps) {
+  const t = useTranslations('omExpenses');
+  const tCommon = useTranslations('common');
   const { toast } = useToast();
 
-  // 初始化 12 個月的資料（如果沒有記錄，預設為 0）
+  // Month names from translation keys
+  const MONTH_NAMES = [
+    t('monthlyGrid.months.jan'),
+    t('monthlyGrid.months.feb'),
+    t('monthlyGrid.months.mar'),
+    t('monthlyGrid.months.apr'),
+    t('monthlyGrid.months.may'),
+    t('monthlyGrid.months.jun'),
+    t('monthlyGrid.months.jul'),
+    t('monthlyGrid.months.aug'),
+    t('monthlyGrid.months.sep'),
+    t('monthlyGrid.months.oct'),
+    t('monthlyGrid.months.nov'),
+    t('monthlyGrid.months.dec'),
+  ];
+
+  // Initialize 12 months of data (default to 0 if no records)
   const [monthlyData, setMonthlyData] = useState<MonthlyRecord[]>(() => {
     const data: MonthlyRecord[] = [];
     for (let month = 1; month <= 12; month++) {
@@ -63,7 +76,7 @@ export default function OMExpenseMonthlyGrid({
     return data;
   });
 
-  // 當 initialRecords 更新時，重新設置 monthlyData
+  // Reset monthlyData when initialRecords updates
   useEffect(() => {
     const data: MonthlyRecord[] = [];
     for (let month = 1; month <= 12; month++) {
@@ -76,20 +89,20 @@ export default function OMExpenseMonthlyGrid({
     setMonthlyData(data);
   }, [initialRecords]);
 
-  // 計算總額
+  // Calculate total amount
   const totalActual = monthlyData.reduce((sum, record) => sum + record.actualAmount, 0);
 
-  // 計算使用率
+  // Calculate utilization rate
   const utilizationRate = budgetAmount > 0 ? (totalActual / budgetAmount) * 100 : 0;
 
-  // 使用率顏色
+  // Utilization rate color
   const getUtilizationColor = () => {
     if (utilizationRate > 100) return 'text-red-600';
     if (utilizationRate > 90) return 'text-yellow-600';
     return 'text-green-600';
   };
 
-  // 格式化金額
+  // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-HK', {
       style: 'currency',
@@ -99,7 +112,7 @@ export default function OMExpenseMonthlyGrid({
     }).format(amount);
   };
 
-  // 更新單月數據
+  // Update single month data
   const updateMonth = (month: number, amount: number) => {
     setMonthlyData((prev) =>
       prev.map((record) =>
@@ -114,23 +127,26 @@ export default function OMExpenseMonthlyGrid({
   const updateMutation = api.omExpense.updateMonthlyRecords.useMutation({
     onSuccess: (data) => {
       toast({
-        title: '保存成功',
-        description: `月度記錄已更新，總實際支出：${formatCurrency(data?.actualSpent ?? totalActual)}`,
+        title: tCommon('success'),
+        description: t('monthlyGrid.saveSuccess', {
+          defaultValue: `Monthly records updated, total actual spending: ${formatCurrency(data?.actualSpent ?? totalActual)}`,
+          amount: formatCurrency(data?.actualSpent ?? totalActual)
+        }),
       });
       if (onSave) {
-        onSave(); // 調用回調函數重新獲取資料
+        onSave(); // Call callback function to refetch data
       }
     },
     onError: (error) => {
       toast({
-        title: '保存失敗',
+        title: tCommon('error'),
         description: error.message,
         variant: 'destructive',
       });
     },
   });
 
-  // 保存月度記錄
+  // Save monthly records
   const handleSave = () => {
     updateMutation.mutate({
       omExpenseId,
@@ -145,50 +161,54 @@ export default function OMExpenseMonthlyGrid({
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle>月度支出記錄</CardTitle>
+            <CardTitle>{t('monthlyGrid.title', { defaultValue: 'Monthly Expense Records' })}</CardTitle>
             <CardDescription>
-              編輯 1-12 月的實際支出金額，系統將自動計算總額
+              {t('monthlyGrid.description', { defaultValue: 'Edit actual spending amounts for months 1-12, system will automatically calculate total' })}
             </CardDescription>
           </div>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? '保存中...' : '保存月度記錄'}
+            {isSaving ? tCommon('saving') : t('monthlyGrid.saveButton', { defaultValue: 'Save Monthly Records' })}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        {/* 預算概覽 */}
+        {/* Budget Overview */}
         <div className="mb-6 grid grid-cols-1 gap-4 rounded-lg bg-muted p-4 md:grid-cols-4">
           <div>
-            <div className="text-sm text-muted-foreground">年度預算</div>
+            <div className="text-sm text-muted-foreground">{t('detail.budgetAmount')}</div>
             <div className="text-lg font-semibold">{formatCurrency(budgetAmount)}</div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground">實際支出</div>
+            <div className="text-sm text-muted-foreground">{t('detail.actualSpent')}</div>
             <div className={`text-lg font-semibold ${getUtilizationColor()}`}>
               {formatCurrency(totalActual)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground">剩餘預算</div>
+            <div className="text-sm text-muted-foreground">{t('detail.remainingBudget')}</div>
             <div className="text-lg font-semibold">
               {formatCurrency(budgetAmount - totalActual)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground">使用率</div>
+            <div className="text-sm text-muted-foreground">{t('detail.utilizationRate')}</div>
             <div className={`text-lg font-semibold ${getUtilizationColor()}`}>
               {utilizationRate.toFixed(1)}%
             </div>
           </div>
         </div>
 
-        {/* 月度網格 */}
+        {/* Monthly Grid */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="p-2 text-left font-medium">月份</th>
-                <th className="p-2 text-right font-medium">實際支出 (HKD)</th>
+                <th className="p-2 text-left font-medium">
+                  {t('monthlyGrid.monthColumn', { defaultValue: 'Month' })}
+                </th>
+                <th className="p-2 text-right font-medium">
+                  {t('monthlyGrid.amountColumn', { defaultValue: 'Actual Spending (HKD)' })}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -221,7 +241,7 @@ export default function OMExpenseMonthlyGrid({
             </tbody>
             <tfoot>
               <tr className="border-t-2 font-semibold">
-                <td className="p-2">總計</td>
+                <td className="p-2">{t('monthlyGrid.total')}</td>
                 <td className={`p-2 text-right ${getUtilizationColor()}`}>
                   {formatCurrency(totalActual)}
                 </td>
@@ -230,14 +250,14 @@ export default function OMExpenseMonthlyGrid({
           </table>
         </div>
 
-        {/* 提示訊息 */}
+        {/* Usage Tips */}
         <div className="mt-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-800 dark:bg-blue-950 dark:text-blue-200">
-          <p className="font-medium">💡 使用提示</p>
+          <p className="font-medium">💡 {t('monthlyGrid.tips.title', { defaultValue: 'Usage Tips' })}</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>輸入每月的實際支出金額</li>
-            <li>系統會自動計算總實際支出和使用率</li>
-            <li>點擊「保存月度記錄」按鈕保存所有變更</li>
-            <li>保存後系統會自動更新 OM 費用的 actualSpent 欄位</li>
+            <li>{t('monthlyGrid.tips.enterAmounts', { defaultValue: 'Enter actual spending amount for each month' })}</li>
+            <li>{t('monthlyGrid.tips.autoCalculate', { defaultValue: 'System will automatically calculate total actual spending and utilization rate' })}</li>
+            <li>{t('monthlyGrid.tips.clickSave', { defaultValue: 'Click "Save Monthly Records" button to save all changes' })}</li>
+            <li>{t('monthlyGrid.tips.autoUpdate', { defaultValue: 'After saving, system will automatically update OM expense actualSpent field' })}</li>
           </ul>
         </div>
       </CardContent>

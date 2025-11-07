@@ -1,8 +1,16 @@
 'use client';
 
-import { useRouter } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Edit, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,71 +20,77 @@ import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
 /**
- * OM 費用詳情頁
+ * OM Expense Detail Page
  *
- * 功能：
- * 1. 顯示 OM 費用基本資訊
- * 2. 顯示關聯資訊（OpCo、Vendor）
- * 3. 月度支出網格編輯器（核心功能）
- * 4. 增長率顯示和計算按鈕
- * 5. 編輯和刪除功能
+ * Features:
+ * 1. Display OM expense basic information
+ * 2. Display related information (OpCo, Vendor)
+ * 3. Monthly expense grid editor (core feature)
+ * 4. Growth rate display and calculation button
+ * 5. Edit and delete functionality
  */
 
 export default function OMExpenseDetailPage({ params }: { params: { id: string } }) {
   const t = useTranslations('omExpenses');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { toast } = useToast();
 
-  // 獲取 OM 費用詳情
+  // Get OM expense details
   const { data: omExpense, isLoading, refetch } = api.omExpense.getById.useQuery({
     id: params.id,
   });
 
-  // 計算增長率 Mutation
+  // Calculate growth rate mutation
   const calculateGrowthMutation = api.omExpense.calculateYoYGrowth.useMutation({
     onSuccess: (data) => {
       if (data.yoyGrowthRate !== null) {
         toast({
-          title: '增長率計算成功',
-          description: `本年度實際支出：${formatCurrency(data.currentAmount)}，上年度：${formatCurrency(data.previousAmount ?? 0)}，增長率：${formatGrowthRate(data.yoyGrowthRate)}`,
+          title: t('messages.growthCalculated'),
+          description: t('messages.growthCalculationDesc', {
+            current: formatCurrency(data.currentAmount),
+            previous: formatCurrency(data.previousAmount ?? 0),
+            rate: formatGrowthRate(data.yoyGrowthRate),
+          }),
         });
-        refetch(); // 重新獲取資料以顯示更新後的增長率
+        refetch();
       } else {
         toast({
-          title: '無法計算增長率',
-          description: data.message || '無上年度數據可比較',
+          title: t('messages.cannotCalculateGrowth'),
+          description: data.message || t('messages.noPreviousYearData'),
           variant: 'default',
         });
       }
     },
     onError: (error) => {
       toast({
-        title: '計算失敗',
+        title: t('messages.calculationFailed'),
         description: error.message,
         variant: 'destructive',
       });
     },
   });
 
-  // 刪除 Mutation
+  // Delete mutation
   const deleteMutation = api.omExpense.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: '刪除成功',
-        description: 'OM 費用已刪除',
+        title: tCommon('success'),
+        description: t('messages.deleteSuccess'),
       });
       router.push('/om-expenses');
     },
     onError: (error) => {
       toast({
-        title: '刪除失敗',
+        title: tCommon('error'),
         description: error.message,
         variant: 'destructive',
       });
     },
   });
 
-  // 格式化金額
+  // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-HK', {
       style: 'currency',
@@ -86,7 +100,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     }).format(amount);
   };
 
-  // 格式化日期
+  // Format date
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('zh-HK', {
       year: 'numeric',
@@ -95,14 +109,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     });
   };
 
-  // 格式化增長率
+  // Format growth rate
   const formatGrowthRate = (rate: number | null) => {
     if (rate === null) return 'N/A';
     const sign = rate >= 0 ? '+' : '';
     return `${sign}${rate.toFixed(1)}%`;
   };
 
-  // 增長率圖示
+  // Growth rate icon
   const getGrowthIcon = (rate: number | null) => {
     if (rate === null) return <Minus className="h-4 w-4" />;
     if (rate > 0) return <TrendingUp className="h-4 w-4" />;
@@ -110,18 +124,18 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     return <Minus className="h-4 w-4" />;
   };
 
-  // 增長率顏色
+  // Growth rate color
   const getGrowthRateColor = (rate: number | null) => {
     if (rate === null) return 'bg-gray-500';
-    if (rate > 10) return 'bg-red-500'; // 高增長（警告）
-    if (rate > 0) return 'bg-yellow-500'; // 正增長
-    if (rate < 0) return 'bg-green-500'; // 負增長（節省）
-    return 'bg-gray-500'; // 零增長
+    if (rate > 10) return 'bg-red-500'; // High growth (warning)
+    if (rate > 0) return 'bg-yellow-500'; // Positive growth
+    if (rate < 0) return 'bg-green-500'; // Negative growth (savings)
+    return 'bg-gray-500'; // Zero growth
   };
 
-  // 刪除確認
+  // Delete confirmation
   const handleDelete = () => {
-    if (confirm('確定要刪除此 OM 費用嗎？此操作無法撤銷，將同時刪除所有月度記錄。')) {
+    if (confirm(t('messages.deleteConfirm'))) {
       deleteMutation.mutate({ id: params.id });
     }
   };
@@ -129,7 +143,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-8">載入中...</div>
+        <div className="text-center py-8">{t('detail.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -138,9 +152,9 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     return (
       <DashboardLayout>
         <div className="text-center py-8">
-          <p className="text-muted-foreground">OM 費用不存在</p>
+          <p className="text-muted-foreground">{t('list.empty.notFound')}</p>
           <Button className="mt-4" onClick={() => router.push('/om-expenses')}>
-            返回列表
+            {t('breadcrumb.backToList')}
           </Button>
         </div>
       </DashboardLayout>
@@ -152,7 +166,28 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
 
   return (
     <DashboardLayout>
-      {/* 返回按鈕和標題 */}
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard">{tNav('home')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/om-expenses">{tNav('menu.omExpenses')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{omExpense.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      {/* Page Header with Title and Actions */}
       <div className="mb-6">
         <Button
           variant="ghost"
@@ -161,7 +196,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          返回列表
+          {t('breadcrumb.backToList')}
         </Button>
         <div className="flex items-start justify-between">
           <div>
@@ -173,47 +208,47 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => router.push(`/om-expenses/${params.id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
-              編輯
+              {t('form.actions.edit')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? '刪除中...' : '刪除'}
+              {deleteMutation.isPending ? t('form.actions.deleting') : t('form.actions.delete')}
             </Button>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* 左側：基本資訊和關聯資訊 */}
+        {/* Left Column: Basic Info and Related Info */}
         <div className="space-y-6 lg:col-span-1">
-          {/* 基本資訊 */}
+          {/* Basic Information Card */}
           <Card>
             <CardHeader>
-              <CardTitle>基本資訊</CardTitle>
+              <CardTitle>{t('detail.basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {omExpense.description && (
                 <div>
-                  <div className="text-sm text-muted-foreground">描述</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.description')}</div>
                   <div className="mt-1 text-sm">{omExpense.description}</div>
                 </div>
               )}
 
               <div>
-                <div className="text-sm text-muted-foreground">財務年度</div>
+                <div className="text-sm text-muted-foreground">{t('detail.financialYear')}</div>
                 <div className="mt-1 font-medium">FY{omExpense.financialYear}</div>
               </div>
 
               <div>
-                <div className="text-sm text-muted-foreground">OM 類別</div>
+                <div className="text-sm text-muted-foreground">{t('detail.category')}</div>
                 <div className="mt-1 font-medium">{omExpense.category}</div>
               </div>
 
               <div>
-                <div className="text-sm text-muted-foreground">日期範圍</div>
+                <div className="text-sm text-muted-foreground">{t('detail.dateRange')}</div>
                 <div className="mt-1 text-sm">
                   {formatDate(omExpense.startDate)} - {formatDate(omExpense.endDate)}
                 </div>
@@ -221,14 +256,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
             </CardContent>
           </Card>
 
-          {/* 關聯資訊 */}
+          {/* Related Information Card */}
           <Card>
             <CardHeader>
-              <CardTitle>關聯資訊</CardTitle>
+              <CardTitle>{t('detail.relatedInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground">營運公司 (OpCo)</div>
+                <div className="text-sm text-muted-foreground">{t('detail.opCo')}</div>
                 <div className="mt-1">
                   <Badge variant="outline" className="font-mono">
                     {omExpense.opCo.code}
@@ -239,7 +274,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
 
               {omExpense.vendor ? (
                 <div>
-                  <div className="text-sm text-muted-foreground">供應商</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.vendor')}</div>
                   <div className="mt-1 font-medium">{omExpense.vendor.name}</div>
                   {omExpense.vendor.contactEmail && (
                     <div className="mt-1 text-sm text-muted-foreground">
@@ -249,26 +284,26 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                 </div>
               ) : (
                 <div>
-                  <div className="text-sm text-muted-foreground">供應商</div>
-                  <div className="mt-1 text-sm text-muted-foreground">無關聯供應商</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.vendor')}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{t('detail.noVendor')}</div>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* 預算概覽 */}
+          {/* Budget Overview Card */}
           <Card>
             <CardHeader>
-              <CardTitle>預算概覽</CardTitle>
+              <CardTitle>{t('detail.budgetOverview')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">預算金額</span>
+                <span className="text-sm text-muted-foreground">{t('detail.budgetAmount')}</span>
                 <span className="font-semibold">{formatCurrency(omExpense.budgetAmount)}</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">實際支出</span>
+                <span className="text-sm text-muted-foreground">{t('detail.actualSpent')}</span>
                 <span
                   className={`font-semibold ${
                     utilizationRate > 100
@@ -283,14 +318,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               </div>
 
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">剩餘預算</span>
+                <span className="text-sm text-muted-foreground">{t('detail.remainingBudget')}</span>
                 <span className="font-semibold">
                   {formatCurrency(omExpense.budgetAmount - omExpense.actualSpent)}
                 </span>
               </div>
 
               <div className="flex justify-between border-t pt-2">
-                <span className="text-sm text-muted-foreground">使用率</span>
+                <span className="text-sm text-muted-foreground">{t('detail.utilizationRate')}</span>
                 <span
                   className={`text-sm font-medium ${
                     utilizationRate > 100
@@ -306,13 +341,13 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
             </CardContent>
           </Card>
 
-          {/* 年度增長率 */}
+          {/* Year-over-Year Growth Card */}
           <Card>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle>年度增長率</CardTitle>
-                  <CardDescription>相比上一財務年度</CardDescription>
+                  <CardTitle>{t('detail.yoyGrowth')}</CardTitle>
+                  <CardDescription>{t('detail.yoyGrowthDesc')}</CardDescription>
                 </div>
                 {omExpense.yoyGrowthRate !== null && (
                   <Badge className={getGrowthRateColor(omExpense.yoyGrowthRate)}>
@@ -326,21 +361,21 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               {omExpense.yoyGrowthRate !== null ? (
                 <div className="text-sm text-muted-foreground">
                   {omExpense.yoyGrowthRate > 0
-                    ? `支出增加 ${omExpense.yoyGrowthRate.toFixed(1)}%`
+                    ? t('detail.increaseBy', { rate: omExpense.yoyGrowthRate.toFixed(1) })
                     : omExpense.yoyGrowthRate < 0
-                    ? `支出減少 ${Math.abs(omExpense.yoyGrowthRate).toFixed(1)}%`
-                    : '支出持平'}
+                    ? t('detail.decreaseBy', { rate: Math.abs(omExpense.yoyGrowthRate).toFixed(1) })
+                    : t('detail.noChange')}
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground">尚未計算增長率</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.growthNotCalculated')}</div>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => calculateGrowthMutation.mutate({ id: params.id })}
                     disabled={calculateGrowthMutation.isPending}
                   >
-                    {calculateGrowthMutation.isPending ? '計算中...' : '計算增長率'}
+                    {calculateGrowthMutation.isPending ? t('detail.calculating') : t('detail.calculateGrowth')}
                   </Button>
                 </div>
               )}
@@ -352,20 +387,20 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                   onClick={() => calculateGrowthMutation.mutate({ id: params.id })}
                   disabled={calculateGrowthMutation.isPending}
                 >
-                  {calculateGrowthMutation.isPending ? '重新計算中...' : '重新計算'}
+                  {calculateGrowthMutation.isPending ? t('detail.recalculating') : t('detail.recalculate')}
                 </Button>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* 右側：月度網格編輯器 */}
+        {/* Right Column: Monthly Grid Editor */}
         <div className="lg:col-span-2">
           <OMExpenseMonthlyGrid
             omExpenseId={params.id}
             budgetAmount={omExpense.budgetAmount}
             initialRecords={omExpense.monthlyRecords}
-            onSave={() => refetch()} // 保存後重新獲取資料
+            onSave={() => refetch()}
           />
         </div>
       </div>

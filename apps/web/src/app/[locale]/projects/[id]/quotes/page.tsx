@@ -30,7 +30,9 @@ import { useState } from 'react';
 import { QuoteUploadForm } from '@/components/quote/QuoteUploadForm';
 
 export default function ProjectQuotesPage() {
-  const t = useTranslations('projects');
+  const t = useTranslations('quotes');
+  const tNav = useTranslations('navigation');
+  const tProjects = useTranslations('projects');
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -51,16 +53,16 @@ export default function ProjectQuotesPage() {
   const createPOMutation = api.purchaseOrder.createFromQuote.useMutation({
     onSuccess: (po) => {
       toast({
-        title: '成功',
-        description: `採購單 ${po.poNumber} 已成功創建！`,
+        title: t('messages.success'),
+        description: t('messages.poCreatedSuccess', { poNumber: po.poNumber }),
         variant: 'success',
       });
       router.push(`/purchase-orders/${po.id}`);
     },
     onError: (error) => {
       toast({
-        title: '錯誤',
-        description: `創建採購單失敗: ${error.message}`,
+        title: t('messages.error'),
+        description: t('messages.poCreatedError', { message: error.message }),
         variant: 'destructive',
       });
     },
@@ -70,7 +72,7 @@ export default function ProjectQuotesPage() {
    * 選擇報價並生成採購單
    */
   const handleSelectQuote = (quoteId: string) => {
-    if (confirm('確定選擇此報價並生成採購單嗎？\n\n此操作將創建一張新的採購單記錄。')) {
+    if (confirm(t('messages.confirmSelectQuote'))) {
       createPOMutation.mutate({ projectId, quoteId });
     }
   };
@@ -124,15 +126,15 @@ export default function ProjectQuotesPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+                <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/projects">專案管理</BreadcrumbLink>
+                <BreadcrumbLink href="/projects">{tNav('projects')}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>報價管理</BreadcrumbPage>
+                <BreadcrumbPage>{t('title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -143,11 +145,11 @@ export default function ProjectQuotesPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到專案。此專案可能不存在或已被刪除。
+                  {tProjects('detail.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/projects">
-                <Button>返回專案列表</Button>
+                <Button>{tProjects('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -166,11 +168,11 @@ export default function ProjectQuotesPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/projects">專案管理</BreadcrumbLink>
+              <BreadcrumbLink href="/projects">{tNav('projects')}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -178,7 +180,7 @@ export default function ProjectQuotesPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>報價管理</BreadcrumbPage>
+              <BreadcrumbPage>{t('title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -186,7 +188,7 @@ export default function ProjectQuotesPage() {
         {/* 頁面標題 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">報價管理</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
             <p className="mt-2 text-muted-foreground">{project.name}</p>
           </div>
         </div>
@@ -205,7 +207,7 @@ export default function ProjectQuotesPage() {
           <div className="grid gap-6 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">報價數量</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('stats.totalQuotes')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-foreground">{comparison.stats.totalQuotes}</div>
@@ -216,7 +218,7 @@ export default function ProjectQuotesPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <TrendingDown className="h-4 w-4 text-green-600" />
-                  最低報價
+                  {t('stats.lowestQuote')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -230,7 +232,7 @@ export default function ProjectQuotesPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-red-600" />
-                  最高報價
+                  {t('stats.highestQuote')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -242,7 +244,7 @@ export default function ProjectQuotesPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">平均報價</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('stats.averageQuote')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-primary">
@@ -256,14 +258,14 @@ export default function ProjectQuotesPage() {
         {/* 報價比較列表 */}
         <Card>
           <CardHeader>
-            <CardTitle>報價比較</CardTitle>
+            <CardTitle>{t('comparison.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {sortedQuotes.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground mb-2">尚無報價記錄</p>
-                <p className="text-sm text-muted-foreground">請先上傳報價單以進行比較</p>
+                <p className="text-muted-foreground mb-2">{t('comparison.noQuotes')}</p>
+                <p className="text-sm text-muted-foreground">{t('comparison.uploadFirst')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -288,7 +290,7 @@ export default function ProjectQuotesPage() {
                         <div className="absolute top-4 right-4">
                           <Badge variant="secondary" className="flex items-center gap-1">
                             <TrendingDown className="h-3 w-3" />
-                            最低價
+                            {t('badges.lowest')}
                           </Badge>
                         </div>
                       )}
@@ -296,7 +298,7 @@ export default function ProjectQuotesPage() {
                         <div className="absolute top-4 right-4">
                           <Badge variant="destructive" className="flex items-center gap-1">
                             <TrendingUp className="h-3 w-3" />
-                            最高價
+                            {t('badges.highest')}
                           </Badge>
                         </div>
                       )}
@@ -308,7 +310,7 @@ export default function ProjectQuotesPage() {
                           <div className="flex items-center gap-3">
                             <Building2 className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-muted-foreground">供應商</p>
+                              <p className="text-sm text-muted-foreground">{t('fields.vendor')}</p>
                               <Link
                                 href={`/vendors/${quote.vendor.id}`}
                                 className="text-lg font-semibold text-foreground hover:text-primary"
@@ -322,7 +324,7 @@ export default function ProjectQuotesPage() {
                           <div className="flex items-center gap-3">
                             <DollarSign className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-muted-foreground">報價金額</p>
+                              <p className="text-sm text-muted-foreground">{t('fields.amount')}</p>
                               <p className="text-2xl font-bold text-foreground">
                                 ${quote.amount.toLocaleString()}
                               </p>
@@ -333,7 +335,7 @@ export default function ProjectQuotesPage() {
                           <div className="flex items-center gap-3">
                             <Calendar className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-muted-foreground">上傳日期</p>
+                              <p className="text-sm text-muted-foreground">{t('fields.uploadDate')}</p>
                               <p className="text-base text-foreground">
                                 {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
                               </p>
@@ -344,7 +346,7 @@ export default function ProjectQuotesPage() {
                           <div className="flex items-center gap-3">
                             <FileText className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm text-muted-foreground">報價文件</p>
+                              <p className="text-sm text-muted-foreground">{t('fields.document')}</p>
                               <p className="text-sm text-foreground">{quote.filePath.split('/').pop()}</p>
                             </div>
                           </div>
@@ -354,12 +356,12 @@ export default function ProjectQuotesPage() {
                             <div className="flex items-center gap-2 mt-4 p-3 bg-primary/10 border border-primary rounded-lg">
                               <CheckCircle className="h-5 w-5 text-primary" />
                               <div>
-                                <p className="text-sm font-medium text-primary">此報價已被選用</p>
+                                <p className="text-sm font-medium text-primary">{t('messages.quoteSelected')}</p>
                                 <Link
                                   href={`/purchase-orders/${quote.purchaseOrder.id}`}
                                   className="text-sm text-primary hover:underline"
                                 >
-                                  查看採購單 #{quote.purchaseOrder.poNumber}
+                                  {t('messages.viewPO', { poNumber: quote.purchaseOrder.poNumber })}
                                 </Link>
                               </div>
                             </div>
@@ -375,7 +377,7 @@ export default function ProjectQuotesPage() {
                               className="whitespace-nowrap"
                             >
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              {createPOMutation.isLoading ? '處理中...' : '選擇此供應商'}
+                              {createPOMutation.isLoading ? t('actions.processing') : t('actions.selectVendor')}
                             </Button>
                           </div>
                         )}

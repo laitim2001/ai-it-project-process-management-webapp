@@ -10,6 +10,7 @@
       "confirm": "Confirm",
       "save": "Save",
       "create": "Create",
+      "delete": "Delete",
       "exportCSV": "Export CSV"
     },
     "sort": {
@@ -21,7 +22,10 @@
     "fields": {
       "createdAt": "Created At",
       "updatedAt": "Updated At",
-      "actions": "Actions"
+      "actions": "Actions",
+      "amount": "Amount",
+      "uploadDate": "Upload Date",
+      "status": "Status"
     },
     "table": {
       "actions": "Actions"
@@ -44,7 +48,9 @@
       "active": "Active",
       "inactive": "Inactive",
       "inProgress": "In Progress",
-      "archived": "Archived"
+      "archived": "Archived",
+      "submitted": "Submitted",
+      "confirmed": "Confirmed"
     },
     "nav": {
       "dashboard": "Dashboard"
@@ -445,33 +451,33 @@
       },
       "fields": {
         "name": {
-          "label": "專案名稱",
-          "placeholder": "例如：雲端遷移第一階段"
+          "label": "Project Name",
+          "placeholder": "e.g., Cloud Migration Phase 1"
         },
         "description": {
-          "label": "專案描述",
-          "placeholder": "描述專案目標和範圍..."
+          "label": "Project Description",
+          "placeholder": "Describe project goals and scope..."
         },
         "budgetPool": {
           "label": "Budget Pools",
-          "placeholder": "選擇預算池"
+          "placeholder": "Select budget pool"
         },
         "budgetCategory": {
-          "label": "預算類別",
-          "placeholder": "選擇預算類別（選填）",
-          "selectPoolFirst": "請先選擇預算池"
+          "label": "Budget Category",
+          "placeholder": "Select budget category (optional)",
+          "selectPoolFirst": "Please select budget pool first"
         },
         "requestedBudget": {
-          "label": "請求預算金額",
+          "label": "Requested Budget Amount",
           "placeholder": "0.00"
         },
         "manager": {
-          "label": "專案經理",
-          "placeholder": "選擇專案經理"
+          "label": "Project Manager",
+          "placeholder": "Select project manager"
         },
         "supervisor": {
-          "label": "主管",
-          "placeholder": "選擇主管"
+          "label": "Supervisor",
+          "placeholder": "Select supervisor"
         },
         "startDate": {
           "label": "Start Date"
@@ -630,22 +636,85 @@
       "moreInfoReason": "Additional Information Required",
       "title": "Actions"
     },
-    "comments": {
-      "title": "討論區",
-      "addComment": "新增評論",
-      "placeholder": "輸入您的評論...",
-      "submit": "發送",
-      "empty": "尚無評論"
-    },
     "history": {
-      "title": "審批歷史",
+      "title": "Approval History",
       "action": {
-        "created": "建立提案",
-        "submitted": "提交審批",
-        "approved": "Approve",
-        "rejected": "Reject",
-        "moreInfoRequested": "Request More Info",
-        "withdrawn": "Withdraw"
+        "created": "Created",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "moreInfoRequested": "Requested More Info",
+        "withdrawn": "Withdrawn"
+      }
+    },
+    "comments": {
+      "title": "Comments",
+      "noComments": "No comments yet",
+      "addComment": "Add Comment",
+      "placeholder": "Enter your comment...",
+      "submit": "Submit Comment",
+      "submitting": "Submitting...",
+      "addSuccess": "Success",
+      "addSuccessDescription": "Comment has been added!",
+      "error": "Error",
+      "addError": "Unable to add comment",
+      "emptyContent": "Please enter comment content",
+      "loginRequired": "Please login first"
+    },
+    "attachments": {
+      "title": "Project Proposal Document",
+      "proposalFile": "Proposal File",
+      "download": "Download",
+      "clickToUpload": "Click to Upload File",
+      "supportedFormats": "Supports PDF, PPT, Word files, max 20MB",
+      "uploading": "Uploading...",
+      "uploadFile": "Upload File",
+      "replaceFile": "Replace File",
+      "hint": "Upload project proposal (PDF/PPT) for reviewers to access complete project information.",
+      "uploadSuccess": "Upload Successful",
+      "uploadSuccessDesc": "Proposal file has been uploaded successfully",
+      "uploadError": "Upload Failed",
+      "uploadErrorRetry": "Upload failed, please try again later",
+      "validation": {
+        "fileTypeError": "File Type Not Supported",
+        "fileTypeErrorDesc": "Please upload PDF, PPT, or Word files",
+        "fileTooLarge": "File Too Large",
+        "fileTooLargeDesc": "File size cannot exceed 20MB"
+      }
+    },
+    "meeting": {
+      "title": "Meeting Notes",
+      "add": "Add",
+      "edit": "Edit",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "fields": {
+        "date": {
+          "label": "Meeting Date"
+        },
+        "presentedBy": {
+          "label": "Presenter",
+          "placeholder": "e.g., Manager Zhang, Supervisor Li"
+        },
+        "notes": {
+          "label": "Meeting Notes",
+          "placeholder": "Enter meeting notes content..."
+        }
+      },
+      "hints": {
+        "empty": "No meeting information recorded yet. Click \"Add\" button to start recording.",
+        "notesHelp": "Record discussion content, decisions made during the proposal presentation meeting",
+        "info": "Record the date, participants, and discussion content of the proposal presentation meeting for follow-up tracking and review."
+      },
+      "messages": {
+        "saveSuccess": "Saved Successfully",
+        "saveSuccessDesc": "Meeting notes have been saved successfully",
+        "saveError": "Save Failed",
+        "validation": {
+          "dateRequired": "Please select meeting date",
+          "notesRequired": "Please enter meeting notes"
+        }
       }
     }
   },
@@ -883,6 +952,9 @@
     "detail": {
       "title": "Vendor Details",
       "info": "Basic Information",
+      "basicInfo": "Basic Information",
+      "statistics": "Statistics",
+      "recentQuotes": "Recent Quotes",
       "quotes": "Quote History",
       "purchaseOrders": "Purchase Orders"
     },
@@ -997,7 +1069,8 @@
       "vendor": "Vendor",
       "project": "Project",
       "amount": "Quote Amount",
-      "uploadDate": "Upload Date"
+      "uploadDate": "Upload Date",
+      "document": "Quote Document"
     },
     "filters": {
       "allProjects": "All Projects",
@@ -1005,7 +1078,9 @@
     },
     "actions": {
       "create": "Create Quote",
-      "upload": "Upload Quote"
+      "upload": "Upload Quote",
+      "processing": "Processing...",
+      "selectVendor": "Select This Vendor"
     },
     "new": {
       "description": "Upload vendor quote documents and record quote information"
@@ -1083,7 +1158,29 @@
       "loadError": "Failed to load quotes",
       "notFound": "Quote not found. This quote may not exist or has been deleted.",
       "hasRelatedPO": "This quote has been selected for a purchase order and cannot be modified.",
-      "cannotModify": "Project, vendor, and quote file cannot be modified. To change these, please delete this quote and upload a new one."
+      "cannotModify": "Project, vendor, and quote file cannot be modified. To change these, please delete this quote and upload a new one.",
+      "success": "Success",
+      "error": "Error",
+      "poCreatedSuccess": "Purchase order {poNumber} has been created successfully!",
+      "poCreatedError": "Failed to create purchase order: {message}",
+      "confirmSelectQuote": "Confirm selecting this quote and generating a purchase order?\n\nThis will create a new purchase order record.",
+      "quoteSelected": "This quote has been selected",
+      "viewPO": "View Purchase Order #{poNumber}"
+    },
+    "stats": {
+      "totalQuotes": "Total Quotes",
+      "lowestQuote": "Lowest Quote",
+      "highestQuote": "Highest Quote",
+      "averageQuote": "Average Quote"
+    },
+    "comparison": {
+      "title": "Quote Comparison",
+      "noQuotes": "No quotes yet",
+      "uploadFirst": "Please upload quotes first to compare"
+    },
+    "badges": {
+      "lowest": "Lowest",
+      "highest": "Highest"
     }
   },
   "purchaseOrders": {
@@ -1517,71 +1614,289 @@
   },
   "omExpenses": {
     "title": "OM Expenses",
-    "subtitle": "操作與維護費用管理",
+    "subtitle": "Operation and Maintenance Expense Management",
+    "description": "Manage annual operation and maintenance expenses, monthly spending records, and growth rate tracking",
+    "breadcrumb": {
+      "home": "Home",
+      "omExpenses": "O&M Expense Management",
+      "backToList": "Back to List"
+    },
     "list": {
-      "title": "OM 費用列表",
-      "newOMExpense": "新增 OM 費用",
-      "search": "搜尋 OM 費用..."
+      "title": "OM Expense List",
+      "newOMExpense": "New OM Expense",
+      "search": "Search OM expenses...",
+      "filters": {
+        "financialYear": "Financial Year",
+        "opCo": "Operating Company (OpCo)",
+        "allOpCos": "All OpCos",
+        "category": "OM Category",
+        "allCategories": "All Categories"
+      },
+      "card": {
+        "opCo": "OpCo",
+        "vendor": "Vendor",
+        "budget": "Budget Amount",
+        "actualSpent": "Actual Spent",
+        "utilizationRate": "Utilization Rate",
+        "monthlyRecords": "Monthly Records",
+        "yoyGrowth": "YoY Growth"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {current} of {total}"
+      },
+      "empty": {
+        "noRecords": "No OM expense records yet, please create a new OM expense",
+        "noResults": "No OM expense records match the criteria",
+        "createFirst": "Create First OM Expense",
+        "notFound": "OM expense not found",
+        "notFoundButton": "Back to List"
+      }
+    },
+    "new": {
+      "title": "New OM Expense",
+      "subtitle": "Create a new operation and maintenance expense record"
+    },
+    "detail": {
+      "title": "OM Expense Details",
+      "basicInfo": "Basic Information",
+      "budgetInfo": "Budget Information",
+      "budgetOverview": "Budget Overview",
+      "relatedInfo": "Related Information",
+      "monthlyRecords": "Monthly Records",
+      "loading": "Loading...",
+      "description": "Description",
+      "financialYear": "Financial Year",
+      "category": "OM Category",
+      "dateRange": "Date Range",
+      "opCo": "Operating Company (OpCo)",
+      "vendor": "Vendor",
+      "noVendor": "No associated vendor",
+      "budgetAmount": "Budget Amount",
+      "actualSpent": "Actual Spent",
+      "remainingBudget": "Remaining Budget",
+      "utilizationRate": "Utilization Rate",
+      "yoyGrowth": "Year-over-Year Growth",
+      "yoyGrowthDesc": "Compared to previous fiscal year",
+      "growthNotCalculated": "Growth rate not yet calculated",
+      "calculateGrowth": "Calculate Growth Rate",
+      "calculating": "Calculating...",
+      "recalculate": "Recalculate",
+      "recalculating": "Recalculating...",
+      "increaseBy": "Spending increased by {rate}%",
+      "decreaseBy": "Spending decreased by {rate}%",
+      "noChange": "Spending unchanged"
     },
     "form": {
       "create": {
-        "title": "新增 OM 費用",
-        "subtitle": "記錄操作與維護費用"
+        "title": "New OM Expense",
+        "subtitle": "Record operation and maintenance expense"
+      },
+      "edit": {
+        "title": "Edit OM Expense",
+        "subtitle": "Update OM expense information"
       },
       "fields": {
-        "month": {
-          "label": "費用月份"
+        "name": {
+          "label": "OM Expense Name",
+          "placeholder": "e.g., 2024 Server Maintenance"
         },
         "category": {
-          "label": "費用類別",
-          "placeholder": "選擇類別"
+          "label": "Expense Category",
+          "placeholder": "Select category"
+        },
+        "opCo": {
+          "label": "Operating Company (OpCo)",
+          "placeholder": "Select OpCo"
+        },
+        "vendor": {
+          "label": "Vendor (Optional)",
+          "placeholder": "Select vendor"
+        },
+        "financialYear": {
+          "label": "Financial Year",
+          "placeholder": "Select year"
+        },
+        "budgetAmount": {
+          "label": "Budget Amount",
+          "placeholder": "0.00"
+        },
+        "month": {
+          "label": "Expense Month"
         },
         "amount": {
           "label": "Amount",
           "placeholder": "0.00"
         },
         "description": {
-          "label": "說明",
-          "placeholder": "費用說明..."
+          "label": "Description",
+          "placeholder": "Expense description..."
         }
+      },
+      "actions": {
+        "create": "Create OM Expense",
+        "update": "Update OM Expense",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleting": "Deleting..."
       }
     },
     "monthlyGrid": {
-      "title": "月度費用統計",
-      "total": "總計"
+      "title": "Monthly Expense Statistics",
+      "total": "Total",
+      "months": {
+        "jan": "January",
+        "feb": "February",
+        "mar": "March",
+        "apr": "April",
+        "may": "May",
+        "jun": "June",
+        "jul": "July",
+        "aug": "August",
+        "sep": "September",
+        "oct": "October",
+        "nov": "November",
+        "dec": "December"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "messages": {
+      "createSuccess": "OM expense created successfully",
+      "updateSuccess": "OM expense updated successfully",
+      "deleteSuccess": "OM expense deleted successfully",
+      "deleteConfirm": "Are you sure you want to delete this OM expense? This action cannot be undone and will also delete all monthly records.",
+      "createError": "Failed to create OM expense",
+      "updateError": "Failed to update OM expense",
+      "deleteError": "Failed to delete OM expense",
+      "growthCalculated": "Growth rate calculated successfully",
+      "growthCalculationDesc": "Current year spending: {current}, Previous year: {previous}, Growth rate: {rate}",
+      "cannotCalculateGrowth": "Unable to calculate growth rate",
+      "noPreviousYearData": "No previous year data available for comparison",
+      "calculationFailed": "Calculation failed"
     }
   },
   "chargeOuts": {
     "title": "Charge Outs",
-    "subtitle": "ChargeOut 費用管理",
+    "subtitle": "ChargeOut Expense Management",
     "list": {
-      "title": "費用轉嫁列表",
-      "newChargeOut": "新增費用轉嫁",
-      "search": "搜尋費用轉嫁..."
+      "title": "Charge Out List",
+      "newChargeOut": "New Charge Out",
+      "search": "Search charge outs..."
     },
     "form": {
       "create": {
-        "title": "新增費用轉嫁",
-        "subtitle": "建立新的費用轉嫁記錄"
+        "title": "New Charge Out",
+        "subtitle": "Create a new charge out record to transfer IT expenses to OpCo"
+      },
+      "sections": {
+        "basicInfo": "ChargeOut Basic Information",
+        "items": "Expense Items"
       },
       "fields": {
+        "name": {
+          "label": "ChargeOut Name",
+          "placeholder": "e.g., 2024 Q1 IT Service Charge Out"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Detailed description of this ChargeOut purpose and content..."
+        },
+        "project": {
+          "label": "Project",
+          "placeholder": "Select project"
+        },
+        "opCo": {
+          "label": "Operating Company (OpCo)",
+          "placeholder": "Select OpCo"
+        },
+        "expense": {
+          "placeholder": "Select expense",
+          "invoiceNumber": "Invoice Number"
+        },
+        "itemDescription": {
+          "placeholder": "Optional description"
+        },
         "fromProject": {
-          "label": "來源專案",
-          "placeholder": "選擇專案"
+          "label": "Source Project",
+          "placeholder": "Select project"
         },
         "toProject": {
-          "label": "目標專案",
-          "placeholder": "選擇專案"
+          "label": "Target Project",
+          "placeholder": "Select project"
         },
         "amount": {
-          "label": "轉嫁金額",
+          "label": "Charge Out Amount",
           "placeholder": "0.00"
         },
         "reason": {
-          "label": "轉嫁原因",
-          "placeholder": "說明轉嫁原因..."
+          "label": "Charge Out Reason",
+          "placeholder": "Explain the charge out reason..."
         }
+      },
+      "table": {
+        "expense": "Expense",
+        "amount": "Amount (HKD)",
+        "description": "Description",
+        "totalAmount": "Total Amount"
+      },
+      "actions": {
+        "addItem": "Add Expense Item",
+        "create": "Create ChargeOut",
+        "update": "Update ChargeOut"
+      },
+      "messages": {
+        "createSuccess": "Created Successfully",
+        "createSuccessDesc": "ChargeOut {name} has been created successfully",
+        "createError": "Creation Failed",
+        "updateSuccess": "Updated Successfully",
+        "updateSuccessDesc": "ChargeOut {name} has been updated successfully",
+        "updateError": "Update Failed",
+        "cannotDelete": "Cannot Delete",
+        "minOneItem": "At least one expense item must be retained",
+        "selectProjectFirst": "Please select a project first to load available expenses",
+        "loadingExpenses": "Loading expense list...",
+        "noEligibleExpenses": "This project has no expenses available for ChargeOut (requiresChargeOut = true)"
+      },
+      "validation": {
+        "nameRequired": "ChargeOut name is required",
+        "projectRequired": "Please select a project",
+        "opCoRequired": "Please select an Operating Company (OpCo)",
+        "validationFailed": "Validation Failed",
+        "minOneItem": "At least one expense item is required",
+        "fillAllRequired": "Please fill in all required information for expense items (Expense, Amount)"
       }
+    },
+    "detail": {
+      "notFound": "Charge out record not found",
+      "noDescription": "No description",
+      "basicInfo": "Basic Information",
+      "debitNoteNumber": "Debit Note Number",
+      "issueDate": "Issue Date",
+      "paymentDate": "Payment Date",
+      "confirmer": "Confirmer",
+      "confirmedAt": "Confirmed At",
+      "expenseItems": "Expense Items",
+      "itemsCount": "{count} expense item(s)",
+      "table": {
+        "expenseName": "Expense Name",
+        "invoiceNumber": "Invoice Number",
+        "amount": "Amount (HKD)"
+      },
+      "total": "Total",
+      "projectInfo": "Project Information",
+      "projectName": "Project Name",
+      "projectDescription": "Project Description",
+      "projectManager": "Project Manager",
+      "opCoInfo": "Operating Company (OpCo)",
+      "opCoCode": "OpCo Code",
+      "opCoName": "OpCo Name",
+      "timeline": "Timeline"
     }
   },
   "users": {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from "@/i18n/routing";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Building2, FolderOpen, DollarSign, Calendar, FileText } from 'lucide-react';
@@ -34,6 +35,8 @@ import { ChargeOutActions } from '@/components/charge-out/ChargeOutActions';
 
 export default function ChargeOutDetailPage({ params }: { params: { id: string } }) {
   const t = useTranslations('chargeOuts');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -92,15 +95,15 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
   const getStatusText = (status: string) => {
     switch (status) {
       case 'Draft':
-        return '草稿';
+        return tCommon('status.draft');
       case 'Submitted':
-        return '已提交';
+        return tCommon('status.submitted');
       case 'Confirmed':
-        return '已確認';
+        return tCommon('status.confirmed');
       case 'Paid':
-        return '已付款';
+        return tCommon('status.paid');
       case 'Rejected':
-        return '已拒絕';
+        return tCommon('status.rejected');
       default:
         return status;
     }
@@ -110,7 +113,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-8">載入中...</div>
+        <div className="text-center py-8">{tCommon('loading')}</div>
       </DashboardLayout>
     );
   }
@@ -120,9 +123,9 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
     return (
       <DashboardLayout>
         <div className="text-center py-8">
-          <p className="text-muted-foreground">找不到 ChargeOut 記錄</p>
+          <p className="text-muted-foreground">{t('detail.notFound')}</p>
           <Button className="mt-4" onClick={() => router.push('/charge-outs')}>
-            返回列表
+            {tCommon('actions.back')}
           </Button>
         </div>
       </DashboardLayout>
@@ -135,11 +138,11 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            <Link href="/dashboard">{tNav('home')}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/charge-outs">費用轉嫁</BreadcrumbLink>
+            <Link href="/charge-outs">{tNav('menu.chargeOuts')}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -153,13 +156,13 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => router.push('/charge-outs')}>
+              <Button variant="ghost" size="sm" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
                 <h1 className="text-3xl font-bold">{chargeOut.name}</h1>
                 <p className="mt-2 text-muted-foreground">
-                  {chargeOut.description || '無描述'}
+                  {chargeOut.description || t('detail.noDescription')}
                 </p>
               </div>
             </div>
@@ -186,7 +189,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                基本信息
+                {t('detail.basicInfo')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -196,7 +199,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
                   <div className="font-mono text-sm">{chargeOut.id}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">狀態</div>
+                  <div className="text-sm text-muted-foreground">{tCommon('fields.status')}</div>
                   <div>
                     <Badge className={getStatusColor(chargeOut.status)}>
                       {getStatusText(chargeOut.status)}
@@ -205,19 +208,19 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
                 </div>
                 {chargeOut.debitNoteNumber && (
                   <div>
-                    <div className="text-sm text-muted-foreground">借方通知單號</div>
+                    <div className="text-sm text-muted-foreground">{t('detail.debitNoteNumber')}</div>
                     <div className="font-medium">{chargeOut.debitNoteNumber}</div>
                   </div>
                 )}
                 {chargeOut.issueDate && (
                   <div>
-                    <div className="text-sm text-muted-foreground">發單日期</div>
+                    <div className="text-sm text-muted-foreground">{t('detail.issueDate')}</div>
                     <div className="font-medium">{formatDate(chargeOut.issueDate)}</div>
                   </div>
                 )}
                 {chargeOut.paymentDate && (
                   <div>
-                    <div className="text-sm text-muted-foreground">付款日期</div>
+                    <div className="text-sm text-muted-foreground">{t('detail.paymentDate')}</div>
                     <div className="font-medium">{formatDate(chargeOut.paymentDate)}</div>
                   </div>
                 )}
@@ -225,11 +228,11 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
 
               {chargeOut.confirmer && (
                 <div className="border-t pt-4">
-                  <div className="text-sm text-muted-foreground">確認人</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.confirmer')}</div>
                   <div className="font-medium">{chargeOut.confirmer.name || chargeOut.confirmer.email}</div>
                   {chargeOut.confirmedAt && (
                     <div className="text-xs text-muted-foreground">
-                      確認時間: {formatDateTime(chargeOut.confirmedAt)}
+                      {t('detail.confirmedAt')}: {formatDateTime(chargeOut.confirmedAt)}
                     </div>
                   )}
                 </div>
@@ -242,9 +245,9 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                費用明細
+                {t('detail.expenseItems')}
               </CardTitle>
-              <CardDescription>{chargeOut.items.length} 筆費用項目</CardDescription>
+              <CardDescription>{t('detail.itemsCount', { count: chargeOut.items.length })}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -252,10 +255,10 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
                   <thead>
                     <tr className="border-b">
                       <th className="p-2 text-left text-sm font-medium">#</th>
-                      <th className="p-2 text-left text-sm font-medium">費用名稱</th>
-                      <th className="p-2 text-left text-sm font-medium">發票號碼</th>
-                      <th className="p-2 text-right text-sm font-medium">金額 (HKD)</th>
-                      <th className="p-2 text-left text-sm font-medium">描述</th>
+                      <th className="p-2 text-left text-sm font-medium">{t('detail.table.expenseName')}</th>
+                      <th className="p-2 text-left text-sm font-medium">{t('detail.table.invoiceNumber')}</th>
+                      <th className="p-2 text-right text-sm font-medium">{t('detail.table.amount')}</th>
+                      <th className="p-2 text-left text-sm font-medium">{tCommon('form.description.label')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -287,7 +290,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
                   <tfoot>
                     <tr className="border-t-2 font-semibold">
                       <td colSpan={3} className="p-2 text-right">
-                        總計
+                        {t('detail.total')}
                       </td>
                       <td className="p-2 text-right text-lg text-primary">
                         {formatCurrency(chargeOut.totalAmount)}
@@ -308,22 +311,22 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5" />
-                項目信息
+                {t('detail.projectInfo')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-sm text-muted-foreground">項目名稱</div>
+                <div className="text-sm text-muted-foreground">{t('detail.projectName')}</div>
                 <div className="font-medium">{chargeOut.project.name}</div>
               </div>
               {chargeOut.project.description && (
                 <div>
-                  <div className="text-sm text-muted-foreground">項目描述</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.projectDescription')}</div>
                   <div className="text-sm">{chargeOut.project.description}</div>
                 </div>
               )}
               <div>
-                <div className="text-sm text-muted-foreground">項目經理</div>
+                <div className="text-sm text-muted-foreground">{t('detail.projectManager')}</div>
                 <div className="text-sm">
                   {chargeOut.project.manager.name || chargeOut.project.manager.email}
                 </div>
@@ -336,21 +339,21 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5" />
-                營運公司 (OpCo)
+                {t('detail.opCoInfo')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-sm text-muted-foreground">OpCo 代碼</div>
+                <div className="text-sm text-muted-foreground">{t('detail.opCoCode')}</div>
                 <div className="font-medium">{chargeOut.opCo.code}</div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">OpCo 名稱</div>
+                <div className="text-sm text-muted-foreground">{t('detail.opCoName')}</div>
                 <div className="font-medium">{chargeOut.opCo.name}</div>
               </div>
               {chargeOut.opCo.description && (
                 <div>
-                  <div className="text-sm text-muted-foreground">描述</div>
+                  <div className="text-sm text-muted-foreground">{tCommon('form.description.label')}</div>
                   <div className="text-sm">{chargeOut.opCo.description}</div>
                 </div>
               )}
@@ -362,21 +365,21 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                時間軸
+                {t('detail.timeline')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-sm text-muted-foreground">創建時間</div>
+                <div className="text-sm text-muted-foreground">{tCommon('fields.createdAt')}</div>
                 <div className="text-sm">{formatDateTime(chargeOut.createdAt)}</div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">最後更新</div>
+                <div className="text-sm text-muted-foreground">{tCommon('fields.updatedAt')}</div>
                 <div className="text-sm">{formatDateTime(chargeOut.updatedAt)}</div>
               </div>
               {chargeOut.confirmedAt && (
                 <div>
-                  <div className="text-sm text-muted-foreground">確認時間</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.confirmedAt')}</div>
                   <div className="text-sm">{formatDateTime(chargeOut.confirmedAt)}</div>
                 </div>
               )}

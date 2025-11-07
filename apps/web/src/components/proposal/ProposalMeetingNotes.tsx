@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -34,6 +35,8 @@ export function ProposalMeetingNotes({
 }: ProposalMeetingNotesProps) {
   const { toast } = useToast();
   const utils = api.useUtils();
+  const t = useTranslations('proposals.meeting');
+  const tCommon = useTranslations('common');
 
   const [isEditing, setIsEditing] = useState(false);
   const [meetingDate, setMeetingDate] = useState('');
@@ -53,15 +56,15 @@ export function ProposalMeetingNotes({
   const updateMutation = api.budgetProposal.updateMeetingNotes.useMutation({
     onSuccess: () => {
       toast({
-        title: '保存成功',
-        description: '會議記錄已成功保存',
+        title: t('messages.saveSuccess'),
+        description: t('messages.saveSuccessDesc'),
       });
       setIsEditing(false);
       utils.budgetProposal.getById.invalidate({ id: proposalId });
     },
     onError: (error) => {
       toast({
-        title: '保存失敗',
+        title: t('messages.saveError'),
         description: error.message,
         variant: 'destructive',
       });
@@ -75,8 +78,8 @@ export function ProposalMeetingNotes({
     // 驗證
     if (!meetingDate) {
       toast({
-        title: '驗證失敗',
-        description: '請選擇會議日期',
+        title: tCommon('status.rejected'),
+        description: t('messages.validation.dateRequired'),
         variant: 'destructive',
       });
       return;
@@ -84,8 +87,8 @@ export function ProposalMeetingNotes({
 
     if (!meetingNotes.trim()) {
       toast({
-        title: '驗證失敗',
-        description: '請輸入會議記錄',
+        title: tCommon('status.rejected'),
+        description: t('messages.validation.notesRequired'),
         variant: 'destructive',
       });
       return;
@@ -123,7 +126,7 @@ export function ProposalMeetingNotes({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            會議記錄
+            {t('title')}
           </CardTitle>
           {!isEditing && (
             <Button
@@ -132,7 +135,7 @@ export function ProposalMeetingNotes({
               onClick={() => setIsEditing(true)}
             >
               <Edit className="h-4 w-4 mr-2" />
-              {hasData ? '編輯' : '新增'}
+              {hasData ? t('edit') : t('add')}
             </Button>
           )}
         </div>
@@ -144,7 +147,7 @@ export function ProposalMeetingNotes({
             {initialMeetingDate && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground block mb-2">
-                  會議日期
+                  {t('fields.date.label')}
                 </label>
                 <div className="flex items-center gap-2 text-foreground">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -156,7 +159,7 @@ export function ProposalMeetingNotes({
             {initialPresentedBy && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground block mb-2">
-                  介紹人員
+                  {t('fields.presentedBy.label')}
                 </label>
                 <div className="flex items-center gap-2 text-foreground">
                   <User className="h-4 w-4 text-muted-foreground" />
@@ -168,7 +171,7 @@ export function ProposalMeetingNotes({
             {initialMeetingNotes && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground block mb-2">
-                  會議記錄
+                  {t('fields.notes.label')}
                 </label>
                 <div className="p-4 bg-muted rounded-lg whitespace-pre-wrap text-foreground">
                   {initialMeetingNotes}
@@ -181,7 +184,7 @@ export function ProposalMeetingNotes({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              尚未記錄會議資訊。點擊「新增」按鈕開始記錄。
+              {t('hints.empty')}
             </AlertDescription>
           </Alert>
         ) : (
@@ -190,7 +193,7 @@ export function ProposalMeetingNotes({
             {/* 會議日期 */}
             <div>
               <label htmlFor="meetingDate" className="text-sm font-medium text-foreground block mb-2">
-                會議日期 <span className="text-destructive">*</span>
+                {t('fields.date.label')} <span className="text-destructive">*</span>
               </label>
               <Input
                 id="meetingDate"
@@ -204,14 +207,14 @@ export function ProposalMeetingNotes({
             {/* 介紹人員 */}
             <div>
               <label htmlFor="presentedBy" className="text-sm font-medium text-foreground block mb-2">
-                介紹人員
+                {t('fields.presentedBy.label')}
               </label>
               <Input
                 id="presentedBy"
                 type="text"
                 value={presentedBy}
                 onChange={(e) => setPresentedBy(e.target.value)}
-                placeholder="例如：張經理、李主管"
+                placeholder={t('fields.presentedBy.placeholder')}
                 disabled={updateMutation.isLoading}
               />
             </div>
@@ -219,18 +222,18 @@ export function ProposalMeetingNotes({
             {/* 會議記錄 */}
             <div>
               <label htmlFor="meetingNotes" className="text-sm font-medium text-foreground block mb-2">
-                會議記錄 <span className="text-destructive">*</span>
+                {t('fields.notes.label')} <span className="text-destructive">*</span>
               </label>
               <Textarea
                 id="meetingNotes"
                 value={meetingNotes}
                 onChange={(e) => setMeetingNotes(e.target.value)}
-                placeholder="請輸入會議記錄內容..."
+                placeholder={t('fields.notes.placeholder')}
                 rows={8}
                 disabled={updateMutation.isLoading}
               />
               <p className="text-sm text-muted-foreground mt-1">
-                記錄提案介紹會議的討論內容、決議事項等
+                {t('hints.notesHelp')}
               </p>
             </div>
 
@@ -242,7 +245,7 @@ export function ProposalMeetingNotes({
                 disabled={updateMutation.isLoading}
               >
                 <X className="h-4 w-4 mr-2" />
-                取消
+                {t('cancel')}
               </Button>
               <Button
                 onClick={handleSave}
@@ -251,12 +254,12 @@ export function ProposalMeetingNotes({
                 {updateMutation.isLoading ? (
                   <>
                     <Save className="h-4 w-4 mr-2 animate-spin" />
-                    保存中...
+                    {t('saving')}
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    保存
+                    {t('save')}
                   </>
                 )}
               </Button>
@@ -269,7 +272,7 @@ export function ProposalMeetingNotes({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              記錄提案介紹會議的日期、參與人員和討論內容，便於後續追蹤和審核。
+              {t('hints.info')}
             </AlertDescription>
           </Alert>
         )}
