@@ -10,6 +10,7 @@
       "confirm": "確認",
       "save": "儲存",
       "create": "新增",
+      "update": "更新",
       "delete": "刪除",
       "exportCSV": "匯出 CSV"
     },
@@ -69,8 +70,10 @@
     "optional": "選填",
     "all": "全部",
     "pagination": {
-      "page": "頁",
-      "of": "共",
+      "page": "第",
+      "of": "頁，共",
+      "previous": "上一頁",
+      "next": "下一頁",
       "rowsPerPage": "每頁顯示",
       "showing": "顯示",
       "to": "至",
@@ -109,6 +112,7 @@
   "navigation": {
     "home": "首頁",
     "dashboard": "首頁",
+    "projects": "專案管理",
     "brand": {
       "title": "IT 專案管理",
       "subtitle": "流程平台"
@@ -1697,6 +1701,24 @@
         "title": "編輯 OM 費用",
         "subtitle": "更新 OM 費用資訊"
       },
+      "basicInfo": {
+        "title": "基本資訊",
+        "description": "OM 費用名稱、類別和財務年度"
+      },
+      "opCoAndVendor": {
+        "title": "OpCo 和供應商",
+        "description": "選擇營運公司和供應商資訊"
+      },
+      "budgetAndDates": {
+        "title": "預算和日期範圍",
+        "description": "預算金額和費用期間"
+      },
+      "categoryDescription": "選擇此 OM 費用的類別",
+      "vendorDescription": "如適用,請選擇供應商(選填)",
+      "budgetDescription": "為此 OM 費用分配的總預算金額",
+      "startDate": "開始日期",
+      "endDate": "結束日期",
+      "createNotice": "創建後,您可以在詳情頁面新增每月費用金額",
       "fields": {
         "name": {
           "label": "OM 費用名稱",
@@ -1785,9 +1807,28 @@
     "title": "費用轉嫁",
     "subtitle": "ChargeOut 費用管理",
     "list": {
-      "title": "費用轉嫁列表",
-      "newChargeOut": "新增費用轉嫁",
-      "search": "搜尋費用轉嫁..."
+      "title": "費用轉嫁管理 (ChargeOut)",
+      "subtitle": "管理 IT 部門費用轉嫁至營運公司 (OpCo) 的記錄",
+      "newChargeOut": "新增 ChargeOut",
+      "search": "搜尋費用轉嫁...",
+      "filters": {
+        "status": "狀態",
+        "allStatuses": "全部狀態",
+        "opCo": "營運公司 (OpCo)",
+        "allOpCos": "全部 OpCo",
+        "project": "項目",
+        "allProjects": "全部項目"
+      },
+      "noDescription": "無描述",
+      "project": "項目",
+      "opCo": "OpCo",
+      "totalAmount": "總金額",
+      "items": "費用明細",
+      "issueDate": "發單日期",
+      "paymentDate": "付款日期",
+      "noMatchingRecords": "沒有符合條件的 ChargeOut 記錄",
+      "noRecords": "尚無 ChargeOut 記錄，請創建新的 ChargeOut",
+      "createFirst": "創建第一筆 ChargeOut"
     },
     "form": {
       "create": {

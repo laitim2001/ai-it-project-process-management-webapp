@@ -10,6 +10,7 @@
       "confirm": "Confirm",
       "save": "Save",
       "create": "Create",
+      "update": "Update",
       "delete": "Delete",
       "exportCSV": "Export CSV"
     },
@@ -71,6 +72,8 @@
     "pagination": {
       "page": "Page",
       "of": "of",
+      "previous": "Previous",
+      "next": "Next",
       "rowsPerPage": "Rows per page",
       "showing": "Showing",
       "to": "to",
@@ -109,6 +112,7 @@
   "navigation": {
     "home": "Home",
     "dashboard": "Home",
+    "projects": "Projects",
     "brand": {
       "title": "IT Project Management",
       "subtitle": "Process Platform"
@@ -1697,6 +1701,24 @@
         "title": "Edit OM Expense",
         "subtitle": "Update OM expense information"
       },
+      "basicInfo": {
+        "title": "Basic Information",
+        "description": "OM expense name, category, and fiscal year"
+      },
+      "opCoAndVendor": {
+        "title": "OpCo and Vendor",
+        "description": "Select operating company and vendor information"
+      },
+      "budgetAndDates": {
+        "title": "Budget and Date Range",
+        "description": "Budget amount and expense period"
+      },
+      "categoryDescription": "Select the expense category for this OM expense",
+      "vendorDescription": "Select a vendor if applicable (optional)",
+      "budgetDescription": "Total budget amount allocated for this OM expense",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "createNotice": "After creating, you can add monthly expense amounts on the detail page",
       "fields": {
         "name": {
           "label": "OM Expense Name",
@@ -1785,9 +1807,28 @@
     "title": "Charge Outs",
     "subtitle": "ChargeOut Expense Management",
     "list": {
-      "title": "Charge Out List",
+      "title": "Charge Out Management",
+      "subtitle": "Manage IT department charge-outs to operating companies (OpCo)",
       "newChargeOut": "New Charge Out",
-      "search": "Search charge outs..."
+      "search": "Search charge outs...",
+      "filters": {
+        "status": "Status",
+        "allStatuses": "All Statuses",
+        "opCo": "Operating Company (OpCo)",
+        "allOpCos": "All OpCos",
+        "project": "Project",
+        "allProjects": "All Projects"
+      },
+      "noDescription": "No description",
+      "project": "Project",
+      "opCo": "OpCo",
+      "totalAmount": "Total Amount",
+      "items": "Items",
+      "issueDate": "Issue Date",
+      "paymentDate": "Payment Date",
+      "noMatchingRecords": "No matching Charge Out records found",
+      "noRecords": "No Charge Out records yet, please create a new one",
+      "createFirst": "Create First Charge Out"
     },
     "form": {
       "create": {

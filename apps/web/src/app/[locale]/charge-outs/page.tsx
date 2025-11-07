@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from "@/i18n/routing";
+import { Link } from "@/i18n/routing";
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,8 @@ import { api } from '@/lib/trpc';
 
 export default function ChargeOutsPage() {
   const t = useTranslations('chargeOuts');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const router = useRouter();
 
   // 過濾狀態
@@ -94,20 +97,14 @@ export default function ChargeOutsPage() {
 
   // 狀態文字
   const getStatusText = (status: string) => {
-    switch (status) {
-      case 'Draft':
-        return '草稿';
-      case 'Submitted':
-        return '已提交';
-      case 'Confirmed':
-        return '已確認';
-      case 'Paid':
-        return '已付款';
-      case 'Rejected':
-        return '已拒絕';
-      default:
-        return status;
-    }
+    const statusMap: Record<string, string> = {
+      'Draft': tCommon('status.draft'),
+      'Submitted': tCommon('status.submitted'),
+      'Confirmed': tCommon('status.confirmed'),
+      'Paid': tCommon('status.paid'),
+      'Rejected': tCommon('status.rejected'),
+    };
+    return statusMap[status] || status;
   };
 
   // 狀態選項
@@ -119,11 +116,13 @@ export default function ChargeOutsPage() {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard">首頁</BreadcrumbLink>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard">{tNav('home')}</Link>
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>費用轉嫁 (ChargeOut)</BreadcrumbPage>
+            <BreadcrumbPage>{tNav('menu.chargeOuts')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -132,14 +131,14 @@ export default function ChargeOutsPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">費用轉嫁管理 (ChargeOut)</h1>
+            <h1 className="text-3xl font-bold">{t('list.title')}</h1>
             <p className="mt-2 text-muted-foreground">
-              管理 IT 部門費用轉嫁至營運公司 (OpCo) 的記錄
+              {t('list.subtitle')}
             </p>
           </div>
           <Button onClick={() => router.push('/charge-outs/new')}>
             <Plus className="mr-2 h-4 w-4" />
-            新增 ChargeOut
+            {t('list.newChargeOut')}
           </Button>
         </div>
       </div>
@@ -150,7 +149,7 @@ export default function ChargeOutsPage() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* 狀態選擇 */}
             <div>
-              <label className="mb-2 block text-sm font-medium">狀態</label>
+              <label className="mb-2 block text-sm font-medium">{t('list.filters.status')}</label>
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 value={selectedStatus}
@@ -159,7 +158,7 @@ export default function ChargeOutsPage() {
                   setPage(1);
                 }}
               >
-                <option value="">全部狀態</option>
+                <option value="">{t('list.filters.allStatuses')}</option>
                 {statusOptions.map((status) => (
                   <option key={status} value={status}>
                     {getStatusText(status)}
@@ -170,7 +169,7 @@ export default function ChargeOutsPage() {
 
             {/* OpCo 選擇 */}
             <div>
-              <label className="mb-2 block text-sm font-medium">營運公司 (OpCo)</label>
+              <label className="mb-2 block text-sm font-medium">{t('list.filters.opCo')}</label>
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 value={selectedOpCo}
@@ -179,7 +178,7 @@ export default function ChargeOutsPage() {
                   setPage(1);
                 }}
               >
-                <option value="">全部 OpCo</option>
+                <option value="">{t('list.filters.allOpCos')}</option>
                 {opCos?.map((opCo) => (
                   <option key={opCo.id} value={opCo.id}>
                     {opCo.code} - {opCo.name}
@@ -190,7 +189,7 @@ export default function ChargeOutsPage() {
 
             {/* 項目選擇 */}
             <div>
-              <label className="mb-2 block text-sm font-medium">項目</label>
+              <label className="mb-2 block text-sm font-medium">{t('list.filters.project')}</label>
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 value={selectedProject}
@@ -199,7 +198,7 @@ export default function ChargeOutsPage() {
                   setPage(1);
                 }}
               >
-                <option value="">全部項目</option>
+                <option value="">{t('list.filters.allProjects')}</option>
                 {projects?.items?.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -213,7 +212,7 @@ export default function ChargeOutsPage() {
 
       {/* ChargeOut 列表 */}
       {isLoading ? (
-        <div className="text-center py-8">載入中...</div>
+        <div className="text-center py-8">{tCommon('loading')}</div>
       ) : chargeOuts && chargeOuts.items.length > 0 ? (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -228,7 +227,7 @@ export default function ChargeOutsPage() {
                     <div className="flex-1">
                       <CardTitle className="text-lg">{chargeOut.name}</CardTitle>
                       <CardDescription className="mt-1">
-                        {chargeOut.description || '無描述'}
+                        {chargeOut.description || t('list.noDescription')}
                       </CardDescription>
                     </div>
                     <Badge className={getStatusColor(chargeOut.status)}>
@@ -240,11 +239,11 @@ export default function ChargeOutsPage() {
                   <div className="space-y-3">
                     {/* 項目和 OpCo */}
                     <div className="text-sm">
-                      <span className="text-muted-foreground">項目: </span>
+                      <span className="text-muted-foreground">{t('list.project')}: </span>
                       <span className="font-medium">{chargeOut.project.name}</span>
                     </div>
                     <div className="text-sm">
-                      <span className="text-muted-foreground">OpCo: </span>
+                      <span className="text-muted-foreground">{t('list.opCo')}: </span>
                       <span className="font-medium">
                         {chargeOut.opCo.code} - {chargeOut.opCo.name}
                       </span>
@@ -252,7 +251,7 @@ export default function ChargeOutsPage() {
 
                     {/* 總金額 */}
                     <div className="flex items-center justify-between border-t pt-3">
-                      <span className="text-sm text-muted-foreground">總金額</span>
+                      <span className="text-sm text-muted-foreground">{t('list.totalAmount')}</span>
                       <span className="text-lg font-semibold text-primary">
                         {formatCurrency(chargeOut.totalAmount)}
                       </span>
@@ -260,19 +259,19 @@ export default function ChargeOutsPage() {
 
                     {/* 費用明細數 */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">費用明細</span>
-                      <span className="text-sm font-medium">{chargeOut._count.items} 筆</span>
+                      <span className="text-sm text-muted-foreground">{t('list.items')}</span>
+                      <span className="text-sm font-medium">{chargeOut._count.items} {tCommon('units.records')}</span>
                     </div>
 
                     {/* 日期信息 */}
                     {chargeOut.issueDate && (
                       <div className="border-t pt-3 text-xs text-muted-foreground">
-                        發單日期: {formatDate(chargeOut.issueDate)}
+                        {t('list.issueDate')}: {formatDate(chargeOut.issueDate)}
                       </div>
                     )}
                     {chargeOut.paymentDate && (
                       <div className="text-xs text-muted-foreground">
-                        付款日期: {formatDate(chargeOut.paymentDate)}
+                        {t('list.paymentDate')}: {formatDate(chargeOut.paymentDate)}
                       </div>
                     )}
                   </div>
@@ -289,17 +288,17 @@ export default function ChargeOutsPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
-                上一頁
+                {tCommon('pagination.previous')}
               </Button>
               <span className="text-sm text-muted-foreground">
-                第 {page} 頁，共 {chargeOuts.totalPages} 頁
+                {tCommon('pagination.page')} {page} {tCommon('pagination.of')} {chargeOuts.totalPages}
               </span>
               <Button
                 variant="outline"
                 onClick={() => setPage((p) => Math.min(chargeOuts.totalPages, p + 1))}
                 disabled={page === chargeOuts.totalPages}
               >
-                下一頁
+                {tCommon('pagination.next')}
               </Button>
             </div>
           )}
@@ -309,13 +308,13 @@ export default function ChargeOutsPage() {
           <CardContent className="py-8 text-center">
             <p className="text-muted-foreground">
               {selectedStatus || selectedOpCo || selectedProject
-                ? '沒有符合條件的 ChargeOut 記錄'
-                : '尚無 ChargeOut 記錄，請創建新的 ChargeOut'}
+                ? t('list.noMatchingRecords')
+                : t('list.noRecords')}
             </p>
             {!selectedStatus && !selectedOpCo && !selectedProject && (
               <Button className="mt-4" onClick={() => router.push('/charge-outs/new')}>
                 <Plus className="mr-2 h-4 w-4" />
-                創建第一筆 ChargeOut
+                {t('list.createFirst')}
               </Button>
             )}
           </CardContent>
