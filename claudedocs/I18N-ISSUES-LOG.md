@@ -11,10 +11,1010 @@
 | FIX-056 | Nested Links 警告 | P2 | ✅ 已解決 | 2025-11-03 |
 | FIX-057 | 大規模重複 Import | P0 | ✅ 已解決 | 2025-11-03 |
 | FIX-058 | Webpack 緩存導致翻譯未更新 | P1 | ✅ 已解決 | 2025-11-03 |
-| **FIX-060** | **英文版顯示中文內容** | **P0** | ✅ **已解決** | **2025-11-04** |
-| **FIX-062** | **Login 頁面翻譯鍵缺失** | **P1** | ✅ **已解決** | **2025-11-05** |
-| **FIX-063** | **四大頁面系統性翻譯問題** | **P0** | ✅ **已解決** | **2025-11-05** |
-| **FIX-064** | **剩餘翻譯問題修復** | **P1** | ✅ **已解決** | **2025-11-05** |
+| FIX-060 | 英文版顯示中文內容 | P0 | ✅ 已解決 | 2025-11-04 |
+| FIX-062 | Login 頁面翻譯鍵缺失 | P1 | ✅ 已解決 | 2025-11-05 |
+| FIX-063 | 四大頁面系統性翻譯問題 | P0 | ✅ 已解決 | 2025-11-05 |
+| FIX-064 | 剩餘翻譯問題修復 | P1 | ✅ 已解決 | 2025-11-05 |
+| **FIX-077** | **4 個 I18N 缺失翻譯鍵** | **P1** | ✅ **已解決** | **2025-11-07** |
+| **FIX-078** | **34 頁面 Breadcrumb 路由問題** | **P0** | ✅ **已解決** | **2025-11-07** |
+| **FIX-079** | **Breadcrumb 修復導致運行時錯誤** | **P0** | ✅ **已解決** | **2025-11-07** |
+| **FIX-080** | **OM Expenses 和 ChargeOut 翻譯** | **P1** | ✅ **已解決** | **2025-11-07** |
+
+---
+
+## FIX-080: OM Expenses 月度統計和 ChargeOut 操作按鈕翻譯
+
+### 問題描述
+**發現時間**: 2025-11-07 14:00
+**影響範圍**: OM Expenses 詳情頁、Charge-Outs 詳情頁
+**優先級**: P1 (影響用戶體驗)
+
+手動測試發現兩個 i18n 問題:
+1. OM Expenses 詳情頁 MonthlyGrid 組件缺少 9 個翻譯鍵
+2. Charge-Outs 詳情頁操作按鈕和對話框顯示中文硬編碼
+
+### 問題 1: OM Expenses MonthlyGrid 缺失翻譯
+
+**影響頁面**:
+- `http://localhost:3000/zh-TW/om-expenses/[id]`
+- `http://localhost:3000/en/om-expenses/[id]`
+
+**錯誤信息**:
+```
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.description`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.saveButton`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.monthColumn`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.amountColumn`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.tips.title`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.tips.enterAmounts`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.tips.autoCalculate`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.tips.clickSave`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.monthlyGrid.tips.autoUpdate`
+```
+
+**根本原因**:
+- 組件 `OMExpenseMonthlyGrid.tsx` 使用了這些翻譯鍵
+- 但翻譯文件中只有 `monthlyGrid.title` 和 `monthlyGrid.total`
+- 缺少表格使用說明、欄位標題和使用提示
+
+### 問題 2: ChargeOut 操作按鈕硬編碼中文
+
+**影響頁面**:
+- `http://localhost:3000/en/charge-outs/[id]` (英文版顯示中文)
+
+**硬編碼內容統計**:
+- 6 個按鈕文字: 編輯、提交審核、確認、拒絕、標記為已付款、刪除
+- 15 個 Toast 訊息: 成功/失敗提示
+- 20 個對話框字串: 標題、描述、按鈕文字
+
+**問題組件**: `ChargeOutActions.tsx` (377 lines)
+
+**根本原因**:
+- 組件使用硬編碼中文字串
+- 未使用 `useTranslations` hook
+- 所有用戶提示都是中文
+
+### 解決方案
+
+#### 修復 1: 添加 OM Expenses MonthlyGrid 翻譯鍵
+
+**en.json** (lines 1768-1796):
+```json
+"monthlyGrid": {
+  "title": "Monthly Expense Statistics",
+  "description": "Edit actual spending amounts for months 1-12, system will automatically calculate total",
+  "saveButton": "Save Monthly Records",
+  "monthColumn": "Month",
+  "amountColumn": "Actual Spending (HKD)",
+  "total": "Total",
+  "tips": {
+    "title": "Usage Tips",
+    "enterAmounts": "Enter actual spending amount for each month",
+    "autoCalculate": "System will automatically calculate total actual spending and utilization rate",
+    "clickSave": "Click \"Save Monthly Records\" button to save all changes",
+    "autoUpdate": "After saving, system will automatically update OM expense actualSpent field"
+  }
+}
+```
+
+**zh-TW.json** (lines 1768-1796):
+```json
+"monthlyGrid": {
+  "title": "月度費用統計",
+  "description": "編輯 1-12 月的實際支出金額，系統將自動計算總額",
+  "saveButton": "保存月度記錄",
+  "monthColumn": "月份",
+  "amountColumn": "實際支出 (HKD)",
+  "total": "總計",
+  "tips": {
+    "title": "使用提示",
+    "enterAmounts": "輸入每個月的實際支出金額",
+    "autoCalculate": "系統會自動計算總實際支出和使用率",
+    "clickSave": "點擊「保存月度記錄」按鈕保存所有更改",
+    "autoUpdate": "保存後，系統會自動更新 OM 費用的 actualSpent 欄位"
+  }
+}
+```
+
+#### 修復 2: ChargeOutActions 組件完整 i18n 遷移
+
+**步驟 1**: 新增翻譯鍵結構
+
+**en.json** (lines 1953-2009):
+```json
+"chargeOuts": {
+  "actions": {
+    "edit": "Edit",
+    "submit": "Submit for Review",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "markAsPaid": "Mark as Paid",
+    "delete": "Delete",
+    "dialogs": {
+      "submit": {
+        "title": "Confirm Submission",
+        "description": "Are you sure you want to submit ChargeOut \"{name}\"?...",
+        "cancel": "Cancel",
+        "confirm": "Confirm Submit"
+      },
+      // ... 其他 4 個對話框
+    },
+    "messages": {
+      "submitSuccess": "Submitted Successfully",
+      "submitSuccessDesc": "ChargeOut {name} has been submitted for review",
+      // ... 其他 12 個訊息
+    }
+  }
+}
+```
+
+**步驟 2**: 修改 ChargeOutActions.tsx
+
+使用 surgical-task-executor 批量替換:
+1. 添加 `import { useTranslations } from 'next-intl';`
+2. 添加 `const t = useTranslations('chargeOuts.actions');`
+3. 替換所有 41 個硬編碼字串為翻譯鍵調用
+
+**修改前** (line 215):
+```typescript
+<Button variant="outline" onClick={handleEdit}>
+  <Edit className="mr-2 h-4 w-4" />
+  編輯
+</Button>
+```
+
+**修改後** (line 215):
+```typescript
+<Button variant="outline" onClick={handleEdit}>
+  <Edit className="mr-2 h-4 w-4" />
+  {t('edit')}
+</Button>
+```
+
+### 修復文件清單
+
+1. **apps/web/src/messages/en.json**
+   - 新增 `omExpenses.monthlyGrid.description` 等 9 個鍵
+   - 新增 `chargeOuts.actions` 完整結構 (41 個鍵)
+
+2. **apps/web/src/messages/zh-TW.json**
+   - 對應的中文翻譯 (50 個鍵)
+
+3. **apps/web/src/components/charge-out/ChargeOutActions.tsx**
+   - 添加 useTranslations hook
+   - 替換 41 個硬編碼字串
+
+### 影響評估
+
+**修復前**:
+- ❌ OM Expenses MonthlyGrid 顯示 MISSING_MESSAGE 錯誤
+- ❌ Charge-Outs 英文版操作按鈕顯示中文
+- ❌ 所有對話框和提示都是中文
+
+**修復後**:
+- ✅ OM Expenses MonthlyGrid 完整顯示雙語
+- ✅ Charge-Outs 操作按鈕正確顯示英文/中文
+- ✅ 所有對話框和提示支援雙語
+
+**統計數據**:
+- **新增翻譯鍵 (en)**: 50 個
+- **新增翻譯鍵 (zh-TW)**: 50 個
+- **總翻譯鍵數**: 1577 個 (從 1527 增加)
+- **修復時間**: 1.5 小時
+- **修改檔案**: 3 個
+- **影響頁面**: 2 個
+
+### 技術實施細節
+
+#### Translation Key 參數化
+
+使用 next-intl 的參數傳遞功能:
+
+```typescript
+// Toast 訊息
+toast({
+  title: t('messages.submitSuccess'),
+  description: t('messages.submitSuccessDesc', { name: chargeOut.name })
+});
+
+// 對話框
+<AlertDialogDescription>
+  {t('dialogs.submit.description', { name: chargeOut.name })}
+</AlertDialogDescription>
+```
+
+#### Surgical-task-executor 批量替換策略
+
+1. **識別模式**: 找出所有硬編碼中文字串
+2. **分層替換**: 按鈕 → Toast → 對話框
+3. **參數化處理**: 包含變數的字串轉換為參數化翻譯
+4. **保持邏輯不變**: 只替換字串，不修改業務邏輯
+
+### 經驗教訓
+
+#### 技術層面
+1. **完整測試覆蓋**: 手動測試應覆蓋所有頁面和語言版本
+2. **組件級別檢查**: 不僅檢查頁面，還要檢查所有組件
+3. **參數化設計**: 使用參數傳遞而非模板字串拼接
+
+#### 流程層面
+1. **系統性排查**: 使用自動化工具掃描所有硬編碼字串
+2. **分批修復**: 按頁面/組件分批處理，避免遺漏
+3. **驗證機制**: pre-commit hook 自動驗證翻譯文件
+
+### 相關文檔
+- 📄 **Commit**: FIX-080 (commit 038765f)
+- 📊 **進度記錄**: `I18N-PROGRESS.md` (2025-11-07 section)
+- 📝 **問題記錄**: `I18N-ISSUES-LOG.md` (本文檔)
+
+---
+
+## FIX-079: Breadcrumb 路由修復導致的運行時錯誤
+
+### 問題描述
+**發現時間**: 2025-11-07 12:00
+**影響範圍**: projects/[id]/page.tsx, proposals/page.tsx, 7 個 new 頁面
+**優先級**: P0 (阻塞性問題 - 無法訪問頁面)
+
+在 FIX-078 完成後，用戶報告兩個關鍵運行時錯誤:
+1. `ReferenceError: locale is not defined` (projects/[id]/page.tsx line 285)
+2. `Build Error: the name Link is defined multiple times` (proposals/page.tsx lines 15-16)
+3. 7 個頁面缺少 Link import 導致 TypeScript 錯誤
+
+### 錯誤 1: locale 變數未定義
+
+**錯誤信息**:
+```
+Unhandled Runtime Error
+ReferenceError: locale is not defined
+
+Source: src\app\[locale]\projects\[id]\page.tsx (285:71)
+{new Date(project.createdAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
+```
+
+**根本原因**:
+- FIX-078 的自動化腳本 `remove-locale-prefix.js` 錯誤地移除了 `const locale = params.locale as string;`
+- 但檔案中仍有 4 處使用 locale 變數進行日期格式化 (lines 285, 291, 412, 494)
+- 導致運行時 ReferenceError
+
+**影響**: 無法訪問任何 projects/[id] 頁面
+
+### 錯誤 2: Link 重複 import
+
+**錯誤信息**:
+```
+Build Error
+Failed to compile
+Error: x the name `Link` is defined multiple times
+
+Source: src\app\[locale]\proposals\page.tsx
+Line 15: import { Link } from "@/i18n/routing";
+Line 16: import { Link, useRouter } from "@/i18n/routing";
+```
+
+**根本原因**:
+- FIX-078 的 `fix-breadcrumb-routing.js` 腳本未檢查是否已存在 Link import
+- 自動添加了重複的 import 語句
+
+**影響**: proposals 頁面無法編譯
+
+### 錯誤 3: 7 個頁面缺少 Link import
+
+**影響檔案**:
+- expenses/new/page.tsx
+- proposals/new/page.tsx
+- purchase-orders/new/page.tsx
+- quotes/new/page.tsx
+- settings/page.tsx
+- users/new/page.tsx
+- vendors/new/page.tsx
+
+**根本原因**: 這些頁面在 FIX-078 修復過程中被遺漏
+
+### 解決方案
+
+#### 修復 1: 恢復 locale 變數聲明
+
+**檔案**: `apps/web/src/app/[locale]/projects/[id]/page.tsx`
+
+**修改** (line 50):
+```typescript
+const params = useParams();
+const router = useRouter();
+const { toast } = useToast();
+const id = params.id as string;
+const locale = params.locale as string; // ✅ 重新添加 - 用於日期格式化
+```
+
+**使用位置** (4 處):
+- Line 285: `{new Date(project.createdAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}`
+- Line 291: `{new Date(project.updatedAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}`
+- Line 412: `{new Date(proposal.createdAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}`
+- Line 494: `{new Date(po.date).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}`
+
+#### 修復 2: 移除重複 Link import
+
+**檔案**: `apps/web/src/app/[locale]/proposals/page.tsx`
+
+**修改前** (lines 15-16):
+```typescript
+import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
+```
+
+**修改後** (line 15):
+```typescript
+import { Link, useRouter } from "@/i18n/routing";
+```
+
+#### 修復 3: 批量添加缺失的 Link import
+
+**創建工具**: `scripts/add-missing-link-import.js` (70 lines)
+
+**核心邏輯**:
+```javascript
+// 在 next-intl import 之後插入 Link import
+let nextIntlImportMatch = content.match(/import\s+{[^}]+}\s+from\s+['"]next-intl['"];?\n/);
+
+if (!nextIntlImportMatch) {
+  // 嘗試匹配不帶換行符的格式
+  nextIntlImportMatch = content.match(/import\s+{[^}]+}\s+from\s+['"]next-intl['"]/);
+}
+
+if (nextIntlImportMatch) {
+  const insertPosition = nextIntlImportMatch.index + nextIntlImportMatch[0].length;
+  const separator = nextIntlImportMatch[0].endsWith('\n') ? '' : '\n';
+  content = content.slice(0, insertPosition) +
+            separator +
+            'import { Link } from "@/i18n/routing";\n' +
+            content.slice(insertPosition);
+}
+```
+
+**執行結果**:
+```
+✅ 修復: apps/web/src/app/[locale]/expenses/new/page.tsx
+✅ 修復: apps/web/src/app/[locale]/proposals/new/page.tsx
+✅ 修復: apps/web/src/app/[locale]/purchase-orders/new/page.tsx
+✅ 修復: apps/web/src/app/[locale]/quotes/new/page.tsx
+✅ 修復: apps/web/src/app/[locale]/settings/page.tsx
+✅ 修復: apps/web/src/app/[locale]/users/new/page.tsx
+✅ 修復: apps/web/src/app/[locale]/vendors/new/page.tsx
+
+🎉 修復完成! 修復: 7 個檔案
+```
+
+#### 修復 4: 修正 import 分號格式
+
+**問題**: 批量添加 import 後產生多餘分號
+
+**創建工具**: `scripts/fix-import-semicolons.js` (65 lines)
+
+**修正前**:
+```typescript
+import { useTranslations } from 'next-intl'
+import { Link } from "@/i18n/routing";
+;
+```
+
+**修正後**:
+```typescript
+import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/routing";
+```
+
+**執行結果**: 成功修復 6 個檔案的分號格式問題
+
+### 修復文件清單
+
+1. **apps/web/src/app/[locale]/projects/[id]/page.tsx**
+   - 重新添加 `const locale = params.locale as string;` (line 50)
+
+2. **apps/web/src/app/[locale]/proposals/page.tsx**
+   - 移除重複的 Link import (line 15)
+
+3. **7 個 /new 頁面**
+   - 批量添加 Link import
+   - 修正 import 分號格式
+
+4. **scripts/add-missing-link-import.js** (新增)
+   - 自動化添加 Link import 工具
+
+5. **scripts/fix-import-semicolons.js** (新增)
+   - 自動化修正分號格式工具
+
+### 影響評估
+
+**修復前**:
+- ❌ 無法訪問 projects/[id] 頁面 (ReferenceError)
+- ❌ proposals 頁面無法編譯 (Duplicate import)
+- ❌ 7 個頁面有 TypeScript 錯誤
+
+**修復後**:
+- ✅ projects/[id] 頁面正常顯示
+- ✅ proposals 頁面成功編譯
+- ✅ 所有 /new 頁面無編譯錯誤
+- ✅ 日期格式化正確顯示 (zh-TW/en-US)
+- ✅ Breadcrumb 導航保持 locale 上下文
+
+**統計數據**:
+- **修改檔案**: 9 個頁面組件
+- **新增腳本**: 2 個自動化工具
+- **修復錯誤**: 4 類問題
+- **總代碼行**: ~140 行修改
+- **修復時間**: 1 小時
+
+### 技術實施細節
+
+#### 自動化腳本改進
+
+**問題分析**:
+- `remove-locale-prefix.js` 過於激進，未檢查 locale 變數是否仍在使用
+- `fix-breadcrumb-routing.js` 未檢查 import 是否已存在
+
+**改進建議**:
+1. **依賴分析**: 刪除變數前檢查是否有引用
+2. **重複檢測**: 添加 import 前檢查是否已存在
+3. **Dry-run 模式**: 先預覽變更再實際執行
+4. **分階段執行**: 每階段後驗證編譯
+
+### 經驗教訓
+
+#### 技術層面
+1. **自動化工具限制**: 批量修改工具需要完善的檢查機制
+2. **變數依賴追蹤**: 刪除變數前必須檢查所有引用
+3. **Import 重複檢測**: 添加 import 前檢查現有 import
+4. **多輪驗證**: 自動化修復後需要人工驗證
+
+#### 流程層面
+1. **增量修復**: 大規模修改應分批次執行和驗證
+2. **快速響應**: 用戶報告問題後立即修復
+3. **根因分析**: 深入分析自動化工具的問題
+4. **工具改進**: 基於問題改進自動化工具
+
+### 相關文檔
+- 📄 **Commit**: FIX-079 (commit be57548)
+- 📊 **進度記錄**: `I18N-PROGRESS.md` (2025-11-07 section)
+- 📝 **問題記錄**: `I18N-ISSUES-LOG.md` (本文檔)
+
+---
+
+## FIX-078: 34 頁面 Breadcrumb 路由語言環境問題
+
+### 問題描述
+**發現時間**: 2025-11-07 10:00
+**影響範圍**: 34 個頁面的 breadcrumb 導航
+**優先級**: P0 (嚴重影響用戶體驗)
+
+**用戶報告**:
+"發現了一個重大問題，請重新檢查所有頁面的麵包屑路由問題，因為我發現有一些有麵包屑路由的頁面都有問題，就是英文版本的話，會跳轉到中文版本的頁，所以請重新檢查一次，中文的是應該跳轉回中文，本來是英文就應該繼續跳轉到英文版的"
+
+**症狀**:
+- 在 `/en/dashboard` 點擊 breadcrumb 鏈接跳轉到 `/zh-TW/*`
+- 在 `/zh-TW/dashboard` 點擊 breadcrumb 鏈接跳轉到 `/en/*`
+- Breadcrumb 導航無法保持當前語言環境
+
+### 根本原因分析
+
+#### 問題模式識別
+
+掃描發現 34 個頁面存在兩種錯誤模式:
+
+**模式 1: 直接使用 href 屬性 (不包含 locale)**
+```typescript
+// ❌ 錯誤: BreadcrumbLink 直接使用 href，不會自動添加 locale
+<BreadcrumbLink href="/dashboard">{tNav('home')}</BreadcrumbLink>
+```
+
+**模式 2: 使用模板字串手動添加 locale**
+```typescript
+// ❌ 錯誤: 當使用 next-intl Link 時會導致雙重 locale 前綴
+<BreadcrumbLink href={\`/${locale}/dashboard\`}>{tNav('home')}</BreadcrumbLink>
+```
+
+#### 技術原理
+
+**BreadcrumbLink 組件**:
+- 來自 shadcn/ui
+- 預設渲染為 `<a>` 標籤
+- 不支援 next-intl 的 locale 自動處理
+
+**next-intl Link 組件**:
+- 自動在 href 前添加當前 locale
+- 例如: `<Link href="/dashboard">` → `/en/dashboard` 或 `/zh-TW/dashboard`
+
+**asChild 模式**:
+- Radix UI 提供的組合模式
+- 允許將子組件的屬性合併到父組件
+- `<BreadcrumbLink asChild><Link href="/path">...</Link></BreadcrumbLink>`
+
+### 解決方案
+
+#### 正確模式
+
+```typescript
+import { Link } from "@/i18n/routing";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+
+<Breadcrumb>
+  <BreadcrumbList>
+    <BreadcrumbItem>
+      <BreadcrumbLink asChild>
+        <Link href="/dashboard">{tNav('home')}</Link>
+      </BreadcrumbLink>
+    </BreadcrumbItem>
+    <BreadcrumbSeparator />
+    <BreadcrumbItem>
+      <BreadcrumbPage>{t('title')}</BreadcrumbPage>
+    </BreadcrumbItem>
+  </BreadcrumbList>
+</Breadcrumb>
+```
+
+**關鍵要點**:
+1. `BreadcrumbLink` 使用 `asChild` prop
+2. 內部使用 next-intl 的 `Link` 組件
+3. `Link` 的 `href` 不包含 locale (自動添加)
+4. 最後一項使用 `BreadcrumbPage` (不需要鏈接)
+
+#### 自動化修復工具
+
+**創建工具 1**: `scripts/fix-breadcrumb-routing.js` (154 lines)
+
+**核心邏輯**:
+```javascript
+// 模式 1: 替換 href 屬性為 asChild + Link
+content = content.replace(
+  /<BreadcrumbLink\s+href=["']([^"']+)["']>([^<]+)<\/BreadcrumbLink>/g,
+  '<BreadcrumbLink asChild><Link href="$1">$2</Link></BreadcrumbLink>'
+);
+
+// 模式 2: 替換模板字串
+content = content.replace(
+  /<BreadcrumbLink\s+href=\{`([^`]+)`\}>((?:(?!<\/BreadcrumbLink>).)*)<\/BreadcrumbLink>/gs,
+  (match, href, children) => {
+    if (children.includes('<Link')) return match;
+    return \`<BreadcrumbLink asChild><Link href={\\\`\${href}\\\`}>\${children}</Link></BreadcrumbLink>\`;
+  }
+);
+
+// 檢查並添加 Link import
+if (!hasLinkImport && hasBreadcrumbLinks) {
+  // 在 next-intl import 後添加
+  content = content.replace(
+    /(import\s+{[^}]*}\s+from\s+['"]next-intl['"];?\n)/,
+    \`$1import { Link } from "@/i18n/routing";\n\`
+  );
+}
+```
+
+**創建工具 2**: `scripts/remove-locale-prefix.js` (65 lines)
+
+**目的**: 移除手動添加的 `/${locale}/` 前綴
+
+```javascript
+// 移除 /${locale}/ 前綴
+content = content.replace(/href=\{`\/\$\{locale\}\/([^`]+)`\}/g, 'href="/$1"');
+
+// 移除不再使用的 locale 變數
+const localeUsageCount = (content.match(/\$\{locale\}/g) || []).length;
+if (localeUsageCount === 0) {
+  content = content.replace(/\s*const locale = params\.locale as string;\n/, '');
+}
+```
+
+**執行結果**:
+```
+🔧 開始修復 breadcrumb 路由問題...
+
+✅ 修復: apps/web/src/app/[locale]/proposals/[id]/page.tsx (2 處 breadcrumb)
+✅ 修復: apps/web/src/app/[locale]/projects/[id]/page.tsx (3 處 breadcrumb)
+... (共 34 個檔案)
+
+🎉 第一輪修復完成! 修復: 25 個檔案
+執行第二輪腳本...
+🎉 第二輪修復完成! 修復: 17 個檔案
+```
+
+### 修復文件清單
+
+**34 個受影響的頁面**:
+
+**Projects 模組** (5 頁面):
+- projects/page.tsx
+- projects/[id]/page.tsx
+- projects/[id]/quotes/page.tsx
+- projects/new/page.tsx
+- projects/[id]/edit/page.tsx
+
+**Proposals 模組** (5 頁面):
+- proposals/page.tsx
+- proposals/[id]/page.tsx
+- proposals/new/page.tsx
+- proposals/[id]/edit/page.tsx
+- proposals/[id]/comments/page.tsx
+
+**Budget Pools 模組** (4 頁面):
+- budget-pools/page.tsx
+- budget-pools/[id]/page.tsx
+- budget-pools/new/page.tsx
+- budget-pools/[id]/edit/page.tsx
+
+**其他模組** (20 頁面):
+- Vendors (4)
+- Purchase Orders (4)
+- Expenses (4)
+- OM Expenses (4)
+- Charge-Outs (4)
+
+### 影響評估
+
+**修復前**:
+- ❌ Breadcrumb 鏈接無法保持 locale
+- ❌ 英文版點擊跳轉到中文版
+- ❌ 中文版點擊跳轉到英文版
+- ❌ 用戶體驗嚴重受影響
+
+**修復後**:
+- ✅ 所有 breadcrumb 鏈接保持當前 locale
+- ✅ 英文版始終在英文環境中導航
+- ✅ 中文版始終在中文環境中導航
+- ✅ 用戶體驗恢復正常
+
+**統計數據**:
+- **影響頁面**: 34 個
+- **修復 breadcrumb**: ~100 個鏈接
+- **新增 Link import**: 25 個檔案
+- **移除 locale 前綴**: 9 個檔案
+- **修復時間**: 2 小時
+- **自動化工具**: 2 個腳本
+
+### 技術實施細節
+
+#### asChild 模式深入理解
+
+**Radix UI Slot API**:
+```typescript
+// BreadcrumbLink 的內部實現
+const BreadcrumbLink = ({ asChild, ...props }) => {
+  const Comp = asChild ? Slot : "a";
+  return <Comp {...props} />;
+}
+
+// 使用 asChild 時
+<BreadcrumbLink asChild>
+  <Link href="/dashboard">Home</Link>
+</BreadcrumbLink>
+
+// 實際渲染結果
+<Link href="/dashboard" className="breadcrumb-link-class">Home</Link>
+```
+
+**好處**:
+1. 保留 BreadcrumbLink 的樣式
+2. 使用 Link 的路由功能
+3. 完美結合兩個組件的優點
+
+#### Next-intl Link 自動 Locale 處理
+
+```typescript
+// 在 /en/dashboard 環境下
+<Link href="/projects">Projects</Link>
+// 實際渲染: <a href="/en/projects">Projects</a>
+
+// 在 /zh-TW/dashboard 環境下
+<Link href="/projects">專案</Link>
+// 實際渲染: <a href="/zh-TW/projects">專案</a>
+```
+
+### 經驗教訓
+
+#### 技術層面
+1. **組件組合**: 理解 asChild 模式對多庫整合至關重要
+2. **自動化規模**: 大規模修復需要可靠的自動化工具
+3. **Locale 處理**: 讓框架處理 locale，不要手動添加
+
+#### 流程層面
+1. **完整測試**: 修復後需要全面測試所有語言版本
+2. **工具驗證**: 自動化工具需要多輪驗證確保正確性
+3. **增量提交**: 分階段提交便於問題追蹤
+
+#### 預防措施
+1. **代碼審查**: 嚴格審查 breadcrumb 實現
+2. **組件文檔**: 建立 breadcrumb 最佳實踐文檔
+3. **E2E 測試**: 添加語言切換的 E2E 測試
+
+### 相關文檔
+- 📄 **Commit**: FIX-078 (commit e197b0a)
+- 📊 **進度記錄**: `I18N-PROGRESS.md` (2025-11-07 section)
+- 📝 **問題記錄**: `I18N-ISSUES-LOG.md` (本文檔)
+
+---
+
+## FIX-077: 4 個 I18N 缺失翻譯鍵問題
+
+### 問題描述
+**發現時間**: 2025-11-07 08:00
+**影響範圍**: Vendors、Projects、OM Expenses、Charge-Outs 四個頁面
+**優先級**: P1 (影響用戶體驗)
+
+手動測試發現 4 個具體問題:
+1. Vendors 編輯頁面缺少 `common.actions.update` 翻譯鍵
+2. Projects 詳情頁 Quotes 標籤缺少 `navigation.projects` 翻譯鍵
+3. OM Expenses 新建頁面缺少 12+ 個表單相關翻譯鍵
+4. Charge-Outs 列表頁面全部內容顯示中文硬編碼
+
+### 問題 1: common.actions.update 缺失
+
+**影響頁面**: `http://localhost:3000/en/vendors/[id]/edit`
+
+**錯誤信息**:
+```
+IntlError: MISSING_MESSAGE: Could not resolve `common.actions.update` in messages for locale `en`.
+```
+
+**根本原因**:
+- 編輯頁面使用 `tCommon('actions.update')`
+- 但 common.actions 只有 `save`, `cancel`, `delete` 等
+- 缺少 `update` 鍵
+
+**解決方案**:
+```json
+// en.json
+"common": {
+  "actions": {
+    "update": "Update"
+  }
+}
+
+// zh-TW.json
+"common": {
+  "actions": {
+    "update": "更新"
+  }
+}
+```
+
+### 問題 2: navigation.projects 缺失
+
+**影響頁面**: `http://localhost:3000/en/projects/[id]/quotes`
+
+**錯誤信息**:
+```
+IntlError: MISSING_MESSAGE: Could not resolve `navigation.projects` in messages for locale `en`.
+```
+
+**根本原因**:
+- Breadcrumb 使用 `tNav('projects')`
+- 但 navigation 命名空間只有 `navigation.menu.projects`
+- 缺少頂層 `navigation.projects` 鍵
+
+**解決方案**:
+```json
+// en.json
+"navigation": {
+  "projects": "Projects",
+  "menu": {
+    "projects": "Project Management"
+  }
+}
+
+// zh-TW.json
+"navigation": {
+  "projects": "專案管理",
+  "menu": {
+    "projects": "專案管理"
+  }
+}
+```
+
+### 問題 3: OM Expenses 表單翻譯鍵缺失
+
+**影響頁面**: `http://localhost:3000/en/om-expenses/new`
+
+**錯誤信息** (12+ 個):
+```
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.basicInfo.title`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.basicInfo.description`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.opCoAndVendor.title`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.opCoAndVendor.description`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.budgetAndDates.title`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.budgetAndDates.description`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.categoryDescription`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.vendorDescription`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.budgetDescription`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.startDate`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.endDate`
+IntlError: MISSING_MESSAGE: Could not resolve `omExpenses.form.createNotice`
+```
+
+**根本原因**:
+- OMExpenseForm 組件使用卡片式表單佈局
+- 每個卡片需要 title 和 description
+- 所有這些翻譯鍵都缺失
+
+**解決方案**:
+```json
+// en.json
+"omExpenses": {
+  "form": {
+    "basicInfo": {
+      "title": "Basic Information",
+      "description": "OM expense name, category, and fiscal year"
+    },
+    "opCoAndVendor": {
+      "title": "OpCo and Vendor",
+      "description": "Select operating company and vendor information"
+    },
+    "budgetAndDates": {
+      "title": "Budget and Date Range",
+      "description": "Budget amount and expense period"
+    },
+    "categoryDescription": "Select the expense category for this OM expense",
+    "vendorDescription": "Select a vendor if applicable (optional)",
+    "budgetDescription": "Total budget amount allocated for this OM expense",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "createNotice": "After creating, you can add monthly expense amounts on the detail page"
+  }
+}
+```
+
+### 問題 4: Charge-Outs 列表頁硬編碼中文
+
+**影響頁面**: `http://localhost:3000/en/charge-outs`
+
+**問題描述**:
+- 整個列表頁面 100+ 個中文硬編碼字串
+- 頁面標題、搜尋框、篩選器、表格標題、按鈕文字等全部是中文
+- 無任何 i18n 支援
+
+**根本原因**:
+- charge-outs/page.tsx 未進行 i18n 遷移
+- 所有文字都是硬編碼的中文字串
+
+**解決方案**:
+
+使用 surgical-task-executor 進行批量修復:
+
+1. **添加 imports**:
+```typescript
+import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/routing";
+```
+
+2. **添加 translation hooks**:
+```typescript
+const t = useTranslations('chargeOuts');
+const tNav = useTranslations('navigation');
+const tCommon = useTranslations('common');
+```
+
+3. **替換內容**:
+- 頁面標題: `費用轉嫁管理` → `{t('list.title')}`
+- 搜尋框: `搜尋 ChargeOut...` → `{t('list.search')}`
+- 篩選器: `全部狀態` → `{t('list.filters.allStatuses')}`
+- 表格標題: `ChargeOut 名稱` → `{t('list.name')}`
+- 按鈕: `新增 ChargeOut` → `{t('list.newChargeOut')}`
+
+4. **新增翻譯鍵** (17 個):
+```json
+"chargeOuts": {
+  "list": {
+    "title": "Charge Out Management",
+    "subtitle": "Manage IT department charge-outs to operating companies (OpCo)",
+    "newChargeOut": "New Charge Out",
+    "search": "Search charge outs...",
+    "filters": {
+      "status": "Status",
+      "allStatuses": "All Statuses",
+      "opCo": "Operating Company (OpCo)",
+      "allOpCos": "All OpCos",
+      "project": "Project",
+      "allProjects": "All Projects"
+    },
+    // ... 其他 8 個鍵
+  }
+}
+```
+
+### 修復文件清單
+
+1. **apps/web/src/messages/en.json**
+   - 新增 `common.actions.update` (line 13)
+   - 新增 `navigation.projects` (line 113)
+   - 新增 `omExpenses.form.*` 11 個鍵 (lines 1702-1719)
+   - 新增 `chargeOuts.list.*` 17 個鍵 (lines 1807-1830)
+   - 新增 `common.pagination.previous/next` (lines 75-76)
+
+2. **apps/web/src/messages/zh-TW.json**
+   - 對應的中文翻譯 (31 個鍵)
+
+3. **apps/web/src/app/[locale]/charge-outs/page.tsx**
+   - 添加 imports 和 translation hooks
+   - 替換 100+ 個硬編碼字串
+
+### 影響評估
+
+**修復前**:
+- ❌ Vendors 編輯頁面顯示 `common.actions.update`
+- ❌ Projects Quotes 頁面 breadcrumb 顯示 `navigation.projects`
+- ❌ OM Expenses 新建頁面顯示 12+ 個 MISSING_MESSAGE 錯誤
+- ❌ Charge-Outs 列表頁英文版顯示中文
+
+**修復後**:
+- ✅ Vendors 編輯頁面正確顯示「更新」/「Update」
+- ✅ Projects breadcrumb 正確顯示「專案管理」/「Projects」
+- ✅ OM Expenses 表單完整顯示雙語
+- ✅ Charge-Outs 列表頁完整支援雙語
+
+**統計數據**:
+- **新增翻譯鍵 (en)**: 31 個
+- **新增翻譯鍵 (zh-TW)**: 31 個
+- **總翻譯鍵數**: 1527 個 (驗證通過)
+- **修復時間**: 1.5 小時
+- **修改檔案**: 3 個
+- **影響頁面**: 4 個
+
+### 技術實施細節
+
+#### Surgical-task-executor 批量替換
+
+**優勢**:
+- 快速處理 100+ 個字串替換
+- 保持代碼格式和結構
+- 自動添加必要的 imports
+
+**執行流程**:
+1. 分析現有代碼結構
+2. 識別所有硬編碼中文字串
+3. 建立翻譯鍵映射
+4. 批量替換並添加 imports
+5. 驗證語法正確性
+
+#### Status Function 本地化
+
+**修改前**:
+```typescript
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'Draft': return '草稿';
+    case 'Submitted': return '已提交';
+    // ...
+  }
+}
+```
+
+**修改後**:
+```typescript
+const getStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'Draft': tCommon('status.draft'),
+    'Submitted': tCommon('status.submitted'),
+    'Confirmed': tCommon('status.confirmed'),
+    'Paid': tCommon('status.paid'),
+    'Rejected': tCommon('status.rejected'),
+  };
+  return statusMap[status] || status;
+};
+```
+
+### 經驗教訓
+
+#### 技術層面
+1. **完整測試**: 手動測試每個頁面的每個語言版本
+2. **命名一致性**: 保持翻譯鍵命名的一致性
+3. **批量處理**: 使用自動化工具處理大量替換
+
+#### 流程層面
+1. **優先級排序**: 先修復影響大的問題
+2. **增量驗證**: 每個問題修復後立即驗證
+3. **文檔同步**: 及時更新文檔記錄
+
+### 相關文檔
+- 📄 **Commit**: FIX-077 (commit 56a8359)
+- 📊 **進度記錄**: `I18N-PROGRESS.md` (2025-11-07 section)
+- 📝 **問題記錄**: `I18N-ISSUES-LOG.md` (本文檔)
 
 ---
 
