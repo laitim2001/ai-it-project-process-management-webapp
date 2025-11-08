@@ -491,10 +491,10 @@
         }
       },
       "actions": {
-        "creating": "創建專案",
-        "updating": "更新專案",
-        "create": "創建專案",
-        "update": "更新專案"
+        "creating": "Creating project...",
+        "updating": "Updating project...",
+        "create": "Create Project",
+        "update": "Update Project"
       }
     },
     "fields": {
@@ -513,7 +513,16 @@
     "title": "Budget Proposals",
     "description": "Manage budget proposals and approval workflow",
     "summary": {
-      "total": "Total Proposals"
+      "total": "Total {count} proposal(s)"
+    },
+    "search": {
+      "placeholder": "Search proposals by title or project name..."
+    },
+    "filters": {
+      "allStatuses": "All Statuses"
+    },
+    "empty": {
+      "hint": "No proposals yet. Click the button above to create your first proposal"
     },
     "status": {
       "draft": "Draft",
@@ -840,8 +849,8 @@
         }
       },
       "categories": {
-        "title": "預算類別",
-        "subtitle": "Budget Categories",
+        "title": "Budget Categories",
+        "subtitle": "Manage budget allocation by category",
         "totalBudget": "Total Budget",
         "addCategory": "Add Category",
         "add": "新增類別",
@@ -855,6 +864,31 @@
           "name": "例如：硬體設備",
           "amount": "0.00",
           "description": "類別說明..."
+        }
+      },
+      "category": {
+        "name": {
+          "label": "Category Name",
+          "placeholder": "e.g., Hardware Equipment"
+        },
+        "code": {
+          "label": "Category Code",
+          "placeholder": "e.g., HW"
+        },
+        "amount": {
+          "label": "Budget Amount",
+          "placeholder": "0.00"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Optional: Category purpose description"
+        },
+        "sortOrder": {
+          "label": "Sort"
+        },
+        "delete": {
+          "tooltip": "Delete this category",
+          "tooltipDisabled": "At least one category must be retained"
         }
       }
     },
@@ -1421,6 +1455,7 @@
         "draft": "Draft",
         "pending": "Pending Approval",
         "pendingApproval": "Pending Approval",
+        "submitted": "Pending Approval",
         "approved": "Approved",
         "paid": "Paid",
         "allPurchaseOrders": "All Purchase Orders"
@@ -2011,62 +2046,101 @@
   "users": {
     "title": "Users",
     "list": {
-      "title": "用戶列表",
-      "subtitle": "管理系統用戶",
-      "newUser": "新增用戶",
-      "search": "搜尋用戶...",
+      "title": "User Management",
+      "subtitle": "Manage all users in the system",
+      "newUser": "Add User",
+      "search": "Search users...",
+      "errorLoading": "Unable to load user data. Please try again later or contact the system administrator.",
+      "noUsers": "No users yet",
+      "noUsersHint": "Click the \"Add User\" button above to get started",
+      "totalUsers": "Total {count} user(s)",
+      "unnamedUser": "(No name set)",
       "table": {
         "name": "Name",
         "email": "Email",
         "role": "Role",
-        "status": "狀態",
-        "lastLogin": "最後登入",
-        "actions": "操作"
+        "createdAt": "Created At",
+        "status": "Status",
+        "lastLogin": "Last Login",
+        "actions": "Actions",
+        "view": "View",
+        "edit": "Edit"
       }
     },
     "detail": {
-      "title": "用戶詳情",
-      "info": "基本資訊",
-      "activity": "活動記錄",
-      "permissions": "權限設定"
+      "title": "User Details",
+      "loading": "Loading...",
+      "notFound": "User Not Found",
+      "notFoundDesc": "This user does not exist or has been deleted.",
+      "backToList": "Back to User List",
+      "basicInfo": "Basic Information",
+      "email": "Email",
+      "role": "Role",
+      "createdAt": "Created At",
+      "updatedAt": "Last Updated",
+      "managedProjects": "Managed Projects",
+      "supervisedProjects": "Supervised Projects",
+      "edit": "Edit",
+      "info": "Basic Information",
+      "activity": "Activity Log",
+      "permissions": "Permission Settings"
     },
     "form": {
       "create": {
-        "title": "新增用戶",
-        "subtitle": "建立新的用戶帳號"
+        "title": "Add User",
+        "subtitle": "Fill in the information below to create a new user"
       },
       "edit": {
-        "title": "編輯用戶",
-        "subtitle": "更新用戶資訊"
+        "title": "Edit User",
+        "subtitle": "Update user information"
       },
       "fields": {
         "name": {
           "label": "Name",
-          "placeholder": "例如：張三"
+          "placeholder": "e.g., John Doe"
         },
         "email": {
           "label": "Email",
-          "placeholder": "例如：user@company.com"
+          "placeholder": "e.g., user@company.com"
         },
         "password": {
           "label": "Password",
-          "placeholder": "設定密碼"
+          "placeholder": "Set password"
         },
         "role": {
           "label": "Role",
-          "placeholder": "選擇角色"
+          "placeholder": "Select role"
         },
         "status": {
-          "label": "狀態",
-          "active": "啟用",
-          "inactive": "停用"
+          "label": "Status",
+          "active": "Active",
+          "inactive": "Inactive"
         }
+      },
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email format",
+        "roleRequired": "Role is required"
+      },
+      "messages": {
+        "createSuccess": "User created successfully!",
+        "updateSuccess": "User updated successfully!"
+      },
+      "buttons": {
+        "create": "Create User",
+        "update": "Update User"
       }
     },
     "roles": {
-      "projectManager": "專案經理",
-      "supervisor": "主管",
-      "admin": "管理員"
+      "projectManager": "Project Manager",
+      "supervisor": "Supervisor",
+      "admin": "Admin"
+    },
+    "projectStatus": {
+      "Draft": "Draft",
+      "InProgress": "In Progress",
+      "Completed": "Completed",
+      "Archived": "Archived"
     }
   },
   "notifications": {

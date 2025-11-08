@@ -16,6 +16,7 @@ const UserForm = dynamic(
 
 export default function NewUserPage() {
   const t = useTranslations('users');
+  const tNav = useTranslations('navigation');
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -23,24 +24,24 @@ export default function NewUserPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/users">使用者</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/users">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>新增使用者</BreadcrumbPage>
+              <BreadcrumbPage>{t('form.create.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">新增使用者</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('form.create.title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            填寫以下資訊以建立新的使用者
+            {t('form.create.subtitle')}
           </p>
         </div>
 

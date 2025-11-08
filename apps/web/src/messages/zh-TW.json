@@ -491,8 +491,8 @@
         }
       },
       "actions": {
-        "creating": "創建專案",
-        "updating": "更新專案",
+        "creating": "創建專案中...",
+        "updating": "更新專案中...",
         "create": "創建專案",
         "update": "更新專案"
       }
@@ -513,7 +513,16 @@
     "title": "預算提案",
     "description": "管理所有預算提案的申請與審批",
     "summary": {
-      "total": "總計"
+      "total": "總計 {count} 個提案"
+    },
+    "search": {
+      "placeholder": "搜尋提案標題或專案名稱..."
+    },
+    "filters": {
+      "allStatuses": "全部狀態"
+    },
+    "empty": {
+      "hint": "還沒有任何提案,點擊上方按鈕新增第一個提案"
     },
     "actions": {
       "create": "新增提案",
@@ -841,7 +850,7 @@
       },
       "categories": {
         "title": "預算類別",
-        "subtitle": "預算類別",
+        "subtitle": "按類別管理預算分配",
         "totalBudget": "總預算",
         "addCategory": "新增類別",
         "add": "新增類別",
@@ -855,6 +864,31 @@
           "name": "例如：硬體設備",
           "amount": "0.00",
           "description": "類別說明..."
+        }
+      },
+      "category": {
+        "name": {
+          "label": "類別名稱",
+          "placeholder": "例如:硬體設備"
+        },
+        "code": {
+          "label": "類別代碼",
+          "placeholder": "例如:HW"
+        },
+        "amount": {
+          "label": "預算金額",
+          "placeholder": "0.00"
+        },
+        "description": {
+          "label": "說明",
+          "placeholder": "選填:類別用途說明"
+        },
+        "sortOrder": {
+          "label": "排序"
+        },
+        "delete": {
+          "tooltip": "刪除此類別",
+          "tooltipDisabled": "至少需要保留一個類別"
         }
       }
     },
@@ -1421,6 +1455,7 @@
         "draft": "草稿",
         "pending": "待審批",
         "pendingApproval": "待審批",
+        "submitted": "待審批",
         "approved": "已批准",
         "paid": "已支付",
         "allPurchaseOrders": "所有採購單"
@@ -2015,17 +2050,36 @@
       "subtitle": "管理系統用戶",
       "newUser": "新增用戶",
       "search": "搜尋用戶...",
+      "unnamedUser": "(未設定名稱)",
+      "totalUsers": "共 {count} 位用戶",
+      "errorLoading": "無法載入用戶資料...",
+      "noUsers": "尚無用戶",
       "table": {
         "name": "姓名",
         "email": "電子郵件",
         "role": "角色",
         "status": "狀態",
         "lastLogin": "最後登入",
-        "actions": "操作"
+        "createdAt": "建立時間",
+        "actions": "操作",
+        "view": "查看",
+        "edit": "編輯"
       }
     },
     "detail": {
       "title": "用戶詳情",
+      "loading": "載入中...",
+      "notFound": "找不到使用者",
+      "notFoundDesc": "此使用者不存在或已被刪除。",
+      "backToList": "返回使用者列表",
+      "basicInfo": "基本資訊",
+      "email": "電子郵件",
+      "role": "角色",
+      "createdAt": "建立時間",
+      "updatedAt": "最後更新",
+      "managedProjects": "管理的專案",
+      "supervisedProjects": "監督的專案",
+      "edit": "編輯",
       "info": "基本資訊",
       "activity": "活動記錄",
       "permissions": "權限設定"
@@ -2061,12 +2115,31 @@
           "active": "啟用",
           "inactive": "停用"
         }
+      },
+      "validation": {
+        "emailRequired": "電子郵件為必填欄位",
+        "emailInvalid": "請輸入有效的電子郵件格式",
+        "roleRequired": "角色為必填欄位"
+      },
+      "messages": {
+        "createSuccess": "用戶建立成功!",
+        "updateSuccess": "用戶更新成功!"
+      },
+      "buttons": {
+        "create": "建立用戶",
+        "update": "更新用戶"
       }
     },
     "roles": {
       "projectManager": "專案經理",
       "supervisor": "主管",
       "admin": "管理員"
+    },
+    "projectStatus": {
+      "Draft": "草稿",
+      "InProgress": "進行中",
+      "Completed": "已完成",
+      "Archived": "已歸檔"
     }
   },
   "notifications": {

@@ -17,20 +17,32 @@ import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, FileText, LayoutGrid, List } from 'lucide-react';
+import { Plus, FileText, LayoutGrid, List, Search } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+
+type ProposalStatus = 'Draft' | 'PendingApproval' | 'Approved' | 'Rejected' | 'MoreInfoRequired';
 
 export default function ProposalsPage() {
   const t = useTranslations('proposals');
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ProposalStatus | undefined>(undefined);
   const router = useRouter();
 
-  const { data: proposals, isLoading } = api.budgetProposal.getAll.useQuery();
+  // Debounce search to avoid too many API requests
+  const debouncedSearch = useDebounce(search, 300);
+
+  const { data: proposals, isLoading } = api.budgetProposal.getAll.useQuery({
+    search: debouncedSearch || undefined,
+    status: statusFilter,
+  });
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
@@ -131,13 +143,65 @@ export default function ProposalsPage() {
           </div>
         </div>
 
+        {/* 搜尋和篩選欄 */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              {/* 搜尋框 */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={t('search.placeholder')}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* 狀態篩選 */}
+              <div className="flex gap-2">
+                <select
+                  value={statusFilter ?? ''}
+                  onChange={(e) => {
+                    setStatusFilter(
+                      e.target.value
+                        ? (e.target.value as ProposalStatus)
+                        : undefined
+                    );
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.allStatuses')}</option>
+                  <option value="Draft">{t('status.draft')}</option>
+                  <option value="PendingApproval">{t('status.pendingApproval')}</option>
+                  <option value="Approved">{t('status.approved')}</option>
+                  <option value="Rejected">{t('status.rejected')}</option>
+                  <option value="MoreInfoRequired">{t('status.moreInfoRequired')}</option>
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 結果數量統計 */}
+        {proposals && proposals.length > 0 && (
+          <div className="text-sm text-muted-foreground">
+            {t('summary.total', { count: proposals.length })}
+          </div>
+        )}
+
         {/* 提案顯示區域 - 根據視圖模式切換 */}
         {!proposals || proposals.length === 0 ? (
           <Card className="bg-muted">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground font-medium">{tCommon('noData')}</p>
+                <p className="text-muted-foreground font-medium">
+                  {search || statusFilter ? tCommon('noData') : tCommon('noData')}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">{t('empty.hint')}</p>
               </div>
             </CardContent>
@@ -266,13 +330,6 @@ export default function ProposalsPage() {
               </Table>
             </div>
           </>
-        )}
-
-        {/* Summary */}
-        {proposals && (
-          <div className="text-sm text-muted-foreground">
-            {t('summary.total', { count: proposals.length })}
-          </div>
         )}
       </div>
     </DashboardLayout>

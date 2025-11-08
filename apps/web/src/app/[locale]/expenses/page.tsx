@@ -5,12 +5,13 @@
  *
  * 功能說明:
  * - 費用列表展示（分頁）
- * - 按狀態篩選（Draft, PendingApproval, Approved, Paid）
+ * - 按狀態篩選（Draft, Submitted, Approved, Paid）
  * - 按採購單篩選
  * - 搜尋功能
  * - 導航到詳情/新增/編輯頁面
  *
  * Epic 6 - Story 6.1 & 6.2: 費用記錄與審批
+ * FIX-083: 修復狀態值 PendingApproval → Submitted 以匹配 API
  */
 
 import { useState } from 'react';
@@ -35,12 +36,13 @@ export default function ExpensesPage() {
   const tNav = useTranslations('navigation');
 
   /**
-   * 費用狀態配置 (移到組件內部以訪問 t 函數) - FIX-061
+   * 費用狀態配置 (移到組件內部以訪問 t 函數) - FIX-083
+   * 修復: PendingApproval → Submitted 以匹配 API schema
    */
   const getExpenseStatusConfig = (status: string) => {
     const configs = {
       Draft: { variant: 'outline' as const },
-      PendingApproval: { variant: 'default' as const },
+      Submitted: { variant: 'default' as const },
       Approved: { variant: 'secondary' as const },
       Paid: { variant: 'default' as const },
     };
@@ -58,10 +60,11 @@ export default function ExpensesPage() {
 
   // 查詢費用列表
   // FIX-039-REVISED: 添加 refetch 配置避免 HotReload 期間的競態條件
+  // FIX-083: 修復狀態類型 PendingApproval → Submitted
   const { data, isLoading, error } = api.expense.getAll.useQuery({
     page,
     limit: 10,
-    status: status as 'Draft' | 'PendingApproval' | 'Approved' | 'Paid' | undefined,
+    status: status as 'Draft' | 'Submitted' | 'Approved' | 'Paid' | undefined,
     purchaseOrderId,
   }, {
     refetchOnMount: false,
@@ -243,7 +246,7 @@ export default function ExpensesPage() {
                   <div>
                     <p className="text-sm text-gray-600">{t('list.stats.pendingCount')}</p>
                     <p className="text-2xl font-bold text-orange-600">
-                      {stats.statusCounts?.PendingApproval ?? 0}
+                      {stats.statusCounts?.Submitted ?? 0}
                     </p>
                   </div>
                   <FileText className="h-8 w-8 text-orange-600" />
@@ -279,7 +282,7 @@ export default function ExpensesPage() {
             >
               <option value="">{t('list.filter.allStatus')}</option>
               <option value="Draft">{t('list.filter.draft')}</option>
-              <option value="PendingApproval">{t('list.filter.pendingApproval')}</option>
+              <option value="Submitted">{t('list.filter.submitted')}</option>
               <option value="Approved">{t('list.filter.approved')}</option>
               <option value="Paid">{t('list.filter.paid')}</option>
             </Select>

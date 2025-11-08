@@ -29,6 +29,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/label';
@@ -69,6 +70,9 @@ export function CategoryFormRow({
   canDelete,
   errors,
 }: CategoryFormRowProps) {
+  const t = useTranslations('budgetPools.form.category');
+  const tCommon = useTranslations('common');
+
   /**
    * 處理欄位變更
    * @param field - 欄位名稱
@@ -89,7 +93,7 @@ export function CategoryFormRow({
       {/* 類別名稱 - 必填 */}
       <div className="col-span-3">
         <Label htmlFor={`categoryName-${index}`} className="text-sm font-medium">
-          類別名稱 <span className="text-red-500">*</span>
+          {t('name.label')} <span className="text-red-500">*</span>
         </Label>
         <Input
           id={`categoryName-${index}`}
@@ -97,7 +101,7 @@ export function CategoryFormRow({
           type="text"
           value={category.categoryName || ''}
           onChange={(e) => handleChange('categoryName', e.target.value)}
-          placeholder="例如：硬體設備"
+          placeholder={t('name.placeholder')}
           className={errors?.categoryName ? 'border-red-500' : ''}
         />
         {errors?.categoryName && (
@@ -108,7 +112,7 @@ export function CategoryFormRow({
       {/* 類別代碼 - 選填 */}
       <div className="col-span-2">
         <Label htmlFor={`categoryCode-${index}`} className="text-sm font-medium">
-          類別代碼
+          {t('code.label')}
         </Label>
         <Input
           id={`categoryCode-${index}`}
@@ -116,14 +120,14 @@ export function CategoryFormRow({
           type="text"
           value={category.categoryCode || ''}
           onChange={(e) => handleChange('categoryCode', e.target.value)}
-          placeholder="例如：HW"
+          placeholder={t('code.placeholder')}
         />
       </div>
 
       {/* 預算金額 - 必填 */}
       <div className="col-span-2">
         <Label htmlFor={`totalAmount-${index}`} className="text-sm font-medium">
-          預算金額 <span className="text-red-500">*</span>
+          {t('amount.label')} <span className="text-red-500">*</span>
         </Label>
         <Input
           id={`totalAmount-${index}`}
@@ -146,21 +150,21 @@ export function CategoryFormRow({
       {/* 說明 - 選填 */}
       <div className="col-span-3">
         <Label htmlFor={`description-${index}`} className="text-sm font-medium">
-          說明
+          {t('description.label')}
         </Label>
         <Input
           id={`description-${index}`}
           type="text"
           value={category.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="選填：類別用途說明"
+          placeholder={t('description.placeholder')}
         />
       </div>
 
       {/* 排序 - 選填 */}
       <div className="col-span-1">
         <Label htmlFor={`sortOrder-${index}`} className="text-sm font-medium">
-          排序
+          {t('sortOrder.label')}
         </Label>
         <Input
           id={`sortOrder-${index}`}
@@ -185,7 +189,7 @@ export function CategoryFormRow({
           size="icon"
           onClick={onDelete}
           disabled={!canDelete}
-          title={canDelete ? '刪除此類別' : '至少需要保留一個類別'}
+          title={canDelete ? t('delete.tooltip') : t('delete.tooltipDisabled')}
           className="h-10 w-10"
         >
           <Trash2 className="h-4 w-4" />

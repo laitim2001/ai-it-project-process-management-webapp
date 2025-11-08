@@ -25,6 +25,7 @@ import { Plus, Users, AlertCircle } from 'lucide-react';
 
 export default function UsersPage() {
   const t = useTranslations('users');
+  const tNav = useTranslations('navigation');
   const { data: users, isLoading } = api.user.getAll.useQuery();
 
   if (isLoading) {
@@ -63,11 +64,11 @@ export default function UsersPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>使用者管理</BreadcrumbPage>
+                <BreadcrumbPage>{t('list.title')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -77,7 +78,7 @@ export default function UsersPage() {
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                無法載入使用者資料，請稍後再試或聯繫系統管理員。
+                {t('list.errorLoading')}
               </AlertDescription>
             </Alert>
           </div>
@@ -93,11 +94,11 @@ export default function UsersPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>使用者管理</BreadcrumbPage>
+              <BreadcrumbPage>{t('list.title')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -105,13 +106,13 @@ export default function UsersPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">使用者管理</h1>
-            <p className="mt-2 text-muted-foreground">管理系統中的所有使用者</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('list.title')}</h1>
+            <p className="mt-2 text-muted-foreground">{t('list.subtitle')}</p>
           </div>
           <Link href="/users/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              新增使用者
+              {t('list.newUser')}
             </Button>
           </Link>
         </div>
@@ -121,11 +122,11 @@ export default function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>名稱</TableHead>
-                <TableHead>電子郵件</TableHead>
-                <TableHead>角色</TableHead>
-                <TableHead>建立時間</TableHead>
-                <TableHead className="text-right">操作</TableHead>
+                <TableHead>{t('list.table.name')}</TableHead>
+                <TableHead>{t('list.table.email')}</TableHead>
+                <TableHead>{t('list.table.role')}</TableHead>
+                <TableHead>{t('list.table.createdAt')}</TableHead>
+                <TableHead className="text-right">{t('list.table.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,8 +135,8 @@ export default function UsersPage() {
                   <TableCell colSpan={5} className="h-64">
                     <div className="flex flex-col items-center justify-center text-center">
                       <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                      <p className="text-muted-foreground font-medium">尚無使用者資料</p>
-                      <p className="text-sm text-muted-foreground mt-2">點擊上方「新增使用者」按鈕開始</p>
+                      <p className="text-muted-foreground font-medium">{t('list.noUsers')}</p>
+                      <p className="text-sm text-muted-foreground mt-2">{t('list.noUsersHint')}</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -147,7 +148,7 @@ export default function UsersPage() {
                         href={`/users/${user.id}`}
                         className="font-medium text-primary hover:text-primary/80 transition-colors"
                       >
-                        {user.name || '(未設定名稱)'}
+                        {user.name || t('list.unnamedUser')}
                       </Link>
                     </TableCell>
                     <TableCell className="text-foreground">
@@ -159,27 +160,27 @@ export default function UsersPage() {
                         user.role.name === 'Supervisor' ? 'default' : 'secondary'
                       }>
                         {user.role.name === 'ProjectManager'
-                          ? '專案管理者'
+                          ? t('roles.projectManager')
                           : user.role.name === 'Supervisor'
-                          ? '監督者'
-                          : '管理員'}
+                          ? t('roles.supervisor')
+                          : t('roles.admin')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(user.createdAt).toLocaleDateString('zh-TW')}
+                      {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link
                         href={`/users/${user.id}`}
                         className="mr-4 text-primary hover:text-primary/80 transition-colors"
                       >
-                        查看
+                        {t('list.table.view')}
                       </Link>
                       <Link
                         href={`/users/${user.id}/edit`}
                         className="text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        編輯
+                        {t('list.table.edit')}
                       </Link>
                     </TableCell>
                   </TableRow>
@@ -191,7 +192,7 @@ export default function UsersPage() {
 
         {/* Summary */}
         <div className="text-sm text-muted-foreground">
-          總共 {users.length} 位使用者
+          {t('list.totalUsers', { count: users.length })}
         </div>
       </div>
     </DashboardLayout>

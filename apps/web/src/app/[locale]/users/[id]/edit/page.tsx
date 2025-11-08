@@ -23,6 +23,7 @@ const UserForm = dynamic(
 
 export default function EditUserPage() {
   const t = useTranslations('users');
+  const tNav = useTranslations('navigation');
   const params = useParams();
   const userId = params.id as string;
 
@@ -75,15 +76,15 @@ export default function EditUserPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/users">使用者</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/users">{t('title')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{t('list.table.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -94,11 +95,11 @@ export default function EditUserPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到使用者。此使用者可能不存在或已被刪除。
+                  {t('detail.notFoundDesc')}
                 </AlertDescription>
               </Alert>
               <Link href="/users">
-                <Button>返回使用者列表</Button>
+                <Button>{t('detail.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -114,11 +115,11 @@ export default function EditUserPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/users">使用者</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/users">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -126,16 +127,16 @@ export default function EditUserPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯</BreadcrumbPage>
+              <BreadcrumbPage>{t('list.table.edit')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯使用者</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('form.edit.title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            更新使用者資訊
+            {t('form.edit.subtitle')}
           </p>
         </div>
 

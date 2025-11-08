@@ -228,15 +228,16 @@ export default function BudgetPoolsPage() {
           </div>
 
           <Select
-            value={yearFilter ?? ''}
+            value={yearFilter?.toString() ?? ''}
             onChange={(e) => {
-              setYearFilter(e.target.value ? parseInt(e.target.value) : undefined);
+              const value = e.target.value;
+              setYearFilter(value ? parseInt(value) : undefined);
               setPage(1);
             }}
           >
             <option value="">{t('filters.allYears')}</option>
             {years.map((year) => (
-              <option key={year} value={year}>
+              <option key={year} value={year.toString()}>
                 FY {year}
               </option>
             ))}

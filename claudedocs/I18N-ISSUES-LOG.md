@@ -19,6 +19,13 @@
 | **FIX-078** | **34 頁面 Breadcrumb 路由問題** | **P0** | ✅ **已解決** | **2025-11-07** |
 | **FIX-079** | **Breadcrumb 修復導致運行時錯誤** | **P0** | ✅ **已解決** | **2025-11-07** |
 | **FIX-080** | **OM Expenses 和 ChargeOut 翻譯** | **P1** | ✅ **已解決** | **2025-11-07** |
+| **FIX-081** | **Budget Proposals 搜索/過濾缺失** | **P1** | ✅ **已解決** | **2025-11-08** |
+| **FIX-082** | **Budget Pools 年度過濾失效** | **P1** | ✅ **已解決** | **2025-11-08** |
+| **FIX-083** | **Expenses 狀態過濾 400 錯誤** | **P0** | ✅ **已解決** | **2025-11-08** |
+| **FIX-084** | **Users 頁面英文版顯示中文** | **P0** | ✅ **已解決** | **2025-11-08** |
+| **FIX-085** | **TopBar 語言切換快捷按鈕** | **P1** | ✅ **已解決** | **2025-11-08** |
+| **FIX-086** | **語言切換器 Hydration 錯誤** | **P0** | ✅ **已解決** | **2025-11-08** |
+| **FIX-087** | **共用組件硬編碼中文系統性問題** | **P0** | ✅ **已解決** | **2025-11-08** |
 
 ---
 
@@ -2124,3 +2131,221 @@ pnpm typecheck && pnpm dev
 **文檔版本**: 1.0.0
 **最後更新**: 2025-11-03 16:00
 **維護者**: IT Project Management Team
+
+---
+
+## FIX-081 至 FIX-087: 搜索/過濾功能和語言切換問題修復
+
+### 問題描述
+**發現時間**: 2025-11-08
+**影響範圍**: 多個頁面的搜索、過濾功能和語言切換器
+**優先級**: P0-P1 (影響核心功能)
+
+手動測試發現以下 7 個問題,已全部修復完成。
+
+---
+
+### FIX-081: Budget Proposals 搜索和狀態過濾功能缺失
+
+**問題**: Budget Proposals 頁面缺少像 Projects 頁面一樣的搜索和過濾功能
+
+**影響頁面**: `/proposals`
+
+**解決方案**:
+1. 在 API 添加 search 參數支持
+2. 實現 PostgreSQL case-insensitive 搜索
+3. 添加搜索輸入框和狀態過濾下拉框
+4. 使用 useDebounce hook 優化 API 請求
+
+**修改檔案**:
+- packages/api/src/routers/budgetProposal.ts
+- apps/web/src/app/[locale]/proposals/page.tsx
+- apps/web/src/messages/en.json
+- apps/web/src/messages/zh-TW.json
+
+**狀態**: ✅ 已解決
+
+---
+
+### FIX-082: Budget Pools 年度過濾功能失效
+
+**問題**: 年度過濾下拉框選擇後沒有反應
+
+**根本原因**: TypeScript 類型不匹配,yearFilter 是 number 但 select 需要 string
+
+**解決方案**: value={yearFilter?.toString() ?? ''}
+
+**修改檔案**: apps/web/src/app/[locale]/budget-pools/page.tsx
+
+**狀態**: ✅ 已解決
+
+---
+
+### FIX-083: Expenses 狀態過濾導致 400 Bad Request
+
+**問題**: 選擇待審批狀態時出現 400 錯誤
+
+**根本原因**: 前端使用 PendingApproval 但 API 期望 Submitted
+
+**解決方案**: 統一使用 Submitted 狀態值
+
+**修改檔案**: apps/web/src/app/[locale]/expenses/page.tsx
+
+**狀態**: ✅ 已解決
+
+---
+
+### FIX-084: Users 頁面英文版顯示中文
+
+**問題**: 所有 Users 相關頁面在英文版仍顯示中文內容
+
+**影響頁面**: 列表頁、新增頁、詳情頁、編輯頁
+
+**根本原因**: UserForm.tsx 組件有大量硬編碼中文
+
+**解決方案**: 
+- 修復 4 個頁面文件
+- 完全國際化 UserForm.tsx 組件
+- 添加角色翻譯函數
+
+**修改檔案**: 6 個檔案 + 翻譯檔案
+
+**狀態**: ✅ 已解決
+
+---
+
+### FIX-085: TopBar 語言切換快捷按鈕
+
+**問題**: 缺少快速切換語言的 UI 元素
+
+**解決方案**: 創建 LanguageSwitcher 組件
+
+**修改檔案**: 
+- apps/web/src/components/layout/LanguageSwitcher.tsx (新建)
+- apps/web/src/components/layout/TopBar.tsx
+
+**狀態**: ✅ 已解決
+
+---
+
+### FIX-086: 語言切換器 Hydration 錯誤
+
+**問題**: 使用語言切換器時出現 React hydration 警告
+
+**根本原因**: Next.js App Router 的客戶端導航嘗試重新渲染整個 layout
+
+**解決方案**: 使用 window.location.href 進行完整頁面重新載入
+
+**修改檔案**: apps/web/src/components/layout/LanguageSwitcher.tsx
+
+**狀態**: ✅ 已解決
+
+---
+
+### FIX-087: 共用組件硬編碼中文系統性問題
+
+**問題**: 三個已修復的頁面再次出現中文內容
+
+**影響頁面**:
+1. /en/budget-pools/[id]/edit - 預算類別標題和表單欄位
+2. /en/projects/new - 創建專案按鈕
+3. /en/projects/[id]/edit - 更新專案按鈕
+
+**根本原因**: 共用組件層級存在硬編碼中文
+
+**核心問題組件**:
+1. CategoryFormRow.tsx - 硬編碼類別表單欄位
+2. ProjectForm.tsx - 翻譯檔案中按鈕文字仍為中文
+3. BudgetPoolForm.tsx - 標題翻譯錯誤
+
+**為什麼問題會反覆出現**:
+1. 組件復用 - 多個頁面使用相同組件
+2. 動態載入 - dynamic() 組件可能未觸發測試
+3. 修復策略不完整 - 只修復頁面層級未深入組件
+4. 缺乏系統性檢查 - 沒有從底層到頂層審查
+
+**正確的修復策略**:
+從底層到頂層:
+- Level 1: 最底層共用組件
+- Level 2: 功能組件
+- Level 3: 頁面組件
+- Level 4: 翻譯檔案
+
+**解決方案**:
+1. CategoryFormRow.tsx 完全國際化 (7 個欄位)
+2. 修復翻譯檔案錯誤 (projects.form.actions)
+3. 修復 Budget Categories 標題翻譯
+4. 新增完整的類別表單翻譯結構
+
+**修改檔案**:
+- apps/web/src/components/budget-pool/CategoryFormRow.tsx
+- apps/web/src/messages/en.json
+- apps/web/src/messages/zh-TW.json
+
+**關鍵經驗教訓**:
+1. 共用組件的 i18n 優先級最高
+2. 系統性檢查要深入組件層級
+3. 動態載入組件要特別注意
+4. 翻譯檔案要檢查現有 key 的值
+5. 兩種語言都要完整測試
+
+**預防措施**:
+- 新建表單組件時立即實施 i18n
+- 代碼審查重點檢查共用組件
+- 建立翻譯檔案驗證腳本
+- 完整的雙語言測試覆蓋
+
+**狀態**: ✅ 已解決
+
+---
+
+## 總結: FIX-081 至 FIX-087
+
+### 修復統計
+
+| 類型 | 數量 | 詳情 |
+|-----|------|------|
+| 功能缺失 | 2 | 搜索/過濾功能 |
+| 類型錯誤 | 1 | Select value 類型不匹配 |
+| API 不一致 | 1 | 狀態值前後端不同步 |
+| 硬編碼中文 | 2 | Users 頁面、共用組件 |
+| 架構問題 | 1 | Hydration 錯誤 |
+
+### 修改檔案總覽
+
+**總計**: 15 個檔案修改, 1 個新建
+
+**後端 API** (1 個):
+- packages/api/src/routers/budgetProposal.ts
+
+**前端組件** (6 個):
+- apps/web/src/components/budget-pool/CategoryFormRow.tsx
+- apps/web/src/components/user/UserForm.tsx
+- apps/web/src/components/layout/LanguageSwitcher.tsx (新建)
+- apps/web/src/components/layout/TopBar.tsx
+
+**前端頁面** (6 個):
+- apps/web/src/app/[locale]/proposals/page.tsx
+- apps/web/src/app/[locale]/budget-pools/page.tsx
+- apps/web/src/app/[locale]/expenses/page.tsx
+- apps/web/src/app/[locale]/users/*.tsx (4 個頁面)
+
+**翻譯檔案** (2 個):
+- apps/web/src/messages/en.json
+- apps/web/src/messages/zh-TW.json
+
+### 核心經驗
+
+1. 共用組件的 i18n 優先級最高
+2. 前後端 API 契約要保持一致
+3. TypeScript 類型在 HTML 屬性綁定時需要轉換
+4. Next.js App Router 的 hydration 要特別注意
+5. 系統性問題需要系統性解決方案
+
+### 下一步建議
+
+1. 建立翻譯檔案驗證腳本
+2. 加強共用組件的代碼審查
+3. 完善雙語測試覆蓋
+4. 建立 i18n 最佳實踐文檔
+

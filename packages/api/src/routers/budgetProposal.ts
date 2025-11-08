@@ -76,6 +76,7 @@ export const budgetProposalRouter = createTRPCRouter({
         .object({
           status: ProposalStatus.optional(),
           projectId: z.string().min(1).optional(),
+          search: z.string().optional(),
         })
         .optional()
     )
@@ -84,6 +85,12 @@ export const budgetProposalRouter = createTRPCRouter({
         where: {
           ...(input?.status && { status: input.status }),
           ...(input?.projectId && { projectId: input.projectId }),
+          ...(input?.search && {
+            OR: [
+              { title: { contains: input.search, mode: 'insensitive' } },
+              { project: { name: { contains: input.search, mode: 'insensitive' } } },
+            ],
+          }),
         },
         include: {
           project: {

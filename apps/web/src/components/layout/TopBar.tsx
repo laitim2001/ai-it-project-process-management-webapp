@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 
 interface TopBarProps {
   onMenuClick?: () => void
@@ -123,6 +124,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         {/* 右側工具欄 */}
         <div className="flex items-center space-x-4">
+          {/* 語言切換 */}
+          <LanguageSwitcher />
+
           {/* 主題切換 */}
           <ThemeToggle />
 

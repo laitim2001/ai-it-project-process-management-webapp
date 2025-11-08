@@ -19,26 +19,28 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { User as UserIcon, Mail, Calendar, Shield, Folder, Edit } from 'lucide-react';
 
 /**
- * 角色顯示配置
+ * 角色顯示配置 - 將使用 i18n 翻譯
  */
 const ROLE_CONFIG = {
-  Admin: { label: '管理員', variant: 'error' as const },
-  Supervisor: { label: '監督者', variant: 'warning' as const },
-  ProjectManager: { label: '專案管理者', variant: 'success' as const },
+  Admin: { variant: 'error' as const },
+  Supervisor: { variant: 'warning' as const },
+  ProjectManager: { variant: 'success' as const },
 } as const;
 
 /**
- * 專案狀態顯示配置
+ * 專案狀態顯示配置 - 將使用 i18n 翻譯
  */
 const PROJECT_STATUS_CONFIG = {
-  Draft: { label: '草稿', variant: 'default' as const },
-  InProgress: { label: '進行中', variant: 'info' as const },
-  Completed: { label: '已完成', variant: 'success' as const },
-  Archived: { label: '已歸檔', variant: 'default' as const },
+  Draft: { variant: 'default' as const },
+  InProgress: { variant: 'info' as const },
+  Completed: { variant: 'success' as const },
+  Archived: { variant: 'default' as const },
 } as const;
 
 export default function UserDetailPage() {
   const t = useTranslations('users');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const params = useParams();
   const router = useRouter();
   const userId = params.id as string;
@@ -49,7 +51,7 @@ export default function UserDetailPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-lg text-muted-foreground">載入中...</div>
+          <div className="text-lg text-muted-foreground">{t('detail.loading')}</div>
         </div>
       </DashboardLayout>
     );
@@ -60,10 +62,10 @@ export default function UserDetailPage() {
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">找不到使用者</h2>
-            <p className="text-muted-foreground mb-4">此使用者不存在或已被刪除。</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t('detail.notFound')}</h2>
+            <p className="text-muted-foreground mb-4">{t('detail.notFoundDesc')}</p>
             <Link href="/users">
-              <Button>返回使用者列表</Button>
+              <Button>{t('detail.backToList')}</Button>
             </Link>
           </div>
         </div>
@@ -71,7 +73,11 @@ export default function UserDetailPage() {
     );
   }
 
-  const roleConfig = ROLE_CONFIG[user.role.name as keyof typeof ROLE_CONFIG] || { label: user.role.name, variant: 'default' as const };
+  const roleConfig = ROLE_CONFIG[user.role.name as keyof typeof ROLE_CONFIG] || { variant: 'default' as const };
+  const getRoleLabel = (roleName: string) => {
+    const roleKey = roleName.charAt(0).toLowerCase() + roleName.slice(1) as 'admin' | 'supervisor' | 'projectManager';
+    return t(`roles.${roleKey}`);
+  };
 
   return (
     <DashboardLayout>
@@ -80,11 +86,11 @@ export default function UserDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/users">使用者</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/users">{t('title')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -97,7 +103,7 @@ export default function UserDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {user.name || '(未設定名稱)'}
+              {user.name || t('list.unnamedUser')}
             </h1>
             <p className="text-muted-foreground mt-2 flex items-center gap-2">
               <Mail className="h-4 w-4" />
@@ -108,11 +114,11 @@ export default function UserDetailPage() {
             <Link href={`/users/${user.id}/edit`}>
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
-                編輯
+                {t('list.table.edit')}
               </Button>
             </Link>
             <Link href="/users">
-              <Button variant="outline">返回列表</Button>
+              <Button variant="outline">{t('detail.backToList')}</Button>
             </Link>
           </div>
         </div>
@@ -125,7 +131,7 @@ export default function UserDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserIcon className="h-5 w-5" />
-                  基本資訊
+                  {t('detail.basicInfo')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -133,37 +139,37 @@ export default function UserDetailPage() {
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Mail className="h-4 w-4" />
-                      電子郵件
+                      {t('detail.email')}
                     </dt>
                     <dd className="text-foreground font-medium">{user.email}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Shield className="h-4 w-4" />
-                      角色
+                      {t('detail.role')}
                     </dt>
                     <dd>
                       <Badge variant={roleConfig.variant}>
-                        {roleConfig.label}
+                        {getRoleLabel(user.role.name)}
                       </Badge>
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      建立時間
+                      {t('detail.createdAt')}
                     </dt>
                     <dd className="text-foreground font-medium">
-                      {new Date(user.createdAt).toLocaleString('zh-TW')}
+                      {new Date(user.createdAt).toLocaleString()}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      最後更新
+                      {t('detail.updatedAt')}
                     </dt>
                     <dd className="text-foreground font-medium">
-                      {new Date(user.updatedAt).toLocaleString('zh-TW')}
+                      {new Date(user.updatedAt).toLocaleString()}
                     </dd>
                   </div>
                 </dl>
@@ -176,7 +182,7 @@ export default function UserDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Folder className="h-5 w-5" />
-                    管理的專案 ({user.projects.length})
+                    {t('detail.managedProjects')} ({user.projects.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -191,11 +197,11 @@ export default function UserDetailPage() {
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-foreground mb-1">{project.name}</h3>
                             <p className="text-sm text-muted-foreground">
-                              預算池: {project.budgetPool.name}
+                              {tNav('menu.budgetPools')}: {project.budgetPool.name}
                             </p>
                           </div>
                           <Badge variant={PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].variant}>
-                            {PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].label}
+                            {t(`projectStatus.${project.status}`)}
                           </Badge>
                         </div>
                       </Link>
@@ -213,7 +219,7 @@ export default function UserDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Folder className="h-5 w-5" />
-                    監督的專案 ({user.approvals.length})
+                    {t('detail.supervisedProjects')} ({user.approvals.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -226,10 +232,10 @@ export default function UserDetailPage() {
                       >
                         <h3 className="font-medium text-foreground mb-2">{project.name}</h3>
                         <p className="text-sm text-muted-foreground mb-2">
-                          預算池: {project.budgetPool.name}
+                          {tNav('menu.budgetPools')}: {project.budgetPool.name}
                         </p>
                         <Badge variant={PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].variant}>
-                          {PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].label}
+                          {t(`projectStatus.${project.status}`)}
                         </Badge>
                       </Link>
                     ))}
