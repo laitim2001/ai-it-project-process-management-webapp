@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-11-08 17:00 (FIX-081~087 完成 - 搜索/過濾/語言切換系統性修復)
+**最後更新**: 2025-11-08 20:30 (claudedocs V2.0 重組完成 + Epic 9 規劃文檔創建)
 
 ---
 
@@ -285,78 +285,91 @@
 
 ### Claude 專用文檔 (claudedocs/)
 
-> **說明**: AI 助手生成的分析、規劃和實施文檔，已按功能分類整理
-> **結構**: 📂 analysis/ | planning/ | design-system/ | implementation/ | archive/
-> **索引**: 參見 [claudedocs/README.md](./claudedocs/README.md) 完整說明
+> **重大更新**: 2025-11-08 完成 V2.0 流程導向重組
+> **結構**: 📂 1-planning/ | 2-sprints/ | 3-progress/ | 4-changes/ | 5-status/ | 6-ai-assistant/ | 7-archive/
+> **說明**: AI 助手生成的分析、規劃和實施文檔，按開發流程組織
+> **完整索引**: 參見 [claudedocs/README.md](./claudedocs/README.md) 完整說明
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **Claude 文檔索引** | `claudedocs/README.md` | Claude 輔助文檔完整索引與使用說明 | 🔴 極高 |
-| **完整實施計劃** | `claudedocs/planning/COMPLETE-IMPLEMENTATION-PLAN.md` | Post-MVP 階段完整實施計劃（用戶需求澄清版） | 🔴 極高 |
-| **實施進度追蹤** | `claudedocs/progress/COMPLETE-IMPLEMENTATION-PROGRESS.md` | COMPLETE-IMPLEMENTATION-PLAN.md 實施進度追蹤（當前：22%） | 🔴 極高 |
-| **需求缺口分析** | `claudedocs/analysis/REQUIREMENT-GAP-ANALYSIS.md` | 需求缺口分析與澄清記錄 | 🟡 高 |
+| **Claude 文檔索引** | `claudedocs/README.md` | claudedocs V2.0 完整索引與使用說明 | 🔴 極高 |
 
-#### 📊 分析報告 (analysis/)
-| **CLAUDE.md 分析報告** | `claudedocs/analysis/CLAUDE-MD-ANALYSIS-REPORT.md` | CLAUDE.md 文件差異分析報告 | 🟡 高 |
-| **MD 文件整理報告** | `claudedocs/analysis/MD-FILES-ORGANIZATION-REPORT.md` | 專案 MD 文件組織分析報告 | 🟡 高 |
+#### 📋 1. 總體規劃 (1-planning/)
 
-#### 📋 規劃文件 (planning/)
-| **Epic 5 缺失功能** | `claudedocs/planning/EPIC-5-MISSING-FEATURES.md` | Epic 5 功能缺口分析 | 🟡 高 |
-| **Epic 6 測試清單** | `claudedocs/planning/EPIC-6-TESTING-CHECKLIST.md` | Epic 6 測試檢查清單 | 🟡 高 |
-| **Epic 7 實施計劃** | `claudedocs/planning/EPIC-7-IMPLEMENTATION-PLAN.md` | Epic 7 詳細實施計劃 | 🟡 高 |
-| **POC 驗證計劃** | `claudedocs/planning/POC-VALIDATION-EXECUTION-PLAN.md` | POC 驗證執行計劃 | 🟡 高 |
-| **Git 工作流程** | `claudedocs/planning/GIT-WORKFLOW-AND-BRANCHING-STRATEGY.md` | Git 分支策略和工作流程 | 🟡 高 |
-
-#### 🎨 設計系統相關 (design-system/)
-| **設計系統遷移計劃** | `claudedocs/design-system/DESIGN-SYSTEM-MIGRATION-PLAN.md` | 設計系統遷移策略 | 🔴 極高 |
-| **設計系統遷移進度** | `claudedocs/design-system/DESIGN-SYSTEM-MIGRATION-PROGRESS.md` | 遷移進度追蹤（v4.0 完成） | 🔴 極高 |
-| **設計系統細節優化** | `claudedocs/design-system/DESIGN-SYSTEM-REFINEMENTS.md` | 設計系統完整優化總結 | 🔴 極高 |
-| **遷移檢查清單** | `claudedocs/design-system/MIGRATION-CHECKLIST-AND-ACCEPTANCE-CRITERIA.md` | 遷移驗收標準 | 🟡 高 |
-
-#### 🚀 實施記錄 (implementation/)
-| **Phase 1 詳細任務** | `claudedocs/implementation/PHASE-1-DETAILED-TASKS.md` | Phase 1 核心組件遷移任務 | 🟡 高 |
-| **Phase 2 詳細任務** | `claudedocs/implementation/PHASE-2-DETAILED-TASKS.md` | Phase 2 表單組件任務 | 🟡 高 |
-| **Phase 3 詳細任務** | `claudedocs/implementation/PHASE-3-DETAILED-TASKS.md` | Phase 3 反饋組件任務 | 🟡 高 |
-| **Phase 4 詳細任務** | `claudedocs/implementation/PHASE-4-DETAILED-TASKS.md` | Phase 4 進階功能任務 | 🟡 高 |
-| **Phase 4 無障礙性增強** | `claudedocs/implementation/PHASE-4-ACCESSIBILITY-ENHANCEMENTS.md` | Phase 4 無障礙性功能詳細說明 | 🔴 極高 |
-| **用戶反饋增強 Phase 2** | `claudedocs/implementation/USER-FEEDBACK-ENHANCEMENTS-2025-10-16-PHASE-2.md` | 用戶反饋 UI/UX 改進實施記錄 | 🔴 極高 |
-| **用戶反饋問題修復** | `claudedocs/implementation/USER-FEEDBACK-FIXES-2025-10-16.md` | FIX-003, FIX-004, FIX-005 修復記錄 | 🟡 高 |
-
-#### 🧪 E2E 測試文檔
-
-> **更新日期**: 2025-10-29
-> **狀態**: Stage 2 測試配置整合 70% 完成，認證重定向問題待解決
+> **用途**: Epic 規劃、路線圖、架構文檔
+> **狀態**: Epic 9 規劃 100% 完成
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **E2E 測試增強計劃** | `claudedocs/e2e-testing/E2E-TESTING-ENHANCEMENT-PLAN.md` | 完整 E2E 測試增強計劃（4 階段實施策略） | 🔴 極高 |
-| **工作流測試進度** | `claudedocs/e2e-testing/E2E-WORKFLOW-TESTING-PROGRESS.md` | E2E 工作流測試詳細進度追蹤（Stage 1-4） | 🔴 極高 |
-| **工作流會話總結** | `claudedocs/e2e-testing/E2E-WORKFLOW-SESSION-SUMMARY.md` | 測試配置會話完整總結（645 行，問題診斷與解決方案） | 🔴 極高 |
-| **E2E 測試最終報告** | `claudedocs/e2e-testing/E2E-TESTING-FINAL-REPORT.md` | 基本功能測試最終報告（7/7 測試通過） | 🟡 高 |
-| **登入修復成功總結** | `claudedocs/e2e-testing/E2E-LOGIN-FIX-SUCCESS-SUMMARY.md` | FIX-010 登入流程修復成功總結 | 🟡 高 |
-| **登入問題分析** | `claudedocs/e2e-testing/E2E-LOGIN-ISSUE-ANALYSIS.md` | 登入認證問題深度分析 | 🟡 高 |
+| **主路線圖** | `claudedocs/1-planning/roadmap/MASTER-ROADMAP.md` | Epic 1-10 完整路線圖（Epic 9-10 詳細規劃） | 🔴 極高 |
+| **Epic 9 概覽** | `claudedocs/1-planning/epics/epic-9/epic-9-overview.md` | Epic 9 (AI Assistant) 概覽、架構、時間線、成本 | 🔴 極高 |
+| **Epic 9 需求** | `claudedocs/1-planning/epics/epic-9/epic-9-requirements.md` | Epic 9 完整功能需求、驗收標準、優先級 | 🔴 極高 |
+| **Epic 9 架構** | `claudedocs/1-planning/epics/epic-9/epic-9-architecture.md` | Epic 9 技術架構、核心組件、API 設計 | 🔴 極高 |
+| **Epic 9 風險** | `claudedocs/1-planning/epics/epic-9/epic-9-risks.md` | Epic 9 風險矩陣、緩解措施、應變計畫 | 🔴 極高 |
 
-#### 🌐 國際化 (I18N)
+#### 🏃 2. Sprint 執行 (2-sprints/)
 
-> **更新日期**: 2025-11-06
-> **狀態**: 完成全面 I18N 修復 - 340+ 翻譯鍵補充，生產就緒
-> **語言支援**: 英文 (en) / 繁體中文 (zh-TW)
+> **用途**: Sprint 計劃、任務清單、執行記錄
+> **狀態**: 待 Epic 9 Sprint 1 開始
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **I18N 會話總結** | `claudedocs/I18N-SESSION-SUMMARY.md` | I18N 修復完整會話總結（73+ 問題、340+ 翻譯鍵、技術要點） | 🔴 極高 |
-| **I18N 實施計劃** | `claudedocs/I18N-IMPLEMENTATION-PLAN.md` | 完整的國際化實施計劃與技術架構 | 🔴 極高 |
-| **I18N 問題記錄** | `claudedocs/I18N-ISSUES-LOG.md` | I18N 問題追蹤記錄（FIX-059 至 FIX-073） | 🔴 極高 |
-| **I18N 進度追蹤** | `claudedocs/I18N-PROGRESS.md` | I18N 開發進度追蹤與測試驗證記錄 | 🔴 極高 |
-| **I18N 實施檢查清單** | `claudedocs/I18N-IMPLEMENTATION-CHECKLIST.md` | I18N 實施詳細檢查清單（54 個文件遷移狀態） | 🟡 高 |
-| **I18N 影響分析** | `claudedocs/I18N-IMPACT-ANALYSIS.md` | I18N 遷移影響分析與風險評估 | 🟡 高 |
-| **I18N 測試計劃** | `claudedocs/I18N-TEST-PLAN.md` | I18N 完整測試計劃與驗收標準 | 🟡 高 |
-| **I18N 快速開始指南** | `claudedocs/I18N-QUICK-START-GUIDE.md` | I18N 開發快速參考指南 | 🟡 高 |
-| **I18N 遷移狀態** | `claudedocs/I18N-MIGRATION-STATUS.md` | I18N 遷移階段性狀態報告 | 🟡 高 |
-| **FIX-065 完整修復** | `claudedocs/FIX-065-I18N-COMPLETE-FIXES.md` | FIX-065 詳細修復記錄（Input.tsx、ProposalActions 等） | 🟢 中 |
-| **FIX-067 最終修復** | `claudedocs/FIX-067-FINAL-I18N-FIXES.md` | FIX-067 Projects 頁面硬編碼中文修復 | 🟢 中 |
-| **FIX-063 綜合修復** | `claudedocs/FIX-063-COMPREHENSIVE-I18N-FIX.md` | FIX-063 綜合性 I18N 問題修復記錄 | 🟢 中 |
-| **FIX-064 剩餘問題** | `claudedocs/FIX-064-I18N-REMAINING-ISSUES.md` | FIX-064 剩餘 I18N 問題修復記錄 | 🟢 中 |
+| **Sprint 模板** | `claudedocs/2-sprints/templates/` | Sprint 計劃模板 | 🟡 高 |
+
+#### 📈 3. 進度追蹤 (3-progress/)
+
+> **用途**: 每週報告、每日日誌、里程碑記錄
+> **頻率**: 每週更新
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **本週進度** | `claudedocs/3-progress/weekly/2025-W45.md` | 2025-W45 每週進度報告（claudedocs V2.0 + Epic 9 規劃） | 🔴 極高 |
+
+#### 🔄 4. 變更記錄 (4-changes/)
+
+> **用途**: Bug 修復、功能變更、重構記錄
+> **狀態**: 包含 FIX-009 至 FIX-087
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Bug 修復記錄** | `claudedocs/4-changes/bug-fixes/` | 29 個 FIX 文檔（FIX-009 至 FIX-087） | 🔴 極高 |
+| **I18N 記錄** | `claudedocs/4-changes/i18n/` | 14 個 I18N 相關文檔 | 🔴 極高 |
+
+#### 📊 5. 狀態報告 (5-status/)
+
+> **用途**: 階段報告、測試報告、品質報告
+> **狀態**: E2E 測試、I18N 完成報告
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **E2E 測試報告** | `claudedocs/5-status/testing/e2e/` | 12 個 E2E 測試文檔 | 🔴 極高 |
+
+#### 🤖 6. AI 助手指引 (6-ai-assistant/)
+
+> **用途**: AI 助手 Prompt 系統、Session Guides
+> **狀態**: 5 個情境 Prompt + 3 個 Session Guide 完成
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **SITUATION-1** | `claudedocs/6-ai-assistant/prompts/SITUATION-1-PROJECT-ONBOARDING.md` | 專案入門 Prompt (5 分鐘快速理解) | 🔴 極高 |
+| **SITUATION-2** | `claudedocs/6-ai-assistant/prompts/SITUATION-2-FEATURE-DEV-PREP.md` | 開發前準備 Prompt (架構驗證) | 🔴 極高 |
+| **SITUATION-3** | `claudedocs/6-ai-assistant/prompts/SITUATION-3-FEATURE-ENHANCEMENT.md` | 舊功能進階 Prompt (Bug/增強) | 🔴 極高 |
+| **SITUATION-4** | `claudedocs/6-ai-assistant/prompts/SITUATION-4-NEW-FEATURE-DEV.md` | 新功能開發 Prompt (系統化流程) | 🔴 極高 |
+| **SITUATION-5** | `claudedocs/6-ai-assistant/prompts/SITUATION-5-SAVE-PROGRESS.md` | 保存進度 Prompt (完整 6 步驟) ⭐ | 🔴 極高 |
+| **START-NEW-EPIC** | `claudedocs/6-ai-assistant/session-guides/START-NEW-EPIC.md` | 開始新 Epic 開發指引 | 🔴 極高 |
+| **CONTINUE-DEVELOPMENT** | `claudedocs/6-ai-assistant/session-guides/CONTINUE-DEVELOPMENT.md` | 繼續開發工作指引 | 🔴 極高 |
+| **DEBUG-ISSUES** | `claudedocs/6-ai-assistant/session-guides/DEBUG-ISSUES.md` | Debug 問題排查指引 | 🔴 極高 |
+
+#### 📂 7. 歷史歸檔 (7-archive/)
+
+> **用途**: 已完成階段的歷史記錄歸檔
+> **狀態**: Epic 1-8、設計系統、MVP 階段已歸檔
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Epic 1-8 歸檔** | `claudedocs/7-archive/epic-1-8/` | Epic 1-8 規劃文檔歸檔 | 🟡 高 |
+| **設計系統歸檔** | `claudedocs/7-archive/design-system/` | 設計系統遷移文檔歸檔 | 🟡 高 |
+| **MVP 階段歸檔** | `claudedocs/7-archive/mvp-phase/` | MVP 階段文檔歸檔 | 🟡 高 |
 
 ### 文檔總覽
 
