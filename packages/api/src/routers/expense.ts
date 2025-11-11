@@ -455,22 +455,47 @@ export const expenseRouter = createTRPCRouter({
             items: {
               orderBy: { sortOrder: 'asc' },
             },
-            project: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
             purchaseOrder: {
-              select: {
-                id: true,
-                name: true,
+              include: {
+                project: {
+                  include: {
+                    budgetPool: true,
+                    manager: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                      },
+                    },
+                    supervisor: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                      },
+                    },
+                  },
+                },
+                vendor: true,
+                quote: {
+                  select: {
+                    id: true,
+                    amount: true,
+                    filePath: true,
+                  },
+                },
               },
             },
             vendor: {
               select: {
                 id: true,
                 name: true,
+              },
+            },
+            budgetCategory: {
+              select: {
+                id: true,
+                categoryName: true,
               },
             },
           },

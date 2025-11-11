@@ -168,7 +168,6 @@ export const projectRouter = createTRPCRouter({
               select: {
                 id: true,
                 name: true,
-                totalAmount: true,
                 financialYear: true,
               },
             },
@@ -240,7 +239,6 @@ export const projectRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
-              totalAmount: true,
               financialYear: true,
             },
           },
@@ -500,7 +498,6 @@ export const projectRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
-              totalAmount: true,
               financialYear: true,
             },
           },
@@ -617,7 +614,6 @@ export const projectRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
-              totalAmount: true,
               financialYear: true,
             },
           },
@@ -644,13 +640,15 @@ export const projectRouter = createTRPCRouter({
    * - 被刪除的專案資訊
    *
    * 業務邏輯：
-   * - 刪除前檢查是否有關聯的提案或採購單
-   * - 如果有關聯資料，拋出錯誤，禁止刪除
+   * - 刪除前檢查是否有關聯的提案、採購單、報價單或費用轉嫁
+   * - 如果有任何關聯資料，拋出錯誤並列出所有關聯，禁止刪除
    *
    * 錯誤處理：
    * - 專案不存在：拋出錯誤
    * - 有關聯提案：拋出錯誤
    * - 有關聯採購單：拋出錯誤
+   * - 有關聯報價單：拋出錯誤
+   * - 有關聯費用轉嫁：拋出錯誤
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
@@ -663,6 +661,8 @@ export const projectRouter = createTRPCRouter({
             select: {
               proposals: true,
               purchaseOrders: true,
+              quotes: true,
+              chargeOuts: true,
             },
           },
         },
@@ -675,19 +675,29 @@ export const projectRouter = createTRPCRouter({
         });
       }
 
-      // 檢查是否有關聯的提案
+      // 檢查所有關聯資料
+      const errors: string[] = [];
+
       if (project._count.proposals > 0) {
-        throw new TRPCError({
-          code: 'PRECONDITION_FAILED',
-          message: `無法刪除專案：此專案有 ${project._count.proposals} 個關聯的提案。請先刪除或重新分配這些提案。`,
-        });
+        errors.push(`${project._count.proposals} 個預算提案`);
       }
 
-      // 檢查是否有關聯的採購單
       if (project._count.purchaseOrders > 0) {
+        errors.push(`${project._count.purchaseOrders} 個採購單`);
+      }
+
+      if (project._count.quotes > 0) {
+        errors.push(`${project._count.quotes} 個報價單`);
+      }
+
+      if (project._count.chargeOuts > 0) {
+        errors.push(`${project._count.chargeOuts} 個費用轉嫁記錄`);
+      }
+
+      if (errors.length > 0) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: `無法刪除專案：此專案有 ${project._count.purchaseOrders} 個關聯的採購單。請先刪除或重新分配這些採購單。`,
+          message: `無法刪除專案：此專案有以下關聯資料：\n- ${errors.join('\n- ')}\n\n請先處理這些資料後再刪除專案。`,
         });
       }
 
@@ -952,8 +962,6 @@ export const projectRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
-              totalAmount: true,
-              usedAmount: true,
               financialYear: true,
             },
           },

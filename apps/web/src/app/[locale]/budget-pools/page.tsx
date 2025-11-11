@@ -25,8 +25,6 @@ export default function BudgetPoolsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState<number | undefined>(undefined);
-  const [minAmount, setMinAmount] = useState<number | undefined>(undefined);
-  const [maxAmount, setMaxAmount] = useState<number | undefined>(undefined);
   const [sortBy, setSortBy] = useState<'name' | 'year' | 'amount'>('year');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
@@ -78,8 +76,6 @@ export default function BudgetPoolsPage() {
       const exportData = await utils.client.budgetPool.export.query({
         search: debouncedSearch || undefined,
         year: yearFilter,
-        minAmount: minAmount,
-        maxAmount: maxAmount,
       });
 
       // Convert to CSV and download

@@ -313,6 +313,9 @@ export const budgetPoolRouter = createTRPCRouter({
       const budgetPool = await ctx.prisma.budgetPool.findUnique({
         where: { id: input.id },
         include: {
+          categories: {
+            where: { isActive: true },
+          },
           projects: {
             include: {
               proposals: {
@@ -345,6 +348,12 @@ export const budgetPoolRouter = createTRPCRouter({
         throw new Error('Budget pool not found');
       }
 
+      // Calculate total budget from categories (not deprecated totalAmount field)
+      const totalBudget = budgetPool.categories.reduce(
+        (sum: number, cat: { totalAmount: number }) => sum + cat.totalAmount,
+        0
+      );
+
       // Calculate statistics
       const totalAllocated = budgetPool.projects.reduce(
         (sum, project) =>
@@ -368,11 +377,11 @@ export const budgetPoolRouter = createTRPCRouter({
         0
       );
 
-      const remaining = budgetPool.totalAmount - totalAllocated;
-      const utilizationRate = (totalAllocated / budgetPool.totalAmount) * 100;
+      const remaining = totalBudget - totalAllocated;
+      const utilizationRate = totalBudget > 0 ? (totalAllocated / totalBudget) * 100 : 0;
 
       return {
-        totalBudget: budgetPool.totalAmount,
+        totalBudget,
         totalAllocated,
         totalSpent,
         remaining,
@@ -387,8 +396,6 @@ export const budgetPoolRouter = createTRPCRouter({
       z.object({
         search: z.string().optional(),
         year: z.number().int().optional(),
-        minAmount: z.number().optional(),
-        maxAmount: z.number().optional(),
       }).optional()
     )
     .query(async ({ ctx, input }) => {
@@ -403,8 +410,6 @@ export const budgetPoolRouter = createTRPCRouter({
               }
             : {},
           input?.year ? { financialYear: input.year } : {},
-          input?.minAmount ? { totalAmount: { gte: input.minAmount } } : {},
-          input?.maxAmount ? { totalAmount: { lte: input.maxAmount } } : {},
         ].filter(obj => Object.keys(obj).length > 0),
       };
 
@@ -539,6 +544,17 @@ export const budgetPoolRouter = createTRPCRouter({
         });
       }
 
+      // 優化: 在增加金額時,先檢查預算可用性（避免 rollback 操作）
+      if (input.amount > 0) {
+        const availableAmount = category.totalAmount - category.usedAmount;
+        if (availableAmount < input.amount) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `Budget exceeded. Available: ${availableAmount}, Requested: ${input.amount}`,
+          });
+        }
+      }
+
       // 更新已用金額
       const updated = await ctx.prisma.budgetCategory.update({
         where: { id: input.categoryId },
@@ -548,24 +564,6 @@ export const budgetPoolRouter = createTRPCRouter({
           },
         },
       });
-
-      // 驗證不會超過總預算（僅在增加時檢查）
-      if (input.amount > 0 && updated.usedAmount > updated.totalAmount) {
-        // 回滾操作
-        await ctx.prisma.budgetCategory.update({
-          where: { id: input.categoryId },
-          data: {
-            usedAmount: {
-              decrement: input.amount,
-            },
-          },
-        });
-
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `Budget exceeded. Available: ${updated.totalAmount - category.usedAmount}, Requested: ${input.amount}`,
-        });
-      }
 
       return updated;
     }),
