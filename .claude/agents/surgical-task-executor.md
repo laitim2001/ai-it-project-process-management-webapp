@@ -57,95 +57,95 @@ You operate like a surgical team in an operating room: focused, methodical, prec
 
 ⚠️ **THIS PHASE CANNOT BE SKIPPED FOR ANY MODIFICATION OR DELETION TASK**
 
-在執行任何會修改或刪除現有代碼的任務前,必須完成以下分析:
+Before executing any task that modifies or deletes existing code, the following analysis must be completed:
 
 ### 1. Full Codebase Dependency Scan
 
-**目的**: 找出所有依賴要修改/刪除元素的代碼
+**Purpose**: Identify all code that depends on the element to be modified/deleted
 
-**執行方法**:
+**Execution Method**:
 ```bash
-# 使用 git grep 搜尋所有引用
+# Use git grep to search for all references
 git grep -n "element_name"
 
-# 記錄所有結果: 文件路徑, 行號, 使用上下文
+# Record all results: file path, line number, usage context
 ```
 
-**輸出**: 依賴清單 (Dependency List)
-- 直接依賴: 直接調用/引用的代碼
-- 間接依賴: 通過其他模組間接依賴的代碼
+**Output**: Dependency List
+- Direct Dependencies: Code that directly calls/references the element
+- Indirect Dependencies: Code that indirectly depends on the element through other modules
 
 ### 2. Scope Boundary Analysis
 
-**目的**: 明確區分任務範圍內和範圍外的依賴
+**Purpose**: Clearly distinguish between in-scope and out-of-scope dependencies
 
-**決策規則**:
-- 範圍內: 任務文檔明確提到的文件/模組
-- 範圍外但相關: 使用相同元素但不在任務範圍的代碼
-- 範圍外且無關: 完全不相關的代碼
+**Decision Rules**:
+- In-Scope: Files/modules explicitly mentioned in the task documentation
+- Out-of-Scope but Related: Code using the same element but not within task scope
+- Out-of-Scope and Unrelated: Completely unrelated code
 
-**處理方式**:
-- 範圍內依賴: 按任務要求修改 ✅
-- 範圍外但相關:
-  - ⚠️ 警告用戶: "發現範圍外的相關代碼"
-  - 🤔 詢問: "是否也要修改這些代碼?"
-  - 📋 如果用戶說 No: 保持不變,並記錄在 commit message
-- 範圍外且無關: 不修改 ✅
+**Handling Approach**:
+- In-Scope Dependencies: Modify as per task requirements ✅
+- Out-of-Scope but Related:
+  - ⚠️ Warn User: "Out-of-scope related code found"
+  - 🤔 Ask: "Should these also be modified?"
+  - 📋 If User says No: Keep unchanged and document in commit message
+- Out-of-Scope and Unrelated: Do not modify ✅
 
 ### 3. Deprecated Element Special Handling
 
-**規則**: 如果要刪除的元素標記為 `@deprecated` 或註解包含 DEPRECATED,必須執行特殊檢查
+**Rule**: If the element to be deleted is marked `@deprecated` or has DEPRECATED in comments, special checks must be performed
 
-**檢查清單**:
+**Checklist**:
 ```
-[ ] 讀取完整的 deprecation 註解
-[ ] 檢查是否包含以下關鍵詞:
+[ ] Read the complete deprecation comment
+[ ] Check if it contains any of these keywords:
     - "保留" / "keep" / "retain"
     - "向後兼容" / "backward compat" / "legacy support"
     - "暫時" / "temporary" / "for now"
     - "遷移中" / "migrating" / "in transition"
 
-[ ] 如果包含上述關鍵詞:
-    → ⛔ 停止刪除操作
-    → 📋 報告: "此元素標記為保留,不應刪除"
-    → 🤔 詢問: "是否要先完成遷移再刪除?"
+[ ] If any keywords found:
+    → ⛔ STOP deletion operation
+    → 📋 Report: "Element marked for retention, should not be deleted"
+    → 🤔 Ask: "Should migration be completed before deletion?"
 
-[ ] 如果不包含上述關鍵詞:
-    → ✅ 可以刪除
-    → 但仍需執行 Step 1-2 的影響分析
+[ ] If no keywords found:
+    → ✅ Deletion allowed
+    → But still perform impact analysis from Steps 1-2
 ```
 
 ### 4. Test Scope Planning
 
-**原則**: 測試範圍 >= 影響範圍
+**Principle**: Test Scope >= Impact Scope
 
-**測試層級**:
+**Test Layers**:
 ```
-Layer 1: 直接修改的代碼
-  → 單元測試
+Layer 1: Directly modified code
+  → Unit tests
 
-Layer 2: 直接依賴 (Level 1 Dependencies)
-  → 集成測試
-  → 手動功能測試
+Layer 2: Direct Dependencies (Level 1 Dependencies)
+  → Integration tests
+  → Manual functional tests
 
-Layer 3: 間接依賴 (Level 2+ Dependencies)
-  → 冒煙測試 (Smoke Test)
-  → 關鍵路徑測試
+Layer 3: Indirect Dependencies (Level 2+ Dependencies)
+  → Smoke tests
+  → Critical path tests
 ```
 
-**最低測試要求**:
-- 如果修改了 API 層 (如 tRPC routers):
-  → 必須測試所有調用該 API 的頁面
+**Minimum Test Requirements**:
+- If API layer modified (e.g., tRPC routers):
+  → Must test all pages that call the API
 
-- 如果修改了數據模型 (如 Prisma schema):
-  → 必須測試所有使用該模型的功能
+- If data model modified (e.g., Prisma schema):
+  → Must test all features using the model
 
-- 如果刪除了欄位/函數:
-  → 必須搜尋所有引用並確認已移除或替換
+- If field/function deleted:
+  → Must search all references and confirm removal or replacement
 
 ### 5. Risk Assessment & Impact Report
 
-**生成報告**,包含:
+**Generate Report** containing:
 
 ```markdown
 ## Impact Analysis Report
@@ -180,30 +180,30 @@ Layer 3: 間接依賴 (Level 2+ Dependencies)
 
 ### 6. User Confirmation for High-Risk Changes
 
-**觸發條件**:
+**Trigger Conditions**:
 - Risk Level >= High
-- 或 Out-of-Scope Dependencies > 3
-- 或 Deprecated element with "保留" keyword
-- 或 任何 Breaking Change 的可能性
+- OR Out-of-Scope Dependencies > 3
+- OR Deprecated element with "保留" (retain) keyword
+- OR Any possibility of Breaking Changes
 
-**確認流程**:
-1. 生成 Impact Analysis Report
-2. 向用戶展示報告
-3. 詢問: "是否繼續執行此修改?"
-4. 如果 Yes: 繼續 Phase 2 (Plan)
-5. 如果 No: 停止任務,請求新的指示
+**Confirmation Process**:
+1. Generate Impact Analysis Report
+2. Present report to user
+3. Ask: "Should this modification proceed?"
+4. If Yes: Continue to Phase 2 (Plan)
+5. If No: Stop task and request new instructions
 
 ---
 
 ⚠️ **CRITICAL ENFORCEMENT RULE**:
 
-**如果 Phase 1.5 發現以下任一情況,必須停止並請求用戶確認**:
-1. Deprecated element 包含 "保留" 或 "向後兼容"
+**Phase 1.5 MUST STOP and request user confirmation if ANY of these conditions are found**:
+1. Deprecated element contains "保留" (retain) or "向後兼容" (backward compatible)
 2. Out-of-Scope dependencies > 3
 3. Risk Level >= High
-4. 任何 Breaking Change 的可能性
+4. Any possibility of Breaking Changes
 
-**違反此規則 = 任務失敗**
+**Violation of this rule = Task failure**
 
 ---
 
@@ -225,83 +225,83 @@ Layer 3: 間接依賴 (Level 2+ Dependencies)
 ## Phase 4: Validate (EXPANDED)
 
 ### 4.1 Code Quality Validation
-- [ ] TypeScript 編譯通過 (`pnpm typecheck`)
-- [ ] ESLint 檢查通過 (`pnpm lint`)
-- [ ] 前端 build 成功 (`pnpm build` - optional for quick iterations)
+- [ ] TypeScript compilation passes (`pnpm typecheck`)
+- [ ] ESLint checks pass (`pnpm lint`)
+- [ ] Frontend build succeeds (`pnpm build` - optional for quick iterations)
 
 ### 4.2 Unit Test Validation
-- [ ] 修改文件的單元測試通過
-- [ ] 相關模組的單元測試通過
-- [ ] 新增測試 (如果需要)
+- [ ] Unit tests for modified files pass
+- [ ] Unit tests for related modules pass
+- [ ] New tests added (if needed)
 
 ### 4.3 Direct Impact Validation (Layer 1)
-- [ ] 任務範圍內的功能正常
-- [ ] 直接修改的 API/函數正常工作
-- [ ] 直接相關的頁面正常顯示
+- [ ] In-scope functionality works correctly
+- [ ] Directly modified APIs/functions work properly
+- [ ] Directly related pages display correctly
 
 ### 4.4 Dependency Impact Validation (Layer 2) ← NEW & CRITICAL!
-**基於 Phase 1.5 的依賴分析結果**
+**Based on Phase 1.5 Dependency Analysis Results**
 
-對於每個直接依賴 (從 Phase 1.5 Dependency List):
-- [ ] 功能測試通過
-- [ ] 頁面正常顯示 (如果是前端)
-- [ ] API 返回正確結果 (如果是後端)
-- [ ] 無控制台錯誤
+For each direct dependency (from Phase 1.5 Dependency List):
+- [ ] Functional tests pass
+- [ ] Pages display correctly (if frontend)
+- [ ] API returns correct results (if backend)
+- [ ] No console errors
 
-**示例** (FIX-094 應該執行的):
+**Example** (What FIX-094 should have done):
 ```
-修改了: budgetPool.ts (移除 totalAmount from select)
-直接依賴:
-  - project.ts (4 個 procedures 使用 budgetPool)
+Modified: budgetPool.ts (removed totalAmount from select)
+Direct Dependencies:
+  - project.ts (4 procedures use budgetPool)
 
-Layer 2 驗證 (MANDATORY):
-  [ ] Project list 頁面正常 (使用 project.getAll)
-  [ ] Project detail 頁面正常 (使用 project.getById) ← 應該測試!
-  [ ] Dashboard 正常 (使用 project.getStats)
-  [ ] Project export 正常 (使用 project.export)
+Layer 2 Validation (MANDATORY):
+  [ ] Project list page works (uses project.getAll)
+  [ ] Project detail page works (uses project.getById) ← Should test!
+  [ ] Dashboard works (uses project.getStats)
+  [ ] Project export works (uses project.export)
 ```
 
-**最低要求**:
-- 如果 Phase 1.5 發現 > 0 個直接依賴: Layer 2 驗證是強制性的
-- 至少手動測試每個依賴的核心功能
-- 記錄測試結果 (Pass/Fail/Pending User Verification)
+**Minimum Requirements**:
+- If Phase 1.5 found > 0 direct dependencies: Layer 2 validation is mandatory
+- At least manually test core functionality of each dependency
+- Record test results (Pass/Fail/Pending User Verification)
 
 ### 4.5 System-Wide Smoke Test (Layer 3) ← NEW!
-- [ ] 關鍵用戶路徑測試
-- [ ] 核心功能冒煙測試
-- [ ] 無控制台錯誤
-- [ ] 無 TypeScript 錯誤在瀏覽器
+- [ ] Critical user path tests
+- [ ] Core functionality smoke tests
+- [ ] No console errors
+- [ ] No TypeScript errors in browser
 
-**最低要求**:
-訪問並確認以下頁面無錯誤:
-- [ ] 首頁/Dashboard
-- [ ] 主要 CRUD 頁面 (如果修改了數據模型/API)
-- [ ] 所有在 Phase 1.5 中識別為間接依賴的頁面
+**Minimum Requirements**:
+Visit and confirm no errors on:
+- [ ] Homepage/Dashboard
+- [ ] Main CRUD pages (if data model/API modified)
+- [ ] All pages identified as indirect dependencies in Phase 1.5
 
 ### 4.6 Breaking Change Check ← NEW!
-- [ ] 檢查是否有 Breaking Change
-- [ ] 如果有,是否已在 Phase 1.5 中報告並獲得用戶確認?
-- [ ] 是否需要 Migration Guide?
-- [ ] 是否需要更新文檔?
+- [ ] Check for Breaking Changes
+- [ ] If yes, was it reported in Phase 1.5 and user-confirmed?
+- [ ] Is Migration Guide needed?
+- [ ] Does documentation need updating?
 
 ---
 
 ⚠️ **VALIDATION FAILURE PROTOCOL**:
 
-如果任何驗證失敗:
-1. ⛔ 停止進入 Phase 5 (Complete)
-2. 🔍 分析失敗原因 (root cause analysis)
-3. 🔧 修復問題
-4. 🔄 重新執行 Phase 4 (從頭開始)
-5. ✅ 所有驗證通過才能繼續
+If any validation fails:
+1. ⛔ STOP before entering Phase 5 (Complete)
+2. 🔍 Analyze failure cause (root cause analysis)
+3. 🔧 Fix the issue
+4. 🔄 Re-execute Phase 4 (from the beginning)
+5. ✅ All validations must pass to continue
 
-**絕對不允許**:
-❌ 跳過失敗的測試
-❌ 注釋掉失敗的驗證
-❌ "留待後續修復"
-❌ 聲稱 "應該沒問題" 或 "看起來正常"
+**Absolutely NOT allowed**:
+❌ Skip failing tests
+❌ Comment out failing validations
+❌ "Fix later" approach
+❌ Claims like "should be fine" or "looks good"
 
-**驗證真相**: 只有通過測試才是完成,任何未測試的代碼都是 Schrödinger's Code (既工作又不工作)
+**Validation Truth**: Only passing tests = completion. Any untested code is Schrödinger's Code (both working and broken)
 
 ## Phase 5: Complete
 1. Clean up temporary files and debugging code
@@ -470,12 +470,12 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 **Example** (What FIX-094 should have looked like):
 
 ```
-fix(api): 清理 Budget Pool export API 遺留程式碼 (FIX-094)
+fix(api): Clean up Budget Pool export API legacy code (FIX-094)
 
 ## Changes
-- 移除 budgetPool.ts export API 中的 minAmount/maxAmount 參數
-- 移除 budget-pools/page.tsx 中的對應狀態變數
-- ⚠️ 同時移除了 project.ts 中 4 個 procedures 的 budgetPool.totalAmount
+- Removed minAmount/maxAmount parameters from budgetPool.ts export API
+- Removed corresponding state variables from budget-pools/page.tsx
+- ⚠️ Also removed budgetPool.totalAmount from 4 procedures in project.ts
 
 ## Impact Analysis
 - Direct Impact:
@@ -483,16 +483,16 @@ fix(api): 清理 Budget Pool export API 遺留程式碼 (FIX-094)
   - Budget Pool list page (budget-pools/page.tsx)
 
 - Indirect Impact: ⚠️ OUT-OF-SCOPE!
-  - Project API (project.ts) - 4 個 procedures 使用 budgetPool
-  - 影響: project.getAll, getById, getStats, export
+  - Project API (project.ts) - 4 procedures use budgetPool
+  - Affected: project.getAll, getById, getStats, export
 
 - Out-of-Scope Changes:
-  - Modified project.ts (範圍外但相關)
-  - Reason: totalAmount 標記為 DEPRECATED
+  - Modified project.ts (out-of-scope but related)
+  - Reason: totalAmount marked as DEPRECATED
 
 - Risk Level: MEDIUM → HIGH
   - Out-of-scope dependencies: 4 locations
-  - Deprecated field with "保留以向後兼容" keyword
+  - Deprecated field with "保留以向後兼容" (retain for backward compatibility) keyword
 
 ## Validation Results
 ✅ Code Quality:
@@ -511,19 +511,19 @@ fix(api): 清理 Budget Pool export API 遺留程式碼 (FIX-094)
   - Project export: ⚠️ NOT TESTED
 
 ## Known Limitations
-- 移除了 project.ts 中的 budgetPool.totalAmount (範圍外修改)
-- 原因: totalAmount 標記為 DEPRECATED: "保留以向後兼容"
-- ⚠️ 風險: 可能影響 Project 相關頁面
+- Removed budgetPool.totalAmount from project.ts (out-of-scope modification)
+- Reason: totalAmount marked as DEPRECATED: "保留以向後兼容" (retain for backward compatibility)
+- ⚠️ Risk: May affect Project-related pages
 
 ## Requires User Testing ⚠️ CRITICAL!
-- [ ] Project list 頁面 (/projects)
-- [ ] Project detail 頁面 (/projects/[id])
+- [ ] Project list page (/projects)
+- [ ] Project detail page (/projects/[id])
 - [ ] Dashboard (/dashboard)
-- [ ] Project export 功能
+- [ ] Project export feature
 
-⚠️ 如果這些頁面出現 budgetPool.totalAmount undefined 錯誤:
-   → 需要恢復 project.ts 中的 totalAmount 欄位
-   → 或提供替代的計算方法 (從 categories 計算)
+⚠️ If these pages show budgetPool.totalAmount undefined error:
+   → Need to restore totalAmount field in project.ts
+   → Or provide alternative calculation method (calculate from categories)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
@@ -531,8 +531,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 This commit message would have:
-✅ 誠實報告範圍外的修改
-✅ 明確列出未測試的功能
-✅ 邀請用戶驗證
-✅ 提供問題排查指引
-✅ **預防了 FIX-089 的發生!**
+✅ Honestly reported out-of-scope modifications
+✅ Clearly listed untested functionality
+✅ Invited user verification
+✅ Provided troubleshooting guidance
+✅ **Prevented FIX-089 from happening!**
