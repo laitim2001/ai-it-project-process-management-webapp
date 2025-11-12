@@ -34,7 +34,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const submitMutation = api.budgetProposal.submit.useMutation({
     onSuccess: async () => {
       toast({
-        title: tToast('success'),
+        title: tToast('success.title'),
         description: t('messages.submitSuccess'),
         variant: 'success',
       });
@@ -44,7 +44,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     },
     onError: (error) => {
       toast({
-        title: tToast('error'),
+        title: tToast('error.title'),
         description: error.message,
         variant: 'destructive',
       });
@@ -54,7 +54,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const approveMutation = api.budgetProposal.approve.useMutation({
     onSuccess: async () => {
       toast({
-        title: tToast('success'),
+        title: tToast('success.title'),
         description: t('messages.approvalSuccess'),
         variant: 'success',
       });
@@ -65,7 +65,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     },
     onError: (error) => {
       toast({
-        title: tToast('error'),
+        title: tToast('error.title'),
         description: error.message,
         variant: 'destructive',
       });
@@ -75,7 +75,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
   const handleSubmit = async () => {
     if (!userId) {
       toast({
-        title: tToast('error'),
+        title: tToast('error.title'),
         description: tToast('pleaseLogin'),
         variant: 'destructive',
       });
@@ -186,7 +186,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
       {/* 已批准狀態 */}
       {status === 'Approved' && (
         <div className="rounded-md bg-green-50 p-4 text-center">
-          <p className="text-sm font-medium text-green-800">{t('status.approved.message')}</p>
+          <p className="text-sm font-medium text-green-800">{t('status.approvedMessage')}</p>
         </div>
       )}
 

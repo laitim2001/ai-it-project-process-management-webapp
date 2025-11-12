@@ -550,6 +550,7 @@
       "draft": "草稿",
       "pendingApproval": "待審批",
       "approved": "已批准",
+      "approvedMessage": "此提案已被批准",
       "rejected": "已駁回",
       "moreInfoRequired": "需要更多資訊",
       "rejectedMessage": "此提案已被駁回"
@@ -564,7 +565,9 @@
       "submittedAt": "提交時間",
       "manager": "專案經理",
       "supervisor": "主管",
-      "budgetPool": "預算池"
+      "budgetPool": "預算池",
+      "approvedAmount": "批准金額",
+      "approvedAt": "批准時間"
     },
     "list": {
       "title": "預算提案列表",
@@ -751,7 +754,9 @@
     "messages": {
       "createSuccess": "預算提案已成功建立",
       "updateSuccess": "預算提案已成功更新",
-      "deleteSuccess": "預算提案已成功刪除"
+      "deleteSuccess": "預算提案已成功刪除",
+      "submitSuccess": "預算提案已提交審批",
+      "approvalSuccess": "預算提案已成功批准"
     }
   },
   "budgetPools": {
@@ -2326,6 +2331,7 @@
     },
     "creating": "創建中...",
     "uploading": "上傳中...",
+    "submitting": "提交中...",
     "warning": {
       "title": "警告",
       "unsavedChanges": "您有未儲存的變更",

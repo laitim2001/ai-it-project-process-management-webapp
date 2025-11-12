@@ -535,6 +535,7 @@
       "draft": "Draft",
       "pendingApproval": "Pending Approval",
       "approved": "Approved",
+      "approvedMessage": "This proposal has been approved",
       "rejected": "Rejected",
       "moreInfoRequired": "More Info Required",
       "rejectedMessage": "This proposal has been rejected"
@@ -549,7 +550,9 @@
       "submittedAt": "Submitted At",
       "manager": "Project Manager",
       "supervisor": "Supervisor",
-      "budgetPool": "Budget Pool"
+      "budgetPool": "Budget Pool",
+      "approvedAmount": "Approved Amount",
+      "approvedAt": "Approved At"
     },
     "list": {
       "title": "預算提案列表",
@@ -751,7 +754,9 @@
     "messages": {
       "createSuccess": "Budget proposal has been created successfully",
       "updateSuccess": "Budget proposal has been updated successfully",
-      "deleteSuccess": "Budget proposal has been deleted successfully"
+      "deleteSuccess": "Budget proposal has been deleted successfully",
+      "submitSuccess": "Budget proposal has been submitted for approval",
+      "approvalSuccess": "Budget proposal has been approved successfully"
     }
   },
   "budgetPools": {
@@ -2326,6 +2331,7 @@
     },
     "creating": "Creating...",
     "uploading": "Uploading...",
+    "submitting": "Submitting...",
     "warning": {
       "title": "Warning",
       "unsavedChanges": "You have unsaved changes",
