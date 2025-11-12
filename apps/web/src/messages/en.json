@@ -1107,7 +1107,10 @@
       "list": "List View"
     },
     "messages": {
-      "loadError": "Failed to load vendors"
+      "loadError": "Failed to load vendors",
+      "createSuccess": "Vendor has been created successfully",
+      "updateSuccess": "Vendor has been updated successfully",
+      "deleteSuccess": "Vendor has been deleted successfully"
     }
   },
   "quotes": {
@@ -1670,6 +1673,7 @@
     "messages": {
       "createSuccess": "Expense record {name} created successfully",
       "updateSuccess": "Expense record {name} updated successfully",
+      "deleteSuccess": "Expense record has been deleted successfully",
       "submitSuccess": "Expense submitted. Awaiting supervisor approval.",
       "approveSuccess": "Expense approved",
       "createError": "Create failed",

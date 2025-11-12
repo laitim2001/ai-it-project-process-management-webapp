@@ -44,6 +44,7 @@
     "index:health": "node scripts/check-index-sync.js",
     "check:env": "node scripts/check-environment.js",
     "validate:i18n": "node scripts/validate-i18n.js",
+    "check:i18n:messages": "node scripts/check-i18n-messages.js",
     "setup": "pnpm install && pnpm db:generate && node scripts/check-environment.js",
     "postinstall": "pnpm db:generate"
   },

@@ -1107,7 +1107,10 @@
       "list": "列表視圖"
     },
     "messages": {
-      "loadError": "載入供應商失敗"
+      "loadError": "載入供應商失敗",
+      "createSuccess": "供應商已成功建立",
+      "updateSuccess": "供應商已成功更新",
+      "deleteSuccess": "供應商已成功刪除"
     }
   },
   "quotes": {
@@ -1670,6 +1673,7 @@
     "messages": {
       "createSuccess": "費用記錄 {name} 已成功創建",
       "updateSuccess": "費用記錄 {name} 已成功更新",
+      "deleteSuccess": "費用記錄已成功刪除",
       "submitSuccess": "費用記錄已提交，等待主管審批",
       "approveSuccess": "費用記錄已批准",
       "createError": "創建失敗",
