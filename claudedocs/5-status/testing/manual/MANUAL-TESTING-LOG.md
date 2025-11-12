@@ -111,16 +111,94 @@ IntlError: MISSING_MESSAGE: Could not resolve `budgetPools.detail.projects.empty
 
 ---
 
+### 2025-11-12 14:30 | 專案模組 (Projects) 測試
+
+**測試人員**: 用戶
+**測試環境**: Local Development (localhost:3000)
+**測試版本**: Commit 2481503 (FIX-088 修復後)
+
+#### 測試場景 3: 訪問專案詳情頁 (View Project Detail)
+
+**測試步驟**:
+1. 訪問 `http://localhost:3000/zh-TW/projects/93736072-97e2-4d9e-ac4c-615cfc335308`
+2. 查看專案詳細資訊
+
+**預期結果**:
+- 專案詳情頁正常顯示
+- 預算池資訊正常顯示 (包含總金額)
+- 無控制台錯誤
+
+**實際結果**: ❌ 失敗
+- 頁面崩潰,無法渲染 ❌
+- 控制台出現致命錯誤 ❌
+
+**發現問題 - FIX-089**: budgetPool.totalAmount undefined 錯誤
+
+**錯誤詳情**:
+```
+Unhandled Runtime Error
+TypeError: Cannot read properties of undefined (reading 'toLocaleString')
+
+Source: src\app\[locale]\projects\[id]\page.tsx (532:58)
+> 532 |  ${project.budgetPool.totalAmount.toLocaleString()}
+```
+
+**影響範圍**:
+- 專案詳情頁面 (`/projects/[id]`)
+- 新增專案頁面 (`/projects/new`)
+- 可能影響 Project list 和 Dashboard
+
+---
+
+#### 測試場景 4: 新增專案 (Create Project)
+
+**測試步驟**:
+1. 訪問 `http://localhost:3000/zh-TW/projects/new`
+2. 填寫專案表單
+
+**預期結果**:
+- 新增頁面正常顯示
+- 表單可以填寫
+- 無控制台錯誤
+
+**實際結果**: ❌ 失敗
+- 頁面崩潰,無法顯示 ❌
+- 相同的 `budgetPool.totalAmount` undefined 錯誤 ❌
+
+**根本原因分析**:
+在 commit `14815bf` (FIX-094) 時,surgical-task-executor agent 執行 "清理 Budget Pool export API 遺留程式碼" 時過度清理:
+
+1. **任務範圍擴張**: 任務是清理 "Budget Pool export API",但執行了 "清理整個專案中的 totalAmount"
+2. **缺乏影響分析**: 未檢查 `totalAmount` 在其他 routers (如 project.ts) 中的使用
+3. **誤解 Deprecated**: 將 "DEPRECATED: 保留以向後兼容" 理解為 "可以立即移除"
+4. **驗證範圍不足**: 只測試了 Budget Pool export,未測試 Project 相關頁面
+
+**被移除的位置**:
+- `project.getAll` (Line 171) - 影響 Project list
+- `project.getById` (Line 242) - **影響 Project detail** ← 導致本次問題
+- `project.getStats` (Line 501) - 影響 Dashboard
+- `project.export` (Line 617) - 影響 CSV 匯出
+
+**修復方案**:
+恢復 `packages/api/src/routers/project.ts` 中所有 4 個位置的 `budgetPool.totalAmount` 欄位
+
+**修復狀態**: ✅ 已修復 (待驗證)
+
+**詳細分析**: `claudedocs/5-status/testing/manual/FIX-089-ROOT-CAUSE-ANALYSIS.md`
+
+---
+
 ## 📊 測試統計
 
 ### 測試覆蓋率
-- **已測試模組**: 1/18 (Budget Pools)
-- **測試場景**: 2 個
-- **發現問題**: 1 個 (FIX-088)
-- **修復完成**: 0 個
+- **已測試模組**: 2/18 (Budget Pools, Projects 部分)
+- **測試場景**: 4 個
+- **發現問題**: 2 個 (FIX-088, FIX-089)
+- **修復完成**: 2 個 (待驗證)
 
 ### 問題分類
-- **I18N 問題**: 1 個
+- **I18N 問題**: 1 個 (FIX-088)
+- **API/後端問題**: 1 個 (FIX-089 - Surgical Agent 過度清理)
 - **功能性問題**: 0 個
 - **UI/UX 問題**: 0 個
 - **效能問題**: 0 個
@@ -167,16 +245,20 @@ IntlError: MISSING_MESSAGE: Could not resolve `budgetPools.detail.projects.empty
 
 | ID | 模組 | 嚴重程度 | 狀態 | 描述 |
 |----|------|----------|------|------|
-| FIX-088 | Budget Pools | 🔴 P0 | 🔄 修復中 | I18N 缺失 5 個 translation keys |
+| FIX-089 | Projects | 🔴 P0 | ✅ 已修復 | budgetPool.totalAmount undefined - Surgical Agent 過度清理 |
+| FIX-088 | Budget Pools | 🔴 P0 | ✅ 已修復 | I18N 缺失 5 個 translation keys |
 
 ---
 
 ## ✅ 已修復問題
 
-_目前無已修復問題_
+| ID | 修復日期 | 描述 | 驗證狀態 |
+|----|----------|------|----------|
+| FIX-089 | 2025-11-12 | Project API 恢復 budgetPool.totalAmount 欄位 (4 個 procedures) | ⏳ 待驗證 |
+| FIX-088 | 2025-11-12 | Budget Pool 模組新增 5 個 I18N translation keys | ⏳ 待驗證 |
 
 ---
 
 **維護者**: 開發團隊 + AI 助手
-**最後更新**: 2025-11-12 23:45
-**下次測試**: 修復 FIX-088 後重新測試 Budget Pools 模組
+**最後更新**: 2025-11-12 14:45
+**下次測試**: 修復 FIX-088 和 FIX-089 後重新測試 Budget Pools 和 Projects 模組

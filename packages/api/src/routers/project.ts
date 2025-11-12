@@ -168,6 +168,7 @@ export const projectRouter = createTRPCRouter({
               select: {
                 id: true,
                 name: true,
+                totalAmount: true,
                 financialYear: true,
               },
             },

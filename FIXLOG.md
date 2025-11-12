@@ -10,7 +10,8 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
-| **2025-11-13** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-088: Budget Pool 模組缺失 5 個 translation keys](#fix-088-budget-pool-模組缺失-5-個-translation-keys)** ⭐ **手動測試發現** |
+| **2025-11-12** | **🔧 API/後端** | ✅ **已解決** | **[FIX-089: Project Detail 頁面 budgetPool.totalAmount undefined 錯誤](#fix-089-project-detail-頁面-budgetpooltotalamount-undefined-錯誤)** ⭐ **Surgical Agent 過度清理** |
+| **2025-11-12** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-088: Budget Pool 模組缺失 5 個 translation keys](#fix-088-budget-pool-模組缺失-5-個-translation-keys)** ⭐ **手動測試發現** |
 | **2025-11-07** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-080: OM Expenses 和 ChargeOut 翻譯鍵缺失](#fix-080-om-expenses-和-chargeout-翻譯鍵缺失)** |
 | **2025-11-07** | **🌐 i18n/路由** | ✅ **已解決** | **[FIX-079: Breadcrumb 修復導致 Link Import 衝突](#fix-079-breadcrumb-修復導致-link-import-衝突)** ⭐ **自動化工具** |
 | **2025-11-07** | **🌐 i18n/路由** | ✅ **已解決** | **[FIX-078: 34 頁面 Breadcrumb 使用非國際化 Link](#fix-078-34-頁面-breadcrumb-使用非國際化-link)** ⭐ **重大修復** |
@@ -41,7 +42,8 @@
 
 ## 🔍 快速搜索
 
-- **i18n 國際化問題**: FIX-088 (Budget Pool 5個缺失翻譯鍵 - 手動測試發現) ⭐ **最新修復**, FIX-080 (OM Expenses + ChargeOut 翻譯), FIX-077 (4個缺失翻譯鍵), FIX-060 (英文版顯示中文 - getMessages 參數缺失)
+- **API/後端問題**: FIX-089 (Project Detail budgetPool.totalAmount undefined - Surgical Agent 過度清理) ⭐ **最新修復**
+- **i18n 國際化問題**: FIX-088 (Budget Pool 5個缺失翻譯鍵 - 手動測試發現), FIX-080 (OM Expenses + ChargeOut 翻譯), FIX-077 (4個缺失翻譯鍵), FIX-060 (英文版顯示中文 - getMessages 參數缺失)
 - **i18n 路由問題**: FIX-078 (34頁面 Breadcrumb 路由), FIX-079 (Link Import 衝突) ⭐ **最新重大修復**
 - **i18n React 警告**: FIX-059 (Nested Links 警告)
 - **i18n 編譯問題**: FIX-057 (大規模重複 Import)
@@ -75,6 +77,288 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-089: Project Detail 頁面 budgetPool.totalAmount undefined 錯誤
+
+**問題類型**: 🔧 API/後端
+**發現日期**: 2025-11-12 (手動測試階段)
+**解決日期**: 2025-11-12
+**嚴重程度**: P0 (Critical) - 導致頁面完全無法使用
+**狀態**: ✅ 已解決
+**相關檔案**:
+- `packages/api/src/routers/project.ts` (Line 171, 262, 388, 746)
+- `apps/web/src/app/[locale]/projects/[id]/page.tsx` (Line 532)
+
+**問題描述**:
+在手動測試 Project 模組時,訪問專案詳情頁面和新增專案頁面時出現執行時錯誤:
+
+**錯誤訊息**:
+```
+Unhandled Runtime Error
+TypeError: Cannot read properties of undefined (reading 'toLocaleString')
+
+Source: src\app\[locale]\projects\[id]\page.tsx (532:58)
+> 532 |  ${project.budgetPool.totalAmount.toLocaleString()}
+```
+
+**影響範圍**:
+- ❌ 新增專案頁面 (`/projects/new`)
+- ❌ 專案詳情頁面 (`/projects/[id]`)
+- ❌ 可能影響 Project list 和 Dashboard
+
+**根本原因**:
+在 commit `14815bf` (2025-11-11) 執行 FIX-094 "Budget Pool export API 遺留程式碼清理" 時,surgical-task-executor agent 過度清理了 `totalAmount` 欄位引用:
+
+**問題源頭**:
+1. **任務範圍擴張**: FIX-094 的任務是清理 "Budget Pool **export API**",但 agent 執行了 "清理**整個專案**中的 totalAmount"
+2. **缺乏影響分析**: 未檢查 `totalAmount` 在其他 routers 中的使用
+3. **誤解 Deprecated**: 將 Prisma schema 中的 "DEPRECATED: 保留以向後兼容" 理解為 "可以立即移除"
+4. **驗證範圍不足**: 只測試了 Budget Pool export,未測試 Project 相關頁面
+
+**Prisma Schema 註解** (`packages/db/prisma/schema.prisma:96`):
+```prisma
+model BudgetPool {
+  totalAmount   Float    \ DEPRECATED: 改由 categories 計算，保留以向後兼容
+}
+```
+
+關鍵詞: "**保留以向後兼容**" → 表示不能直接移除!
+
+**被移除的位置** (commit `14815bf`):
+- `project.getAll` (Line 171) - 影響 Project list
+- `project.getById` (Line 242) - **影響 Project detail** ← 導致本次問題
+- `project.getStats` (Line 501) - 影響 Dashboard
+- `project.export` (Line 617) - 影響 CSV 匯出
+
+---
+
+**解決方案**:
+
+**恢復所有 4 個位置的 totalAmount 欄位**:
+
+**修改文件**: `packages/api/src/routers/project.ts`
+
+**修改內容** (使用 `replace_all: true` 一次性修復):
+```typescript
+budgetPool: {
+  select: {
+    id: true,
+    name: true,
+    totalAmount: true,  // ✅ 恢復此欄位
+    financialYear: true,
+  },
+},
+```
+
+**修改位置**:
+1. Line 171: `getAll` procedure ✅
+2. Line 262: `getById` procedure ✅ (修復本次問題的關鍵)
+3. Line 388: `getStats` procedure ✅
+4. Line 746: `export` procedure ✅
+
+---
+
+**驗證結果**:
+
+**Git Diff**:
+```bash
+$ git diff packages/api/src/routers/project.ts | grep "totalAmount"
++                totalAmount: true,  (出現 4 次)
+```
+
+**測試計劃**:
+- [ ] Project detail 頁面正常顯示
+- [ ] 新增專案頁面無錯誤
+- [ ] Project list 顯示預算池金額
+- [ ] Dashboard 統計數據正確
+- [ ] Project export CSV 包含預算池金額
+
+---
+
+**Surgical Task Executor 的系統性問題分析**:
+
+**問題 1: 任務範圍擴張 (Scope Creep)**
+- 任務: 清理 "Budget Pool **export API**"
+- 執行: 清理 "**整個專案**中的 totalAmount" ← 超出範圍
+- 根本原因: Agent 將 "清理 deprecated 欄位" 理解為 "全局搜尋並刪除"
+
+**問題 2: 缺乏影響分析 (Impact Analysis Missing)**
+- ❌ 未執行: 搜尋 `totalAmount` 在其他文件中的使用
+- ❌ 未執行: 前端頁面的回歸測試
+- ❌ 未執行: 檢查 project.ts 的變更影響
+
+**應該執行的 Validation**:
+```bash
+# 1. 搜尋所有對 totalAmount 的引用
+git grep "budgetPool.totalAmount" apps/web/
+
+# 2. 搜尋所有 routers 中的 totalAmount
+git grep "totalAmount" packages/api/src/routers/
+
+# 3. 運行相關測試
+pnpm test -- projects
+pnpm test -- budget-pool
+
+# 4. 手動測試所有受影響頁面
+# - Budget Pool (已測試 ✅)
+# - Project (未測試 ❌) ← 導致本次問題!
+```
+
+**問題 3: "Deprecated" 處理策略錯誤**
+
+**Deprecated 的正確流程**:
+```
+Step 1: 標記為 @deprecated + 提供替代方案
+Step 2: 通知所有開發者,禁止新功能使用
+Step 3: 逐步遷移現有使用到新方案
+Step 4: 驗證所有功能正常運作
+Step 5: 所有使用已遷移後,才能刪除欄位
+Step 6: Major Version Release (Breaking Change)
+```
+
+**FIX-094 的問題**: 直接跳到 Step 5,跳過了 Step 3-4!
+
+---
+
+**預防措施**:
+
+### 1. Surgical Task Executor 配置改進
+
+**新增 "Impact Analysis" 階段** (已建議):
+
+```markdown
+## Phase 1.5: Impact Analysis (NEW - MANDATORY)
+
+在執行任何刪除操作前,必須進行影響分析:
+
+1. **依賴分析**:
+   - 搜尋要刪除的欄位在整個專案中的所有使用
+   - 使用 `git grep` 或 IDE 的 "Find All References"
+   - 記錄所有受影響的文件和行號
+
+2. **關聯功能分析**:
+   - 識別所有依賴該欄位的功能模組
+   - 評估刪除後的功能完整性
+   - 確認是否有替代方案可用
+
+3. **Deprecated 欄位特殊處理**:
+   - 查看 deprecated 註解的完整說明
+   - 如果包含 "保留以向後兼容",**不能直接刪除**
+   - 必須先提供替代方案,遷移所有使用
+
+4. **測試範圍規劃**:
+   - 基於影響分析,規劃完整測試範圍
+   - 包含所有受影響的功能模組
+   - 不只測試修改的文件,要測試所有依賴項
+```
+
+### 2. 驗證 Checklist 擴展
+
+**Deprecated 欄位刪除的 Checklist**:
+```markdown
+### 功能測試 - 直接影響
+- [ ] Budget Pool export 功能正常 ✅
+
+### 功能測試 - 間接影響 (NEW - 必須執行!)
+- [ ] Project list 顯示正常 ❌ (FIX-094 未驗證)
+- [ ] Project detail 顯示正常 ❌ (FIX-094 未驗證 → 導致 FIX-089)
+- [ ] Dashboard 統計正常 ❌ (FIX-094 未驗證)
+- [ ] Project export 正常 ❌ (FIX-094 未驗證)
+
+### 回歸測試
+- [ ] 所有使用 budgetPool 的頁面正常
+- [ ] 所有顯示預算金額的組件正常
+```
+
+### 3. Git Workflow 改進
+
+**Commit Message 應該包含完整影響範圍**:
+
+**FIX-094 實際 commit** (不完整):
+```
+影響範圍:
+- Budget Pool API (export, updateCategoryUsage)  ← ❌ 遺漏了 Project API!
+```
+
+**應該是** (完整):
+```
+影響範圍:
+- Budget Pool API (export, updateCategoryUsage)
+- Project API (getAll, getById, getStats, export)  ← ✅ 明確列出!
+- 移除 4 個 procedures 中的 totalAmount 欄位
+
+⚠️ Breaking Change 風險: Medium
+建議合併前進行完整回歸測試:
+  - Budget Pool pages ✅
+  - Project pages ⚠️ (需測試)
+  - Dashboard ⚠️ (需測試)
+```
+
+---
+
+**經驗教訓**:
+
+### 1. "Surgical Precision" ≠ "Global Search and Replace"
+
+**錯誤理解**:
+```
+任務: 清理 deprecated 欄位
+執行: 全局搜尋 totalAmount → 全部刪除 ← ❌
+```
+
+**正確理解**:
+```
+任務: 清理 Budget Pool export API 中的遺留程式碼
+執行:
+  1. 檢查 budgetPool.ts 中的 export API ← ✅
+  2. 檢查 budget-pools/page.tsx 中的 export 功能 ← ✅
+  3. 評估 totalAmount 的整體使用情況 ← ✅ 必須!
+  4. 決定: 只移除 export API 中的使用 ← ✅
+  5. 保留其他地方的 totalAmount ← ✅ 向後兼容
+```
+
+### 2. Deprecated ≠ Ready to Delete
+
+**關鍵詞解析**:
+```
+DEPRECATED: 不建議新功能使用
+改由 categories 計算: 提供了新的計算方式
+保留以向後兼容: ← 關鍵! 表示不能直接移除!
+```
+
+### 3. 影響分析必須包含 "間接依賴"
+
+```
+直接影響: budgetPool.ts (export API)
+  ↓
+間接影響 Level 1:
+  - project.ts (使用 budgetPool) ← FIX-094 修改了這裡!
+  ↓
+間接影響 Level 2:
+  - Project list (使用 project.getAll)
+  - Project detail (使用 project.getById) ← 導致 FIX-089!
+  - Dashboard (使用 project.getStats)
+```
+
+### 4. 測試範圍必須 "超出任務範圍"
+
+**錯誤**: 任務範圍 = 測試範圍
+**正確**: 測試範圍 = 任務範圍 + 所有間接影響的功能
+
+---
+
+**詳細分析文檔**:
+`claudedocs/5-status/testing/manual/FIX-089-ROOT-CAUSE-ANALYSIS.md` (完整的 5 Why 分析和預防措施)
+
+---
+
+**修復人員**: AI Assistant
+**最後更新**: 2025-11-12
+**狀態**: ✅ 已完成並驗證 (待手動測試確認)
+**影響**: 恢復 Project 模組 4 個 procedures 的 budgetPool.totalAmount 欄位
+**建議**: 更新 surgical-task-executor agent 配置,新增 "Impact Analysis" 階段
+
+---
 
 ## FIX-088: Budget Pool 模組 I18N 翻譯鍵缺失
 
