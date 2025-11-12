@@ -681,6 +681,17 @@
       "emptyContent": "請輸入評論內容",
       "loginRequired": "請先登入"
     },
+    "approval": {
+      "comment": {
+        "label": "審批意見",
+        "placeholder": "輸入審批意見..."
+      },
+      "actions": {
+        "approve": "批准",
+        "reject": "駁回",
+        "requestInfo": "要求更多資訊"
+      }
+    },
     "attachments": {
       "title": "項目計劃書文件",
       "proposalFile": "提案文件",
@@ -736,6 +747,11 @@
           "notesRequired": "請輸入會議記錄"
         }
       }
+    },
+    "messages": {
+      "createSuccess": "預算提案已成功建立",
+      "updateSuccess": "預算提案已成功更新",
+      "deleteSuccess": "預算提案已成功刪除"
     }
   },
   "budgetPools": {

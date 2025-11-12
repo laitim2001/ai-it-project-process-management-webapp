@@ -681,6 +681,17 @@
       "emptyContent": "Please enter comment content",
       "loginRequired": "Please login first"
     },
+    "approval": {
+      "comment": {
+        "label": "Approval Comment",
+        "placeholder": "Enter approval comment..."
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "requestInfo": "Request More Info"
+      }
+    },
     "attachments": {
       "title": "Project Proposal Document",
       "proposalFile": "Proposal File",
@@ -736,6 +747,11 @@
           "notesRequired": "Please enter meeting notes"
         }
       }
+    },
+    "messages": {
+      "createSuccess": "Budget proposal has been created successfully",
+      "updateSuccess": "Budget proposal has been updated successfully",
+      "deleteSuccess": "Budget proposal has been deleted successfully"
     }
   },
   "budgetPools": {

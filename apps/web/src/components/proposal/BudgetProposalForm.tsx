@@ -42,7 +42,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
   const createMutation = api.budgetProposal.create.useMutation({
     onSuccess: (proposal) => {
       toast({
-        title: tToast('success'),
+        title: tToast('success.title'),
         description: t('messages.createSuccess'),
         variant: 'success',
       });
@@ -52,7 +52,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     },
     onError: (error) => {
       toast({
-        title: tToast('error'),
+        title: tToast('error.title'),
         description: error.message,
         variant: 'destructive',
       });
@@ -62,7 +62,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
   const updateMutation = api.budgetProposal.update.useMutation({
     onSuccess: () => {
       toast({
-        title: tToast('success'),
+        title: tToast('success.title'),
         description: t('messages.updateSuccess'),
         variant: 'success',
       });
@@ -71,7 +71,7 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     },
     onError: (error) => {
       toast({
-        title: tToast('error'),
+        title: tToast('error.title'),
         description: error.message,
         variant: 'destructive',
       });
