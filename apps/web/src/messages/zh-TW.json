@@ -9,6 +9,7 @@
       "cancel": "取消",
       "confirm": "確認",
       "save": "儲存",
+      "saving": "儲存中...",
       "create": "新增",
       "update": "更新",
       "delete": "刪除",
@@ -107,6 +108,12 @@
       "items": "項",
       "count": "個",
       "records": "筆"
+    },
+    "messages": {
+      "success": "成功",
+      "error": "錯誤",
+      "warning": "警告",
+      "info": "資訊"
     }
   },
   "navigation": {
@@ -804,7 +811,9 @@
         "progress": "使用進度"
       },
       "projects": {
-        "title": "相關專案"
+        "title": "相關專案",
+        "empty": "暫無相關專案",
+        "emptyHint": "此預算池還沒有關聯的專案"
       },
       "utilization": "使用情況",
       "fiscalYearLabel": "財政年度"
@@ -951,7 +960,11 @@
       "success": "操作成功",
       "error": "操作失敗",
       "exportSuccess": "資料已成功匯出",
-      "exportError": "匯出失敗，請稍後再試"
+      "exportError": "匯出失敗，請稍後再試",
+      "createSuccess": "預算池創建成功",
+      "updateSuccess": "預算池更新成功",
+      "deleteSuccess": "預算池刪除成功",
+      "deleteConfirm": "確定要刪除此預算池嗎？此操作無法撤銷。"
     }
   },
   "vendors": {

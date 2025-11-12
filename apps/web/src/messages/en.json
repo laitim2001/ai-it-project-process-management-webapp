@@ -9,6 +9,7 @@
       "cancel": "Cancel",
       "confirm": "Confirm",
       "save": "Save",
+      "saving": "Saving...",
       "create": "Create",
       "update": "Update",
       "delete": "Delete",
@@ -107,6 +108,12 @@
       "items": "items",
       "count": "count",
       "records": "records"
+    },
+    "messages": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Information"
     }
   },
   "navigation": {
@@ -804,7 +811,9 @@
         "progress": "Usage Progress"
       },
       "projects": {
-        "title": "Related Projects"
+        "title": "Related Projects",
+        "empty": "No related projects",
+        "emptyHint": "This budget pool has no associated projects yet"
       },
       "utilization": "使用情況",
       "fiscalYearLabel": "Fiscal Year"
@@ -951,7 +960,11 @@
       "success": "Operation successful",
       "error": "Operation failed",
       "exportSuccess": "Data exported successfully",
-      "exportError": "Export failed, please try again later"
+      "exportError": "Export failed, please try again later",
+      "createSuccess": "Budget pool created successfully",
+      "updateSuccess": "Budget pool updated successfully",
+      "deleteSuccess": "Budget pool deleted successfully",
+      "deleteConfirm": "Are you sure you want to delete this budget pool? This action cannot be undone."
     }
   },
   "vendors": {

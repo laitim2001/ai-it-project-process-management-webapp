@@ -10,6 +10,7 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| **2025-11-13** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-088: Budget Pool 模組缺失 5 個 translation keys](#fix-088-budget-pool-模組缺失-5-個-translation-keys)** ⭐ **手動測試發現** |
 | **2025-11-07** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-080: OM Expenses 和 ChargeOut 翻譯鍵缺失](#fix-080-om-expenses-和-chargeout-翻譯鍵缺失)** |
 | **2025-11-07** | **🌐 i18n/路由** | ✅ **已解決** | **[FIX-079: Breadcrumb 修復導致 Link Import 衝突](#fix-079-breadcrumb-修復導致-link-import-衝突)** ⭐ **自動化工具** |
 | **2025-11-07** | **🌐 i18n/路由** | ✅ **已解決** | **[FIX-078: 34 頁面 Breadcrumb 使用非國際化 Link](#fix-078-34-頁面-breadcrumb-使用非國際化-link)** ⭐ **重大修復** |
@@ -40,7 +41,7 @@
 
 ## 🔍 快速搜索
 
-- **i18n 國際化問題**: FIX-077 (4個缺失翻譯鍵), FIX-080 (OM Expenses + ChargeOut 翻譯), FIX-060 (英文版顯示中文 - getMessages 參數缺失) ⭐ **最新修復**
+- **i18n 國際化問題**: FIX-088 (Budget Pool 5個缺失翻譯鍵 - 手動測試發現) ⭐ **最新修復**, FIX-080 (OM Expenses + ChargeOut 翻譯), FIX-077 (4個缺失翻譯鍵), FIX-060 (英文版顯示中文 - getMessages 參數缺失)
 - **i18n 路由問題**: FIX-078 (34頁面 Breadcrumb 路由), FIX-079 (Link Import 衝突) ⭐ **最新重大修復**
 - **i18n React 警告**: FIX-059 (Nested Links 警告)
 - **i18n 編譯問題**: FIX-057 (大規模重複 Import)
@@ -74,6 +75,162 @@
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-088: Budget Pool 模組 I18N 翻譯鍵缺失
+
+**問題類型**: 🌐 i18n/國際化
+**發現日期**: 2025-11-12 (手動測試階段)
+**解決日期**: 2025-11-12
+**嚴重程度**: P0 (Critical) - 影響核心功能,控制台出現多個錯誤
+**狀態**: ✅ 已解決
+**相關檔案**:
+- `apps/web/src/messages/zh-TW.json`
+- `apps/web/src/messages/en.json`
+- `apps/web/src/components/budget-pool/BudgetPoolForm.tsx`
+- `apps/web/src/app/[locale]/budget-pools/[id]/page.tsx`
+
+**問題描述**:
+在手動測試 Budget Pool 模組時發現多個 I18N 翻譯鍵缺失,影響新增和編輯功能:
+
+**錯誤訊息**:
+```
+IntlError: MISSING_MESSAGE: Could not resolve `common.actions.saving` in messages for locale `en`.
+IntlError: MISSING_MESSAGE: Could not resolve `common.messages.success` in messages for locale `en`.
+IntlError: MISSING_MESSAGE: Could not resolve `budgetPools.messages.createSuccess` in messages for locale `en`.
+IntlError: MISSING_MESSAGE: Could not resolve `budgetPools.messages.updateSuccess` in messages for locale `zh-TW`.
+IntlError: MISSING_MESSAGE: Could not resolve `budgetPools.detail.projects.empty` in messages for locale `en`.
+```
+
+**影響範圍**:
+- 新增預算池頁面 (`/budget-pools/new`)
+- 編輯預算池頁面 (`/budget-pools/[id]/edit`)
+- 預算池詳情頁面 (`/budget-pools/[id]`)
+- 影響繁體中文 (zh-TW) 和英文 (en) 兩個語言環境
+
+**根本原因**:
+翻譯檔案缺少以下必要的 keys:
+1. `common.actions.saving` - 按鈕儲存中狀態文字
+2. `common.messages.success` - 成功訊息標題
+3. `budgetPools.messages.createSuccess` - 創建成功訊息
+4. `budgetPools.messages.updateSuccess` - 更新成功訊息
+5. `budgetPools.detail.projects.empty` - 無專案時的空狀態文字
+
+**解決方案**:
+
+**1. 新增 common.actions.saving** (zh-TW.json + en.json):
+```json
+// zh-TW.json
+"common": {
+  "actions": {
+    "saving": "儲存中..."
+  }
+}
+
+// en.json
+"common": {
+  "actions": {
+    "saving": "Saving..."
+  }
+}
+```
+
+**2. 新增 common.messages 物件** (zh-TW.json + en.json):
+```json
+// zh-TW.json
+"common": {
+  "messages": {
+    "success": "成功",
+    "error": "錯誤",
+    "warning": "警告",
+    "info": "資訊"
+  }
+}
+
+// en.json
+"common": {
+  "messages": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
+  }
+}
+```
+
+**3. 新增 budgetPools.messages 物件** (zh-TW.json + en.json):
+```json
+// zh-TW.json
+"budgetPools": {
+  "messages": {
+    "createSuccess": "預算池創建成功",
+    "updateSuccess": "預算池更新成功",
+    "deleteSuccess": "預算池刪除成功",
+    "deleteConfirm": "確定要刪除此預算池嗎?此操作無法撤銷。"
+  }
+}
+
+// en.json
+"budgetPools": {
+  "messages": {
+    "createSuccess": "Budget pool created successfully",
+    "updateSuccess": "Budget pool updated successfully",
+    "deleteSuccess": "Budget pool deleted successfully",
+    "deleteConfirm": "Are you sure you want to delete this budget pool? This action cannot be undone."
+  }
+}
+```
+
+**4. 新增 budgetPools.detail.projects.empty** (zh-TW.json + en.json):
+```json
+// zh-TW.json
+"budgetPools": {
+  "detail": {
+    "projects": {
+      "empty": "暫無相關專案",
+      "emptyHint": "此預算池還沒有關聯的專案"
+    }
+  }
+}
+
+// en.json
+"budgetPools": {
+  "detail": {
+    "projects": {
+      "empty": "No related projects",
+      "emptyHint": "This budget pool has no associated projects yet"
+    }
+  }
+}
+```
+
+**驗證結果**:
+```bash
+$ pnpm validate:i18n
+✅ zh-TW.json is valid
+✅ en.json is valid
+✅ All keys are synchronized between zh-TW and en
+Total keys: 1634
+```
+
+**測試結果**:
+- ✅ 新增預算池功能正常,無控制台錯誤
+- ✅ 編輯預算池功能正常,無控制台錯誤
+- ✅ 預算池詳情頁顯示正常,無控制台錯誤
+- ✅ 繁體中文和英文語言切換正常
+
+**學習要點**:
+1. **手動測試的重要性**: 控制台錯誤只有在實際操作時才會發現
+2. **完整性檢查**: I18N keys 必須同時在 zh-TW.json 和 en.json 中定義
+3. **分層結構**: 使用 `common.*` 存放通用訊息,避免重複定義
+4. **驗證工具**: 使用 `pnpm validate:i18n` 確保翻譯檔案的完整性
+
+**預防措施**:
+- 在新增功能時,提前規劃所需的 I18N keys
+- 開發階段啟用控制台錯誤監控
+- 定期執行 `pnpm validate:i18n` 檢查
+- 每次提交前手動測試關鍵功能
+
+---
 
 ## FIX-080: OM Expenses 和 ChargeOut 翻譯鍵缺失
 
