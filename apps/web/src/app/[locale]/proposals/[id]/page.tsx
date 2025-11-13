@@ -185,7 +185,7 @@ export default function ProposalDetailPage() {
           </div>
           <div className="flex gap-2">
             {(proposal.status === 'Draft' || proposal.status === 'MoreInfoRequired') && (
-              <Link href="/proposals/${proposal.id}/edit">
+              <Link href={`/proposals/${proposal.id}/edit`}>
                 <Button variant="outline">{tCommon('actions.edit')}</Button>
               </Link>
             )}

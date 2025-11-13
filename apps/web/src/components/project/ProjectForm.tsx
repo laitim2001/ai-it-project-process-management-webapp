@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/use-toast';
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
 
 interface ProjectFormProps {
   initialData?: {
@@ -54,6 +55,12 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     sortOrder: 'desc',
   });
   const budgetPools = budgetPoolsData?.items ?? [];
+
+  // Prepare budget pool options for Combobox
+  const budgetPoolOptions: ComboboxOption[] = budgetPools.map((pool) => ({
+    value: pool.id,
+    label: `${pool.name} - FY${pool.financialYear} ($${pool.totalAmount.toLocaleString()})`,
+  }));
 
   // Module 2: 動態載入預算類別列表（當選擇預算池時）
   const { data: budgetCategories } = api.budgetPool.getCategories.useQuery(
@@ -180,7 +187,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          {tFields('name.label')} {tCommon('required')}
+          {tFields('name.label')} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -212,23 +219,17 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       </div>
 
       <div>
-        <label htmlFor="budgetPoolId" className="block text-sm font-medium text-gray-700">
-          {tFields('budgetPool.label')} {tCommon('required')}
+        <label htmlFor="budgetPoolId" className="block text-sm font-medium text-gray-700 mb-2">
+          {tFields('budgetPool.label')} <span className="text-red-500">*</span>
         </label>
-        <select
-          id="budgetPoolId"
-          name="budgetPoolId"
+        <Combobox
+          options={budgetPoolOptions}
           value={formData.budgetPoolId}
-          onChange={(e) => setFormData({ ...formData, budgetPoolId: e.target.value })}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-        >
-          <option value="">{tFields('budgetPool.placeholder')}</option>
-          {budgetPools?.map((pool) => (
-            <option key={pool.id} value={pool.id}>
-              {pool.name} - FY{pool.financialYear} (${pool.totalAmount.toLocaleString()})
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setFormData({ ...formData, budgetPoolId: value })}
+          placeholder={tFields('budgetPool.placeholder')}
+          searchPlaceholder={tCommon('actions.search')}
+          emptyText={tCommon('noResults')}
+        />
         {errors.budgetPoolId && (
           <p className="mt-1 text-sm text-red-600">{errors.budgetPoolId}</p>
         )}
@@ -289,7 +290,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="managerId" className="block text-sm font-medium text-gray-700">
-            {tFields('manager.label')} {tCommon('required')}
+            {tFields('manager.label')} <span className="text-red-500">*</span>
           </label>
           <select
             id="managerId"
@@ -312,7 +313,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="supervisorId" className="block text-sm font-medium text-gray-700">
-            {tFields('supervisor.label')} {tCommon('required')}
+            {tFields('supervisor.label')} <span className="text-red-500">*</span>
           </label>
           <select
             id="supervisorId"
@@ -337,7 +338,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-            {tFields('startDate.label')} {tCommon('required')}
+            {tFields('startDate.label')} <span className="text-red-500">*</span>
           </label>
           <input
             type="date"

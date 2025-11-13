@@ -54,6 +54,12 @@ export function Sidebar() {
       title: t('sections.projectBudget'),
       items: [
         {
+          name: t('menu.budgetPools'),
+          href: "/budget-pools",
+          icon: Wallet,
+          description: t('descriptions.budgetPools')
+        },
+        {
           name: t('menu.projects'),
           href: "/projects",
           icon: FolderKanban,
@@ -64,12 +70,6 @@ export function Sidebar() {
           href: "/proposals",
           icon: FileText,
           description: t('descriptions.proposals')
-        },
-        {
-          name: t('menu.budgetPools'),
-          href: "/budget-pools",
-          icon: Wallet,
-          description: t('descriptions.budgetPools')
         },
       ]
     },

@@ -80,13 +80,13 @@ export default function NewQuotePage() {
       ];
 
       if (!allowedTypes.includes(selectedFile.type)) {
-        toast({ title: tToast('error'), description: t('validation.invalidFileType'), variant: "destructive" });
+        toast({ title: tToast('error.title'), description: t('validation.invalidFileType'), variant: "destructive" });
         return;
       }
 
       // 驗證文件大小 (10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
-        toast({ title: tToast('error'), description: t('validation.fileTooLarge'), variant: "destructive" });
+        toast({ title: tToast('error.title'), description: t('validation.fileTooLarge'), variant: "destructive" });
         return;
       }
 
@@ -102,22 +102,22 @@ export default function NewQuotePage() {
 
     // 驗證表單
     if (!projectId) {
-      toast({ title: tToast('error'), description: t('validation.projectRequired'), variant: "destructive" });
+      toast({ title: tToast('error.title'), description: t('validation.projectRequired'), variant: "destructive" });
       return;
     }
 
     if (!vendorId) {
-      toast({ title: tToast('error'), description: t('validation.vendorRequired'), variant: "destructive" });
+      toast({ title: tToast('error.title'), description: t('validation.vendorRequired'), variant: "destructive" });
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      toast({ title: tToast('error'), description: t('validation.amountRequired'), variant: "destructive" });
+      toast({ title: tToast('error.title'), description: t('validation.amountRequired'), variant: "destructive" });
       return;
     }
 
     if (!file) {
-      toast({ title: tToast('error'), description: t('validation.fileRequired'), variant: "destructive" });
+      toast({ title: tToast('error.title'), description: t('validation.fileRequired'), variant: "destructive" });
       return;
     }
 
@@ -140,18 +140,18 @@ export default function NewQuotePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || tToast('error'));
+        throw new Error(result.error || tToast('error.general'));
       }
 
-      toast({ title: tToast('success'), description: t('messages.createSuccess'), variant: "success" });
+      toast({ title: tToast('success.title'), description: t('messages.createSuccess'), variant: "success" });
 
       // 跳轉到報價單列表頁
       router.push('/quotes');
     } catch (error) {
       console.error('創建報價單錯誤:', error);
       toast({
-        title: tToast('error'),
-        description: error instanceof Error ? error.message : tToast('error'),
+        title: tToast('error.title'),
+        description: error instanceof Error ? error.message : tToast('error.general'),
         variant: 'destructive',
       });
     } finally {

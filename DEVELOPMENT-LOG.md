@@ -20,6 +20,97 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-13 18:30 | 🐛 修復 | 修復 Project Edit Combobox 選取功能 (FIX-093 + FIX-093.1)
+
+**類型**: 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**主要工作**:
+
+1. ✅ **FIX-093.1: 修復 OM 費用月度記錄保存訊息翻譯缺失**
+   - **問題**: `IntlError: MISSING_MESSAGE: omExpenses.monthlyGrid.saveSuccess`
+   - **修改**:
+     - `apps/web/src/messages/zh-TW.json` line 1862
+     - `apps/web/src/messages/en.json` line 1862
+   - **新增內容**: `"saveSuccess": "月度記錄已保存，總實際支出：{amount}"`
+   - **影響**: OM 費用月度記錄保存功能正常運作
+   - **完成時間**: 5 分鐘
+
+2. ✅ **FIX-093: 修復 Project Edit 頁面 Combobox 選取功能完全失效**
+   - **問題描述**:
+     - 預算池 Combobox 選項顯示為灰色
+     - 無法點擊選取任何選項
+     - 搜尋功能無反應（初期）
+     - 瀏覽器控制台沒有錯誤訊息
+
+   - **根本原因分析**:
+     - cmdk 的 CommandItem 組件內部設置 `data-[disabled]` 屬性
+     - CSS 規則 `data-[disabled]:pointer-events-none` 阻止點擊事件
+     - CSS 規則 `data-[disabled]:opacity-50` 導致灰色外觀
+     - UUID 值與 cmdk 內部匹配邏輯衝突
+
+   - **解決方案**:
+     - **完全移除 cmdk 依賴**（Command, CommandInput, CommandItem 等）
+     - 使用原生 `<input>` 實現搜尋功能（受控組件）
+     - 使用原生 `<div>` + `onClick` 實現選項選取
+     - 保留 Radix UI Popover（穩定可靠）
+     - 使用 `useMemo` 優化過濾性能
+
+   - **修改**: `apps/web/src/components/ui/combobox.tsx` (完全重寫)
+     - 移除: Command, CommandInput, CommandItem, CommandList, CommandEmpty, CommandGroup
+     - 新增: 原生 HTML 元素 + React 狀態管理
+     - 代碼變更: ~120 行移除, ~80 行新增 = 淨減少 40 行
+
+   - **迭代過程** (共 8 次嘗試):
+     1. 嘗試添加 `keywords` prop → 失敗
+     2. 嘗試客戶端過濾 `shouldFilter={false}` → 搜尋成功但選取失敗
+     3. 嘗試使用 UUID 作為 value → 失敗
+     4. 嘗試完全遵循官方範例 → 失敗
+     5. 嘗試 label-to-UUID 映射 → 搜尋成功但選取失敗
+     6. 嘗試添加 `disabled={false}` → 失敗
+     7. 嘗試添加 `keywords={[option.label]}` → 未測試
+     8. **完全重寫移除 cmdk** → ✅ 成功
+
+   - **影響**:
+     - ✅ 搜尋功能正常（實時過濾）
+     - ✅ 選項不再是灰色（正常顏色）
+     - ✅ 可以點擊選取（事件觸發正常）
+     - ✅ 代碼更簡單且可維護
+     - ✅ 性能優化（useMemo）
+   - **完成時間**: 2 小時（包含 8 次迭代和深度調查）
+
+**測試驗證**:
+- ✅ Project Edit 頁面預算池 Combobox 功能完全正常
+- ✅ 搜尋關鍵字（如 "2024"）能正確過濾選項
+- ✅ 瀏覽器控制台顯示 "Combobox handleSelect triggered: [UUID]"
+- ✅ 選項背景顏色正常，可正常點擊
+- ✅ OM 費用月度記錄保存訊息正常顯示
+
+**相關文件**:
+- `apps/web/src/components/ui/combobox.tsx` - Combobox 組件重寫
+- `apps/web/src/messages/zh-TW.json` - 繁中翻譯
+- `apps/web/src/messages/en.json` - 英文翻譯
+- `apps/web/src/components/project/ProjectForm.tsx` - 使用 Combobox 的表單
+
+**技術關鍵點**:
+- **cmdk 限制**: 不適合 UUID-based 的 Combobox 場景
+- **CSS 調查**: `data-[disabled]:pointer-events-none` 是視覺症狀的根源
+- **架構決策**: 有時重寫比修補更好
+- **調試策略**: console.log 顯示 onSelect 未觸發，指向事件處理問題而非邏輯問題
+- **漸進式改進**: 每次迭代都學到新知識，最終導向正確解決方案
+
+**技術學習**:
+1. 第三方庫限制: cmdk 對字符串值（如 "next.js", "remix"）工作良好，但對 UUID 值掙扎
+2. 事件處理: `pointer-events: none` 完全阻止所有事件，包括 onClick
+3. 原生優勢: 有時原生 HTML + React 比複雜庫更可靠
+4. 性能優化: useMemo 對列表過濾很重要
+
+**下一步**:
+- 繼續第三輪完整測試
+- 驗證其他使用 Combobox 的頁面
+- 準備 Epic 9 Sprint 1
+
+---
+
 ### 2025-11-13 16:45 | 🐛 修復 | 修復第二輪測試發現的 4 個問題 (FIX-089 ~ FIX-092)
 
 **類型**: 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
