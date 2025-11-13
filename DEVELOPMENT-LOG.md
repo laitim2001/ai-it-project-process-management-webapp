@@ -20,6 +20,72 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-13 16:45 | 🐛 修復 | 修復第二輪測試發現的 4 個問題 (FIX-089 ~ FIX-092)
+
+**類型**: 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**主要工作**:
+
+1. ✅ **FIX-089: 更新 CLAUDE.md - 添加 I18N 預防指引**
+   - **問題**: AI agents 多次產生翻譯 key 錯誤，需要系統性預防措施
+   - **修改**: `CLAUDE.md` lines 607-650
+   - **新增內容**:
+     - Common Issue #4: "使用不存在的 Translation Keys"
+     - Best Practices 完整章節：包含 pre-check 命令、workflow、namespace 層級說明
+     - 針對 AI Agents 的具體指引和測試流程
+   - **影響**: 未來 AI-generated 代碼將有明確的 I18N 檢查流程
+
+2. ✅ **FIX-090: 修復 Expense 建立時的外鍵約束錯誤**
+   - **問題**: `Foreign key constraint violated: Expense_budgetCategoryId_fkey`
+   - **根本原因**:
+     - purchaseOrder 查詢沒有 include project.budgetCategory
+     - 空字串 budgetCategoryId 被當作 truthy 值，跳過 fallback 邏輯
+   - **修改**: `packages/api/src/routers/expense.ts`
+     - Lines 256-265: 增強 Prisma include 以載入嵌套的 budgetCategory
+     - Lines 305-307: 改進空字串處理邏輯 `(input.budgetCategoryId && input.budgetCategoryId.trim() !== '')`
+   - **影響**: Expense 建立流程正常運作，正確處理 optional foreign key
+
+3. ✅ **FIX-091: 修復 OM 費用表單的費用類別欄位類型**
+   - **問題**: 費用類別欄位顯示為 text field，應為 select dropdown
+   - **根本原因**: 使用了 `<Input>` + `<datalist>` 組合（瀏覽器渲染為文字框）
+   - **修改**: `apps/web/src/components/om-expense/OMExpenseForm.tsx` lines 266-290
+     - 替換為標準 `<select>` 元素
+     - 保持設計系統一致的樣式類別
+   - **影響**: 改善用戶體驗，提供清晰的下拉選擇
+
+4. ✅ **FIX-092: 修復 OM 費用建立成功訊息翻譯缺失**
+   - **問題**: `IntlError: MISSING_MESSAGE: omExpenses.form.messages.createSuccess`
+   - **根本原因**: Translation namespace 層級錯誤
+     - 使用: `useTranslations('omExpenses.form')` + `t('messages.createSuccess')`
+     - 實際路徑: `omExpenses.messages.createSuccess`
+   - **修改**: `apps/web/src/components/om-expense/OMExpenseForm.tsx`
+     - Line 59: 新增專用 hook `const tMessages = useTranslations('omExpenses.messages')`
+     - Lines 110, 127: 改用 `tMessages('createSuccess')` 和 `tMessages('updateSuccess')`
+   - **影響**: Toast 訊息正常顯示，符合 I18N 最佳實踐
+
+**測試驗證**:
+- ✅ Dev server 運行正常，無 IntlError 或 TRPCClient 錯誤
+- ✅ 所有修改的檔案通過 TypeScript 檢查
+- ✅ 無新增 ESLint 或 Prettier 警告
+
+**相關文件**:
+- `CLAUDE.md` - I18N 最佳實踐指引
+- `packages/api/src/routers/expense.ts` - Expense 建立邏輯
+- `apps/web/src/components/om-expense/OMExpenseForm.tsx` - OM 費用表單
+
+**技術關鍵點**:
+- Prisma nested include 處理 optional relations
+- JavaScript truthiness: 空字串 vs null/undefined
+- next-intl namespace 層級理解
+- React Hook Form + shadcn/ui select 整合
+
+**下一步**:
+- 執行完整的第三輪測試
+- 驗證所有 CRUD 流程
+- 準備 Epic 9 Sprint 1
+
+---
+
 ### 2025-11-12 23:30 | 📋 文檔 | 完成專案入門總結和索引維護
 
 **類型**: 文檔 | **負責人**: AI 助手 | **狀態**: ✅ 完成
