@@ -256,7 +256,11 @@ export const expenseRouter = createTRPCRouter({
       const purchaseOrder = await ctx.prisma.purchaseOrder.findUnique({
         where: { id: input.purchaseOrderId },
         include: {
-          project: true,
+          project: {
+            include: {
+              budgetCategory: true,
+            },
+          },
         },
       });
 
@@ -298,7 +302,9 @@ export const expenseRouter = createTRPCRouter({
             description: input.description,
             // projectId 不存在於 Expense model，已移除
             purchaseOrderId: input.purchaseOrderId,
-            budgetCategoryId: input.budgetCategoryId || purchaseOrder.project.budgetCategoryId,
+            budgetCategoryId: (input.budgetCategoryId && input.budgetCategoryId.trim() !== '')
+              ? input.budgetCategoryId
+              : purchaseOrder.project.budgetCategoryId || undefined,
             vendorId: input.vendorId,
             invoiceNumber: input.invoiceNumber,
             invoiceDate: input.invoiceDate,

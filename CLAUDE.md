@@ -604,6 +604,12 @@ Mailhog UI:   localhost:8025
    - Always use translation keys via `useTranslations()`
    - Hardcoded text breaks when switching locales
 
+4. **Using Translation Keys Before They Exist**: When creating new components or using AI agents
+   - Always verify translation keys exist before using them in code
+   - Check both `en.json` and `zh-TW.json` for the key path
+   - If key doesn't exist, add it to both files first, then use in code
+   - Example: Using `t('messages.search')` when only `t('searchPlaceholder')` exists will cause IntlError
+
 **Validation Workflow:**
 ```bash
 # Always run validation before committing translation changes
@@ -622,6 +628,26 @@ pnpm validate:i18n
 3. Run `pnpm validate:i18n` to verify
 4. Clear `.next/` cache if changes don't appear
 5. Test in both English and Chinese modes
+
+**Best Practices When Using AI Agents/Automated Tools:**
+1. **Pre-check Before Using Keys**: AI agents should always verify key existence before using in code
+   ```bash
+   # Example: Check if key exists before using
+   node -e "const data = require('./apps/web/src/messages/zh-TW.json'); console.log('Key exists:', !!data.common?.actions?.search);"
+   ```
+2. **Add Keys First, Use Second**: When creating new components:
+   - Step 1: Add translation keys to both `en.json` and `zh-TW.json`
+   - Step 2: Run `pnpm validate:i18n` to confirm
+   - Step 3: Use the keys in component code
+   - Never assume keys exist based on naming patterns
+3. **Understand Translation Namespace Hierarchy**:
+   - `useTranslations('common.actions')` → Access as `t('search')`
+   - `useTranslations('common')` → Access as `t('actions.search')`
+   - Using wrong namespace path causes "MISSING_MESSAGE" errors
+4. **After Agent-Generated Code**: Always manually test pages that use new translation keys
+   - Visit the actual page in browser
+   - Check for IntlError in console
+   - Test both language modes (en and zh-TW)
 
 **Documentation:**
 - Complete guide: `claudedocs/I18N-TRANSLATION-KEY-GUIDE.md`

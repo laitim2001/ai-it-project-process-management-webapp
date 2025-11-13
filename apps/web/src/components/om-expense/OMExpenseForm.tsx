@@ -56,6 +56,7 @@ interface OMExpenseFormProps {
 
 export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps) {
   const t = useTranslations('omExpenses.form');
+  const tMessages = useTranslations('omExpenses.messages');
   const tCommon = useTranslations('common');
   const tValidation = useTranslations('validation');
   const router = useRouter();
@@ -106,7 +107,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
     onSuccess: (data) => {
       toast({
         title: tCommon('success'),
-        description: t('messages.createSuccess', { name: data.name }),
+        description: tMessages('createSuccess'),
       });
       router.push(`/om-expenses/${data.id}`);
     },
@@ -123,7 +124,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
     onSuccess: (data) => {
       toast({
         title: tCommon('success'),
-        description: t('messages.updateSuccess', { name: data.name }),
+        description: tMessages('updateSuccess'),
       });
       router.push(`/om-expenses/${data.id}`);
     },
@@ -272,20 +273,18 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                       {t('fields.category.label')} <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={t('fields.category.placeholder')}
-                        list="category-suggestions"
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         {...field}
-                      />
+                      >
+                        <option value="">{t('fields.category.placeholder')}</option>
+                        {categories?.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
-                    <datalist id="category-suggestions">
-                      {categories?.map((cat) => (
-                        <option key={cat} value={cat} />
-                      ))}
-                    </datalist>
-                    <FormDescription>
-                      {t('categoryDescription', { defaultValue: 'Enter a new category or select from existing categories' })}
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
