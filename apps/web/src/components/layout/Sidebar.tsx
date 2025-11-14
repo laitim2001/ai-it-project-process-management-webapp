@@ -40,7 +40,7 @@
  * @related
  * - apps/web/src/components/layout/TopBar.tsx - 頂部導航欄組件
  * - apps/web/src/components/layout/dashboard-layout.tsx - 佈局容器組件
- * - packages/auth/index.ts - NextAuth 配置
+ * - packages/auth/src/index.ts - NextAuth 配置
  * - apps/web/src/messages/zh-TW.json - 翻譯檔案
  *
  * @author IT Department

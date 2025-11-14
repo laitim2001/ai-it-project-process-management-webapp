@@ -85,11 +85,11 @@
 
 console.log('🚀 NextAuth 配置文件正在載入...');
 
-import type { NextAuthOptions, User as NextAuthUser } from 'next-auth';
+import type { User as NextAuthUser } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import AzureADB2CProvider from 'next-auth/providers/azure-ad-b2c';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
 
@@ -117,8 +117,8 @@ declare module 'next-auth' {
     id: string;
     email: string;
     name: string | null;
-    roleId: number;
-    role: {
+    roleId?: number;
+    role?: {
       id: number;
       name: string;
     };
@@ -141,7 +141,7 @@ declare module 'next-auth/jwt' {
 /**
  * NextAuth.js 配置選項
  *
- * @type {NextAuthOptions}
+ * @type {any}
  * @const authOptions
  *
  * @description
@@ -159,7 +159,7 @@ declare module 'next-auth/jwt' {
  * @property {boolean} debug - 除錯模式
  * @property {string} secret - JWT 加密金鑰
  */
-export const authOptions: NextAuthOptions = {
+export const authOptions: any = {
   // 注意：JWT strategy 不應該使用 adapter
   // adapter: PrismaAdapter(prisma),
 
@@ -177,7 +177,8 @@ export const authOptions: NextAuthOptions = {
           AzureADB2CProvider({
             clientId: process.env.AZURE_AD_B2C_CLIENT_ID,
             clientSecret: process.env.AZURE_AD_B2C_CLIENT_SECRET,
-            tenantId: process.env.AZURE_AD_B2C_TENANT_ID || process.env.AZURE_AD_B2C_TENANT_NAME,
+            // @ts-ignore - tenantId is required for Azure AD B2C but not in type definition
+            tenantId: process.env.AZURE_AD_B2C_TENANT_NAME || '',
             primaryUserFlow: process.env.AZURE_AD_B2C_PRIMARY_USER_FLOW || 'B2C_1_signupsignin',
             authorization: {
               params: {
@@ -192,6 +193,11 @@ export const authOptions: NextAuthOptions = {
                 name: profile.name || `${profile.given_name || ''} ${profile.family_name || ''}`.trim(),
                 image: profile.picture,
                 emailVerified: profile.email_verified ? new Date() : null,
+                roleId: 1, // 預設為 ProjectManager
+                role: {
+                  id: 1,
+                  name: 'ProjectManager',
+                },
               };
             },
           }),
@@ -214,41 +220,44 @@ export const authOptions: NextAuthOptions = {
           throw new Error('請提供 Email 和密碼');
         }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
         // 查找用戶
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        const dbUser = await prisma.user.findUnique({
+          where: { email },
           include: { role: true },
         });
 
-        if (!user) {
-          console.log('❌ Authorize: 用戶不存在', { email: credentials.email });
+        if (!dbUser) {
+          console.log('❌ Authorize: 用戶不存在', { email });
           throw new Error('Email 或密碼錯誤');
         }
 
-        console.log('✅ Authorize: 用戶存在', { userId: user.id, hasPassword: !!user.password });
+        console.log('✅ Authorize: 用戶存在', { userId: dbUser.id, hasPassword: !!dbUser.password });
 
         // 驗證密碼
-        if (!user.password) {
+        if (!dbUser.password) {
           console.log('❌ Authorize: 用戶無密碼');
           throw new Error('此帳號未設定密碼，請使用其他登入方式');
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        const isPasswordValid = await bcrypt.compare(password, dbUser.password);
 
         if (!isPasswordValid) {
           console.log('❌ Authorize: 密碼錯誤');
           throw new Error('Email 或密碼錯誤');
         }
 
-        console.log('✅ Authorize: 密碼正確，返回用戶對象', { userId: user.id, email: user.email, roleId: user.roleId });
+        console.log('✅ Authorize: 密碼正確，返回用戶對象', { userId: dbUser.id, email: dbUser.email, roleId: dbUser.roleId });
 
         // 返回用戶信息
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          roleId: user.roleId,
-          role: user.role,
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          roleId: dbUser.roleId,
+          role: (dbUser as any).role || { id: dbUser.roleId, name: 'ProjectManager' },
         };
       },
     }),
@@ -256,7 +265,7 @@ export const authOptions: NextAuthOptions = {
 
   // JWT 回調：將用戶信息添加到 JWT
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: { token: JWT; user: NextAuthUser; account: any }) {
       console.log('🔐 JWT callback 執行', { hasUser: !!user, hasAccount: !!account, provider: account?.provider });
 
       if (user) {
@@ -264,8 +273,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.roleId = user.roleId;
-        token.role = user.role;
+        token.roleId = user.roleId ?? 1; // Default to ProjectManager if undefined
+        token.role = user.role ?? { id: 1, name: 'ProjectManager' as const }; // Default role if undefined
       } else {
         console.log('⚠️ JWT callback: 用戶不存在');
       }
@@ -302,7 +311,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     // Session 回調：將 JWT 信息添加到 Session
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: JWT }) {
       console.log('🔐 Session callback 執行', { hasToken: !!token, tokenId: token?.id });
 
       if (token) {

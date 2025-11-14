@@ -30,10 +30,10 @@
  * - apps/web/src/auth.config.ts - 基本配置
  *
  * @related
- * - ../../auth.config.ts - Edge-compatible 基本配置
- * - ./app/api/auth/[...nextauth]/route.ts - API Route Handler
- * - ./middleware.ts - 認證中間件
- * - ./components/providers/SessionProvider.tsx - React Session Provider
+ * - apps/web/src/auth.config.ts - Edge-compatible 基本配置
+ * - apps/web/src/app/api/auth/[...nextauth]/route.ts - API Route Handler
+ * - apps/web/src/middleware.ts - 認證中間件
+ * - apps/web/src/components/providers/SessionProvider.tsx - React Session Provider
  */
 
 import NextAuth from 'next-auth';

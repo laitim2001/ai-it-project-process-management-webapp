@@ -27,8 +27,8 @@
  * - @/components/ui - Toast 通知
  *
  * @related
- * - ../../app/[locale]/(dashboard)/users/new/page.tsx - 新增使用者頁面
- * - ../../app/[locale]/(dashboard)/users/[id]/edit/page.tsx - 編輯使用者頁面
+ * - ../../app/[locale]/users/new/page.tsx - 新增使用者頁面
+ * - ../../app/[locale]/users/[id]/edit/page.tsx - 編輯使用者頁面
  * - ../../../../packages/api/src/routers/user.ts - User API procedures
  * - ../../../../packages/db/prisma/schema.prisma - User model
  */

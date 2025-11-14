@@ -42,8 +42,8 @@
  *
  * @related
  * - packages/api/src/routers/notification.ts - 通知 API Router
- * - apps/web/src/components/layout/NotificationBell.tsx - 通知鈴鐺組件
- * - apps/web/src/components/layout/NotificationDropdown.tsx - 通知下拉組件
+ * - apps/web/src/components/notification/NotificationBell.tsx - 通知鈴鐺組件
+ * - apps/web/src/components/notification/NotificationDropdown.tsx - 通知下拉組件
  * - packages/db/prisma/schema.prisma - Notification 資料模型
  *
  * @author IT Department

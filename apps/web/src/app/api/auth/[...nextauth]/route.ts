@@ -29,8 +29,8 @@
  *
  * @related
  * - `apps/web/src/auth.ts` - NextAuth.js 主要配置（Azure AD B2C、Credentials Provider）
- * - `packages/auth/index.ts` - 認證相關共用邏輯和類型定義
- * - `apps/web/src/app/[locale]/(auth)/login/page.tsx` - 登入頁面 UI
+ * - `packages/auth/src/index.ts` - 認證相關共用邏輯和類型定義
+ * - `apps/web/src/app/[locale]/login/page.tsx` - 登入頁面 UI
  * - `apps/web/src/components/providers/SessionProvider.tsx` - Client-side Session Provider
  *
  * @author IT Project Management Team

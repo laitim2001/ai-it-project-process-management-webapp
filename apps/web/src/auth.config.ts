@@ -31,7 +31,7 @@
  * - next-auth: NextAuth.js v5 核心庫
  *
  * @related
- * - packages/auth/index.ts - 完整 NextAuth 配置（包含 Prisma adapter 和 providers）
+ * - packages/auth/src/index.ts - 完整 NextAuth 配置（包含 Prisma adapter 和 providers）
  * - apps/web/src/middleware.ts - 認證中介軟體（使用此配置）
  * - apps/web/src/app/[locale]/login/page.tsx - 登入頁面
  *

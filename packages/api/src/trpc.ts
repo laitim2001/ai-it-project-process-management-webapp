@@ -34,7 +34,7 @@
  * - apps/web/src/lib/trpc.ts - tRPC 客戶端配置
  * - packages/api/src/root.ts - AppRouter 定義（匯出所有 routers）
  * - packages/api/src/routers/*.ts - 各功能模組的 Router
- * - packages/auth/index.ts - NextAuth v5 配置
+ * - packages/auth/src/index.ts - NextAuth v5 配置
  *
  * @author IT Department
  * @since Epic 1 - Platform Foundation
@@ -59,6 +59,7 @@ import { ZodError } from 'zod';
 
 import { prisma } from '@itpm/db';
 import type { Session } from 'next-auth';
+import '@itpm/auth'; // Import auth package to load NextAuth type extensions
 
 /**
  * ====================================================================

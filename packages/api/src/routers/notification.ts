@@ -96,7 +96,7 @@ export const notificationRouter = createTRPCRouter({
       };
 
       // 查詢通知列表
-      const notifications = await ctx.db.notification.findMany({
+      const notifications = await ctx.prisma.notification.findMany({
         where,
         take: limit + 1, // 多取一條用於判斷是否有下一頁
         cursor: cursor ? { id: cursor } : undefined,
@@ -130,7 +130,7 @@ export const notificationRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
-      const notification = await ctx.db.notification.findFirst({
+      const notification = await ctx.prisma.notification.findFirst({
         where: {
           id: input.id,
           userId, // 確保只能查詢自己的通知
@@ -150,7 +150,7 @@ export const notificationRouter = createTRPCRouter({
   getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
-    const count = await ctx.db.notification.count({
+    const count = await ctx.prisma.notification.count({
       where: {
         userId,
         isRead: false,
@@ -173,7 +173,7 @@ export const notificationRouter = createTRPCRouter({
       const userId = ctx.session.user.id;
 
       // 確保只能標記自己的通知
-      const notification = await ctx.db.notification.findFirst({
+      const notification = await ctx.prisma.notification.findFirst({
         where: {
           id: input.id,
           userId,
@@ -185,7 +185,7 @@ export const notificationRouter = createTRPCRouter({
       }
 
       // 更新為已讀
-      const updated = await ctx.db.notification.update({
+      const updated = await ctx.prisma.notification.update({
         where: { id: input.id },
         data: { isRead: true },
       });
@@ -199,7 +199,7 @@ export const notificationRouter = createTRPCRouter({
   markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
-    const result = await ctx.db.notification.updateMany({
+    const result = await ctx.prisma.notification.updateMany({
       where: {
         userId,
         isRead: false,
@@ -225,7 +225,7 @@ export const notificationRouter = createTRPCRouter({
       const userId = ctx.session.user.id;
 
       // 確保只能刪除自己的通知
-      const notification = await ctx.db.notification.findFirst({
+      const notification = await ctx.prisma.notification.findFirst({
         where: {
           id: input.id,
           userId,
@@ -236,7 +236,7 @@ export const notificationRouter = createTRPCRouter({
         throw new Error("通知不存在或無權訪問");
       }
 
-      await ctx.db.notification.delete({
+      await ctx.prisma.notification.delete({
         where: { id: input.id },
       });
 
@@ -279,7 +279,7 @@ export const notificationRouter = createTRPCRouter({
       } = input;
 
       // 1. 創建通知記錄
-      const notification = await ctx.db.notification.create({
+      const notification = await ctx.prisma.notification.create({
         data: {
           userId,
           type,
@@ -296,7 +296,7 @@ export const notificationRouter = createTRPCRouter({
       if (sendEmail && emailData) {
         try {
           // 獲取用戶郵箱
-          const user = await ctx.db.user.findUnique({
+          const user = await ctx.prisma.user.findUnique({
             where: { id: userId },
             select: { email: true },
           });
@@ -354,6 +354,7 @@ export const notificationRouter = createTRPCRouter({
                 expenseAmount: emailData.expenseAmount,
                 projectName: emailData.projectName,
                 expenseLink: emailData.expenseLink,
+                submitterName: emailData.submitterName,
               });
               break;
 
@@ -363,7 +364,7 @@ export const notificationRouter = createTRPCRouter({
 
           // 更新郵件發送狀態
           if (emailSent) {
-            await ctx.db.notification.update({
+            await ctx.prisma.notification.update({
               where: { id: notification.id },
               data: { emailSent: true },
             });

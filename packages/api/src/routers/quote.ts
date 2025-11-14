@@ -533,8 +533,8 @@ export const quoteRouter = createTRPCRouter({
 
       const quotesWithPO = await ctx.prisma.quote.count({
         where: {
-          purchaseOrderId: {
-            not: null,
+          purchaseOrders: {
+            some: {},
           },
         },
       });

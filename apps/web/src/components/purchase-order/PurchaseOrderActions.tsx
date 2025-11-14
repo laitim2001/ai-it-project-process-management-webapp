@@ -28,7 +28,7 @@
  * - lucide-react - 圖標組件
  *
  * @related
- * - ../../app/[locale]/(dashboard)/purchase-orders/[id]/page.tsx - 採購單詳情頁
+ * - ../../app/[locale]/purchase-orders/[id]/page.tsx - 採購單詳情頁
  * - ../../../../packages/api/src/routers/purchaseOrder.ts - submit, approve procedures
  * - ../../../../packages/db/prisma/schema.prisma - PurchaseOrder.status field
  */

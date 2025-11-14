@@ -27,7 +27,7 @@
  * - @/components/ui - Toast 通知
  *
  * @related
- * - ../../app/[locale]/(dashboard)/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
+ * - ../../app/[locale]/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
  * - ../../../../packages/api/src/routers/budgetProposal.ts - API addComment procedure
  * - ../../../../packages/db/prisma/schema.prisma - Comment model
  */

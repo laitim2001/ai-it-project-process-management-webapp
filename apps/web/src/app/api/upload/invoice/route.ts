@@ -29,7 +29,7 @@
  * - `path` - 路徑處理工具（join）
  *
  * @related
- * - `apps/web/src/app/[locale]/(dashboard)/expenses/new/page.tsx` - 費用新增頁面（呼叫此 API）
+ * - `apps/web/src/app/[locale]/expenses/new/page.tsx` - 費用新增頁面（呼叫此 API）
  * - `packages/api/src/routers/expense.ts` - 費用 tRPC Router（儲存 filePath）
  * - `packages/db/prisma/schema.prisma` - Expense.invoiceFilePath 欄位定義
  * - `apps/web/src/app/api/upload/quote/route.ts` - 類似功能的報價單上傳 API

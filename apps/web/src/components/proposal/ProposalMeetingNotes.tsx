@@ -29,7 +29,7 @@
  * - lucide-react - 圖標組件
  *
  * @related
- * - ../../app/[locale]/(dashboard)/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
+ * - ../../app/[locale]/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
  * - ../../../../packages/api/src/routers/budgetProposal.ts - updateMeetingNotes procedure
  * - ../../../../packages/db/prisma/schema.prisma - BudgetProposal meeting fields
  */

@@ -34,7 +34,7 @@
  * - `@itpm/db` - Prisma Client，用於資料庫操作
  *
  * @related
- * - `apps/web/src/app/[locale]/(dashboard)/quotes/page.tsx` - 報價單列表頁面
+ * - `apps/web/src/app/[locale]/quotes/page.tsx` - 報價單列表頁面
  * - `packages/api/src/routers/quote.ts` - 報價單 tRPC Router（查詢、比較報價）
  * - `packages/db/prisma/schema.prisma` - Quote, Project, Vendor 模型定義
  * - `apps/web/src/app/api/upload/invoice/route.ts` - 類似功能的發票上傳 API

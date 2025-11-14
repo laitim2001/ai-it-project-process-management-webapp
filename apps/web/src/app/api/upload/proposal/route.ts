@@ -30,7 +30,7 @@
  * - `path` - 路徑處理工具（join）
  *
  * @related
- * - `apps/web/src/app/[locale]/(dashboard)/proposals/new/page.tsx` - 提案新增頁面（呼叫此 API）
+ * - `apps/web/src/app/[locale]/proposals/new/page.tsx` - 提案新增頁面（呼叫此 API）
  * - `packages/api/src/routers/budgetProposal.ts` - 提案 tRPC Router（儲存 filePath）
  * - `packages/db/prisma/schema.prisma` - BudgetProposal 模型定義
  * - `apps/web/src/app/api/upload/invoice/route.ts` - 類似功能的發票上傳 API

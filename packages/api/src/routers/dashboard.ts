@@ -237,7 +237,7 @@ export const dashboardRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       // 權限檢查：僅主管可訪問
-      if (ctx.session.user.role !== 'Supervisor') {
+      if (ctx.session.user.role.name !== 'Supervisor') {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: '僅部門主管可訪問此儀表板',
@@ -414,7 +414,7 @@ export const dashboardRouter = createTRPCRouter({
         });
       } else {
         // 主管導出所有專案（根據篩選條件）
-        if (ctx.session.user.role !== 'Supervisor') {
+        if (ctx.session.user.role.name !== 'Supervisor') {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: '無權限導出數據',
@@ -457,7 +457,7 @@ export const dashboardRouter = createTRPCRouter({
             po.expenses.reduce(
               (expSum, exp) =>
                 exp.status === 'Approved' || exp.status === 'Paid'
-                  ? expSum + exp.amount
+                  ? expSum + exp.totalAmount
                   : expSum,
               0
             ),
@@ -487,7 +487,7 @@ export const dashboardRouter = createTRPCRouter({
    */
   getProjectManagers: protectedProcedure.query(async ({ ctx }) => {
     // 權限檢查：僅主管可訪問
-    if (ctx.session.user.role !== 'Supervisor') {
+    if (ctx.session.user.role.name !== 'Supervisor') {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: '僅部門主管可訪問',
@@ -497,8 +497,10 @@ export const dashboardRouter = createTRPCRouter({
     // 查詢所有有專案的專案經理
     const managers = await ctx.prisma.user.findMany({
       where: {
-        role: 'ProjectManager',
-        managedProjects: {
+        role: {
+          name: 'ProjectManager',
+        },
+        projects: {
           some: {},
         },
       },
@@ -508,7 +510,7 @@ export const dashboardRouter = createTRPCRouter({
         email: true,
         _count: {
           select: {
-            managedProjects: true,
+            projects: true,
           },
         },
       },

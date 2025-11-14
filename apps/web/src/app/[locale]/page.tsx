@@ -29,8 +29,8 @@
  *
  * @related
  * - `apps/web/src/app/[locale]/layout.tsx` - Locale Layout（提供 SessionProvider）
- * - `apps/web/src/app/[locale]/(dashboard)/dashboard/page.tsx` - Dashboard 頁面
- * - `apps/web/src/app/[locale]/(auth)/login/page.tsx` - 登入頁面
+ * - `apps/web/src/app/[locale]/dashboard/page.tsx` - Dashboard 頁面
+ * - `apps/web/src/app/[locale]/login/page.tsx` - 登入頁面
  * - `apps/web/src/auth.ts` - NextAuth.js 認證設定
  *
  * @author IT Project Management Team

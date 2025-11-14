@@ -45,7 +45,7 @@
  * - apps/web/src/components/layout/LanguageSwitcher.tsx - 語言切換器
  * - apps/web/src/components/theme/ThemeToggle.tsx - 主題切換器
  * - apps/web/src/components/layout/dashboard-layout.tsx - 佈局容器
- * - packages/auth/index.ts - NextAuth 配置
+ * - packages/auth/src/index.ts - NextAuth 配置
  *
  * @author IT Department
  * @since Epic 1 - Platform Foundation

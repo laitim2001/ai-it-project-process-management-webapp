@@ -37,7 +37,7 @@
  * - packages/api/src/routers/vendor.ts - 供應商 API Router (getById, delete)
  * - apps/web/src/app/[locale]/vendors/page.tsx - 供應商列表頁面
  * - apps/web/src/app/[locale]/vendors/[id]/edit/page.tsx - 編輯頁面
- * - apps/web/src/app/[locale]/quotes/[id]/page.tsx - 報價詳情頁面
+ * - apps/web/src/app/[locale]/quotes/page.tsx - 報價列表頁面
  * - apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx - 採購單詳情頁面
  *
  * @author IT Department

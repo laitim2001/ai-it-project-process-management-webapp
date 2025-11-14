@@ -148,20 +148,26 @@ function validateJSDoc(filePath, jsdoc) {
   });
 
   // 檢查 @related 路徑
-  const relatedMatches = jsdoc.match(/@related\s*\n([\s\S]*?)(?=\n\s*@|\n\s*\*\/)/);
+  const relatedMatches = jsdoc.match(/@related\s*\n([\s\S]*?)(?=\n\s*\*?\s*@|\n\s*\*\/)/);
   if (relatedMatches) {
     const relatedSection = relatedMatches[1];
-    const pathMatches = relatedSection.matchAll(/^\s*\*?\s*-\s*([^\s]+)/gm);
+    // 修正：使用正則表達式提取反引號內的路徑，或者普通路徑
+    const pathMatches = relatedSection.matchAll(/^\s*\*?\s*-\s*`([^`]+)`|^\s*\*?\s*-\s*([^\s-][^\s]*)/gm);
 
     for (const match of pathMatches) {
-      const relatedPath = match[1];
+      // match[1] 是反引號內的路徑，match[2] 是普通路徑
+      const relatedPath = match[1] || match[2];
+      if (!relatedPath) continue;
+
       // 跳過 {@link ...} 格式的路徑
       if (relatedPath.startsWith('{@link')) continue;
 
-      // 檢查文件是否存在
+      // 檢查文件是否存在（目錄路徑以 / 結尾的跳過）
+      if (relatedPath.endsWith('/')) continue;
+
       const fullPath = path.join(process.cwd(), relatedPath);
       if (!fs.existsSync(fullPath)) {
-        warnings.push(`@related 路徑不存在: ${relatedPath}`);
+        warnings.push(`@related 路徑不存在: \`${relatedPath}\``);
       }
     }
   }

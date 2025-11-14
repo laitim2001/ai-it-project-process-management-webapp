@@ -39,7 +39,7 @@
  * - @/i18n/routing: 國際化路由
  *
  * @related
- * - packages/auth/index.ts - NextAuth.js 認證配置
+ * - packages/auth/src/index.ts - NextAuth.js 認證配置
  * - apps/web/src/app/[locale]/register/page.tsx - 註冊頁面
  * - apps/web/src/app/[locale]/forgot-password/page.tsx - 忘記密碼頁面
  * - apps/web/src/middleware.ts - 認證中介軟體
