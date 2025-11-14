@@ -1,16 +1,54 @@
-'use client';
-
 /**
- * PurchaseOrder 列表頁面
+ * @fileoverview Purchase Orders List Page - 採購單列表頁面
  *
- * 功能說明:
- * - 採購單列表展示(分頁)
- * - 按專案/供應商篩選
- * - 搜尋和排序功能
- * - 導航到詳情頁面
+ * @description
+ * 顯示所有採購單的列表，支援即時搜尋、多條件過濾和分頁功能。
+ * Project Manager 可查看自己專案的採購單，Supervisor 可查看所有採購單。
+ * 整合專案、供應商和報價資訊，提供完整的採購管理功能。
  *
- * Epic 5 - Story 5.4: 生成採購單記錄
+ * @page /[locale]/purchase-orders
+ *
+ * @features
+ * - 採購單列表展示（卡片視圖和表格視圖切換）
+ * - 即時搜尋（採購單號、描述）
+ * - 專案過濾（根據所屬專案篩選）
+ * - 供應商過濾（根據供應商篩選）
+ * - 排序功能（金額、日期）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 快速操作（查看詳情、編輯）
+ * - 採購單統計資訊（費用數量、累計金額）
+ * - 角色權限控制（RBAC）
+ *
+ * @permissions
+ * - ProjectManager: 查看自己專案的採購單
+ * - Supervisor: 查看所有採購單
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 列表頁: /purchase-orders
+ * - 建立頁: /purchase-orders/new
+ * - 詳情頁: /purchase-orders/[id]
+ * - 編輯頁: /purchase-orders/[id]/edit
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Table, Card, Input, Select, Pagination
+ *
+ * @related
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 API Router
+ * - apps/web/src/components/purchase-order/PurchaseOrderForm.tsx - 採購單表單組件
+ * - apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx - 採購單詳情頁面
+ * - packages/db/prisma/schema.prisma - PurchaseOrder 資料模型
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁面
+ * - apps/web/src/app/[locale]/vendors/[id]/page.tsx - 供應商詳情頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

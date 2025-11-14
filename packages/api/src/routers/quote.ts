@@ -1,14 +1,51 @@
 /**
- * Quote（報價單）管理 tRPC API 路由
+ * @fileoverview Quote Router - 報價單管理 API
  *
- * 功能說明：
- * - 報價單 CRUD 操作：上傳、查詢、更新、刪除
- * - 檔案上傳處理（目前使用本地文件系統，未來可升級到 Azure Blob Storage）
- * - 與 Project 和 Vendor 的關聯管理
- * - 報價比較功能支援
+ * @description
+ * 提供報價單的完整管理功能，支援檔案上傳和報價比較。
+ * 報價單關聯專案和供應商，用於採購決策和價格比較。
+ * 包含檔案儲存路徑記錄（支援本地文件系統或 Azure Blob Storage）。
+ * 提供報價比較功能，協助選擇最優供應商並生成採購單。
  *
- * Epic 4 - Story 5.2: 為已批准的專案上傳並關聯報價單
- * Epic 4 - Story 5.3: 選擇最終供應商並記錄採購決策
+ * @module api/routers/quote
+ *
+ * @features
+ * - 建立報價單並記錄檔案路徑（驗證專案已批准提案）
+ * - 更新報價單資訊（金額、說明）
+ * - 查詢報價單列表（支援專案、供應商過濾和分頁）
+ * - 查詢單一報價單詳情（包含專案和供應商資訊）
+ * - 根據專案查詢所有報價單（用於報價比較）
+ * - 根據供應商查詢所有報價單（用於供應商管理）
+ * - 比較專案的所有報價單（按金額排序，計算統計資訊）
+ * - 刪除報價單（檢查採購單關聯保護）
+ * - 獲取報價單統計資訊（總數、專案分佈、已選比例）
+ *
+ * @procedures
+ * - create: 建立新報價單（驗證專案已批准提案）
+ * - update: 更新報價單資訊（已選報價無法修改）
+ * - delete: 刪除報價單（已選報價無法刪除）
+ * - getAll: 查詢報價單列表（支援分頁和過濾）
+ * - getById: 查詢單一報價單詳情
+ * - getByProject: 根據專案查詢報價單
+ * - getByVendor: 根據供應商查詢報價單
+ * - compare: 比較專案的所有報價單（按金額排序）
+ * - getStats: 獲取報價單統計資訊
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - Quote 資料模型
+ * - packages/api/src/routers/project.ts - 專案 Router
+ * - packages/api/src/routers/vendor.ts - 供應商 Router
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 Router
+ * - apps/web/src/app/[locale]/quotes/page.tsx - 報價單列表頁面
+ *
+ * @author IT Department
+ * @since Epic 4 - Procurement and Vendor Management
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

@@ -1,9 +1,49 @@
 'use client';
 
 /**
- * User 詳情頁面
+ * @fileoverview User Detail Page - 使用者詳情頁面
  *
- * 顯示單一使用者的詳細資訊
+ * @description
+ * 顯示單一使用者的完整資訊，包含基本資料、角色和關聯的專案記錄。
+ * 提供編輯操作和查看使用者管理的專案、監督的專案列表。
+ * 整合專案關聯資料，提供完整的使用者檔案視圖。
+ *
+ * @page /[locale]/users/[id]
+ *
+ * @features
+ * - 使用者詳情展示（名稱、電郵、角色、建立日期、更新日期）
+ * - 角色徽章顯示（不同顏色標示不同角色）
+ * - 管理的專案列表（ProjectManager 角色）
+ * - 監督的專案列表（Supervisor 角色）
+ * - 專案狀態徽章（Draft, InProgress, Completed, Archived）
+ * - 編輯操作按鈕（導向編輯頁）
+ * - 麵包屑導航支援
+ * - 國際化標籤和訊息
+ *
+ * @permissions
+ * - Admin: 查看所有使用者詳情
+ * - 其他角色: 無權訪問（或僅查看自己的資料）
+ *
+ * @routing
+ * - 詳情頁: /users/[id]
+ * - 編輯頁: /users/[id]/edit
+ * - 返回列表: /users
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Badge, Button
+ *
+ * @related
+ * - packages/api/src/routers/user.ts - 使用者 API Router (getById)
+ * - apps/web/src/app/[locale]/users/page.tsx - 使用者列表頁面
+ * - apps/web/src/app/[locale]/users/[id]/edit/page.tsx - 編輯頁面
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁面
+ * - packages/db/prisma/schema.prisma - User, Role, Project 資料模型
+ *
+ * @author IT Department
+ * @since Epic 1 - Azure AD B2C Authentication
+ * @lastModified 2025-11-14
  */
 
 import { Link } from "@/i18n/routing";

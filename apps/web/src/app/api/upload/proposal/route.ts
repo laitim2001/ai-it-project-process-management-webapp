@@ -1,11 +1,63 @@
 /**
- * API Route: 提案文件上傳
+ * @fileoverview 提案文件上傳 API Route - 預算提案文件上傳服務
+ * @description 處理預算提案計劃書檔案上傳，支援 PDF、PPT、Word 格式
  *
- * 功能：
- * - 上傳項目計劃書文件 (PDF/PPT/Word)
- * - 文件驗證 (類型、大小)
- * - 保存到服務器文件系統
- * - 返回文件路徑供前端更新數據庫
+ * 此 API 用於 Epic 3 預算提案工作流程，允許專案經理在提交預算提案時上傳專案計劃書。
+ * 檔案上傳後保存至伺服器本地檔案系統，並返回檔案路徑供前端儲存至資料庫。
+ *
+ * @api
+ * @method POST
+ * @route /api/upload/proposal
+ *
+ * @features
+ * - 商業文件格式支援 - 支援 PDF、PowerPoint（.ppt/.pptx）、Word（.doc/.docx）
+ * - 檔案大小驗證 - 限制單一檔案最大 20MB，適合包含圖表的完整計劃書
+ * - 檔案類型驗證 - 使用 MIME Type 驗證，確保只接受文件格式
+ * - 唯一檔名生成 - 使用 `proposal_{proposalId}_{timestamp}.{ext}` 格式避免檔名衝突
+ * - 自動目錄建立 - 檢查並自動建立 `public/uploads/proposals/` 目錄
+ *
+ * @security
+ * - 檔案類型白名單驗證（ALLOWED_TYPES）
+ * - 檔案大小限制（MAX_FILE_SIZE = 20MB）
+ * - 必填欄位驗證（file, proposalId）
+ * - 使用 TYPE_TO_EXTENSION 映射表確保副檔名正確
+ * - 錯誤處理避免伺服器資訊洩漏
+ *
+ * @dependencies
+ * - `next/server` - Next.js App Router API Route 支援
+ * - `fs/promises` - Node.js 檔案系統操作（writeFile, mkdir）
+ * - `fs` - Node.js 檔案系統同步操作（existsSync）
+ * - `path` - 路徑處理工具（join）
+ *
+ * @related
+ * - `apps/web/src/app/[locale]/(dashboard)/proposals/new/page.tsx` - 提案新增頁面（呼叫此 API）
+ * - `packages/api/src/routers/budgetProposal.ts` - 提案 tRPC Router（儲存 filePath）
+ * - `packages/db/prisma/schema.prisma` - BudgetProposal 模型定義
+ * - `apps/web/src/app/api/upload/invoice/route.ts` - 類似功能的發票上傳 API
+ *
+ * @author IT Project Management Team
+ * @since Epic 3 - Budget Proposal Workflow
+ *
+ * @example
+ * // 前端呼叫範例（FormData）
+ * const formData = new FormData();
+ * formData.append('file', proposalFile); // File 物件
+ * formData.append('proposalId', 'PROP-2025-001');
+ *
+ * const response = await fetch('/api/upload/proposal', {
+ *   method: 'POST',
+ *   body: formData,
+ * });
+ *
+ * const result = await response.json();
+ * // { success: true, filePath: '/uploads/proposals/proposal_PROP-2025-001_1234567890.pdf', ... }
+ *
+ * @example
+ * // 錯誤處理範例
+ * if (!response.ok) {
+ *   const error = await response.json();
+ *   console.error(error.error); // "文件大小不能超過 20MB"
+ * }
  */
 
 import { NextRequest, NextResponse } from 'next/server';

@@ -1,16 +1,56 @@
 /**
- * Expense（費用記錄）管理 tRPC API 路由
+ * @fileoverview Expense Router - 費用記錄與審批工作流 API
  *
- * 功能說明：
- * - 費用 CRUD 操作：新增、查詢、更新、刪除
- * - 費用審批工作流：Draft → PendingApproval → Approved → Paid
- * - 與 PurchaseOrder 關聯管理
- * - 預算池扣款邏輯
+ * @description
+ * 提供費用記錄的完整生命週期管理，包含 CRUD 操作和審批工作流（Draft → Submitted → Approved → Paid）。
+ * 採用表頭-明細架構（Expense + ExpenseItem[]），支援多項目費用拆分和細緻分類管理。
+ * 實現與採購單（PurchaseOrder）的關聯、預算池自動扣款邏輯、通知整合等功能。
+ * 支援發票管理、費用統計、預算類別分配等完整的財務管理需求。
  *
- * Epic 6 - 費用記錄與審批
- * - Story 6.1: 根據採購單記錄發票與費用
- * - Story 6.2: 管理費用的審批狀態
- * - Story 6.3: 關聯費用至特定資金池
+ * @module api/routers/expense
+ *
+ * @features
+ * - 建立費用記錄（表頭 + 明細，關聯採購單和專案）
+ * - 更新費用資訊（支援明細新增、更新、刪除，僅 Draft 可編輯）
+ * - 提交費用審批（Draft → Submitted，驗證至少有一個項目）
+ * - 批准費用（Submitted → Approved，自動扣除預算池和預算類別）
+ * - 拒絕費用（Submitted → Draft，記錄拒絕原因）
+ * - 標記為已支付（Approved → Paid）
+ * - 查詢費用列表（支援分頁、採購單過濾、狀態過濾、排序）
+ * - 查詢單一費用詳情（含明細、採購單、專案、預算池資訊）
+ * - 刪除費用（僅 Draft 狀態可刪除）
+ * - 根據採購單查詢費用列表
+ * - 費用統計資訊（總數、總金額、各狀態分佈）
+ * - 通知整合（狀態變更時自動通知相關人員）
+ *
+ * @procedures
+ * - getAll: 查詢費用列表（分頁 + 過濾 + 排序）
+ * - getById: 查詢單一費用詳情
+ * - create: 建立新費用記錄（含明細）
+ * - update: 更新費用資訊（含明細）
+ * - delete: 刪除費用記錄（Draft only）
+ * - submit: 提交費用審批
+ * - approve: 批准費用（Supervisor only，預算扣款）
+ * - reject: 拒絕費用（Supervisor only）
+ * - markAsPaid: 標記為已支付
+ * - getByPurchaseOrder: 根據採購單查詢費用
+ * - getStats: 獲取費用統計資訊
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ * - TRPCError: 錯誤處理
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - Expense, ExpenseItem 資料模型
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 Router
+ * - packages/api/src/routers/budgetPool.ts - 預算池 Router
+ * - apps/web/src/app/[locale]/expenses/page.tsx - 費用列表頁面
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording and Approval
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

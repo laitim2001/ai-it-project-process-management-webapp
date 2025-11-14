@@ -1,24 +1,55 @@
 /**
- * ChargeOut Router - 費用轉嫁 API
+ * @fileoverview ChargeOut Router - 費用轉嫁管理 API
  *
- * 功能概述：
- * - ChargeOut 用於將 IT 部門的費用分攤給各個營運公司（OpCo）
- * - 表頭-明細模式：ChargeOut (表頭) + ChargeOutItem[] (明細)
- * - 狀態流程：Draft → Submitted → Confirmed → Paid / Rejected
- * - 每個 ChargeOutItem 關聯一筆 Expense（requiresChargeOut = true）
+ * @description
+ * 提供費用轉嫁（ChargeOut）的完整管理功能，用於將 IT 部門的費用分攤給各營運公司（OpCo）。
+ * 採用表頭-明細架構（ChargeOut + ChargeOutItem[]），支援多筆費用批量轉嫁。
+ * 實現完整的審批工作流（Draft → Submitted → Confirmed → Paid），並支援主管確認和拒絕操作。
+ * 每個 ChargeOutItem 必須關聯一筆已批准的 Expense（requiresChargeOut = true）。
  *
- * 核心端點：
- * 1. create - 創建 ChargeOut（含明細）
- * 2. update - 更新基本信息
- * 3. updateItems - 批量更新明細
- * 4. submit - 提交審核
- * 5. confirm - 確認 ChargeOut（Supervisor only）
- * 6. reject - 拒絕 ChargeOut
- * 7. markAsPaid - 標記為已支付
- * 8. getById - 獲取詳情
- * 9. getAll - 列表查詢（分頁）
- * 10. delete - 刪除（僅 Draft）
- * 11. getEligibleExpenses - 獲取可用於 ChargeOut 的費用
+ * @module api/routers/chargeOut
+ *
+ * @features
+ * - 建立 ChargeOut 記錄（表頭 + 明細，批量創建）
+ * - 更新 ChargeOut 基本資訊（名稱、描述、Debit Note 編號、日期）
+ * - 批量更新明細（支援新增、更新、刪除費用項目）
+ * - 提交審核（Draft → Submitted，驗證至少有一個項目）
+ * - 主管確認（Submitted → Confirmed，記錄確認者和時間）
+ * - 主管拒絕（Submitted → Rejected，記錄拒絕原因）
+ * - 標記為已支付（Confirmed → Paid，記錄支付日期）
+ * - 查詢 ChargeOut 列表（支援分頁、狀態、OpCo、專案過濾）
+ * - 查詢單一 ChargeOut 詳情（含明細、關聯費用、專案、OpCo）
+ * - 刪除 ChargeOut（僅 Draft 或 Rejected 狀態可刪除）
+ * - 獲取可轉嫁費用列表（requiresChargeOut = true 且已批准）
+ *
+ * @procedures
+ * - create: 建立 ChargeOut（含明細）
+ * - update: 更新基本資訊
+ * - updateItems: 批量更新明細
+ * - submit: 提交審核
+ * - confirm: 確認 ChargeOut（Supervisor only）
+ * - reject: 拒絕 ChargeOut（Supervisor only）
+ * - markAsPaid: 標記為已支付
+ * - getById: 查詢單一 ChargeOut
+ * - getAll: 查詢 ChargeOut 列表（分頁）
+ * - delete: 刪除 ChargeOut
+ * - getEligibleExpenses: 獲取可轉嫁費用列表
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ * - TRPCError: 錯誤處理
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - ChargeOut, ChargeOutItem, Expense 資料模型
+ * - packages/api/src/routers/expense.ts - 關聯的費用 Router
+ * - packages/api/src/routers/project.ts - 關聯的專案 Router
+ * - apps/web/src/app/[locale]/charge-outs/page.tsx - ChargeOut 列表頁面
+ *
+ * @author IT Department
+ * @since Epic 6.5 - ChargeOut Management
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

@@ -1,14 +1,44 @@
 /**
- * Dashboard Router
+ * @fileoverview Dashboard Router - 儀表板數據聚合 API
  *
- * Epic 7 - Dashboard and Basic Reporting
+ * @description
+ * 提供專案經理和主管儀表板的數據聚合端點，整合多個模組的資料提供統一的視圖。
+ * 專案經理儀表板專注於個人負責的專案和待辦事項，主管儀表板提供全局視野和統計分析。
+ * 支援預算池概覽、統計卡片、數據導出等功能，實現 Epic 7 的完整儀表板需求。
  *
- * 提供專案經理和主管儀表板的數據端點
+ * @module api/routers/dashboard
  *
- * Story 7.1: 專案經理儀表板
- * Story 7.2: 主管儀表板
- * Story 7.4: 預算池概覽
- * Story 7.3: 數據導出
+ * @features
+ * - 專案經理儀表板（我的專案、待辦任務、統計數據）
+ * - 主管儀表板（全局專案總覽、多條件過濾、分頁）
+ * - 預算池概覽卡片（使用率、剩餘金額、健康狀態）
+ * - 統計數據聚合（總專案數、進行中、已完成、待審批）
+ * - 待辦任務提醒（需補充資訊的提案、草稿費用）
+ * - 數據導出功能（專案列表 CSV 格式）
+ * - 專案經理列表查詢（用於主管儀表板過濾）
+ * - 權限控制（專案經理只看自己的，主管看全部）
+ *
+ * @procedures
+ * - getProjectManagerDashboard: 專案經理儀表板數據
+ * - getSupervisorDashboard: 主管儀表板數據（支援過濾和分頁）
+ * - exportProjects: 導出專案數據（CSV 格式）
+ * - getProjectManagers: 獲取專案經理列表（主管用）
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ * - TRPCError: 錯誤處理
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - Project, BudgetPool, Proposal, Expense 資料模型
+ * - packages/api/src/routers/project.ts - 專案 Router
+ * - packages/api/src/routers/budgetPool.ts - 預算池 Router
+ * - apps/web/src/app/[locale]/dashboard/page.tsx - 儀表板頁面
+ *
+ * @author IT Department
+ * @since Epic 7 - Dashboard and Basic Reporting
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

@@ -1,18 +1,63 @@
-'use client';
-
 /**
- * ChargeOutActions 組件 - Module 7-8 費用轉嫁狀態操作
+ * @fileoverview ChargeOut Actions Component - 費用轉嫁狀態操作組件
  *
- * 功能說明：
- * - 狀態流程：Draft → Submitted → Confirmed → Paid
- * - Draft: 可編輯、可提交、可刪除
- * - Submitted: 可確認（Supervisor）、可拒絕（Supervisor）
- * - Confirmed: 可標記為已付款
- * - Paid: 終態
- * - Rejected: 可刪除
+ * @description
+ * 費用轉嫁（ChargeOut）的完整狀態流轉操作按鈕組件，支援 Draft → Submitted → Confirmed → Paid 的審批和付款工作流。
+ * 根據 ChargeOut 狀態和用戶角色動態顯示對應的操作按鈕（編輯/提交/確認/拒絕/標記已付款/刪除）。
  *
- * Module 7-8: ChargeOut 費用轉嫁 - 前端實施
+ * @component ChargeOutActions
+ *
+ * @features
+ * - 完整狀態流轉支援（Draft/Submitted/Confirmed/Paid/Rejected）
+ * - 角色權限控制（Supervisor/Admin 才能確認和拒絕）
+ * - 狀態驅動的按鈕顯示和啟用/禁用邏輯
+ * - 確認對話框（AlertDialog）防止誤操作
+ * - 編輯和刪除操作（Draft/Rejected 狀態）
+ * - 付款日期自動填充（markAsPaid）
+ * - 樂觀更新和自動資料刷新
+ * - 載入狀態顯示和錯誤處理
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {Object} props.chargeOut - ChargeOut 物件
+ * @param {string} props.chargeOut.id - ChargeOut ID
+ * @param {string} props.chargeOut.name - ChargeOut 名稱
+ * @param {string} props.chargeOut.status - 當前狀態（Draft/Submitted/Confirmed/Paid/Rejected）
+ * @param {string} [props.currentUserRole] - 當前用戶角色（Supervisor/Admin）
+ *
+ * @example
+ * ```tsx
+ * // Draft 狀態顯示編輯、提交、刪除按鈕
+ * <ChargeOutActions
+ *   chargeOut={{ id: '1', name: 'Q1 費用轉嫁', status: 'Draft' }}
+ *   currentUserRole="ProjectManager"
+ * />
+ *
+ * // Submitted 狀態顯示確認、拒絕按鈕（Supervisor）
+ * <ChargeOutActions
+ *   chargeOut={{ id: '1', name: 'Q1 費用轉嫁', status: 'Submitted' }}
+ *   currentUserRole="Supervisor"
+ * />
+ * ```
+ *
+ * @dependencies
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Button, AlertDialog
+ * - next-intl: 國際化
+ * - lucide-react: 圖示（Send, CheckCircle, XCircle, DollarSign, Edit, Trash2）
+ *
+ * @related
+ * - packages/api/src/routers/chargeOut.ts - ChargeOut API Router（submit/confirm/reject/markAsPaid/delete procedures）
+ * - apps/web/src/components/charge-out/ChargeOutForm.tsx - ChargeOut 表單組件
+ * - apps/web/src/app/[locale]/charge-outs/[id]/page.tsx - ChargeOut 詳情頁面
+ *
+ * @author IT Department
+ * @since Module 7-8 - ChargeOut Management
+ * @lastModified 2025-11-14 (FIX-050: markAsPaid API 需要 paymentDate 參數)
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";

@@ -1,10 +1,67 @@
-'use client';
-
 /**
- * BudgetProposalForm 組件
+ * @fileoverview Budget Proposal Form Component - 預算提案建立/編輯表單
  *
- * 用於新增和編輯預算提案的表單組件
+ * @description
+ * 統一的預算提案表單組件，支援建立新提案和編輯現有提案兩種模式。
+ * 提供標題、金額和專案選擇功能，整合即時驗證和 Toast 提示。
+ * 編輯模式下專案欄位為唯讀（不可變更）。
+ *
+ * @component BudgetProposalForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - 提案標題輸入和驗證
+ * - 提案金額輸入和正數驗證
+ * - 專案選擇（建立模式）
+ * - 專案唯讀顯示（編輯模式）
+ * - 即時表單驗證（必填欄位、金額正數）
+ * - 國際化支援（繁中/英文）
+ * - 錯誤處理和成功提示（Toast）
+ * - 建立後重定向至詳情頁（FIX）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {'create' | 'edit'} props.mode - 表單模式
+ * @param {Object} [props.initialData] - 編輯模式的預設值
+ * @param {string} props.initialData.id - 提案 ID
+ * @param {string} props.initialData.title - 提案標題
+ * @param {number} props.initialData.amount - 提案金額
+ * @param {string} props.initialData.projectId - 專案 ID
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <BudgetProposalForm mode="create" />
+ *
+ * // 編輯模式
+ * <BudgetProposalForm
+ *   mode="edit"
+ *   initialData={{
+ *     id: 'uuid',
+ *     title: '硬體設備採購提案',
+ *     amount: 150000,
+ *     projectId: 'project-uuid'
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - next-intl: 國際化
+ * - shadcn/ui: Input, Select, Button, Toast
+ *
+ * @related
+ * - packages/api/src/routers/budgetProposal.ts - 預算提案 API Router
+ * - packages/api/src/routers/project.ts - 專案 API (getAll)
+ * - apps/web/src/app/[locale]/proposals/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/proposals/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget Proposal Workflow
+ * @lastModified 2025-11-14 (FIX: 重定向至詳情頁)
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

@@ -1,3 +1,65 @@
+/**
+ * @fileoverview Command Component - shadcn/ui 命令選單組件
+ *
+ * @description
+ * 基於 cmdk 庫的命令選單組件，提供快速搜尋和鍵盤導航功能。
+ * 常用於實現命令面板 (Command Palette)、可搜尋下拉選單等交互模式。
+ * 整合 Dialog 組件可實現全域命令搜尋功能 (如 Cmd+K)。
+ *
+ * @component Command
+ *
+ * @features
+ * - 即時搜尋過濾
+ * - 鍵盤導航 (上下鍵、Enter 選取)
+ * - 命令分組 (CommandGroup)
+ * - 空狀態處理 (CommandEmpty)
+ * - 快捷鍵顯示 (CommandShortcut)
+ * - 對話框模式 (CommandDialog)
+ * - 主題支援 (Light/Dark/System)
+ *
+ * @example
+ * ```tsx
+ * // 基本用法
+ * <Command>
+ *   <CommandInput placeholder="搜尋..." />
+ *   <CommandList>
+ *     <CommandEmpty>找不到結果</CommandEmpty>
+ *     <CommandGroup heading="建議">
+ *       <CommandItem>專案</CommandItem>
+ *       <CommandItem>預算池</CommandItem>
+ *     </CommandGroup>
+ *   </CommandList>
+ * </Command>
+ *
+ * // 對話框模式 (Cmd+K 命令面板)
+ * <CommandDialog open={open} onOpenChange={setOpen}>
+ *   <CommandInput placeholder="輸入命令或搜尋..." />
+ *   <CommandList>
+ *     <CommandEmpty>找不到結果</CommandEmpty>
+ *     <CommandGroup heading="操作">
+ *       <CommandItem onSelect={() => router.push('/projects/new')}>
+ *         建立新專案
+ *         <CommandShortcut>⌘N</CommandShortcut>
+ *       </CommandItem>
+ *     </CommandGroup>
+ *   </CommandList>
+ * </CommandDialog>
+ * ```
+ *
+ * @dependencies
+ * - cmdk: Command 底層實現
+ * - @radix-ui/react-icons: MagnifyingGlassIcon
+ * - apps/web/src/components/ui/dialog.tsx: Dialog 組件
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/combobox.tsx - Combobox 組件 (移除了 cmdk 依賴)
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 "use client"
 
 import * as React from "react"

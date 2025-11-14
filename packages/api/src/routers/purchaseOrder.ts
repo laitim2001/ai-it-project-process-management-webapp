@@ -1,17 +1,50 @@
 /**
- * PurchaseOrder（採購單）管理 tRPC API 路由
+ * @fileoverview Purchase Order Router - 採購單管理 API
  *
- * 功能說明：
- * - 採購單 CRUD 操作：創建、查詢、更新、刪除
- * - 表頭-明細結構 (PurchaseOrder + PurchaseOrderItem)
- * - 自動從選定的 Quote 生成 PO
- * - 與 Project、Vendor、Quote 的關聯管理
- * - 採購單狀態管理（Draft → Submitted → Approved）
- * - 明細自動計算總金額
+ * @description
+ * 提供採購單的完整管理功能，支援表頭-明細架構（Header-Detail Pattern）。
+ * 採購單記錄專案的採購決策和品項明細，支援從報價單生成或手動建立。
+ * 包含狀態工作流（Draft → Submitted → Approved）和主管批准機制。
+ * 明細品項支援新增、更新、刪除，總金額自動重新計算。
  *
- * Module 4: PurchaseOrder 表頭明細重構
- * Epic 4 - Story 5.3: 選擇最終供應商並記錄採購決策
- * Epic 4 - Story 5.4: 生成採購單 (Purchase Order) 記錄
+ * @module api/routers/purchaseOrder
+ *
+ * @features
+ * - 建立採購單並自動計算總金額（支援多品項明細）
+ * - 更新採購單表頭和明細（支援品項的新增、更新、刪除）
+ * - 查詢採購單列表（支援專案、供應商過濾和排序）
+ * - 查詢單一採購單詳情（包含品項明細和費用記錄）
+ * - 提交採購單（狀態變更：Draft → Submitted）
+ * - 批准採購單（主管權限：Submitted → Approved）
+ * - 刪除採購單（級聯刪除檢查保護）
+ * - 獲取採購單統計資訊（總數、總金額、關聯專案）
+ *
+ * @procedures
+ * - create: 建立新採購單（含品項明細）
+ * - update: 更新採購單表頭和明細
+ * - delete: 刪除採購單（檢查費用記錄關聯）
+ * - getAll: 查詢採購單列表（支援分頁和過濾）
+ * - getById: 查詢單一採購單詳情（含品項和費用）
+ * - getByProject: 根據專案查詢採購單
+ * - submit: 提交採購單（狀態工作流）
+ * - approve: 批准採購單（Supervisor only）
+ * - getStats: 獲取採購單統計資訊
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作和交易管理
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - PurchaseOrder 和 PurchaseOrderItem 資料模型
+ * - packages/api/src/routers/project.ts - 專案 Router
+ * - packages/api/src/routers/vendor.ts - 供應商 Router
+ * - packages/api/src/routers/quote.ts - 報價單 Router
+ * - apps/web/src/app/[locale]/purchase-orders/page.tsx - 採購單列表頁面
+ *
+ * @author IT Department
+ * @since Epic 4 - Procurement and Vendor Management
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

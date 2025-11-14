@@ -1,16 +1,37 @@
 'use client';
 
 /**
- * 報價單上傳表單組件
+ * @fileoverview 報價單上傳表單組件
  *
- * Epic 5 - Story 5.2: 為已批准的專案上傳並關聯報價單
+ * @description
+ * 報價單（Quote）文件上傳表單，用於為已批准的專案上傳並關聯供應商報價單。
+ * 支援文件選擇、供應商選擇、報價金額輸入和文件上傳處理。
  *
- * 功能說明:
- * - 文件選擇和預覽
- * - 供應商選擇
- * - 報價金額輸入
- * - 文件上傳處理
- * - 上傳進度顯示
+ * @module apps/web/src/components/quote/QuoteUploadForm
+ * @component QuoteUploadForm
+ * @author IT Department
+ * @since Epic 5 - Story 5.2 (Quote Upload)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 文件類型驗證（PDF, DOC, DOCX, XLS, XLSX）
+ * - 文件大小限制（10MB）
+ * - 供應商選擇下拉框（分頁加載，最大 100 筆）
+ * - 報價金額輸入和驗證
+ * - 文件上傳進度顯示
+ * - 上傳成功後自動重置表單
+ * - 文件大小格式化顯示
+ *
+ * @dependencies
+ * - @/lib/trpc - tRPC client（vendor.getAll query）
+ * - next-intl - 國際化
+ * - @/components/ui - Card, Button, Input, Select 組件
+ * - lucide-react - 圖標組件
+ *
+ * @related
+ * - ../../app/api/upload/quote/route.ts - 文件上傳 API endpoint
+ * - ../../../../packages/api/src/routers/quote.ts - Quote procedures
+ * - ../../../../packages/db/prisma/schema.prisma - Quote model
  */
 
 import { useState } from 'react';

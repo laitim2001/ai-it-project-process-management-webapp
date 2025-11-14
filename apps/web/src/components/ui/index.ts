@@ -1,3 +1,60 @@
+/**
+ * @fileoverview UI Components Index - shadcn/ui 設計系統組件統一導出
+ *
+ * @description
+ * 統一導出所有 shadcn/ui 設計系統組件和類型定義，提供集中式的組件匯入入口。
+ * 包含 46 個 UI 組件，涵蓋基礎組件、表單組件、對話框、下拉選單、回饋組件等。
+ * 組件分為 5 個階段：P1 基礎組件、P2 表單組件、P3 覆蓋層組件、P4 回饋組件、P5 進階組件。
+ *
+ * @module components/ui
+ *
+ * @components
+ * **P1 - 基礎組件 (11 個)**
+ * - Button, Input, Card, Badge, Label, Textarea, Select
+ * - Avatar, Progress, Skeleton, Breadcrumb, Pagination
+ *
+ * **P2 - 表單組件 (5 個)**
+ * - Checkbox, RadioGroup, Switch, Slider, Form
+ *
+ * **P3 - 覆蓋層組件 (6 個)**
+ * - Dialog, DropdownMenu, Popover, Tooltip, Sheet, AlertDialog, ContextMenu
+ *
+ * **P4 - 回饋組件 (4 個)**
+ * - Alert, Separator, Toast (useToast hook), Toaster
+ *
+ * **P5 - 進階組件 (3 個)**
+ * - Tabs, Table, Accordion
+ *
+ * **業務組件 (1 個)**
+ * - LoadingSkeleton (BudgetPoolListSkeleton)
+ *
+ * @example
+ * ```tsx
+ * // 單一導入
+ * import { Button } from '@/components/ui';
+ *
+ * // 多個導入
+ * import { Button, Input, Card, toast } from '@/components/ui';
+ *
+ * // 使用類型
+ * import { type ButtonProps } from '@/components/ui';
+ * ```
+ *
+ * @dependencies
+ * - @radix-ui/react-*: 各組件的底層 Radix UI 實現
+ * - class-variance-authority: 樣式變體管理
+ * - tailwind-merge: Tailwind CSS 類別合併
+ *
+ * @related
+ * - apps/web/src/components/ui/*.tsx - 各個 UI 組件實現
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - claudedocs/DESIGN-SYSTEM-MIGRATION-PROGRESS.md - 設計系統遷移進度
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 // Base Components (Design System)
 export { Button, buttonVariants } from "./Button"
 export type { ButtonProps } from "./Button"

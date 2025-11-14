@@ -1,16 +1,55 @@
-'use client';
-
 /**
- * 專案經理儀表板頁面
+ * @fileoverview Project Manager Dashboard Page - 專案經理儀表板
  *
- * Epic 7 - Story 7.1: 專案經理儀表板核心視圖
+ * @description
+ * 專案經理專屬的儀表板頁面，聚焦於個人管理的專案和待處理任務。
+ * 提供專案概覽、預算追蹤、待處理提案和費用列表，支持快速訪問和狀態管理。
+ * 整合 tRPC 即時數據查詢，使用 React Query 進行數據快取和自動更新。
  *
- * 功能說明:
- * - 顯示我負責的專案列表
- * - 顯示待處理的任務列表
- * - 統計數據展示
- * - 快速導航到詳情頁面
+ * @page /[locale]/dashboard/pm
+ *
+ * @features
+ * - 統計卡片：總專案數、活躍專案、待審批提案、待處理任務
+ * - 預算概覽：總預算、已使用預算、剩餘預算視覺化
+ * - 我的專案列表：僅顯示當前用戶管理的專案（前5個）
+ * - 專案狀態標籤：Draft, InProgress, Completed, Archived
+ * - 待處理任務分頁：需補充資訊的提案、草稿費用列表
+ * - 提案快速鏈接：點擊直達提案詳情頁補充資訊
+ * - 費用快速鏈接：點擊直達費用詳情頁繼續編輯
+ * - 響應式網格佈局：適配桌面和移動設備
+ * - 錯誤處理：友好的錯誤提示和重試機制
+ * - 骨架屏加載：提升加載體驗
+ *
+ * @permissions
+ * - ProjectManager: 可查看（僅限自己管理的專案和任務）
+ *
+ * @routing
+ * - PM Dashboard: /dashboard/pm
+ * - 專案詳情: /projects/[id]
+ * - 提案詳情: /proposals/[id]
+ * - 費用詳情: /expenses/[id]
+ *
+ * @dependencies
+ * - next-intl: 國際化翻譯支援
+ * - @tanstack/react-query: tRPC 數據查詢和快取
+ * - lucide-react: 圖示庫 (Briefcase, TrendingUp, Clock, AlertCircle, etc.)
+ * - shadcn/ui: Card, Badge, Button, Tabs, Skeleton, Alert
+ * - DashboardLayout: 統一的儀表板佈局容器
+ * - Link: i18n 路由導航組件
+ *
+ * @related
+ * - packages/api/src/routers/dashboard.ts - getProjectManagerDashboard procedure
+ * - apps/web/src/app/[locale]/dashboard/supervisor/page.tsx - Supervisor 儀表板
+ * - apps/web/src/components/dashboard/StatCard.tsx - 統計卡片組件
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁
+ * - apps/web/src/app/[locale]/proposals/[id]/page.tsx - 提案詳情頁
+ *
+ * @author IT Department
+ * @since Epic 7 - Story 7.1: Project Manager Dashboard Core View
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';

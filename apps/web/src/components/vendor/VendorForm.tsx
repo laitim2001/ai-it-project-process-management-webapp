@@ -1,16 +1,67 @@
-'use client';
-
 /**
- * Vendor 表單組件
+ * @fileoverview Vendor Form Component - 供應商建立/編輯表單
  *
- * 功能說明:
- * - 供應商新增/編輯表單
- * - 表單驗證
- * - tRPC mutation 整合
- * - Toast 通知反饋
+ * @description
+ * 統一的供應商表單組件，支援建立新供應商和編輯現有供應商兩種模式。
+ * 提供供應商名稱、聯絡人、電子郵件和電話等基本資訊管理功能。
+ * 整合即時驗證（必填欄位、電子郵件格式）和 Toast 提示。
  *
- * Epic 4 - Story 5.1: 管理供應商基本資訊
+ * @component VendorForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - 供應商名稱輸入（必填）
+ * - 聯絡人姓名輸入（選填）
+ * - 聯絡電子郵件輸入（選填，格式驗證）
+ * - 聯絡電話輸入（選填）
+ * - 即時表單驗證（必填欄位、電子郵件格式）
+ * - 國際化支援（繁中/英文）
+ * - 錯誤處理和成功提示（Toast）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {'create' | 'edit'} props.mode - 表單模式
+ * @param {Object} [props.initialData] - 編輯模式的預設值
+ * @param {string} props.initialData.id - 供應商 ID
+ * @param {string} props.initialData.name - 供應商名稱
+ * @param {string | null} [props.initialData.contactPerson] - 聯絡人姓名
+ * @param {string | null} [props.initialData.contactEmail] - 聯絡電子郵件
+ * @param {string | null} [props.initialData.phone] - 聯絡電話
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <VendorForm mode="create" />
+ *
+ * // 編輯模式
+ * <VendorForm
+ *   mode="edit"
+ *   initialData={{
+ *     id: 'uuid',
+ *     name: 'ABC 科技有限公司',
+ *     contactPerson: '王小明',
+ *     contactEmail: 'ming.wang@abc.com',
+ *     phone: '02-1234-5678'
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - next-intl: 國際化
+ * - shadcn/ui: Input, Button, Toast
+ *
+ * @related
+ * - packages/api/src/routers/vendor.ts - 供應商 API Router
+ * - apps/web/src/app/[locale]/vendors/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/vendors/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";

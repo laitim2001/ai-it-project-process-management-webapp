@@ -1,13 +1,50 @@
 /**
- * User tRPC Router
+ * @fileoverview User Router - 用戶管理 API
  *
- * 提供使用者管理的 API 端點
- * - 取得所有使用者
- * - 根據 ID 取得使用者
- * - 根據角色取得使用者（管理者/監督者）
- * - 建立使用者
- * - 更新使用者
- * - 刪除使用者
+ * @description
+ * 提供用戶的完整 CRUD 操作和角色管理功能。
+ * 用戶是系統認證和授權的核心，支援三種角色：ProjectManager、Supervisor、Admin。
+ * 包含用戶與專案的關聯查詢，以及角色篩選功能用於下拉選單和權限控制。
+ * 刪除用戶前會檢查關聯的專案，防止誤刪有管理責任的用戶。
+ *
+ * @module api/routers/user
+ *
+ * @features
+ * - 建立用戶並指定角色（驗證 Email 唯一性）
+ * - 更新用戶資訊（姓名、Email、角色）
+ * - 查詢所有用戶列表（包含角色資訊）
+ * - 查詢單一用戶詳情（包含管理的專案和批准的專案）
+ * - 根據角色查詢用戶（ProjectManager、Supervisor、Admin）
+ * - 獲取所有專案經理列表（用於專案指派）
+ * - 獲取所有主管列表（用於專案監督）
+ * - 刪除用戶（檢查專案關聯保護）
+ * - 獲取所有角色列表（用於下拉選單）
+ *
+ * @procedures
+ * - create: 建立新用戶（驗證 Email 和角色）
+ * - update: 更新用戶資訊（支援部分更新）
+ * - delete: 刪除用戶（檢查專案關聯）
+ * - getAll: 查詢所有用戶列表（包含角色）
+ * - getById: 查詢單一用戶詳情（包含專案關聯）
+ * - getByRole: 根據角色名稱查詢用戶
+ * - getManagers: 獲取所有專案經理
+ * - getSupervisors: 獲取所有主管
+ * - getRoles: 獲取所有角色列表
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - User 和 Role 資料模型
+ * - packages/auth/src/index.ts - NextAuth.js 認證配置
+ * - packages/api/src/trpc.ts - 認證中介軟體
+ * - apps/web/src/app/[locale]/users/page.tsx - 用戶列表頁面
+ *
+ * @author IT Department
+ * @since Epic 1 - Azure AD B2C Authentication
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

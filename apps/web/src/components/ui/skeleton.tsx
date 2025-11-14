@@ -1,3 +1,73 @@
+/**
+ * @fileoverview Skeleton Component - shadcn/ui 骨架屏載入組件
+ *
+ * @description
+ * 用於內容載入時顯示的骨架屏組件，提供脈動動畫的佔位符。
+ * 包含基礎 Skeleton 組件和多個預設組件（SkeletonText, SkeletonCard, SkeletonAvatar 等）。
+ * 適用於改善載入體驗，減少內容突然出現造成的視覺跳躍。
+ *
+ * @component Skeleton
+ *
+ * @features
+ * - 基於 class-variance-authority 的樣式變體管理
+ * - 脈動動畫（animate-pulse）
+ * - 三種視覺變體（default, lighter, darker）
+ * - 預設組件集（Text, Card, Avatar, Button, Table）
+ * - 靈活的尺寸和形狀控制
+ * - 主題支援（Light/Dark/System）
+ *
+ * @components
+ * - Skeleton: 基礎骨架組件
+ * - SkeletonText: 文字段落骨架（可自訂行數）
+ * - SkeletonCard: 卡片骨架（圖片 + 文字）
+ * - SkeletonAvatar: 頭像骨架（圓形，支援 sm/default/lg）
+ * - SkeletonButton: 按鈕骨架
+ * - SkeletonTable: 表格骨架（可自訂行列數）
+ *
+ * @props
+ * Skeleton Props:
+ * @param {Object} props - 組件屬性
+ * @param {"default" | "lighter" | "darker"} [props.variant="default"] - 視覺變體
+ * @param {string} [props.className] - 自訂 CSS 類別
+ *
+ * @example
+ * ```tsx
+ * // 基本用法
+ * <Skeleton className="h-4 w-[250px]" />
+ *
+ * // 文字段落骨架
+ * <SkeletonText lines={3} />
+ *
+ * // 卡片骨架
+ * <SkeletonCard />
+ *
+ * // 頭像骨架
+ * <SkeletonAvatar size="lg" />
+ *
+ * // 表格骨架
+ * <SkeletonTable rows={5} columns={4} />
+ *
+ * // 自訂變體
+ * <Skeleton variant="lighter" className="h-12 w-12 rounded-full" />
+ * ```
+ *
+ * @accessibility
+ * - 使用 aria-busy 指示載入狀態
+ * - 建議搭配 aria-label 說明載入內容
+ *
+ * @dependencies
+ * - class-variance-authority: 樣式變體管理
+ * - Tailwind CSS: 樣式系統和動畫
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/app/[locale]/projects/page.tsx - 使用範例（列表載入）
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"

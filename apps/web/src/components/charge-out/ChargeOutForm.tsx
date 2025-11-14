@@ -1,18 +1,67 @@
-'use client';
-
 /**
- * ChargeOutForm 組件 - Module 7-8 費用轉嫁表頭明細表單
+ * @fileoverview ChargeOut Form Component - 費用轉嫁表頭明細表單
  *
- * 功能說明：
- * - ChargeOut 基本信息（name, description, projectId, opCoId）
- * - 費用明細表格（動態新增/刪除行）
- * - 明細字段：expenseId, amount, description
- * - 自動計算總金額
- * - 表單驗證（至少一個費用項目）
- * - 只允許 requiresChargeOut = true 的費用
+ * @description
+ * 統一的費用轉嫁（ChargeOut）建立/編輯表單組件，支援表頭明細架構。
+ * 管理專案費用轉嫁給 OpCo（營運公司）的完整流程，包含費用項目選擇、金額分配和描述。
+ * 僅顯示標記為 requiresChargeOut = true 的合格費用，並支援動態明細表格編輯。
  *
- * Module 7-8: ChargeOut 費用轉嫁 - 前端實施
+ * @component ChargeOutForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - ChargeOut 基本資訊輸入（名稱、描述）
+ * - 專案和 OpCo 關聯選擇
+ * - 動態費用明細表格（新增/編輯/刪除行）
+ * - 合格費用篩選（requiresChargeOut = true）
+ * - 選擇費用時自動填充金額
+ * - 即時總金額計算和顯示
+ * - 完整表單驗證（Zod schema + 業務規則）
+ * - 專案變更時自動清空明細（費用列表聯動）
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {any} [props.initialData] - 編輯模式的初始數據（包含 items）
+ * @param {boolean} [props.isEdit=false] - 是否為編輯模式
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <ChargeOutForm isEdit={false} />
+ *
+ * // 編輯模式
+ * <ChargeOutForm
+ *   isEdit={true}
+ *   initialData={{
+ *     id: 'chargeout-1',
+ *     name: '2025 Q1 費用轉嫁',
+ *     projectId: 'project-1',
+ *     opCoId: 'opco-1',
+ *     items: [{ expenseId: 'expense-1', amount: 50000 }]
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - react-hook-form: 表單狀態管理和驗證
+ * - @hookform/resolvers/zod: Zod 整合
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Form, Input, Textarea, Card, Button
+ * - next-intl: 國際化
+ *
+ * @related
+ * - packages/api/src/routers/chargeOut.ts - ChargeOut API Router（getEligibleExpenses procedure）
+ * - apps/web/src/components/charge-out/ChargeOutActions.tsx - ChargeOut 操作組件
+ * - apps/web/src/app/[locale]/charge-outs/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/charge-outs/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Module 7-8 - ChargeOut Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from "@/i18n/routing";

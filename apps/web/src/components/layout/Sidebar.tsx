@@ -1,3 +1,53 @@
+/**
+ * @fileoverview Sidebar Component - 側邊欄導航組件
+ *
+ * @description
+ * 提供應用程式的主要導航側邊欄，包含品牌標識、用戶資訊和分類導航選單。
+ * 支援多層級導航結構（概覽、專案預算、採購、系統），
+ * 動態高亮當前頁面，顯示用戶角色和線上狀態，提供完整的導航體驗。
+ *
+ * @component Sidebar
+ *
+ * @features
+ * - 品牌標識和應用標題顯示
+ * - 用戶資訊卡片（頭像、姓名、角色、線上狀態）
+ * - 分類導航結構（4 大分類：概覽、專案預算、採購、系統）
+ * - 當前頁面高亮顯示（URL 路徑匹配）
+ * - 導航項目懸停效果和圖示
+ * - 底部導航區域（設定、說明）
+ * - 多語言支援（繁中/英文）
+ * - 響應式設計（桌面和移動裝置）
+ *
+ * @navigation
+ * - 概覽區：Dashboard
+ * - 專案預算區：預算池、專案、提案
+ * - 採購區：廠商、報價、採購單、費用、O&M 費用、成本分攤
+ * - 系統區：使用者管理
+ * - 底部區：設定、說明
+ *
+ * @stateManagement
+ * - useSession: NextAuth 會話狀態（用戶資訊、角色）
+ * - usePathname: 當前路徑（用於高亮導航）
+ * - useTranslations: 國際化翻譯
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - next-auth/react: 用戶會話管理
+ * - lucide-react: 圖示組件（10+ 圖示）
+ * - @/i18n/routing: 國際化路由
+ * - Tailwind CSS: 樣式和佈局
+ *
+ * @related
+ * - apps/web/src/components/layout/TopBar.tsx - 頂部導航欄組件
+ * - apps/web/src/components/layout/dashboard-layout.tsx - 佈局容器組件
+ * - packages/auth/index.ts - NextAuth 配置
+ * - apps/web/src/messages/zh-TW.json - 翻譯檔案
+ *
+ * @author IT Department
+ * @since Epic 1 - Platform Foundation
+ * @lastModified 2025-11-14
+ */
+
 "use client"
 
 import { useTranslations } from 'next-intl'

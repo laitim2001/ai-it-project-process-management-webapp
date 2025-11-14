@@ -1,15 +1,51 @@
-'use client';
-
 /**
- * Vendor 列表頁面
+ * @fileoverview Vendors List Page - 供應商列表頁面
  *
- * 功能說明:
- * - 供應商列表展示(分頁)
- * - 搜尋和排序功能
- * - 導航到詳情/新增/編輯頁面
+ * @description
+ * 顯示所有供應商的列表，支援即時搜尋、排序和分頁功能。
+ * Project Manager 可查看和管理供應商資訊，用於後續的報價和採購流程。
+ * 整合 tRPC 查詢和 React Query 進行資料快取和即時更新。
  *
- * Epic 4 - Story 5.1: 管理供應商基本資訊
+ * @page /[locale]/vendors
+ *
+ * @features
+ * - 供應商列表展示（卡片視圖和表格視圖切換）
+ * - 即時搜尋（供應商名稱、聯絡人、電郵）
+ * - 排序功能（名稱、建立日期、更新日期）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 快速操作（查看詳情、編輯、刪除）
+ * - 供應商統計資訊（報價數量、採購單數量）
+ * - 防抖搜尋優化（減少 API 請求）
+ * - 角色權限控制（RBAC）
+ *
+ * @permissions
+ * - ProjectManager: 查看和管理供應商
+ * - Supervisor: 完整權限
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 列表頁: /vendors
+ * - 建立頁: /vendors/new
+ * - 詳情頁: /vendors/[id]
+ * - 編輯頁: /vendors/[id]/edit
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Table, Card, Input, Select, Pagination
+ *
+ * @related
+ * - packages/api/src/routers/vendor.ts - 供應商 API Router
+ * - apps/web/src/components/vendor/VendorForm.tsx - 供應商表單組件
+ * - apps/web/src/app/[locale]/vendors/[id]/page.tsx - 供應商詳情頁面
+ * - packages/db/prisma/schema.prisma - Vendor 資料模型
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';

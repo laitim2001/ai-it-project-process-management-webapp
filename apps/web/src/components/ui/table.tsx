@@ -1,3 +1,79 @@
+/**
+ * @fileoverview Table Component - shadcn/ui 表格組件
+ *
+ * @description
+ * 語義化的 HTML 表格組件集，提供一致的視覺樣式和完整的表格結構支援。
+ * 包含 Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption 等子組件。
+ * 遵循 shadcn/ui 設計系統規範，支援響應式設計和主題切換。
+ *
+ * @component Table
+ *
+ * @features
+ * - 完整的 HTML 表格結構組件集
+ * - 自動響應式設計（水平滾動）
+ * - Row hover 效果
+ * - Row selected 狀態
+ * - 斑馬條紋支援（透過 CSS）
+ * - Checkbox 列特殊樣式支援
+ * - 主題支援（Light/Dark/System）
+ * - 完整的語義化標記
+ *
+ * @components
+ * - Table: 表格容器（帶響應式滾動）
+ * - TableHeader: 表格頭部（thead）
+ * - TableBody: 表格主體（tbody）
+ * - TableFooter: 表格尾部（tfoot）
+ * - TableRow: 表格行（tr）
+ * - TableHead: 表頭單元格（th）
+ * - TableCell: 資料單元格（td）
+ * - TableCaption: 表格標題（caption）
+ *
+ * @example
+ * ```tsx
+ * <Table>
+ *   <TableCaption>專案列表</TableCaption>
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>專案名稱</TableHead>
+ *       <TableHead>狀態</TableHead>
+ *       <TableHead className="text-right">預算</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>
+ *     <TableRow>
+ *       <TableCell>專案 A</TableCell>
+ *       <TableCell>進行中</TableCell>
+ *       <TableCell className="text-right">$10,000</TableCell>
+ *     </TableRow>
+ *   </TableBody>
+ *   <TableFooter>
+ *     <TableRow>
+ *       <TableCell colSpan={2}>總計</TableCell>
+ *       <TableCell className="text-right">$10,000</TableCell>
+ *     </TableRow>
+ *   </TableFooter>
+ * </Table>
+ * ```
+ *
+ * @accessibility
+ * - 使用語義化的 table 元素
+ * - caption 提供表格描述
+ * - thead, tbody, tfoot 結構清晰
+ * - 支援 scope, colSpan, rowSpan 屬性
+ *
+ * @dependencies
+ * - Tailwind CSS: 樣式系統
+ *
+ * @related
+ * - apps/web/src/app/[locale]/projects/page.tsx - 使用範例（專案列表）
+ * - apps/web/src/app/[locale]/budget-pools/page.tsx - 使用範例（預算池列表）
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 

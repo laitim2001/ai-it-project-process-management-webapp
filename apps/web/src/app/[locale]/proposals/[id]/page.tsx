@@ -1,11 +1,58 @@
 /**
- * BudgetProposal 詳情頁面
+ * @fileoverview Budget Proposal Detail Page - 預算提案詳情頁面
  *
- * 顯示預算提案的完整資訊，包含：
- * - 基本資訊
- * - 審批功能（提交、審批）
- * - 評論系統
- * - 審批歷史
+ * @description
+ * 顯示單一預算提案的完整資訊，整合審批工作流、評論系統、檔案管理和會議記錄功能。
+ * 提供多分頁介面（詳情/評論/檔案/會議/歷史），支援即時狀態更新和權限控制。
+ * Supervisor 可在此頁面進行審批操作，Project Manager 可查看審批進度和評論互動。
+ *
+ * @page /[locale]/proposals/[id]
+ *
+ * @features
+ * - 提案詳情展示（基本資訊、金額、狀態、時間軸）
+ * - 審批工作流（提交、審批、拒絕、要求更多資訊）
+ * - 評論系統（新增評論、查看評論列表）
+ * - 檔案管理（上傳附件、預覽、下載、刪除）
+ * - 會議記錄（新增、編輯、刪除會議記錄）
+ * - 審批歷史（完整的狀態變更記錄和審批軌跡）
+ * - 多分頁介面（詳情/評論/檔案/會議/歷史）
+ * - 自動狀態更新（React Query 自動重新獲取）
+ * - 權限控制（根據角色和提案狀態控制操作權限）
+ * - 麵包屑導航和快速操作按鈕
+ *
+ * @permissions
+ * - ProjectManager: 可查看自己專案的提案，可編輯 Draft 狀態提案
+ * - Supervisor: 可查看所有提案，可審批 PendingApproval 提案
+ * - Admin: 完整查看和管理權限
+ * - 注意：詳細權限控制由 ProposalActions 組件處理
+ *
+ * @routing
+ * - 詳情頁: /proposals/[id]
+ * - 編輯頁: /proposals/[id]/edit
+ * - 返回列表: /proposals
+ *
+ * @stateManagement
+ * - tRPC + React Query: 提案數據查詢和快取
+ * - URL Params: 當前分頁狀態（透過 Tabs 組件）
+ * - Component State: 評論輸入、檔案上傳進度（各子組件內部管理）
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Badge, Tabs, Alert, Button
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/budgetProposal.ts - 提案 API Router
+ * - apps/web/src/components/proposal/ProposalActions.tsx - 審批操作組件
+ * - apps/web/src/components/proposal/CommentSection.tsx - 評論系統組件
+ * - apps/web/src/components/proposal/ProposalFileUpload.tsx - 檔案上傳組件
+ * - apps/web/src/components/proposal/ProposalMeetingNotes.tsx - 會議記錄組件
+ * - apps/web/src/app/[locale]/proposals/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget Proposal Workflow
+ * @lastModified 2025-11-14
  */
 
 'use client';

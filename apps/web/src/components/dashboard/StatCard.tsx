@@ -1,9 +1,57 @@
 /**
- * 統計卡片組件
+ * @fileoverview Stat Card Component - 統計卡片組件（舊版）
  *
- * Epic 7: Dashboard and Basic Reporting
+ * @description
+ * Dashboard 統計數據展示卡片組件（舊版本），支援顯示統計值、圖示和趨勢百分比。
+ * 使用 shadcn/ui Card 組件，提供簡潔的統計數據展示介面。
+ * 注意：此為舊版組件，新功能建議使用 StatsCard.tsx。
  *
- * 用於儀表板顯示統計數據的卡片
+ * @component StatCard
+ *
+ * @features
+ * - 統計數據值顯示（支援字串和數字）
+ * - 圖示顯示（支援 Lucide React 圖示）
+ * - 趨勢百分比顯示（正向/負向）
+ * - 自定義圖示顏色
+ * - 基於 shadcn/ui Card 組件
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {string} props.title - 統計數據標題
+ * @param {number | string} props.value - 統計數據值
+ * @param {LucideIcon} props.icon - Lucide React 圖示組件
+ * @param {string} [props.iconColor='text-blue-600'] - 圖示顏色類別
+ * @param {Object} [props.trend] - 趨勢資訊
+ * @param {number} props.trend.value - 趨勢百分比值
+ * @param {boolean} props.trend.isPositive - 是否為正向趨勢
+ *
+ * @example
+ * ```tsx
+ * import { DollarSign } from 'lucide-react';
+ *
+ * <StatCard
+ *   title="總預算"
+ *   value="$1,250,000"
+ *   icon={DollarSign}
+ *   iconColor="text-blue-600"
+ *   trend={{
+ *     value: 5.2,
+ *     isPositive: true
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - shadcn/ui: Card, CardContent
+ * - lucide-react: LucideIcon 類型
+ *
+ * @related
+ * - apps/web/src/components/dashboard/StatsCard.tsx - 新版統計卡片組件（建議使用）
+ * - apps/web/src/app/[locale]/dashboard/page.tsx - Dashboard 頁面
+ *
+ * @author IT Department
+ * @since Epic 7 - Dashboard and Basic Reporting
+ * @lastModified 2025-11-14
  */
 
 import { Card, CardContent } from '@/components/ui/card';

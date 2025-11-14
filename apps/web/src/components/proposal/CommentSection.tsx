@@ -1,9 +1,35 @@
 'use client';
 
 /**
- * CommentSection 組件
+ * @fileoverview 提案評論區組件
  *
- * 顯示和新增提案評論
+ * @description
+ * 提案詳情頁面的評論功能組件，支援查看評論歷史和新增評論。
+ * 評論用於主管和專案經理之間的溝通，記錄審批討論過程。
+ *
+ * @module apps/web/src/components/proposal/CommentSection
+ * @component CommentSection
+ * @author IT Department
+ * @since Epic 3 - Story 3.3 (Proposal Comments)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 顯示評論列表（含作者和時間）
+ * - 新增評論表單
+ * - 即時更新評論（使用 tRPC invalidation）
+ * - 空狀態提示
+ * - 評論計數顯示
+ *
+ * @dependencies
+ * - @/lib/trpc - tRPC client
+ * - next-auth/react - Session 管理
+ * - next-intl - 國際化
+ * - @/components/ui - Toast 通知
+ *
+ * @related
+ * - ../../app/[locale]/(dashboard)/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
+ * - ../../../../packages/api/src/routers/budgetProposal.ts - API addComment procedure
+ * - ../../../../packages/db/prisma/schema.prisma - Comment model
  */
 
 import { useState } from 'react';

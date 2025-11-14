@@ -1,16 +1,63 @@
-'use client';
-
 /**
- * 編輯報價單頁面
+ * @fileoverview Edit Quote Page - 編輯報價單頁面
  *
- * 功能說明：
- * - 修改報價金額
- * - 添加/修改報價說明
- * - 不能修改：專案、供應商、報價文件
- * - 限制：如果報價單已關聯採購單，則不允許編輯
+ * @description
+ * 提供報價單編輯功能的頁面，允許修改報價金額和說明，但不允許修改專案、供應商和報價文件。
+ * 如果報價單已關聯採購單，則禁止編輯（顯示錯誤提示並引導返回列表）。
+ * 包含表單驗證和錯誤處理，編輯成功後自動跳轉到報價列表頁面。
  *
- * Epic 5 - Story 5.2: 報價管理
+ * @page /[locale]/quotes/[id]/edit
+ *
+ * @features
+ * - 報價基本資訊展示（專案、供應商、文件，唯讀）
+ * - 報價金額編輯（必填，大於 0）
+ * - 報價說明編輯（可選，多行文字輸入）
+ * - 已關聯採購單檢查（禁止編輯）
+ * - 表單驗證和錯誤提示
+ * - 載入狀態骨架屏
+ * - 錯誤處理（找不到報價、已關聯採購單）
+ * - 取消按鈕返回上一頁
+ *
+ * @permissions
+ * - ProjectManager: 編輯自己專案的報價
+ * - Supervisor: 編輯所有報價
+ * - Admin: 完整編輯權限
+ *
+ * @routing
+ * - 當前頁: /quotes/[id]/edit
+ * - 成功後: /quotes
+ * - 返回: router.back()
+ *
+ * @stateManagement
+ * - React Query: 報價詳情查詢
+ * - tRPC: 報價更新 mutation
+ * - React State: amount, description（表單狀態）
+ * - useEffect: 載入時設置表單初始值
+ * - Toast: 操作結果提示
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Button, Input, Label, Textarea, Alert, Breadcrumb, Skeleton
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/quote.ts - 報價 API Router
+ * - apps/web/src/app/[locale]/quotes/page.tsx - 報價列表頁面
+ * - apps/web/src/app/[locale]/quotes/new/page.tsx - 新增報價頁面
+ * - packages/db/prisma/schema.prisma - Quote 資料模型
+ *
+ * @validation
+ * - 金額: 必填，大於 0
+ * - 說明: 可選
+ * - 編輯限制: 已關聯採購單的報價不可編輯
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement and Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';

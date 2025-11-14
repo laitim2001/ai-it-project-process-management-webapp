@@ -1,15 +1,50 @@
-'use client';
-
 /**
- * 編輯供應商頁面
+ * @fileoverview Edit Vendor Page - 編輯供應商頁面
  *
- * 功能說明:
- * - 使用 VendorForm 組件編輯現有供應商
- * - 自動載入現有資料
- * - 表單提交後跳轉到詳情頁
+ * @description
+ * 提供編輯現有供應商的表單頁面，支援修改供應商資訊。
+ * 使用 React Hook Form 進行表單驗證，預填充現有資料。
+ * 提供完整的錯誤處理和載入狀態管理。
  *
- * Epic 4 - Story 5.1: 管理供應商基本資訊
+ * @page /[locale]/vendors/[id]/edit
+ *
+ * @features
+ * - 完整的供應商編輯表單（預填充現有資料）
+ * - 即時表單驗證（Zod schema）
+ * - 電郵格式驗證（RFC 5322）
+ * - 電話號碼格式驗證
+ * - 錯誤處理（供應商不存在、權限錯誤、網路錯誤）
+ * - 載入狀態骨架屏
+ * - 麵包屑導航支援
+ * - 國際化表單標籤和錯誤訊息
+ *
+ * @permissions
+ * - ProjectManager: 可編輯供應商
+ * - Supervisor: 完整權限
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 編輯頁: /vendors/[id]/edit
+ * - 成功後導向: /vendors/[id] (供應商詳情頁)
+ * - 取消後返回: /vendors/[id] (供應商詳情頁)
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢、mutation 和快取
+ * - shadcn/ui: Card, Skeleton, Alert, Breadcrumb
+ *
+ * @related
+ * - apps/web/src/components/vendor/VendorForm.tsx - 供應商表單組件
+ * - packages/api/src/routers/vendor.ts - 供應商 API Router (getById, update)
+ * - apps/web/src/app/[locale]/vendors/[id]/page.tsx - 供應商詳情頁面
+ * - apps/web/src/app/[locale]/vendors/page.tsx - 供應商列表頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';

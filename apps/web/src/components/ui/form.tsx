@@ -1,19 +1,31 @@
 /**
- * ================================================================
- * Form 組件 - 表單整合
- * ================================================================
+ * @fileoverview Form 組件 - 表單整合系統
  *
- * 【功能說明】
- * 整合 react-hook-form 和 zod 的表單組件系統
+ * @description
+ * 整合 react-hook-form 和 zod 的完整表單組件系統。
+ * 提供 Context-based API 用於表單狀態管理、驗證和錯誤處理。
  *
- * 【特性】
- * • 與 react-hook-form 完整整合
- * • 支援 zod schema 驗證
- * • 自動處理錯誤訊息顯示
- * • 無障礙友善的錯誤提示
- * • Context-based API
+ * @module apps/web/src/components/ui/form
+ * @component Form
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  *
- * 【使用範例】
+ * @features
+ * - 與 react-hook-form 完整整合
+ * - 支援 zod schema 驗證
+ * - 自動處理錯誤訊息顯示
+ * - 無障礙友善的錯誤提示（ARIA attributes）
+ * - Context-based API（FormField, FormItem, FormLabel）
+ * - 表單描述和錯誤訊息組件
+ *
+ * @dependencies
+ * - react-hook-form - 表單狀態管理
+ * - @radix-ui/react-label - 無障礙 label 組件
+ * - @radix-ui/react-slot - Slot 組件
+ * - @/lib/utils - cn() 工具函數
+ *
+ * @example
  * ```tsx
  * import { zodResolver } from "@hookform/resolvers/zod";
  * import * as z from "zod";

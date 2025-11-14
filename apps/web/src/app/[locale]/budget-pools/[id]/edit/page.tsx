@@ -1,3 +1,57 @@
+/**
+ * @fileoverview Edit Budget Pool Page - 編輯預算池頁面
+ *
+ * @description
+ * 提供編輯現有預算池的表單頁面，支援修改預算池基本資訊和預算類別。
+ * 使用動態載入優化表單組件，整合 React Hook Form + Zod 進行表單驗證。
+ * 支援預算類別的新增、編輯、刪除和排序，提供即時驗證和錯誤處理。
+ *
+ * @page /[locale]/budget-pools/[id]/edit
+ *
+ * @features
+ * - 完整的預算池編輯表單（預填充現有資料）
+ * - 修改預算池名稱、描述、財年
+ * - 預算類別管理（新增、編輯、刪除、排序）
+ * - 即時表單驗證（Zod schema）
+ * - 動態載入表單組件（優化初始載入時間）
+ * - 錯誤處理（404 Not Found、權限錯誤、網路錯誤）
+ * - 骨架屏載入狀態（提升用戶體驗）
+ * - 麵包屑導航（清晰的頁面層級結構）
+ *
+ * @permissions
+ * - ProjectManager: 不可編輯（僅查看權限）
+ * - Supervisor: 不可編輯（僅查看權限）
+ * - Admin: 完整編輯權限
+ *
+ * @routing
+ * - 編輯頁: /budget-pools/[id]/edit
+ * - 成功後導向: /budget-pools/[id] (預算池詳情頁)
+ * - 取消後返回: /budget-pools/[id] (預算池詳情頁)
+ * - Not Found 返回: /budget-pools (預算池列表頁)
+ *
+ * @stateManagement
+ * - Form State: React Hook Form (BudgetPoolForm 組件內部)
+ * - Data Fetching: tRPC useQuery (預算池詳情)
+ * - Data Mutation: tRPC useMutation (BudgetPoolForm 組件內部)
+ *
+ * @dependencies
+ * - next/dynamic: 動態導入優化
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Skeleton, Breadcrumb, Button, Alert
+ * - lucide-react: AlertCircle 圖示
+ *
+ * @related
+ * - packages/api/src/routers/budgetPool.ts - Budget Pool API Router
+ * - apps/web/src/components/budget-pool/BudgetPoolForm.tsx - 預算池表單組件
+ * - apps/web/src/app/[locale]/budget-pools/[id]/page.tsx - 預算池詳情頁
+ * - apps/web/src/app/[locale]/budget-pools/page.tsx - 預算池列表頁
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import dynamic from 'next/dynamic';

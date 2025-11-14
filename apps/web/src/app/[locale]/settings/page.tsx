@@ -1,16 +1,56 @@
-'use client';
-
 /**
- * 系統設定頁面
+ * @fileoverview User Settings Page - 用戶設定頁面
  *
- * 功能說明:
- * - 用戶個人設定
- * - 通知偏好設定
- * - 顯示偏好設定
- * - 安全設定
+ * @description
+ * 提供用戶個人設定管理介面，包含個人資訊、通知偏好、顯示偏好和安全設定。
+ * 支援主題切換（Light/Dark/System）、語言切換（繁中/英文）和通知偏好設定。
+ * 整合 NextAuth.js 會話管理，提供密碼修改和帳戶安全功能。
  *
- * Future Enhancement
+ * @page /[locale]/settings
+ *
+ * @features
+ * - 個人資訊管理（名稱、電郵、頭像）
+ * - 通知偏好設定（電郵通知、瀏覽器通知）
+ * - 顯示偏好設定（主題模式、語言、時區）
+ * - 安全設定（密碼修改、會話管理）
+ * - 主題切換（Light/Dark/System）
+ * - 語言切換（繁體中文/English）
+ * - 通知開關（提案通知、費用通知、系統通知）
+ * - 即時預覽（主題和語言切換即時生效）
+ * - 表單驗證（Zod schema）
+ * - 成功提示和錯誤處理（Toast）
+ *
+ * @permissions
+ * - All authenticated users: 管理自己的設定
+ *
+ * @routing
+ * - 設定頁: /settings
+ *
+ * @stateManagement
+ * - Form State: React Hook Form
+ * - Theme State: useTheme hook (next-themes)
+ * - Locale State: next-intl routing
+ * - Session State: NextAuth useSession
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - next-themes: 主題管理
+ * - next-auth/react: 會話管理
+ * - @tanstack/react-query: tRPC mutation
+ * - shadcn/ui: Card, Input, Switch, Button, Label
+ *
+ * @related
+ * - packages/api/src/routers/user.ts - 用戶更新 API
+ * - apps/web/src/components/theme/ThemeToggle.tsx - 主題切換組件
+ * - apps/web/src/components/layout/LanguageSwitcher.tsx - 語言切換組件
+ * - packages/auth/src/index.ts - NextAuth 配置
+ *
+ * @author IT Department
+ * @since Post-MVP - User Experience Enhancements
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

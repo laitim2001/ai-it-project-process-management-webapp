@@ -1,3 +1,45 @@
+/**
+ * @fileoverview Charge Outs List Page - 費用轉嫁列表頁面
+ *
+ * @description
+ * 顯示所有費用轉嫁記錄的列表，支援即時搜尋、狀態過濾和分頁功能。
+ * 費用轉嫁用於將專案費用分攤到不同的成本中心或部門。
+ * 整合專案和預算類別資訊，提供完整的費用轉嫁管理功能。
+ *
+ * @page /[locale]/charge-outs
+ *
+ * @features
+ * - 費用轉嫁列表展示（卡片視圖）
+ * - 即時搜尋（轉嫁描述、成本中心）
+ * - 狀態過濾（Draft, Submitted, Approved, Completed）
+ * - 專案過濾（根據所屬專案篩選）
+ * - 排序功能（金額、日期、狀態）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 快速操作（查看詳情、編輯、提交、審批）
+ * - 狀態徽章顯示（不同顏色標示不同狀態）
+ * - 角色權限控制（RBAC）
+ *
+ * @permissions
+ * - ProjectManager: 查看和建立自己專案的費用轉嫁
+ * - Supervisor: 查看所有費用轉嫁，審批 Submitted 轉嫁
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 列表頁: /charge-outs
+ * - 建立頁: /charge-outs/new
+ * - 詳情頁: /charge-outs/[id]
+ * - 編輯頁: /charge-outs/[id]/edit
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: UI 組件庫
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -18,17 +60,6 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import { api } from '@/lib/trpc';
-
-/**
- * ChargeOut 列表頁
- *
- * 功能：
- * 1. 顯示所有 ChargeOut 記錄
- * 2. 支持狀態、OpCo、項目過濾
- * 3. 卡片式展示（項目、OpCo、總金額、狀態）
- * 4. 創建新 ChargeOut
- * 5. 分頁支持
- */
 
 export default function ChargeOutsPage() {
   const t = useTranslations('chargeOuts');

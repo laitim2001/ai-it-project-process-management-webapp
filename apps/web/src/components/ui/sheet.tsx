@@ -1,8 +1,15 @@
 /**
- * Sheet - 側邊抽屜組件
+ * @fileoverview Sheet - 側邊抽屜組件
  *
- * 基於 @radix-ui/react-dialog 的側邊抽屜組件。
- * 用於顯示額外內容、表單或操作面板，不離開當前頁面。
+ * @description
+ * 基於 @radix-ui/react-dialog 的側邊抽屜組件，用於顯示額外內容、表單或操作面板。
+ * 支援四個方向（top/right/bottom/left）、平滑動畫和完整的無障礙支援。
+ *
+ * @module apps/web/src/components/ui/sheet
+ * @component Sheet
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  *
  * @example
  * ```tsx

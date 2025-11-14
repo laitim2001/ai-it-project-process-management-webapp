@@ -1,25 +1,56 @@
 /**
- * ================================================================
- * Button 組件 - 基於 shadcn/ui 風格
- * ================================================================
+ * @fileoverview Button Component - shadcn/ui 按鈕組件
  *
- * 【功能說明】
- * 統一的按鈕組件，支援多種變體和尺寸
+ * @description
+ * 基於 shadcn/ui 設計系統的統一按鈕組件，使用 class-variance-authority 提供類型安全的變體管理。
+ * 支援多種視覺樣式和尺寸，提供 asChild 模式用於組合其他組件。
+ * 是整個應用中最常用的交互組件之一。
  *
- * 【使用 CVA (class-variance-authority)】
- * 提供類型安全的變體管理
+ * @component Button
  *
- * 【變體說明】
- * • variant: default, destructive, outline, secondary, ghost, link
- * • size: default, sm, lg, icon
+ * @features
+ * - 6 種視覺變體 (default, destructive, outline, secondary, ghost, link)
+ * - 4 種尺寸變體 (default, sm, lg, icon)
+ * - asChild 模式支援 (使用 Radix UI Slot)
+ * - 主題支援 (Light/Dark/System)
+ * - 焦點環樣式 (Focus Ring)
+ * - 禁用狀態樣式
+ * - Hover 和 Active 狀態效果
  *
- * 【使用範例】
+ * @example
  * ```tsx
+ * // 基本用法
  * <Button>預設按鈕</Button>
+ *
+ * // 不同變體
  * <Button variant="destructive">刪除</Button>
- * <Button variant="outline" size="sm">小按鈕</Button>
- * <Button variant="ghost" size="icon"><IconPlus /></Button>
+ * <Button variant="outline">輪廓</Button>
+ * <Button variant="secondary">次要</Button>
+ * <Button variant="ghost">幽靈</Button>
+ * <Button variant="link">連結</Button>
+ *
+ * // 不同尺寸
+ * <Button size="sm">小按鈕</Button>
+ * <Button size="lg">大按鈕</Button>
+ * <Button size="icon"><IconPlus /></Button>
+ *
+ * // asChild 模式 (將樣式應用到子組件)
+ * <Button asChild>
+ *   <Link href="/projects">前往專案</Link>
+ * </Button>
  * ```
+ *
+ * @dependencies
+ * - @radix-ui/react-slot: Slot 組件 (asChild 功能)
+ * - class-variance-authority: 樣式變體管理
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/alert-dialog.tsx - AlertDialogAction, AlertDialogCancel 使用 buttonVariants
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  */
 
 import * as React from "react";

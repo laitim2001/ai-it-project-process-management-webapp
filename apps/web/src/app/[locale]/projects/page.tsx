@@ -1,24 +1,58 @@
 /**
- * Project 列表頁面
+ * @fileoverview Projects List Page - 專案列表頁面
  *
- * 功能說明：
- * - 顯示所有專案的列表，支援卡片式檢視
- * - 提供搜尋、篩選、排序功能
- * - 支援分頁瀏覽
- * - 提供導出 CSV 功能
- * - 支援快速創建新專案
+ * @description
+ * 顯示用戶有權訪問的所有專案列表，支援即時搜尋、多條件過濾、排序和分頁功能。
+ * Project Manager 只能看到自己管理的專案，Supervisor 可以看到所有專案。
+ * 整合 tRPC 查詢和 React Query 進行資料快取和即時更新，提供卡片和列表兩種視圖模式。
  *
- * 篩選條件：
- * - 搜尋：專案名稱模糊搜尋
- * - 狀態：Draft, InProgress, Completed, Archived
- * - 預算池：根據預算池 ID 篩選
- * - 排序：名稱、狀態、創建時間
+ * @page /[locale]/projects
  *
- * UI 特性：
- * - 響應式網格佈局（手機 1列、平板 2列、桌面 3列）
- * - 懸停效果提升用戶體驗
- * - 加載中顯示骨架屏
- * - 錯誤狀態友好提示
+ * @features
+ * - 雙視圖模式（卡片視圖和列表視圖）
+ * - 即時搜尋（防抖 300ms，專案名稱模糊搜尋）
+ * - 多條件過濾（預算池、狀態篩選）
+ * - 排序功能（名稱、狀態、建立日期）
+ * - 分頁導航（每頁 9 項）
+ * - CSV 導出功能（導出所有符合條件的專案）
+ * - 快速操作（查看詳情、建立新專案）
+ * - 響應式網格佈局（手機 1 欄、平板 2 欄、桌面 3 欄）
+ * - 載入骨架屏和錯誤處理
+ *
+ * @permissions
+ * - ProjectManager: 查看自己管理的專案
+ * - Supervisor: 查看所有專案
+ * - Admin: 查看所有專案 + 管理權限
+ *
+ * @routing
+ * - 列表頁: /projects
+ * - 建立頁: /projects/new
+ * - 詳情頁: /projects/[id]
+ * - 編輯頁: /projects/[id]/edit
+ *
+ * @stateManagement
+ * - URL Query Params: 搜尋、過濾、排序、分頁狀態
+ * - React Query: 資料快取和即時更新
+ * - React State: 視圖模式（卡片/列表）、導出狀態
+ * - useDebounce Hook: 搜尋防抖（300ms）
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Table, Input, Badge, Button, Breadcrumb
+ * - lucide-react: 圖示庫
+ * - @/hooks/useDebounce: 防抖 Hook
+ * - @/lib/exportUtils: CSV 導出工具
+ *
+ * @related
+ * - packages/api/src/routers/project.ts - 專案 API Router
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁面
+ * - apps/web/src/app/[locale]/projects/new/page.tsx - 建立專案頁面
+ * - apps/web/src/lib/exportUtils.ts - CSV 導出工具
+ *
+ * @author IT Department
+ * @since Epic 2 - Project Management
+ * @lastModified 2025-11-14
  */
 
 'use client';

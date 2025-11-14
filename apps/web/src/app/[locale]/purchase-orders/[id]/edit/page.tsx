@@ -1,16 +1,50 @@
-'use client';
-
 /**
- * 編輯採購單頁面
+ * @fileoverview Edit Purchase Order Page - 編輯採購單頁面
  *
- * 功能說明：
- * - 載入現有採購單數據
- * - 使用 PurchaseOrderForm 組件編輯
- * - 支持明細 CRUD（新增/更新/刪除）
- * - 僅 Draft 狀態可編輯
+ * @description
+ * 提供編輯現有採購單的表單頁面，支援修改採購單資訊和品項明細。
+ * 使用 React Hook Form 進行表單驗證，預填充現有資料。
+ * 僅允許編輯 Draft 狀態的採購單，其他狀態會顯示錯誤提示。
  *
- * Module 4: PurchaseOrder 表頭明細重構 - 前端實施
+ * @page /[locale]/purchase-orders/[id]/edit
+ *
+ * @features
+ * - 完整的採購單編輯表單（預填充現有資料）
+ * - 修改金額、日期、說明、品項明細
+ * - 即時表單驗證（Zod schema）
+ * - 狀態檢查（僅允許 Draft 狀態編輯）
+ * - 錯誤處理（採購單不存在、權限錯誤、狀態錯誤、網路錯誤）
+ * - 載入狀態骨架屏
+ * - 麵包屑導航支援
+ * - 國際化表單標籤和錯誤訊息
+ *
+ * @permissions
+ * - ProjectManager: 可編輯自己專案的採購單（僅 Draft 狀態）
+ * - Supervisor: 可編輯任意專案的採購單（僅 Draft 狀態）
+ * - Admin: 完整權限（僅 Draft 狀態）
+ *
+ * @routing
+ * - 編輯頁: /purchase-orders/[id]/edit
+ * - 成功後導向: /purchase-orders/[id] (採購單詳情頁)
+ * - 取消後返回: /purchase-orders/[id] (採購單詳情頁)
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢、mutation 和快取
+ * - shadcn/ui: Breadcrumb, Skeleton, Alert, Button
+ *
+ * @related
+ * - apps/web/src/components/purchase-order/PurchaseOrderForm.tsx - 採購單表單組件
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 API Router (getById, update)
+ * - apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx - 採購單詳情頁面
+ * - apps/web/src/app/[locale]/purchase-orders/page.tsx - 採購單列表頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';

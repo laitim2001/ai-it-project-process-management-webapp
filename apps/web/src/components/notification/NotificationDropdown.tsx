@@ -1,14 +1,59 @@
 'use client';
 
 /**
- * NotificationDropdown Component
- * Epic 8 - Story 8.2: 通知下拉列表組件
+ * @fileoverview Notification Dropdown Component - 通知下拉選單組件
  *
- * 功能:
- * - 顯示最近的通知 (最多10條)
- * - 標記通知為已讀
- * - 跳轉到通知詳情頁面
- * - 標記所有通知為已讀
+ * @description
+ * 顯示最近的通知列表（最多 10 條），支援標記為已讀、跳轉詳情頁面和標記所有為已讀。
+ * 使用彈出視窗展示通知內容，提供圖示、時間戳和已讀狀態視覺化，
+ * 整合相對時間顯示（date-fns），提供完整的通知管理功能。
+ *
+ * @component NotificationDropdown
+ *
+ * @features
+ * - 最近通知列表展示（限制 10 條）
+ * - 通知類型圖示顯示（提案/費用/一般）
+ * - 相對時間顯示（date-fns formatDistanceToNow）
+ * - 未讀/已讀視覺化區分（背景色）
+ * - 點擊通知標記為已讀
+ * - 點擊通知跳轉詳情頁面
+ * - 標記所有為已讀按鈕
+ * - 查看全部通知連結
+ * - 載入和空狀態處理
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {() => void} props.onClose - 關閉下拉選單回調
+ * @param {number} props.unreadCount - 未讀通知數量（傳遞自 NotificationBell）
+ *
+ * @example
+ * ```tsx
+ * <NotificationDropdown
+ *   onClose={() => setIsOpen(false)}
+ *   unreadCount={5}
+ * />
+ * ```
+ *
+ * @notificationTypes
+ * - PROPOSAL_*: 提案相關通知（藍色 DocumentText 圖示）
+ * - EXPENSE_*: 費用相關通知（綠色 CurrencyDollar 圖示）
+ * - 其他: 一般通知（灰色 BellAlert 圖示）
+ *
+ * @dependencies
+ * - next-intl: 國際化翻譯
+ * - date-fns: 時間格式化（formatDistanceToNow, zhTW）
+ * - lucide-react: 圖示組件（Check, BellRing, FileText, DollarSign）
+ * - @/lib/trpc: tRPC 客戶端（查詢和 mutation）
+ * - @/i18n/routing: 國際化路由（Link）
+ *
+ * @related
+ * - apps/web/src/components/notification/NotificationBell.tsx - 通知鈴鐺組件
+ * - packages/api/src/routers/notification.ts - 通知 API Router
+ * - apps/web/src/app/[locale]/notifications/page.tsx - 通知列表頁面
+ *
+ * @author IT Department
+ * @since Epic 8 - Notification System
+ * @lastModified 2025-11-14
  */
 
 import { Fragment } from 'react';

@@ -1,12 +1,49 @@
 /**
- * 忘記密碼頁面
+ * @fileoverview Forgot Password Page - 忘記密碼頁面
  *
- * 功能：
- * - 輸入 Email 發送重設密碼連結
- * - 顯示發送成功訊息
- * - 返回登錄頁面
+ * @description
+ * 提供密碼重設功能的頁面，用戶輸入 Email 後接收密碼重設連結。
+ * 目前為 MVP 版本，使用模擬 API，未來將整合 Azure AD B2C 密碼重設流程。
+ * 包含表單驗證、發送成功提示和友好的用戶引導。
  *
- * TODO: 根據 Azure AD B2C 配置實現完整密碼重設流程
+ * @page /[locale]/forgot-password
+ *
+ * @features
+ * - Email 輸入表單（含即時驗證）
+ * - 發送密碼重設郵件（目前為模擬）
+ * - 發送成功狀態頁面
+ * - 返回登入頁面導航
+ * - 註冊頁面連結
+ * - 錯誤處理和用戶提示
+ *
+ * @routing
+ * - 當前頁: /forgot-password
+ * - 返回: /login
+ * - 註冊: /register
+ *
+ * @stateManagement
+ * - React State: email, isLoading, error, success
+ * - Form State: 表單輸入和驗證狀態
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - shadcn/ui: Card, Button, Input, Label
+ * - @/i18n/routing: 國際化路由
+ *
+ * @related
+ * - apps/web/src/app/[locale]/login/page.tsx - 登入頁面
+ * - apps/web/src/app/[locale]/register/page.tsx - 註冊頁面
+ * - apps/web/src/messages/en.json - 英文翻譯
+ * - apps/web/src/messages/zh-TW.json - 繁體中文翻譯
+ *
+ * @todo
+ * - 整合 Azure AD B2C 密碼重設流程
+ * - 實作密碼重設 API 端點
+ * - 添加郵件發送功能（SendGrid）
+ *
+ * @author IT Department
+ * @since Post-MVP - User Management Enhancement
+ * @lastModified 2025-11-14
  */
 
 'use client';

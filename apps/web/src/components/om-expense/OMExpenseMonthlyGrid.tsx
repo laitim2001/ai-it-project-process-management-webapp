@@ -1,3 +1,60 @@
+/**
+ * @fileoverview OM Expense Monthly Grid Component - OM 費用月度記錄網格編輯器
+ *
+ * @description
+ * Excel 風格的月度費用記錄網格編輯組件，支援 12 個月（Jan-Dec）的實際支出金額編輯。
+ * 提供即時總金額計算、預算使用率顯示和批次儲存功能，自動更新 OM Expense 的 actualSpent 欄位。
+ *
+ * @component OMExpenseMonthlyGrid
+ *
+ * @features
+ * - 12 個月度記錄的網格顯示（Jan-Dec）
+ * - Excel 風格的表格編輯介面
+ * - 即時總金額計算和顯示
+ * - 預算使用率計算和顏色警示（綠色/黃色/紅色）
+ * - 剩餘預算自動計算
+ * - 批次儲存功能（一次更新所有月度記錄）
+ * - 資料初始化和自動重置（useEffect）
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {string} props.omExpenseId - OM 費用 ID
+ * @param {number} props.budgetAmount - 年度預算金額
+ * @param {Array<MonthlyRecord>} [props.initialRecords=[]] - 初始月度記錄
+ * @param {Function} [props.onSave] - 儲存成功後的回調函數（用於重新獲取資料）
+ *
+ * @example
+ * ```tsx
+ * <OMExpenseMonthlyGrid
+ *   omExpenseId="om-expense-1"
+ *   budgetAmount={1200000}
+ *   initialRecords={[
+ *     { month: 1, actualAmount: 100000 },
+ *     { month: 2, actualAmount: 105000 }
+ *   ]}
+ *   onSave={() => refetch()}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - React: useState, useEffect
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Input, Button
+ * - next-intl: 國際化
+ * - Intl.NumberFormat: 貨幣格式化
+ *
+ * @related
+ * - packages/api/src/routers/omExpense.ts - OM 費用 API Router（updateMonthlyRecords procedure）
+ * - apps/web/src/components/om-expense/OMExpenseForm.tsx - OM 費用表單組件
+ * - apps/web/src/app/[locale]/om-expenses/[id]/page.tsx - OM 費用詳情頁面
+ * - packages/db/prisma/schema.prisma - OMExpenseMonthlyRecord 資料模型
+ *
+ * @author IT Department
+ * @since Module 4 - OM Expense Management
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';

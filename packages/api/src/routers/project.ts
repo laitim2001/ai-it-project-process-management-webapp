@@ -1,17 +1,52 @@
 /**
- * Project Router - 專案管理 tRPC API
+ * @fileoverview Project Router - 專案管理 API
  *
- * 功能說明：
- * - 提供專案（Project）的完整 CRUD 操作
- * - 支援分頁、搜尋、篩選和排序功能
- * - 包含專案統計數據查詢
- * - 支援數據導出功能
+ * @description
+ * 提供專案的完整生命週期管理，從建立到完成的所有功能。
+ * 專案是整個預算流程的核心，關聯預算池、提案、採購單、費用等模組。
+ * 支援分頁、搜尋、過濾、排序，以及預算使用率追蹤和費用轉嫁（Charge Out）功能。
+ * 包含角色權限控制，確保專案經理和主管的資料隔離。
  *
- * 業務邏輯：
- * - 專案必須關聯到預算池（Budget Pool）
- * - 專案必須指定專案經理（Project Manager）和主管（Supervisor）
- * - 專案狀態包括：Draft（草稿）、InProgress（進行中）、Completed（已完成）、Archived（已歸檔）
- * - 刪除專案前需檢查是否有關聯的提案或採購單
+ * @module api/routers/project
+ *
+ * @features
+ * - 建立專案並關聯預算池和預算類別（Module 2）
+ * - 查詢專案列表（支援分頁、搜尋、多條件過濾和排序）
+ * - 查詢單一專案詳情（包含提案、採購單、費用記錄）
+ * - 更新專案資訊和狀態（Draft → InProgress → Completed）
+ * - 刪除專案（級聯刪除檢查保護）
+ * - 查詢專案預算使用情況（實際支出、使用率、剩餘預算）
+ * - 查詢專案統計數據（提案、採購單、費用匯總）
+ * - 導出專案資料（支援 CSV/Excel 格式）
+ * - 執行費用轉嫁（Charge Out）將專案標記為完成
+ *
+ * @procedures
+ * - create: 建立新專案（關聯預算池和預算類別）
+ * - update: 更新專案資訊（支援部分更新）
+ * - delete: 刪除專案（檢查關聯資料保護）
+ * - getAll: 查詢專案列表（支援分頁和多條件過濾）
+ * - getById: 查詢單一專案詳情（包含所有關聯資料）
+ * - getByBudgetPool: 根據預算池查詢專案列表
+ * - getBudgetUsage: 查詢專案預算使用情況（Module 2）
+ * - getStats: 查詢專案統計數據（提案、採購單、費用）
+ * - export: 導出專案資料（不分頁）
+ * - chargeOut: 執行費用轉嫁並標記專案完成（Story 6.4）
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作和交易管理
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - Project 資料模型
+ * - packages/api/src/routers/budgetPool.ts - 預算池 Router
+ * - packages/api/src/routers/budgetProposal.ts - 預算提案 Router
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 Router
+ * - apps/web/src/app/[locale]/projects/page.tsx - 專案列表頁面
+ *
+ * @author IT Department
+ * @since Epic 2 - Project Management
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

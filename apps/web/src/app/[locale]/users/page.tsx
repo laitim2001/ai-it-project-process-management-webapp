@@ -1,15 +1,58 @@
-'use client';
-
 /**
- * User 列表頁面
+ * @fileoverview Users List Page - 使用者管理列表頁面
  *
- * 顯示所有使用者的列表，包含以下功能：
- * - 顯示使用者資訊（名稱、Email、角色）
- * - 根據角色篩選
- * - 新增使用者
- * - 編輯使用者
- * - 刪除使用者
+ * @description
+ * 顯示所有系統使用者的列表，支援即時搜尋、角色過濾和使用者管理功能。
+ * Admin 可管理所有使用者，包含建立、編輯、刪除和角色分配。
+ * 整合 Azure AD B2C 和本地認證，提供完整的使用者生命週期管理。
+ *
+ * @page /[locale]/users
+ *
+ * @features
+ * - 使用者列表展示（表格視圖）
+ * - 即時搜尋（使用者名稱、電郵）
+ * - 角色過濾（ProjectManager, Supervisor, Admin）
+ * - 排序功能（名稱、電郵、建立日期）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 快速操作（查看詳情、編輯、刪除）
+ * - 角色徽章顯示（不同顏色標示不同角色）
+ * - 使用者狀態顯示（啟用/停用）
+ * - 認證類型顯示（Azure AD B2C / Local）
+ * - 角色權限控制（僅 Admin 可訪問）
+ *
+ * @permissions
+ * - Admin: 完整的使用者管理權限
+ * - 其他角色: 無權訪問
+ *
+ * @routing
+ * - 列表頁: /users
+ * - 建立頁: /users/new
+ * - 詳情頁: /users/[id]
+ * - 編輯頁: /users/[id]/edit
+ *
+ * @stateManagement
+ * - URL Query Params: 搜尋、過濾、排序、分頁狀態
+ * - React Query: 資料快取和即時更新
+ * - Local State: 搜尋輸入、角色過濾
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Table, Badge, Input, Button, Alert
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/user.ts - 使用者 API Router
+ * - packages/auth/src/index.ts - NextAuth 認證配置
+ * - apps/web/src/app/[locale]/users/[id]/page.tsx - 使用者詳情頁面
+ * - packages/db/prisma/schema.prisma - User 資料模型
+ *
+ * @author IT Department
+ * @since Epic 1 - Azure AD B2C Authentication
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';

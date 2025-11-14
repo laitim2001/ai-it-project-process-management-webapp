@@ -1,18 +1,52 @@
+/**
+ * @fileoverview OM Expense Router - 操作與維護費用管理 API
+ *
+ * @description
+ * 提供 O&M (Operations & Maintenance) 費用的完整管理功能，支援表頭-明細架構。
+ * 表頭記錄年度預算和基本資訊，明細記錄12個月的實際支出，系統自動彙總計算總支出。
+ * 支援跨年度比較和年增長率（YoY）計算，用於預算追蹤和趨勢分析。
+ *
+ * @module api/routers/omExpense
+ *
+ * @features
+ * - 建立 OM 費用並自動初始化 12 個月度記錄
+ * - 批量更新月度實際支出並自動重算總額
+ * - 計算年度增長率（YoY Growth Rate）與歷史比較
+ * - 查詢 OM 費用列表（支援年度、OpCo、類別過濾）
+ * - 查詢月度支出匯總（用於儀表板統計圖表）
+ * - 獲取所有 OM 類別列表（用於下拉選單）
+ * - 級聯刪除檢查（刪除時自動刪除月度記錄）
+ *
+ * @procedures
+ * - create: 建立 OM 費用（自動建立 12 個月度記錄）
+ * - update: 更新 OM 費用基本資訊
+ * - updateMonthlyRecords: 批量更新月度記錄並重算總額
+ * - calculateYoYGrowth: 計算年度增長率
+ * - getById: 查詢單一 OM 費用詳情（含月度記錄）
+ * - getAll: 查詢 OM 費用列表（支援分頁和過濾）
+ * - delete: 刪除 OM 費用（級聯刪除月度記錄）
+ * - getCategories: 獲取所有 OM 類別列表
+ * - getMonthlyTotals: 獲取指定年度的月度支出匯總
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作和交易管理
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - OMExpense 和 OMExpenseMonthly 資料模型
+ * - packages/api/src/routers/operatingCompany.ts - 營運公司 Router
+ * - packages/api/src/routers/vendor.ts - 供應商 Router
+ * - apps/web/src/app/[locale]/om-expenses/page.tsx - OM 費用列表頁面
+ *
+ * @author IT Department
+ * @since Module 3 - OM Expense Management
+ * @lastModified 2025-11-14
+ */
+
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
-
-/**
- * OMExpense Router
- * 操作與維護費用（O&M Expense）管理 API
- *
- * 業務特點：
- * 1. 表頭-明細結構（Header-Detail Pattern）
- * 2. 表頭：年度、類別、OpCo、預算金額等
- * 3. 明細：12個月的實際支出記錄
- * 4. actualSpent 由月度記錄自動計算
- * 5. 支持年度增長率計算（YoY Growth Rate）
- */
 
 // ========== Zod Schemas ==========
 

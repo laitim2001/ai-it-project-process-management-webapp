@@ -1,3 +1,44 @@
+/**
+ * @fileoverview O&M Expenses List Page - 維運費用列表頁面
+ *
+ * @description
+ * 顯示所有維運（O&M）費用的列表，支援即時搜尋、狀態過濾和分頁功能。
+ * 維運費用用於記錄非專案的日常營運費用，支援獨立的審批流程。
+ * 整合預算類別和審批工作流，提供完整的維運費用管理功能。
+ *
+ * @page /[locale]/om-expenses
+ *
+ * @features
+ * - 維運費用列表展示（卡片視圖）
+ * - 即時搜尋（費用描述、發票號）
+ * - 狀態過濾（Draft, Submitted, Approved, Paid）
+ * - 排序功能（金額、日期、狀態）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 快速操作（查看詳情、編輯、提交、審批）
+ * - 狀態徽章顯示（不同顏色標示不同狀態）
+ * - 角色權限控制（RBAC）
+ *
+ * @permissions
+ * - ProjectManager: 查看和建立維運費用
+ * - Supervisor: 查看所有維運費用，審批 Submitted 費用
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 列表頁: /om-expenses
+ * - 建立頁: /om-expenses/new
+ * - 詳情頁: /om-expenses/[id]
+ * - 編輯頁: /om-expenses/[id]/edit
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: UI 組件庫
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -17,16 +58,6 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import { api } from '@/lib/trpc';
-
-/**
- * OM 費用管理列表頁
- *
- * 功能：
- * 1. 顯示所有 O&M 費用記錄
- * 2. 支持年度、OpCo、類別過濾
- * 3. 卡片式展示（預算、實際支出、增長率）
- * 4. 創建新 OM 費用
- */
 
 export default function OMExpensesPage() {
   const t = useTranslations('omExpenses');

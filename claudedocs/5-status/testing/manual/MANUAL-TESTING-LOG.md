@@ -173,18 +173,34 @@ Source: src\app\[locale]\projects\[id]\page.tsx (532:58)
 3. **誤解 Deprecated**: 將 "DEPRECATED: 保留以向後兼容" 理解為 "可以立即移除"
 4. **驗證範圍不足**: 只測試了 Budget Pool export,未測試 Project 相關頁面
 
-**被移除的位置**:
-- `project.getAll` (Line 171) - 影響 Project list
-- `project.getById` (Line 242) - **影響 Project detail** ← 導致本次問題
-- `project.getStats` (Line 501) - 影響 Dashboard
-- `project.export` (Line 617) - 影響 CSV 匯出
+**被移除的位置** (實際為 6 個,非 4 個):
+- `project.getAll` (Line 167) - 影響 Project list
+- `project.getById` (Line 239) - **影響 Project detail** ← 導致本次問題
+- `project.getStats` (Line 499) - 影響 Dashboard
+- `project.export` (Line 616) - 影響 CSV 匯出 #1
+- `project.export` (Line 873) - 影響 CSV 匯出 #2
+- `project.chargeOut` (Line 966) - 影響費用轉嫁
 
-**修復方案**:
-恢復 `packages/api/src/routers/project.ts` 中所有 4 個位置的 `budgetPool.totalAmount` 欄位
+**修復過程**:
 
-**修復狀態**: ✅ 已修復 (待驗證)
+**第一次修復 (FIX-089)** - Commit `d8903f7`:
+- 使用 Edit tool 的 `replace_all: true` 嘗試批量修復
+- ❌ **失敗**: 只修復了 1/6 位置 (Line 167)
+- **原因**: Edit tool 對縮排敏感,不同位置使用不同縮排 (10 vs 12 空格)
+- **驗證失敗**: 使用 `git grep "totalAmount"` 匹配到不相關欄位,誤判為已修復
+- **用戶回報**: 測試後問題依然存在
 
-**詳細分析**: `claudedocs/5-status/testing/manual/FIX-089-ROOT-CAUSE-ANALYSIS.md`
+**第二次修復 (FIX-089B)** - Commit `238a93f`:
+- 手動逐個修復所有 6 個位置,每個使用唯一上下文
+- ✅ **成功**: 使用結構化驗證 (awk) 確認所有 6 個 budgetPool 都有 totalAmount
+- **用戶確認**: "經過測試之後, 現在報錯問題解決了"
+
+**修復狀態**: ✅ 已修復並驗證通過
+
+**詳細分析文件**:
+- `FIX-089-ROOT-CAUSE-ANALYSIS.md` - 根本原因分析 (FIX-094 過度清理)
+- `FIX-089B-EDIT-TOOL-FAILURE-ANALYSIS.md` - Edit tool 失敗原因分析
+- `SURGICAL-AGENT-CASCADING-FAILURES-ANALYSIS.md` - surgical-task-executor 系統性問題分析
 
 ---
 
@@ -193,15 +209,22 @@ Source: src\app\[locale]\projects\[id]\page.tsx (532:58)
 ### 測試覆蓋率
 - **已測試模組**: 2/18 (Budget Pools, Projects 部分)
 - **測試場景**: 4 個
-- **發現問題**: 2 個 (FIX-088, FIX-089)
-- **修復完成**: 2 個 (待驗證)
+- **發現問題**: 2 個 (FIX-088, FIX-089/089B)
+- **修復完成**: 2 個 ✅
+- **修復迭代**: FIX-089 → FIX-089B (2 次迭代)
 
 ### 問題分類
 - **I18N 問題**: 1 個 (FIX-088)
-- **API/後端問題**: 1 個 (FIX-089 - Surgical Agent 過度清理)
+- **API/後端問題**: 1 個 (FIX-089/089B - Surgical Agent 過度清理)
+- **工具問題**: 1 個 (Edit tool 縮排敏感性,已在 FIX-089B 解決)
 - **功能性問題**: 0 個
 - **UI/UX 問題**: 0 個
 - **效能問題**: 0 個
+
+### 修復品質指標
+- **首次修復成功率**: 50% (1/2) - FIX-088 ✅, FIX-089 ❌
+- **迭代修復成功率**: 100% (2/2) - FIX-089B ✅ after user feedback
+- **用戶驗證通過率**: 100% (2/2) - 兩個問題最終都通過用戶驗證
 
 ---
 
@@ -243,22 +266,68 @@ Source: src\app\[locale]\projects\[id]\page.tsx (532:58)
 
 ## 🐛 已發現問題清單
 
-| ID | 模組 | 嚴重程度 | 狀態 | 描述 |
-|----|------|----------|------|------|
-| FIX-089 | Projects | 🔴 P0 | ✅ 已修復 | budgetPool.totalAmount undefined - Surgical Agent 過度清理 |
-| FIX-088 | Budget Pools | 🔴 P0 | ✅ 已修復 | I18N 缺失 5 個 translation keys |
+| ID | 模組 | 嚴重程度 | 狀態 | 描述 | Commits |
+|----|------|----------|------|------|---------|
+| FIX-089B | Projects | 🔴 P0 | ✅ 已修復並驗證 | budgetPool.totalAmount undefined - Surgical Agent 過度清理 | `d8903f7` (失敗) → `238a93f` (成功) |
+| FIX-088 | Budget Pools | 🔴 P0 | ✅ 已修復 | I18N 缺失 5 個 translation keys | `2481503` |
 
 ---
 
 ## ✅ 已修復問題
 
-| ID | 修復日期 | 描述 | 驗證狀態 |
-|----|----------|------|----------|
-| FIX-089 | 2025-11-12 | Project API 恢復 budgetPool.totalAmount 欄位 (4 個 procedures) | ⏳ 待驗證 |
-| FIX-088 | 2025-11-12 | Budget Pool 模組新增 5 個 I18N translation keys | ⏳ 待驗證 |
+| ID | 修復日期 | 描述 | Commits | 驗證狀態 |
+|----|----------|------|---------|----------|
+| FIX-089B | 2025-11-12 | Project API 恢復 budgetPool.totalAmount 欄位 (實際 6 個位置,非 4 個) | `d8903f7` (1/6) → `238a93f` (6/6) | ✅ 用戶驗證通過 |
+| FIX-088 | 2025-11-12 | Budget Pool 模組新增 5 個 I18N translation keys (zh-TW + en) | `2481503` | ✅ 已驗證 |
+
+### 修復迭代記錄
+
+**FIX-089B 修復歷程** (展示了工具限制和驗證重要性):
+
+1. **第一次嘗試 (FIX-089)** - Commit `d8903f7`:
+   - 方法: Edit tool `replace_all: true` 批量替換
+   - 結果: ❌ 只修復 1/6 位置
+   - 問題: 縮排差異 (10 vs 12 空格) 導致字串匹配失敗
+   - 驗證: 使用 `git grep` 誤匹配不相關欄位
+   - 用戶反饋: "經過手動測試之後, 還是出現報錯"
+
+2. **第二次修復 (FIX-089B)** - Commit `238a93f`:
+   - 方法: 手動逐個修復,每個位置使用唯一上下文
+   - 結果: ✅ 成功修復全部 6/6 位置
+   - 驗證: 使用結構化 awk 驗證每個 budgetPool 區塊
+   - 用戶反饋: "經過測試之後, 現在報錯問題解決了"
+
+**關鍵教訓**:
+- Edit tool 對縮排/空白敏感,批量替換需謹慎
+- 驗證方法要針對性 (結構化驗證 > 關鍵字搜尋)
+- 用戶測試是最終真相來源
+
+---
+
+## 📚 分析文件索引
+
+本次測試產生了 3 份深入分析文件:
+
+1. **`FIX-089-ROOT-CAUSE-ANALYSIS.md`** (671 行)
+   - FIX-094 如何導致 FIX-089 的連鎖反應
+   - surgical-task-executor 過度清理的 5 Why 分析
+   - 預防措施和改進建議
+
+2. **`FIX-089B-EDIT-TOOL-FAILURE-ANALYSIS.md`** (527 行)
+   - Edit tool `replace_all` 失敗的技術原因
+   - 縮排敏感性問題詳解
+   - 正確的批量修改策略
+
+3. **`SURGICAL-AGENT-CASCADING-FAILURES-ANALYSIS.md`** (完整系統分析)
+   - surgical-task-executor 的 5 個系統性問題
+   - "Surgical Precision" vs "Isolation" 的誤解
+   - Phase 1.5: Impact Analysis 提案
+   - Surgical Safety Checklist (基於 WHO 醫療檢查表)
+   - 完整的 FIX-094 → FIX-089 → FIX-089B 時間線
 
 ---
 
 **維護者**: 開發團隊 + AI 助手
-**最後更新**: 2025-11-12 14:45
-**下次測試**: 修復 FIX-088 和 FIX-089 後重新測試 Budget Pools 和 Projects 模組
+**最後更新**: 2025-11-12 (FIX-089B 完成後)
+**下次測試**: 繼續測試其他 P0 模組 (Budget Proposals, Expenses, Notifications)
+**測試經驗**: 本次測試揭示了 surgical-task-executor 的系統性問題,已完成深入分析並提出改進方案

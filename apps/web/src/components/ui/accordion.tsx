@@ -1,21 +1,26 @@
 /**
- * ================================================================
- * Accordion 組件 - 基於 @radix-ui/react-accordion
- * ================================================================
+ * @fileoverview Accordion Component - shadcn/ui 可摺疊面板組件
  *
- * 【功能說明】
- * 可摺疊的內容面板組件，支援單選和多選展開模式
- * 提供平滑的展開/收合動畫和完整的鍵盤導航支援
+ * @description
+ * 基於 Radix UI Accordion 的可摺疊內容面板組件，支援單選和多選展開模式。
+ * 提供平滑的展開/收合動畫、完整的鍵盤導航支援和無障礙性功能。
+ * 遵循 shadcn/ui 設計系統規範，支援主題切換和完整的可訪問性支援。
  *
- * 【使用 Radix UI】
- * 基於 @radix-ui/react-accordion 構建，提供：
- * • 完整的鍵盤導航 (方向鍵、Home、End)
- * • 無障礙支援 (ARIA 屬性)
- * • 可控/非可控模式
- * • 單選/多選模式
+ * @component Accordion
  *
- * 【使用範例 - 單選模式】
+ * @features
+ * - 單選/多選展開模式 (type="single" | "multiple")
+ * - 可控/非可控模式支援
+ * - 完整的鍵盤導航 (方向鍵、Home、End、Enter、Space)
+ * - 平滑的展開/收合動畫
+ * - Chevron 圖標旋轉動畫
+ * - 主題支援 (Light/Dark/System)
+ * - 完整的無障礙性支援 (ARIA 屬性、螢幕閱讀器友善)
+ * - WCAG 2.1 AA 標準
+ *
+ * @example
  * ```tsx
+ * // 單選模式 (一次只能展開一個項目)
  * <Accordion type="single" collapsible>
  *   <AccordionItem value="item-1">
  *     <AccordionTrigger>第一個項目</AccordionTrigger>
@@ -30,10 +35,8 @@
  *     </AccordionContent>
  *   </AccordionItem>
  * </Accordion>
- * ```
  *
- * 【使用範例 - 多選模式】
- * ```tsx
+ * // 多選模式 (可同時展開多個項目)
  * <Accordion type="multiple" defaultValue={["item-1", "item-2"]}>
  *   <AccordionItem value="item-1">
  *     <AccordionTrigger>項目 1</AccordionTrigger>
@@ -44,12 +47,9 @@
  *     <AccordionContent>內容 2</AccordionContent>
  *   </AccordionItem>
  * </Accordion>
- * ```
  *
- * 【可控模式】
- * ```tsx
- * const [value, setValue] = useState("item-1")
- *
+ * // 可控模式
+ * const [value, setValue] = useState("item-1");
  * <Accordion type="single" value={value} onValueChange={setValue}>
  *   <AccordionItem value="item-1">
  *     <AccordionTrigger>標題</AccordionTrigger>
@@ -58,12 +58,25 @@
  * </Accordion>
  * ```
  *
- * 【無障礙特性】
- * • ARIA 屬性自動處理
- * • 鍵盤導航完整支援
- * • 焦點管理自動化
- * • 螢幕閱讀器友善
- * • WCAG 2.1 AA 標準
+ * @accessibility
+ * - ARIA 屬性自動處理 (role, aria-expanded, aria-controls)
+ * - 鍵盤導航完整支援 (方向鍵、Home、End、Enter、Space)
+ * - 焦點管理自動化
+ * - 螢幕閱讀器友善
+ * - WCAG 2.1 AA 標準
+ *
+ * @dependencies
+ * - @radix-ui/react-accordion: Accordion 底層實現
+ * - lucide-react: ChevronDown 圖標
+ * - class-variance-authority: 樣式變體管理 (通過 shadcn/ui 間接依賴)
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/collapsible.tsx - 單一可摺疊組件
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  */
 
 "use client";

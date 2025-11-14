@@ -1,3 +1,58 @@
+/**
+ * @fileoverview Budget Pools List Page - 預算池列表頁面
+ *
+ * @description
+ * 預算池管理的主列表頁面，支持搜尋、篩選、排序和分頁功能。
+ * 提供卡片視圖和列表視圖兩種展示模式，整合即時數據同步和 CSV 導出功能。
+ * 預算池是整個專案流程的起點，管理財年預算分配和使用率監控。
+ *
+ * @page /[locale]/budget-pools
+ *
+ * @features
+ * - 雙視圖模式切換：卡片視圖（網格）/ 列表視圖（表格）
+ * - 即時搜尋：防抖搜尋，自動恢復輸入框焦點
+ * - 財年篩選：選擇特定財年的預算池（最近10年）
+ * - 多維度排序：名稱、財年、總金額（升序/降序）
+ * - 分頁瀏覽：每頁顯示9個項目，支持頁碼跳轉
+ * - CSV 數據導出：根據當前篩選條件導出預算池列表
+ * - 使用率視覺化：顏色編碼（綠色<75%、黃色75-90%、紅色>90%）
+ * - 預算類別統計：顯示每個預算池的類別數量
+ * - 專案計數：關聯專案數量統計
+ * - 響應式佈局：適配桌面/平板/手機
+ * - 麵包屑導航：清晰的頁面層級結構
+ * - 空狀態處理：友好的空列表和無搜尋結果提示
+ *
+ * @permissions
+ * - ProjectManager: 可查看（受限於相關預算池）
+ * - Supervisor: 可查看（所有預算池）
+ * - Admin: 完整訪問（CRUD 權限）
+ *
+ * @routing
+ * - 列表頁: /budget-pools
+ * - 建立頁: /budget-pools/new
+ * - 詳情頁: /budget-pools/[id]
+ * - 編輯頁: /budget-pools/[id]/edit
+ *
+ * @dependencies
+ * - next-intl: 國際化翻譯支援
+ * - @tanstack/react-query: tRPC 數據查詢和快取
+ * - useDebounce: 防抖 Hook（300ms 延遲）
+ * - lucide-react: 圖示庫 (Plus, Download, Wallet, LayoutGrid, List, etc.)
+ * - shadcn/ui: Card, Table, Input, Select, Button, Badge, Skeleton
+ * - exportUtils: CSV 轉換和下載工具函數
+ *
+ * @related
+ * - packages/api/src/routers/budgetPool.ts - Budget Pool API Router
+ * - apps/web/src/app/[locale]/budget-pools/new/page.tsx - 建立預算池頁面
+ * - apps/web/src/app/[locale]/budget-pools/[id]/page.tsx - 預算池詳情頁
+ * - apps/web/src/hooks/useDebounce.ts - 防抖 Hook
+ * - apps/web/src/lib/exportUtils.ts - CSV 導出工具
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';

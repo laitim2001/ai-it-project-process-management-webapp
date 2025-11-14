@@ -1,12 +1,55 @@
 /**
- * TopBar 組件 - 頂部導航欄
+ * @fileoverview TopBar Component - 頂部導航欄組件
  *
- * 功能：
- * - 顯示搜索欄
- * - 顯示通知
- * - 顯示當前登入用戶信息
- * - Mobile 菜單切換按鈕
- * - 用戶下拉菜單（登出功能）
+ * @description
+ * 提供應用程式頂部導航欄，包含搜尋功能、通知中心、主題切換、語言切換和用戶選單。
+ * 支援移動裝置的選單按鈕，整合通知系統即時提醒，
+ * 提供用戶資訊展示和登出功能，確保完整的導航和操作體驗。
+ *
+ * @component TopBar
+ *
+ * @features
+ * - 全域搜尋欄（支援鍵盤導航）
+ * - 移動選單切換按鈕（lg 以下顯示）
+ * - 語言切換器（繁中/英文）
+ * - 主題切換器（Light/Dark/System）
+ * - 通知鈴鐺（未讀數量徽章）
+ * - 用戶下拉選單（頭像、姓名、角色、登出）
+ * - 多語言支援（i18n）
+ * - 響應式設計（移動和桌面）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {() => void} [props.onMenuClick] - 移動選單點擊回調（傳遞給 DashboardLayout）
+ *
+ * @example
+ * ```tsx
+ * <TopBar onMenuClick={() => setIsMobileMenuOpen(true)} />
+ * ```
+ *
+ * @userActions
+ * - 搜尋：輸入關鍵字進行全域搜尋
+ * - 語言切換：點擊地球圖示切換繁中/英文
+ * - 主題切換：點擊太陽/月亮圖示切換主題
+ * - 通知：點擊鈴鐺查看通知下拉選單
+ * - 用戶選單：點擊頭像查看個人資訊和登出
+ *
+ * @dependencies
+ * - next-auth/react: 用戶會話管理和登出功能
+ * - next-intl: 國際化翻譯
+ * - lucide-react: 圖示組件（Search, Menu, Bell, User, LogOut 等）
+ * - shadcn/ui: Button, Input, Badge, DropdownMenu 組件
+ *
+ * @related
+ * - apps/web/src/components/layout/Sidebar.tsx - 側邊欄組件
+ * - apps/web/src/components/layout/LanguageSwitcher.tsx - 語言切換器
+ * - apps/web/src/components/theme/ThemeToggle.tsx - 主題切換器
+ * - apps/web/src/components/layout/dashboard-layout.tsx - 佈局容器
+ * - packages/auth/index.ts - NextAuth 配置
+ *
+ * @author IT Department
+ * @since Epic 1 - Platform Foundation
+ * @lastModified 2025-11-14
  */
 
 "use client"

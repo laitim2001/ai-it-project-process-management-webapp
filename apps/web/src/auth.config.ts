@@ -1,16 +1,52 @@
 /**
- * Auth.js v5 Edge-Compatible Configuration
+ * @fileoverview NextAuth.js Edge-Compatible Configuration - 認證系統邊緣配置
  *
- * 此文件只包含 Edge Runtime 兼容的基本配置（不含 Prisma adapter 和 providers）
- * 用於 middleware.ts 中的路由保護
+ * @description
+ * NextAuth.js v5 的 Edge Runtime 兼容配置文件，專門用於 middleware.ts 路由保護。
+ * 此文件不包含 Prisma adapter 和 providers（這些在 auth.ts 中定義），
+ * 僅包含 Edge 環境可執行的基本配置（pages, session, callbacks.authorized）。
+ * 確保中介軟體可在 Edge Runtime 中正常運行，不依賴 Node.js 特定功能。
  *
- * 關鍵原則：
- * - 不引用 Prisma 或任何需要 Node.js runtime 的依賴
- * - 不包含 providers（providers 在 auth.ts 中定義）
- * - 只包含 pages, session, callbacks.authorized
- * - Middleware 只 import 此文件，不 import auth.ts
+ * @module auth.config
  *
- * 文檔: https://authjs.dev/getting-started/migrating-to-v5
+ * @features
+ * - Edge Runtime 兼容（無 Prisma、無 Node.js 依賴）
+ * - 路由保護配置（受保護路由列表）
+ * - 自訂頁面路徑（登入頁、錯誤頁）
+ * - JWT 會話策略（24 小時過期）
+ * - authorized callback（中介軟體路由檢查）
+ *
+ * @security
+ * - JWT Session: 使用 JWT 策略（因為 Edge 無法訪問資料庫）
+ * - Secret: 使用環境變數 AUTH_SECRET 或 NEXTAUTH_SECRET
+ * - Protected Routes: Dashboard, Projects, Budget Pools, Proposals, Vendors, Purchase Orders, Expenses, Users
+ * - Debug Mode: 僅在開發環境啟用
+ *
+ * @environment
+ * - AUTH_SECRET: JWT 簽名密鑰（優先）
+ * - NEXTAUTH_SECRET: 備用 JWT 簽名密鑰
+ * - NODE_ENV: 環境模式（development/production）
+ *
+ * @dependencies
+ * - next-auth: NextAuth.js v5 核心庫
+ *
+ * @related
+ * - packages/auth/index.ts - 完整 NextAuth 配置（包含 Prisma adapter 和 providers）
+ * - apps/web/src/middleware.ts - 認證中介軟體（使用此配置）
+ * - apps/web/src/app/[locale]/login/page.tsx - 登入頁面
+ *
+ * @architecture
+ * - Edge Runtime: Vercel Edge Functions, Cloudflare Workers 兼容
+ * - Middleware Only: 僅用於 middleware.ts，不用於 API routes
+ * - Stateless: 無狀態設計，依賴 JWT 而非 session 資料庫
+ *
+ * @references
+ * - NextAuth.js v5 文檔: https://authjs.dev/getting-started/migrating-to-v5
+ * - Edge Runtime 限制: https://nextjs.org/docs/app/api-reference/edge
+ *
+ * @author IT Department
+ * @since Epic 1 - Azure AD B2C Authentication
+ * @lastModified 2025-11-14
  */
 
 import type { NextAuthConfig } from 'next-auth';

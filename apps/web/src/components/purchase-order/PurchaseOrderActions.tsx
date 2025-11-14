@@ -1,14 +1,36 @@
 'use client';
 
 /**
- * PurchaseOrderActions 組件 - 採購單操作按鈕
+ * @fileoverview 採購單操作按鈕組件
  *
- * 功能說明：
+ * @description
+ * 採購單（Purchase Order）工作流操作按鈕組件，根據採購單狀態顯示不同操作。
+ * 實現採購單從草稿到提交到批准的完整工作流。
+ *
+ * @module apps/web/src/components/purchase-order/PurchaseOrderActions
+ * @component PurchaseOrderActions
+ * @author IT Department
+ * @since Epic 5 - Story 5.3 (Purchase Order Workflow)
+ * @lastModified 2025-11-14
+ *
+ * @features
  * - Draft 狀態：顯示「提交審批」按鈕
  * - Submitted 狀態：顯示「批准」按鈕（僅 Supervisor）
  * - Approved 狀態：顯示「已批准」狀態
+ * - 確認對話框（AlertDialog）
+ * - 驗證採購單項目數量（至少 1 項）
+ * - Loading 狀態處理
  *
- * Module 4: PurchaseOrder 工作流按鈕
+ * @dependencies
+ * - @/lib/trpc - tRPC client（submit, approve mutations）
+ * - next-intl - 國際化
+ * - @/components/ui - Button, Card, AlertDialog 組件
+ * - lucide-react - 圖標組件
+ *
+ * @related
+ * - ../../app/[locale]/(dashboard)/purchase-orders/[id]/page.tsx - 採購單詳情頁
+ * - ../../../../packages/api/src/routers/purchaseOrder.ts - submit, approve procedures
+ * - ../../../../packages/db/prisma/schema.prisma - PurchaseOrder.status field
  */
 
 import { useState } from 'react';

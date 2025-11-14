@@ -1,3 +1,61 @@
+/**
+ * @fileoverview Edit Project Page - 編輯專案頁面
+ *
+ * @description
+ * 提供編輯現有專案的表單頁面，支援修改專案基本資訊、預算分配和負責人。
+ * 使用動態載入優化表單組件，整合 React Hook Form + Zod 進行表單驗證。
+ * 支援預算類別變更、請求預算調整和專案時程修改，提供完整的專案管理功能。
+ *
+ * @page /[locale]/projects/[id]/edit
+ *
+ * @features
+ * - 完整的專案編輯表單（預填充現有資料）
+ * - 修改專案名稱、描述
+ * - 變更預算池和預算類別
+ * - 調整請求預算和已批准預算
+ * - 變更專案經理和主管
+ * - 修改專案時程（開始/結束日期）
+ * - 即時表單驗證（Zod schema）
+ * - 動態載入表單組件（優化初始載入時間）
+ * - 錯誤處理（404 Not Found、權限錯誤、網路錯誤）
+ * - 骨架屏載入狀態（提升用戶體驗）
+ * - 麵包屑導航（清晰的頁面層級結構）
+ *
+ * @permissions
+ * - ProjectManager: 可編輯自己管理的專案（受限功能）
+ * - Supervisor: 可編輯所有專案
+ * - Admin: 完整編輯權限
+ *
+ * @routing
+ * - 編輯頁: /projects/[id]/edit
+ * - 成功後導向: /projects/[id] (專案詳情頁)
+ * - 取消後返回: /projects/[id] (專案詳情頁)
+ * - Not Found 返回: /projects (專案列表頁)
+ *
+ * @stateManagement
+ * - Form State: React Hook Form (ProjectForm 組件內部)
+ * - Data Fetching: tRPC useQuery (專案詳情)
+ * - Data Mutation: tRPC useMutation (ProjectForm 組件內部)
+ *
+ * @dependencies
+ * - next/dynamic: 動態導入優化
+ * - next/navigation: useParams
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Skeleton, Breadcrumb, Button, Alert
+ * - lucide-react: AlertCircle 圖示
+ *
+ * @related
+ * - packages/api/src/routers/project.ts - Project API Router
+ * - apps/web/src/components/project/ProjectForm.tsx - 專案表單組件
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁
+ * - apps/web/src/app/[locale]/projects/page.tsx - 專案列表頁
+ *
+ * @author IT Department
+ * @since Epic 2 - Project Management
+ * @lastModified 2025-11-14 (FIX-093: 修復 Combobox 選取功能)
+ */
+
 'use client';
 
 import dynamic from 'next/dynamic';

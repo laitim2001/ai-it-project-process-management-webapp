@@ -1,3 +1,40 @@
+/**
+ * @fileoverview Edit Charge Out Page - 編輯費用轉嫁頁面
+ *
+ * @description
+ * 提供編輯現有費用轉嫁的表單頁面，支援修改轉嫁資訊。
+ * 僅允許編輯 Draft 狀態的費用轉嫁，使用 React Hook Form 進行表單驗證。
+ *
+ * @page /[locale]/charge-outs/[id]/edit
+ *
+ * @features
+ * - 完整的費用轉嫁編輯表單（預填充現有資料）
+ * - 修改預算類別、成本中心、金額、描述
+ * - 狀態檢查（僅允許編輯 Draft 轉嫁）
+ * - 即時表單驗證（Zod schema）
+ * - 錯誤處理（權限錯誤、狀態錯誤、網路錯誤）
+ *
+ * @permissions
+ * - ProjectManager: 可編輯自己專案的 Draft 費用轉嫁
+ * - Supervisor: 可編輯任意專案的 Draft 費用轉嫁
+ * - Admin: 完整權限
+ * - 限制: 僅 Draft 狀態的轉嫁可編輯
+ *
+ * @routing
+ * - 編輯頁: /charge-outs/[id]/edit
+ * - 成功後導向: /charge-outs/[id] (費用轉嫁詳情頁)
+ * - 取消後返回: /charge-outs/[id] (費用轉嫁詳情頁)
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: UI 組件庫
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useRouter, Link } from "@/i18n/routing";
@@ -15,17 +52,6 @@ import {
 } from '@/components/ui/breadcrumb';
 import { ChargeOutForm } from '@/components/charge-out/ChargeOutForm';
 import { api } from '@/lib/trpc';
-
-/**
- * ChargeOut 編輯頁面
- *
- * 功能：
- * - 編輯現有的 ChargeOut 記錄
- * - 僅 Draft 狀態可編輯
- * - 使用 ChargeOutForm 組件
- *
- * Fixed: params is already unwrapped in Client Components (not Promise)
- */
 
 export default function EditChargeOutPage({ params }: { params: { id: string } }) {
   const t = useTranslations('chargeOuts');

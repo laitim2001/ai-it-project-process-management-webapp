@@ -1,3 +1,55 @@
+/**
+ * @fileoverview Budget Pool Router - 預算池管理 API
+ *
+ * @description
+ * 提供預算池的完整 CRUD 操作和查詢功能，是整個專案預算管理的核心模組。
+ * 預算池代表財年預算分配的頂層實體，包含多個預算類別（BudgetCategory）。
+ * 支援即時預算使用率計算、級聯刪除檢查、統計分析和數據導出等功能。
+ * 採用表頭-明細架構（BudgetPool + BudgetCategory[]），實現細緻的預算分類管理。
+ *
+ * @module api/routers/budgetPool
+ *
+ * @features
+ * - 建立預算池並自動建立預算類別（表頭-明細同步創建）
+ * - 查詢預算池列表（支援分頁、搜尋、財年過濾、排序）
+ * - 查詢單一預算池詳情（包含類別明細和使用率計算）
+ * - 更新預算池資訊和預算類別（支援類別新增、更新、刪除）
+ * - 刪除預算池（級聯刪除檢查，防止誤刪有關聯專案的預算池）
+ * - 即時計算預算使用率和健康狀態（從 BudgetCategory 累加）
+ * - 獲取預算池統計資訊（總預算、已分配、已花費、剩餘、使用率）
+ * - 預算類別管理（查詢、更新已用金額、統計）
+ * - 數據導出功能（CSV/Excel 友好格式）
+ *
+ * @procedures
+ * - getAll: 查詢預算池列表（分頁 + 過濾 + 排序）
+ * - getById: 查詢單一預算池（含使用率計算）
+ * - getByYear: 根據財年查詢預算池
+ * - create: 建立新預算池（含類別）
+ * - update: 更新預算池和類別
+ * - delete: 刪除預算池（級聯檢查）
+ * - getStats: 獲取預算池統計
+ * - export: 導出預算池數據
+ * - getCategories: 獲取預算類別列表
+ * - getCategoryStats: 獲取類別使用統計
+ * - updateCategoryUsage: 更新類別已用金額（內部使用）
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ * - TRPCError: 錯誤處理
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - BudgetPool, BudgetCategory 資料模型
+ * - packages/api/src/routers/project.ts - 關聯的專案 Router
+ * - packages/api/src/routers/expense.ts - 費用扣款 Router
+ * - apps/web/src/app/[locale]/budget-pools/page.tsx - 預算池列表頁面
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14
+ */
+
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';

@@ -1,17 +1,84 @@
-'use client';
-
 /**
- * PurchaseOrderForm 組件 - Module 4 表頭明細表單
+ * @fileoverview Purchase Order Form Component - 採購單建立/編輯表單（表頭明細）
  *
- * 功能說明：
- * - 採購單基本信息（name, description, projectId, vendorId, quoteId, date）
- * - 採購品項明細表格（動態新增/刪除行）
- * - 明細字段：itemName, description, quantity, unitPrice
+ * @description
+ * 統一的採購單表單組件，支援建立新採購單和編輯現有採購單兩種模式。
+ * 實現採購單表頭資訊管理和品項明細的動態 CRUD 操作（Module 4 重構）。
+ * 提供自動計算小計和總金額、品項數量統計和完整表單驗證功能。
+ *
+ * @component PurchaseOrderForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - 採購單基本資訊（名稱、說明、日期）
+ * - 專案和供應商選擇
+ * - 關聯報價選擇（選填）
+ * - 品項明細動態管理（新增、更新、刪除）
  * - 自動計算小計和總金額
- * - 表單驗證（至少一個品項）
+ * - 品項數量統計
+ * - 品項最少數量限制（至少 1 個品項）
+ * - 即時表單驗證（必填欄位、數量/金額正數）
+ * - 國際化支援（繁中/英文）
+ * - React Hook Form + Zod 驗證整合
+ * - 錯誤處理和成功提示（Toast）
+ * - FIX-029: 空 quoteId 過濾（避免外鍵約束錯誤）
  *
- * Module 4: PurchaseOrder 表頭明細重構 - 前端實施
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {Object} [props.initialData] - 編輯模式的預設值
+ * @param {string} props.initialData.id - 採購單 ID
+ * @param {string} props.initialData.name - 採購單名稱
+ * @param {string | null} props.initialData.description - 採購單說明
+ * @param {string} props.initialData.projectId - 專案 ID
+ * @param {string} props.initialData.vendorId - 供應商 ID
+ * @param {string | null} props.initialData.quoteId - 報價 ID
+ * @param {Date} props.initialData.date - 採購日期
+ * @param {POItemFormData[]} props.initialData.items - 品項明細陣列
+ * @param {boolean} [props.isEdit=false] - 是否為編輯模式
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <PurchaseOrderForm />
+ *
+ * // 編輯模式
+ * <PurchaseOrderForm
+ *   initialData={{
+ *     id: 'uuid',
+ *     name: 'PO-2025-001',
+ *     projectId: 'project-uuid',
+ *     vendorId: 'vendor-uuid',
+ *     date: new Date(),
+ *     items: [
+ *       { itemName: '伺服器', quantity: 2, unitPrice: 50000, sortOrder: 0 }
+ *     ]
+ *   }}
+ *   isEdit={true}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - react-hook-form: 表單狀態管理和驗證
+ * - @hookform/resolvers/zod: Zod 整合
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Form, Card, Input, Textarea, Button
+ * - next-intl: 國際化
+ * - lucide-react: Plus, Trash2, Package 圖示
+ *
+ * @related
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 API Router (Module 4)
+ * - packages/api/src/routers/project.ts - 專案 API
+ * - packages/api/src/routers/vendor.ts - 供應商 API
+ * - packages/api/src/routers/quote.ts - 報價 API
+ * - apps/web/src/app/[locale]/purchase-orders/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/purchase-orders/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14 (Module 4: 表頭明細重構; FIX-029: 空 quoteId 過濾)
  */
+
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from "@/i18n/routing";

@@ -1,3 +1,60 @@
+/**
+ * @fileoverview Budget Pool Filters Component - 預算池列表過濾器
+ *
+ * @description
+ * 預算池列表頁面的過濾和排序組件，提供基本搜尋和進階過濾功能。
+ * 支援財政年度、金額範圍篩選和多種排序選項。
+ * 提供即時過濾狀態反饋和一鍵重置功能。
+ *
+ * @component BudgetPoolFilters
+ *
+ * @features
+ * - 即時搜尋（預算池名稱）
+ * - 財政年度篩選（近 10 年）
+ * - 金額範圍過濾（最小值/最大值）
+ * - 進階過濾面板切換
+ * - 多種排序選項（年度、名稱、金額）
+ * - 雙向排序（升序/降序）
+ * - 啟用過濾器計數顯示
+ * - 一鍵重置所有過濾器
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {FilterState} props.filters - 當前過濾狀態
+ * @param {string} props.filters.search - 搜尋關鍵字
+ * @param {number} [props.filters.year] - 財政年度
+ * @param {number} [props.filters.minAmount] - 最小金額
+ * @param {number} [props.filters.maxAmount] - 最大金額
+ * @param {'name' | 'year' | 'amount'} props.filters.sortBy - 排序欄位
+ * @param {'asc' | 'desc'} props.filters.sortOrder - 排序方向
+ * @param {(filters: FilterState) => void} props.onFilterChange - 過濾器變更回調
+ *
+ * @example
+ * ```tsx
+ * const [filters, setFilters] = useState({
+ *   search: '',
+ *   sortBy: 'year',
+ *   sortOrder: 'desc'
+ * });
+ *
+ * <BudgetPoolFilters
+ *   filters={filters}
+ *   onFilterChange={setFilters}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - React: useState (進階面板展開狀態)
+ *
+ * @related
+ * - apps/web/src/app/[locale]/budget-pools/page.tsx - 預算池列表頁面
+ * - packages/api/src/routers/budgetPool.ts - 預算池 API Router
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useState } from 'react';

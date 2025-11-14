@@ -1,8 +1,15 @@
 /**
- * ContextMenu - 右鍵選單組件
+ * @fileoverview ContextMenu - 右鍵選單組件
  *
- * 基於 @radix-ui/react-context-menu 的上下文選單組件。
- * 用於在特定區域右鍵點擊時顯示相關操作選項。
+ * @description
+ * 基於 @radix-ui/react-context-menu 的上下文選單組件，用於在特定區域右鍵點擊時顯示相關操作選項。
+ * 完全整合設計系統樣式，支援子選單、分隔線、複選框、單選框和快捷鍵顯示。
+ *
+ * @module apps/web/src/components/ui/context-menu
+ * @component ContextMenu
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  *
  * @example
  * ```tsx

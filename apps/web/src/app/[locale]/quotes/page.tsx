@@ -1,16 +1,58 @@
-'use client';
-
 /**
- * 報價單列表頁面
+ * @fileoverview Quotes List Page - 報價單列表頁面
  *
- * 功能說明:
- * - 顯示所有報價單列表（分頁）
- * - 按專案、供應商篩選
- * - 搜尋功能
- * - 導航到專案報價詳情頁面
+ * @description
+ * 顯示所有報價單的列表，支援即時搜尋、多條件過濾和分頁功能。
+ * Project Manager 可查看和比較不同供應商的報價，用於選擇最佳供應商和生成採購單。
+ * 整合專案和供應商資訊，提供報價檔案預覽和下載功能。
  *
- * Epic 5 - Story 5.2: 報價管理
+ * @page /[locale]/quotes
+ *
+ * @features
+ * - 報價單列表展示（卡片視圖）
+ * - 即時搜尋（報價標題、描述）
+ * - 專案過濾（根據所屬專案篩選）
+ * - 供應商過濾（根據供應商篩選）
+ * - 排序功能（金額、建立日期）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 報價比較功能（同一專案的多個報價）
+ * - 報價檔案預覽和下載（Azure Blob Storage）
+ * - 快速操作（查看詳情、生成採購單）
+ * - 角色權限控制（RBAC）
+ *
+ * @permissions
+ * - ProjectManager: 查看自己專案的報價
+ * - Supervisor: 查看所有報價
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 列表頁: /quotes
+ * - 新增頁: /quotes/new
+ * - 專案報價頁: /projects/[id]/quotes
+ *
+ * @stateManagement
+ * - URL Query Params: 搜尋、過濾、排序、分頁狀態
+ * - React Query: 資料快取和即時更新
+ * - Local State: 視圖模式、搜尋輸入
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Badge, Input, Button, Select
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/quote.ts - 報價 API Router
+ * - apps/web/src/app/[locale]/projects/[id]/quotes/page.tsx - 專案報價頁面
+ * - apps/web/src/app/[locale]/purchase-orders/new/page.tsx - 建立採購單頁面
+ * - packages/db/prisma/schema.prisma - Quote 資料模型
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

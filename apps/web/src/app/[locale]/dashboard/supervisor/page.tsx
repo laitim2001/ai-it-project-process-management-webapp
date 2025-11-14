@@ -1,18 +1,55 @@
-'use client';
-
 /**
- * 主管儀表板頁面
+ * @fileoverview Supervisor Dashboard Page - 主管儀表板
  *
- * Epic 7 - Story 7.2: 主管儀表板 - 專案總覽視圖
- * Epic 7 - Story 7.4: 預算池概覽視圖
+ * @description
+ * 主管專屬的戰略級儀表板頁面，提供全組織的專案總覽和預算池財務分析。
+ * 支持多維度篩選（狀態、專案經理）、數據導出（CSV）、預算池健康狀態監控。
+ * 設計為高層決策者提供關鍵業務指標和資源分配洞察。
  *
- * 功能說明:
- * - 顯示所有專案總覽
- * - 支援按狀態和專案經理篩選
- * - 分頁功能
- * - 預算池財務摘要
- * - 數據導出功能
+ * @page /[locale]/dashboard/supervisor
+ *
+ * @features
+ * - 全局統計卡片：總專案數、活躍專案、已完成專案、待審批數
+ * - 預算池概覽：顯示所有預算池的健康狀態和使用率
+ * - 專案列表（分頁）：顯示所有專案，支持每頁 10/20/50 項
+ * - 多維度篩選：按狀態（Draft/InProgress/Completed/Archived）、專案經理篩選
+ * - 專案經理下拉選單：顯示每位 PM 管理的專案數量
+ * - CSV 數據導出：根據當前篩選條件導出專案列表
+ * - 預算池詳細資訊：財年、總預算、使用率、健康指標
+ * - 專案詳細卡片：PM、預算池、最新提案狀態、費用總額
+ * - 響應式網格佈局：適配桌面和移動設備
+ * - 即時數據同步：tRPC 查詢自動更新
+ *
+ * @permissions
+ * - Supervisor: 可查看（全局數據，所有專案和預算池）
+ * - Admin: 可查看（系統級全局數據）
+ *
+ * @routing
+ * - Supervisor Dashboard: /dashboard/supervisor
+ * - 專案詳情: /projects/[id]
+ * - 預算池詳情: /budget-pools/[id]
+ *
+ * @dependencies
+ * - next-intl: 國際化翻譯支援
+ * - @tanstack/react-query: tRPC 數據查詢和快取
+ * - lucide-react: 圖示庫 (Briefcase, TrendingUp, CheckCircle2, Clock, Download, etc.)
+ * - shadcn/ui: Card, Badge, Button, Select, Skeleton, Alert, Table
+ * - BudgetPoolOverview: 預算池概覽組件
+ * - PaginationControls: 分頁控制組件
+ *
+ * @related
+ * - packages/api/src/routers/dashboard.ts - getSupervisorDashboard procedure
+ * - apps/web/src/app/[locale]/dashboard/pm/page.tsx - PM 儀表板
+ * - apps/web/src/components/dashboard/BudgetPoolOverview.tsx - 預算池概覽組件
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁
+ * - apps/web/src/app/[locale]/budget-pools/[id]/page.tsx - 預算池詳情頁
+ *
+ * @author IT Department
+ * @since Epic 7 - Story 7.2: Supervisor Dashboard & Story 7.4: Budget Pool Overview
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

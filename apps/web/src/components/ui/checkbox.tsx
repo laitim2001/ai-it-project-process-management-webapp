@@ -1,18 +1,24 @@
 /**
- * ================================================================
- * Checkbox 組件 - 複選框
- * ================================================================
+ * @fileoverview Checkbox Component - shadcn/ui 複選框組件
  *
- * 【功能說明】
- * 基於 Radix UI 的複選框組件，支援多選和未定狀態
+ * @description
+ * 基於 Radix UI Checkbox 的複選框組件，支援多選和未定狀態 (indeterminate)。
+ * 提供完整的鍵盤導航、焦點管理和表單整合功能。
+ * 遵循 shadcn/ui 設計系統規範，支援主題切換和完整的無障礙性。
  *
- * 【特性】
- * • 支援勾選、未勾選、未定狀態（indeterminate）
- * • 完整的鍵盤導航支援
- * • 無障礙友善（WCAG 2.1 AA）
- * • 與表單整合
+ * @component Checkbox
  *
- * 【使用範例】
+ * @features
+ * - 三種狀態支援 (未選、已選、未定 indeterminate)
+ * - 完整的鍵盤導航 (Space 切換)
+ * - 焦點環樣式 (Focus Ring)
+ * - 與 React Hook Form 整合
+ * - 主題支援 (Light/Dark/System)
+ * - 禁用狀態樣式
+ * - 完整的無障礙性支援 (ARIA 屬性)
+ * - WCAG 2.1 AA 標準
+ *
+ * @example
  * ```tsx
  * // 基本用法
  * <Checkbox id="terms" />
@@ -22,9 +28,47 @@
  * const [checked, setChecked] = useState(false);
  * <Checkbox checked={checked} onCheckedChange={setChecked} />
  *
- * // 未定狀態
+ * // 未定狀態 (用於「全選」功能)
  * <Checkbox checked="indeterminate" />
+ *
+ * // 與 Form 組件整合
+ * <FormField
+ *   control={form.control}
+ *   name="terms"
+ *   render={({ field }) => (
+ *     <FormItem className="flex items-center space-x-2">
+ *       <FormControl>
+ *         <Checkbox
+ *           checked={field.value}
+ *           onCheckedChange={field.onChange}
+ *         />
+ *       </FormControl>
+ *       <FormLabel>同意服務條款</FormLabel>
+ *     </FormItem>
+ *   )}
+ * />
  * ```
+ *
+ * @accessibility
+ * - role="checkbox" 自動處理
+ * - aria-checked 狀態自動同步
+ * - Space 鍵切換選中狀態
+ * - 焦點樣式明確可見
+ * - 禁用狀態正確傳達
+ * - WCAG 2.1 AA 標準
+ *
+ * @dependencies
+ * - @radix-ui/react-checkbox: Checkbox 底層實現
+ * - lucide-react: Check 圖標
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/form.tsx - Form 組件 (表單整合)
+ * - apps/web/src/components/ui/label.tsx - Label 組件 (標籤配對)
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  */
 
 import * as React from "react";

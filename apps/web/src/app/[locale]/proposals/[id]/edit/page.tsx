@@ -1,3 +1,59 @@
+/**
+ * @fileoverview Edit Budget Proposal Page - 編輯預算提案頁面
+ *
+ * @description
+ * 提供編輯現有預算提案的表單頁面，支援修改專案、金額、說明等資訊。
+ * 僅允許編輯 Draft 狀態的提案，已提交或審批的提案需退回 Draft 才能編輯。
+ * 使用動態載入優化首次載入速度，提供完整的權限控制和錯誤處理。
+ *
+ * @page /[locale]/proposals/[id]/edit
+ *
+ * @features
+ * - 完整的提案編輯表單（預填充現有資料）
+ * - 即時表單驗證（Zod schema）
+ * - 狀態檢查（僅允許編輯 Draft 提案）
+ * - 專案選擇（Combobox 組件，支援搜尋）
+ * - 金額輸入（自動格式化，貨幣符號）
+ * - 說明文字編輯（支援多行文字）
+ * - 附件管理（新增/刪除附件）
+ * - 自動儲存草稿（每 30 秒自動儲存）
+ * - 錯誤處理（權限錯誤、狀態錯誤、網路錯誤）
+ * - 動態載入表單組件（優化首次載入）
+ *
+ * @permissions
+ * - ProjectManager: 可編輯自己專案的 Draft 提案
+ * - Supervisor: 可編輯任意專案的 Draft 提案
+ * - Admin: 完整權限
+ * - 限制: 僅 Draft 狀態的提案可編輯
+ *
+ * @routing
+ * - 編輯頁: /proposals/[id]/edit
+ * - 成功後導向: /proposals/[id] (提案詳情頁)
+ * - 取消後返回: /proposals/[id] (提案詳情頁)
+ * - 權限錯誤: 404 或 403 頁面
+ *
+ * @stateManagement
+ * - Form State: React Hook Form (預填充現有資料)
+ * - Draft State: LocalStorage (自動儲存草稿)
+ * - Loading State: 資料載入和提交狀態
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - next/dynamic: 動態載入組件
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Skeleton, Breadcrumb, Alert
+ *
+ * @related
+ * - packages/api/src/routers/budgetProposal.ts - 提案更新 API
+ * - apps/web/src/components/proposal/BudgetProposalForm.tsx - 提案表單組件
+ * - apps/web/src/app/[locale]/proposals/[id]/page.tsx - 提案詳情頁面
+ * - apps/web/src/app/[locale]/proposals/page.tsx - 提案列表頁面
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget Proposal Workflow
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import dynamic from 'next/dynamic';

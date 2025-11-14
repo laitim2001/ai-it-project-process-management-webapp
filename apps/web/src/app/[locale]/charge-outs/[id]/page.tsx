@@ -1,3 +1,43 @@
+/**
+ * @fileoverview Charge Out Detail Page - 費用轉嫁詳情頁面
+ *
+ * @description
+ * 顯示單一費用轉嫁的完整資訊，包含專案、預算類別、成本中心和審批狀態。
+ * 提供審批工作流操作，Supervisor 可在此頁面進行審批操作。
+ *
+ * @page /[locale]/charge-outs/[id]
+ *
+ * @features
+ * - 費用轉嫁詳情展示（專案、預算類別、成本中心、金額、日期）
+ * - 專案資訊展示（專案名稱、預算池）
+ * - 預算類別資訊展示（類別名稱、預算）
+ * - 審批工作流（提交、審批、拒絕）
+ * - 狀態徽章顯示（Draft, Submitted, Approved, Completed）
+ * - 審批歷史記錄（狀態變更軌跡）
+ * - 編輯操作（僅 Draft 狀態可編輯）
+ * - 權限控制（根據角色和轉嫁狀態控制操作權限）
+ * - 麵包屑導航
+ *
+ * @permissions
+ * - ProjectManager: 查看和編輯自己專案的費用轉嫁
+ * - Supervisor: 查看所有費用轉嫁，審批 Submitted 轉嫁
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 詳情頁: /charge-outs/[id]
+ * - 編輯頁: /charge-outs/[id]/edit
+ * - 返回列表: /charge-outs
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: UI 組件庫
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useRouter } from "@/i18n/routing";
@@ -19,19 +59,6 @@ import {
 } from '@/components/ui/breadcrumb';
 import { api } from '@/lib/trpc';
 import { ChargeOutActions } from '@/components/charge-out/ChargeOutActions';
-
-/**
- * ChargeOut 詳情頁
- *
- * 功能：
- * 1. 顯示 ChargeOut 完整信息
- * 2. 顯示費用明細列表
- * 3. 狀態操作（submit, confirm, reject, markAsPaid, delete）
- * 4. 相關信息（項目、OpCo、確認人）
- *
- * Fixed: params is already unwrapped in Client Components (not Promise)
- * Trigger: Force recompilation after fix
- */
 
 export default function ChargeOutDetailPage({ params }: { params: { id: string } }) {
   const t = useTranslations('chargeOuts');

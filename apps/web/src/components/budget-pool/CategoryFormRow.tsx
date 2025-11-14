@@ -1,29 +1,56 @@
 /**
- * ================================================================
- * CategoryFormRow 組件 - 預算類別表單行
- * ================================================================
+ * @fileoverview Category Form Row Component - 預算類別表單行
  *
- * 【功能說明】
- * 單一預算類別的輸入表單行，用於 BudgetPool 的 categories 陣列管理
+ * @description
+ * 單一預算類別的輸入表單行組件，用於 BudgetPoolForm 的動態類別管理。
+ * 提供類別名稱、代碼、金額、說明和排序欄位的輸入功能。
+ * 支援即時驗證、錯誤顯示和刪除操作。
  *
- * 【數據結構】
- * - categoryName: 類別名稱（必填）
- * - categoryCode: 類別代碼（選填）
- * - totalAmount: 預算金額（必填，≥0）
- * - description: 說明（選填）
- * - sortOrder: 排序（選填）
+ * @component CategoryFormRow
  *
- * 【使用範例】
+ * @features
+ * - 類別名稱輸入（必填）
+ * - 類別代碼輸入（選填）
+ * - 預算金額輸入（必填，≥0）
+ * - 類別說明輸入（選填）
+ * - 排序順序輸入（選填，整數）
+ * - 刪除類別按鈕（可禁用）
+ * - 欄位即時驗證和錯誤顯示
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {CategoryFormData} props.category - 類別資料
+ * @param {number} props.index - 類別索引（用於欄位 ID）
+ * @param {(category: CategoryFormData) => void} props.onChange - 類別變更回調
+ * @param {() => void} props.onDelete - 刪除類別回調
+ * @param {boolean} props.canDelete - 是否允許刪除
+ * @param {CategoryErrors} [props.errors] - 驗證錯誤訊息
+ *
+ * @example
  * ```tsx
  * <CategoryFormRow
- *   category={category}
+ *   category={{ categoryName: '硬體設備', totalAmount: 100000, sortOrder: 0 }}
  *   index={0}
  *   onChange={(updated) => handleUpdateCategory(0, updated)}
  *   onDelete={() => handleDeleteCategory(0)}
  *   canDelete={categories.length > 1}
- *   errors={errors}
+ *   errors={{ categoryName: '類別名稱不可重複' }}
  * />
  * ```
+ *
+ * @dependencies
+ * - shadcn/ui: Input, Button, Label
+ * - next-intl: 國際化
+ * - lucide-react: Trash2 圖示
+ *
+ * @related
+ * - apps/web/src/components/budget-pool/BudgetPoolForm.tsx - 父組件（預算池表單）
+ * - packages/api/src/routers/budgetPool.ts - 預算池 API Router
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14 (Module 1: Categories 重構)
  */
 
 'use client';

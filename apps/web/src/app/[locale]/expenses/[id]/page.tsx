@@ -1,18 +1,57 @@
-'use client';
-
 /**
- * 費用記錄詳情頁面 - Module 5 表頭明細實施
+ * @fileoverview Expense Detail Page - 費用記錄詳情頁面
  *
- * 功能說明:
- * - 顯示費用記錄完整資訊（表頭+明細）
- * - 顯示關聯的專案、採購單
- * - 顯示費用項目明細表格
- * - 編輯操作（僅 Draft 狀態）
- * - 提交/審批工作流按鈕
+ * @description
+ * 顯示單一費用記錄的完整資訊，採用表頭-明細結構展示，整合審批工作流和檔案管理功能。
+ * 提供費用項目明細表格、關聯專案/採購單資訊、發票預覽和審批操作。
+ * 支援即時狀態更新和權限控制，Supervisor 可在此頁面進行審批操作。
  *
- * Epic 6 - Story 6.1: 針對採購單記錄發票與費用
- * Module 5: Expense 表頭明細重構 - 前端實施
+ * @page /[locale]/expenses/[id]
+ *
+ * @features
+ * - 費用詳情展示（表頭資訊：發票號、日期、總金額）
+ * - 費用項目明細表格（項目名稱、預算類別、金額）
+ * - 關聯資訊展示（專案、採購單、供應商）
+ * - 發票檔案預覽和下載（Azure Blob Storage）
+ * - 審批工作流（提交、審批、拒絕）
+ * - 狀態徽章顯示（Draft, Submitted, Approved, Paid）
+ * - 審批歷史記錄（狀態變更軌跡）
+ * - 編輯操作（僅 Draft 狀態可編輯）
+ * - 權限控制（根據角色和費用狀態控制操作權限）
+ * - 麵包屑導航和快速操作按鈕
+ *
+ * @permissions
+ * - ProjectManager: 查看自己專案的費用詳情，編輯 Draft 費用
+ * - Supervisor: 查看所有費用詳情，審批 Submitted 費用
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 詳情頁: /expenses/[id]
+ * - 編輯頁: /expenses/[id]/edit
+ * - 返回列表: /expenses
+ *
+ * @stateManagement
+ * - React Query: 費用資料快取和即時更新
+ * - Local State: 檔案預覽狀態
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Badge, Table, Button, Breadcrumb
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/expense.ts - 費用 API Router
+ * - apps/web/src/components/expense/ExpenseForm.tsx - 費用表單組件
+ * - apps/web/src/app/[locale]/expenses/[id]/edit/page.tsx - 編輯頁面
+ * - apps/web/src/app/[locale]/expenses/page.tsx - 費用列表頁面
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration (Module 5: 表頭明細重構)
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';

@@ -1,3 +1,70 @@
+/**
+ * @fileoverview OM Expense Form Component - OM 費用建立/編輯表單
+ *
+ * @description
+ * 統一的 OM（營運維護）費用建立和編輯表單組件。
+ * 支援 OpCo（營運公司）、Vendor（供應商）和 Budget Category（預算類別）的關聯管理，
+ * 建立時自動產生 12 個月度記錄（Jan-Dec），月度金額在詳情頁面單獨編輯。
+ *
+ * @component OMExpenseForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - OM 費用基本資訊輸入（名稱、描述、財年、類別）
+ * - OpCo 和 Vendor 關聯選擇
+ * - 預算金額和日期範圍設定
+ * - 完整表單驗證（Zod schema + 業務規則）
+ * - 建立時自動產生 12 個月度記錄（amount = 0）
+ * - 日期範圍驗證（startDate < endDate）
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {'create' | 'edit'} props.mode - 表單模式
+ * @param {Object} [props.initialData] - 編輯模式的初始數據
+ * @param {string} [props.initialData.id] - OM 費用 ID
+ * @param {string} [props.initialData.name] - OM 費用名稱
+ * @param {number} [props.initialData.financialYear] - 財年
+ * @param {string} [props.initialData.category] - 類別
+ * @param {string} [props.initialData.opCoId] - 營運公司 ID
+ * @param {number} [props.initialData.budgetAmount] - 預算金額
+ * @param {string} [props.initialData.vendorId] - 供應商 ID（可選）
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <OMExpenseForm mode="create" />
+ *
+ * // 編輯模式
+ * <OMExpenseForm
+ *   mode="edit"
+ *   initialData={{
+ *     id: 'om-expense-1',
+ *     name: '辦公室租金',
+ *     financialYear: 2025,
+ *     budgetAmount: 1200000
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - react-hook-form: 表單狀態管理和驗證
+ * - @hookform/resolvers/zod: Zod 整合
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Form, Input, Textarea, Card, Select
+ * - next-intl: 國際化
+ *
+ * @related
+ * - packages/api/src/routers/omExpense.ts - OM 費用 API Router
+ * - apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx - 月度記錄編輯組件
+ * - apps/web/src/app/[locale]/om-expenses/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/om-expenses/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Module 4 - OM Expense Management
+ * @lastModified 2025-11-14 (Bug #9: 修復 vendorId 空字串導致 Foreign Key 錯誤)
+ */
+
 'use client';
 
 import { useEffect } from 'react';

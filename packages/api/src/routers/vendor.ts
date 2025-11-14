@@ -1,12 +1,44 @@
 /**
- * Vendor（供應商）管理 tRPC API 路由
+ * @fileoverview Vendor Router - 供應商管理 API
  *
- * 功能說明：
- * - 供應商 CRUD 操作：新增、查詢、更新、刪除
- * - 支援分頁、搜尋、排序
- * - 關聯關係：Vendor → Quote[], PurchaseOrder[]
+ * @description
+ * 提供供應商的完整 CRUD 操作和查詢功能。
+ * 供應商是採購流程的重要主體，記錄供應商基本資訊和聯絡方式。
+ * 支援分頁、搜尋（名稱、聯絡人、Email）、排序功能。
+ * 包含與報價單和採購單的關聯查詢，以及級聯刪除保護機制。
  *
- * Epic 4 - Story 5.1: 管理供應商基本資訊
+ * @module api/routers/vendor
+ *
+ * @features
+ * - 建立供應商（驗證名稱唯一性）
+ * - 更新供應商資訊（聯絡人、Email、電話）
+ * - 查詢供應商列表（支援搜尋、分頁、排序）
+ * - 查詢單一供應商詳情（包含報價單和採購單關聯）
+ * - 刪除供應商（級聯刪除檢查保護）
+ * - 獲取供應商統計資訊（總數、有報價比例、有採購單比例）
+ *
+ * @procedures
+ * - create: 建立新供應商（驗證名稱唯一性）
+ * - update: 更新供應商資訊（支援部分更新）
+ * - delete: 刪除供應商（檢查報價單和採購單關聯）
+ * - getAll: 查詢供應商列表（支援搜尋、分頁、排序）
+ * - getById: 查詢單一供應商詳情（含最近 10 個報價和採購單）
+ * - getStats: 獲取供應商統計資訊
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - Vendor 資料模型
+ * - packages/api/src/routers/quote.ts - 報價單 Router
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 Router
+ * - apps/web/src/app/[locale]/vendors/page.tsx - 供應商列表頁面
+ *
+ * @author IT Department
+ * @since Epic 4 - Procurement and Vendor Management
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

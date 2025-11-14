@@ -1,3 +1,68 @@
+/**
+ * @fileoverview Dialog Component - shadcn/ui 對話框組件
+ *
+ * @description
+ * 基於 React Context 的對話框組件，提供模態內容展示功能。
+ * 使用受控或非受控模式管理開啟/關閉狀態，支援背景遮罩、ESC 鍵關閉等功能。
+ * 適用於表單對話框、確認對話框、內容展示等場景。
+ *
+ * @component Dialog
+ *
+ * @features
+ * - 可控/非可控模式
+ * - 背景遮罩和模糊效果
+ * - ESC 鍵關閉
+ * - 背景點擊關閉
+ * - 關閉按鈕 (X)
+ * - 平滑淡入淡出和縮放動畫
+ * - 主題支援 (Light/Dark/System)
+ * - 焦點管理
+ *
+ * @example
+ * ```tsx
+ * // 基本用法 (非受控)
+ * <Dialog>
+ *   <DialogTrigger>
+ *     <Button>開啟對話框</Button>
+ *   </DialogTrigger>
+ *   <DialogContent>
+ *     <DialogHeader>
+ *       <DialogTitle>標題</DialogTitle>
+ *       <DialogDescription>描述</DialogDescription>
+ *     </DialogHeader>
+ *     <p>對話框內容</p>
+ *     <DialogFooter>
+ *       <Button>確認</Button>
+ *     </DialogFooter>
+ *   </DialogContent>
+ * </Dialog>
+ *
+ * // 受控模式
+ * const [open, setOpen] = useState(false);
+ * <Dialog open={open} onOpenChange={setOpen}>
+ *   <DialogTrigger>
+ *     <Button>開啟</Button>
+ *   </DialogTrigger>
+ *   <DialogContent>
+ *     <DialogTitle>標題</DialogTitle>
+ *     <p>內容</p>
+ *   </DialogContent>
+ * </Dialog>
+ * ```
+ *
+ * @dependencies
+ * - lucide-react: X 圖標 (關閉按鈕)
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/alert-dialog.tsx - AlertDialog 組件 (確認對話框)
+ * - apps/web/src/components/ui/command.tsx - CommandDialog 使用範例
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"

@@ -1,12 +1,57 @@
 /**
- * 註冊頁面
+ * @fileoverview Register Page - 註冊頁面
  *
- * 功能：
- * - 用戶註冊表單
- * - 表單驗證
- * - 註冊成功後重定向到登錄頁面
+ * @description
+ * 提供用戶註冊功能的頁面，支援姓名、Email 和密碼註冊。
+ * 目前為 MVP 版本，使用模擬 API，未來將整合 Azure AD B2C 註冊流程。
+ * 包含完整的表單驗證（Email 格式、密碼強度、密碼確認）和友好的用戶引導。
  *
- * TODO: 根據 Azure AD B2C 配置實現完整註冊流程
+ * @page /[locale]/register
+ *
+ * @features
+ * - 用戶資訊輸入（姓名、Email、密碼、確認密碼）
+ * - 即時表單驗證（密碼匹配、密碼長度）
+ * - 註冊成功狀態頁面
+ * - 自動跳轉到登入頁面
+ * - 登入頁面連結
+ * - 使用條款提示
+ * - 錯誤處理和用戶提示
+ *
+ * @routing
+ * - 當前頁: /register
+ * - 成功後: /login
+ * - 登入: /login
+ *
+ * @stateManagement
+ * - React State: email, password, confirmPassword, name, isLoading, error, success
+ * - Form State: 表單輸入和驗證狀態
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - shadcn/ui: Card, Button, Input, Label
+ * - @/i18n/routing: 國際化路由
+ *
+ * @related
+ * - apps/web/src/app/[locale]/login/page.tsx - 登入頁面
+ * - apps/web/src/app/[locale]/forgot-password/page.tsx - 忘記密碼頁面
+ * - apps/web/src/messages/en.json - 英文翻譯
+ * - apps/web/src/messages/zh-TW.json - 繁體中文翻譯
+ *
+ * @validation
+ * - Email: 必填，格式驗證
+ * - 密碼: 必填，最少 8 字元
+ * - 確認密碼: 必填，必須與密碼相同
+ * - 姓名: 必填
+ *
+ * @todo
+ * - 整合 Azure AD B2C 註冊流程
+ * - 實作註冊 API 端點
+ * - 添加 Email 驗證功能
+ * - 添加密碼強度檢查器
+ *
+ * @author IT Department
+ * @since Post-MVP - User Management Enhancement
+ * @lastModified 2025-11-14
  */
 
 'use client';

@@ -1,40 +1,45 @@
 /**
- * ================================================================
- * Alert 組件 - 基於 shadcn/ui 風格
- * ================================================================
+ * @fileoverview Alert Component - shadcn/ui 內聯通知組件
  *
- * 【功能說明】
- * 內聯通知組件，用於顯示重要資訊、警告、錯誤或成功訊息
+ * @description
+ * 基於 shadcn/ui 設計系統的內聯通知組件，用於顯示重要資訊、警告、錯誤或成功訊息。
+ * 使用 class-variance-authority 提供類型安全的變體管理，支援多種視覺樣式。
+ * 適用於頁面內容區域的非中斷式消息通知場景。
  *
- * 【使用 CVA (class-variance-authority)】
- * 提供類型安全的變體管理
+ * @component Alert
  *
- * 【變體說明】
- * • default: 預設資訊樣式 (藍色)
- * • destructive: 錯誤/危險樣式 (紅色)
- * • success: 成功樣式 (綠色)
- * • warning: 警告樣式 (黃色)
+ * @features
+ * - 多種變體樣式 (default, destructive, success, warning)
+ * - 支援圖標和標題/描述組合
+ * - role="alert" ARIA 角色自動處理
+ * - 主題支援 (Light/Dark/System)
+ * - 適當的顏色對比度 (WCAG 2.1 AA)
+ * - 語義化的 HTML 結構
  *
- * 【使用範例】
+ * @example
  * ```tsx
+ * // 預設資訊樣式
  * <Alert>
  *   <Info className="h-4 w-4" />
  *   <AlertTitle>提示</AlertTitle>
  *   <AlertDescription>這是一則資訊訊息</AlertDescription>
  * </Alert>
  *
+ * // 錯誤樣式
  * <Alert variant="destructive">
  *   <AlertCircle className="h-4 w-4" />
  *   <AlertTitle>錯誤</AlertTitle>
  *   <AlertDescription>操作失敗，請重試</AlertDescription>
  * </Alert>
  *
+ * // 成功樣式
  * <Alert variant="success">
  *   <CheckCircle2 className="h-4 w-4" />
  *   <AlertTitle>成功</AlertTitle>
  *   <AlertDescription>操作已成功完成</AlertDescription>
  * </Alert>
  *
+ * // 警告樣式
  * <Alert variant="warning">
  *   <AlertTriangle className="h-4 w-4" />
  *   <AlertTitle>警告</AlertTitle>
@@ -42,11 +47,23 @@
  * </Alert>
  * ```
  *
- * 【無障礙特性】
- * • role="alert" - ARIA 角色定義
- * • 適當的顏色對比度 (WCAG AA)
- * • 支援鍵盤導航
- * • 語義化的標題和描述結構
+ * @accessibility
+ * - role="alert" ARIA 角色自動定義
+ * - 適當的顏色對比度 (WCAG 2.1 AA)
+ * - 語義化的標題和描述結構 (h5 + div)
+ * - 支援螢幕閱讀器
+ *
+ * @dependencies
+ * - class-variance-authority: 樣式變體管理
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/toast.tsx - Toast 通知組件 (臨時消息)
+ * - apps/web/src/components/ui/alert-dialog.tsx - AlertDialog 組件 (模態確認)
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  */
 
 import * as React from "react";

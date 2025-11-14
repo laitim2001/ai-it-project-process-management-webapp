@@ -1,13 +1,33 @@
 /**
- * ================================================================
- * use-toast Hook - Toast 通知狀態管理
- * ================================================================
+ * @fileoverview use-toast Hook - Toast 通知狀態管理
  *
- * 【功能說明】
- * Toast 通知系統的核心狀態管理 Hook
- * 提供 toast 的新增、更新、移除功能
+ * @description
+ * Toast 通知系統的核心狀態管理 Hook，基於 React Hooks 和訂閱者模式（Pub/Sub）實現。
+ * 提供 toast 的新增、更新、移除功能，不依賴 Context，採用全域狀態管理。
  *
- * 【使用方式】
+ * @module apps/web/src/components/ui/use-toast
+ * @hook useToast
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - Toast 新增、更新、移除
+ * - 自動過期機制（預設 5 秒）
+ * - 支援 4 種變體（default, destructive, success, warning）
+ * - 支援操作按鈕（action）
+ * - 最多顯示 5 個通知
+ * - 全域狀態管理（不依賴 Context）
+ * - 訂閱者模式（Pub/Sub）
+ *
+ * @dependencies
+ * - React Hooks - useState, useEffect
+ *
+ * @related
+ * - ./toaster.tsx - Toaster 渲染容器
+ * - ./toast.tsx - Toast 單個通知組件（如果存在）
+ *
+ * @example
  * ```tsx
  * import { useToast } from "@/components/ui/use-toast"
  *

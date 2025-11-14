@@ -1,19 +1,54 @@
-'use client';
-
 /**
- * 採購單詳情頁面 - Module 4 表頭明細實施
+ * @fileoverview Purchase Order Detail Page - 採購單詳情頁面
  *
- * 功能說明:
- * - 顯示採購單完整資訊（表頭+明細）
- * - 顯示關聯的專案、供應商、報價單
- * - 顯示採購品項明細表格
- * - 顯示關聯的費用記錄列表
- * - 編輯操作（僅 Draft 狀態）
- * - 提交/審批工作流按鈕
+ * @description
+ * 顯示單一採購單的完整資訊，包含專案、供應商、報價、採購品項明細和相關費用記錄。
+ * 提供編輯操作（僅 Draft 狀態）、工作流操作（提交、批准）和查看關聯的費用記錄。
+ * 支援表頭明細結構展示，符合 Epic 5 Module 4 規格。
  *
- * Epic 5 - Story 5.4: 生成採購單記錄
- * Module 4: PurchaseOrder 表頭明細重構 - 前端實施
+ * @page /[locale]/purchase-orders/[id]
+ *
+ * @features
+ * - 採購單詳情展示（採購單號、名稱、日期、狀態、總金額）
+ * - 專案資訊展示（專案名稱、預算池）
+ * - 供應商資訊展示（供應商名稱、聯絡資訊）
+ * - 報價資訊展示（報價金額、上傳日期）
+ * - 採購品項明細表格（品項名稱、數量、單價、小計）
+ * - 相關費用記錄列表（該採購單的所有費用）
+ * - 編輯操作按鈕（僅 Draft 狀態可見）
+ * - 工作流操作（提交、批准）
+ * - 麵包屑導航支援
+ *
+ * @permissions
+ * - ProjectManager: 查看自己專案的採購單詳情
+ * - Supervisor: 查看所有採購單詳情
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 詳情頁: /purchase-orders/[id]
+ * - 編輯頁: /purchase-orders/[id]/edit
+ * - 返回列表: /purchase-orders
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Table, Badge, Button, Alert
+ *
+ * @related
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 API Router (getById)
+ * - apps/web/src/components/purchase-order/PurchaseOrderActions.tsx - 工作流操作組件
+ * - apps/web/src/app/[locale]/purchase-orders/page.tsx - 採購單列表頁面
+ * - apps/web/src/app/[locale]/purchase-orders/[id]/edit/page.tsx - 編輯頁面
+ * - apps/web/src/app/[locale]/expenses/[id]/page.tsx - 費用詳情頁面
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁面
+ * - apps/web/src/app/[locale]/vendors/[id]/page.tsx - 供應商詳情頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';

@@ -1,16 +1,57 @@
-'use client';
-
 /**
- * Notifications Page
- * Epic 8 - Story 8.2: 通知列表頁面
+ * @fileoverview Notifications List Page - 通知中心頁面
  *
- * 功能:
- * - 顯示所有通知 (分頁加載)
- * - 篩選已讀/未讀通知
- * - 標記通知為已讀
- * - 刪除通知
- * - 跳轉到相關頁面
+ * @description
+ * 顯示使用者所有通知的列表，支援已讀/未讀過濾、通知標記和刪除功能。
+ * 整合提案和費用審批通知，提供快速跳轉到相關頁面的功能。
+ * 支援即時更新和分頁載入，提供完整的通知管理體驗。
+ *
+ * @page /[locale]/notifications
+ *
+ * @features
+ * - 通知列表展示（時間倒序排列）
+ * - 已讀/未讀狀態過濾
+ * - 通知類型圖示（提案、費用、系統）
+ * - 即時時間顯示（相對時間，如「2 小時前」）
+ * - 標記為已讀功能（單一或批量標記）
+ * - 刪除通知功能（單一或批量刪除）
+ * - 快速跳轉到相關頁面（提案詳情、費用詳情）
+ * - 分頁載入（無限滾動或分頁導航）
+ * - 未讀通知計數顯示
+ * - 通知類型徽章（不同顏色標示不同類型）
+ *
+ * @permissions
+ * - All authenticated users: 查看自己的通知
+ *
+ * @routing
+ * - 通知列表頁: /notifications
+ * - 相關提案頁: /proposals/[id]
+ * - 相關費用頁: /expenses/[id]
+ *
+ * @stateManagement
+ * - URL Query Params: 過濾狀態（已讀/未讀）
+ * - React Query: 資料快取和即時更新
+ * - Local State: 選中的通知、過濾狀態
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Badge, Button, Alert
+ * - lucide-react: 圖示庫
+ * - date-fns: 日期格式化
+ *
+ * @related
+ * - packages/api/src/routers/notification.ts - 通知 API Router
+ * - apps/web/src/components/layout/NotificationBell.tsx - 通知鈴鐺組件
+ * - apps/web/src/components/layout/NotificationDropdown.tsx - 通知下拉組件
+ * - packages/db/prisma/schema.prisma - Notification 資料模型
+ *
+ * @author IT Department
+ * @since Epic 8 - Notification System
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

@@ -1,10 +1,46 @@
 /**
- * LanguageSwitcher 組件 - 語言切換器
+ * @fileoverview Language Switcher Component - 語言切換器組件
  *
- * 功能：
- * - 顯示當前語言
- * - 快速切換語言 (繁體中文/English)
- * - 保持當前頁面路徑
+ * @description
+ * 提供繁體中文和英文之間的語言切換功能，使用下拉選單展示可用語言。
+ * 切換語言時保持當前頁面路徑，透過完整頁面重新載入確保所有翻譯正確更新，
+ * 避免 React hydration 錯誤，提供流暢的多語言切換體驗。
+ *
+ * @component LanguageSwitcher
+ *
+ * @features
+ * - 語言選項展示（繁體中文、English）
+ * - 當前語言高亮顯示（Check 圖示）
+ * - 完整頁面重新載入（避免 hydration 錯誤）
+ * - 保持當前頁面路徑（URL 語言部分替換）
+ * - 切換中狀態禁用（防止重複點擊）
+ * - 下拉選單 UI（shadcn/ui DropdownMenu）
+ * - 無障礙支援（ARIA labels）
+ *
+ * @stateManagement
+ * - useLocale: 取得當前語言（next-intl）
+ * - usePathname: 取得當前路徑（next/navigation）
+ * - useState: 切換中狀態（isChanging）
+ *
+ * @languageOptions
+ * - zh-TW: 繁體中文
+ * - en: English
+ *
+ * @dependencies
+ * - next-intl: 國際化框架（useLocale）
+ * - next/navigation: Next.js 導航（usePathname）
+ * - lucide-react: 圖示組件（Languages, Check）
+ * - shadcn/ui: Button, DropdownMenu 組件
+ *
+ * @related
+ * - apps/web/src/components/layout/TopBar.tsx - 頂部導航欄（使用此組件）
+ * - apps/web/src/i18n/routing.ts - 國際化路由配置
+ * - apps/web/src/messages/zh-TW.json - 繁中翻譯檔案
+ * - apps/web/src/messages/en.json - 英文翻譯檔案
+ *
+ * @author IT Department
+ * @since Epic 1 - Platform Foundation
+ * @lastModified 2025-11-14 (FIX-077: 使用完整頁面重新載入避免 hydration 錯誤)
  */
 
 "use client"

@@ -1,3 +1,86 @@
+/**
+ * @fileoverview Tabs Component - shadcn/ui 分頁標籤組件
+ *
+ * @description
+ * 自訂實作的分頁標籤組件，提供內容分組和切換功能。
+ * 使用 React Context 管理標籤狀態，支援受控和非受控模式。
+ * 遵循 shadcn/ui 設計系統規範，提供一致的視覺樣式和無障礙性支援。
+ *
+ * @component Tabs
+ *
+ * @features
+ * - 基於 React Context 的狀態管理
+ * - 支援受控和非受控模式
+ * - Tab 切換動畫效果
+ * - 當前 Tab 視覺高亮
+ * - 鍵盤導航支援（方向鍵、Enter）
+ * - 自動焦點管理
+ * - 主題支援（Light/Dark/System）
+ * - 完整的無障礙性支援（ARIA 標準）
+ *
+ * @components
+ * - Tabs: 根容器（狀態管理）
+ * - TabsList: Tab 按鈕列表容器
+ * - TabsTrigger: 單一 Tab 按鈕
+ * - TabsContent: Tab 內容面板
+ *
+ * @props
+ * Tabs Props:
+ * @param {Object} props - 組件屬性
+ * @param {string} [props.defaultValue] - 預設選中的 Tab（非受控）
+ * @param {string} [props.value] - 當前選中的 Tab（受控）
+ * @param {(value: string) => void} [props.onValueChange] - Tab 變更回調
+ * @param {string} [props.className] - 自訂 CSS 類別
+ *
+ * TabsTrigger Props:
+ * @param {Object} props - 組件屬性
+ * @param {string} props.value - Tab 識別值
+ * @param {React.ReactNode} props.children - 按鈕文字
+ *
+ * TabsContent Props:
+ * @param {Object} props - 組件屬性
+ * @param {string} props.value - 對應的 Tab 識別值
+ * @param {React.ReactNode} props.children - 內容
+ *
+ * @example
+ * ```tsx
+ * // 基本用法（非受控）
+ * <Tabs defaultValue="tab1">
+ *   <TabsList>
+ *     <TabsTrigger value="tab1">標籤 1</TabsTrigger>
+ *     <TabsTrigger value="tab2">標籤 2</TabsTrigger>
+ *   </TabsList>
+ *   <TabsContent value="tab1">內容 1</TabsContent>
+ *   <TabsContent value="tab2">內容 2</TabsContent>
+ * </Tabs>
+ *
+ * // 受控模式
+ * const [activeTab, setActiveTab] = useState("tab1");
+ * <Tabs value={activeTab} onValueChange={setActiveTab}>
+ *   ...
+ * </Tabs>
+ * ```
+ *
+ * @accessibility
+ * - 使用 role="tab" 標記 Tab 按鈕
+ * - role="tabpanel" 標記內容面板
+ * - aria-selected 指示當前 Tab
+ * - 鍵盤導航（方向鍵切換、Enter 選擇）
+ * - 焦點管理（Tab 切換時保持焦點）
+ *
+ * @dependencies
+ * - React Context: 狀態管理
+ * - Tailwind CSS: 樣式系統
+ *
+ * @related
+ * - apps/web/src/app/[locale]/settings/page.tsx - 使用範例（設定頁面）
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 

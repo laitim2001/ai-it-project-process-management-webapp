@@ -1,13 +1,34 @@
 /**
- * ================================================================
- * Toaster 組件 - Toast 通知渲染容器
- * ================================================================
+ * @fileoverview Toaster 組件 - Toast 通知渲染容器
  *
- * 【功能說明】
- * Toast 通知系統的渲染容器，負責顯示所有 Toast 通知
- * 配合 use-toast Hook 使用，自動處理通知的顯示和動畫
+ * @description
+ * Toast 通知系統的渲染容器，負責顯示所有 Toast 通知。
+ * 配合 use-toast Hook 使用，自動處理通知的顯示和動畫。
+ * 固定在視窗右下角，支援最多 5 個通知堆疊顯示。
  *
- * 【使用方式】
+ * @module apps/web/src/components/ui/toaster
+ * @component Toaster
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 固定在視窗右下角（桌面版）/底部中央（手機版）
+ * - 自動堆疊多個通知
+ * - 平滑的進入/退出動畫
+ * - 支援滑動關閉手勢
+ * - 響應式設計
+ * - 最多顯示 5 個通知
+ * - 完全無障礙（aria-live, WCAG 2.1 AA）
+ *
+ * @dependencies
+ * - use-toast Hook - Toast 狀態管理
+ * - lucide-react - 圖標組件
+ * - @/lib/utils - cn() 工具函數
+ *
+ * @example
+ * // 在根布局中使用
+ * ```tsx
  * 在應用根組件中加入 Toaster：
  * ```tsx
  * // app/layout.tsx or _app.tsx

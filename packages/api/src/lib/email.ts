@@ -1,13 +1,35 @@
 /**
- * Email Service - Epic 8 Story 8.1
+ * @fileoverview Email Service - 郵件發送服務
  *
- * 功能說明:
- * - 提供統一的郵件發送服務
- * - 支援 Nodemailer (開發環境) 和 SendGrid (生產環境)
- * - 封裝郵件模板和發送邏輯
+ * @description
+ * 統一的郵件發送服務，支援開發環境（Nodemailer + Ethereal Email）和生產環境（SendGrid/SMTP）。
+ * 封裝郵件模板和發送邏輯，用於提案和費用審批通知。
+ *
+ * @module packages/api/src/lib/email
+ * @service EmailService
+ * @author IT Department
+ * @since Epic 8 - Story 8.1 (Notification System - Email)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 開發環境: Nodemailer + Ethereal Email（虛擬測試郵箱）
+ * - 生產環境: SendGrid/SMTP
+ * - 提案提交通知（給主管）
+ * - 提案審批結果通知（給專案經理）
+ * - 費用提交通知（給主管）
+ * - 費用審批結果通知（給專案經理）
+ * - HTML 郵件模板
  * - 錯誤處理和日誌記錄
  *
- * 使用方式:
+ * @dependencies
+ * - nodemailer - 郵件發送核心
+ *
+ * @related
+ * - ../routers/budgetProposal.ts - 提案相關通知觸發
+ * - ../routers/expense.ts - 費用相關通知觸發
+ * - ../routers/notification.ts - 通知路由
+ *
+ * @example
  * ```typescript
  * import { emailService } from '@/lib/email';
  *

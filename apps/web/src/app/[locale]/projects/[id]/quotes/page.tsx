@@ -1,16 +1,60 @@
-'use client';
-
 /**
- * 專案報價管理頁面
+ * @fileoverview Project Quotes Page - 專案報價管理頁面
  *
- * 功能說明:
- * - 顯示專案所有報價單
- * - 報價比較功能（最低價、最高價、平均價）
- * - 選擇供應商並生成採購單
- * - 報價統計資訊
+ * @description
+ * 顯示指定專案的所有報價單，提供報價比較、統計分析和供應商選擇功能。
+ * 整合報價上傳表單和報價比較視圖，支援從報價單直接生成採購單。
+ * 使用視覺化卡片展示報價資訊，自動標示最低價和最高價。
  *
- * Epic 5 - Story 5.2 & 5.3: 報價管理和供應商選擇
+ * @page /[locale]/projects/[id]/quotes
+ *
+ * @features
+ * - 報價上傳表單（QuoteUploadForm 組件）
+ * - 報價統計卡片（總報價數、最低價、最高價、平均價）
+ * - 報價比較列表（按金額排序）
+ * - 視覺化標示最低價/最高價（綠色/紅色邊框）
+ * - 供應商資訊展示（名稱、報價金額、上傳日期、文件）
+ * - 選擇報價並生成採購單（一鍵操作）
+ * - 已選報價標記（顯示關聯的採購單）
+ * - 錯誤處理和載入狀態（骨架屏）
+ *
+ * @permissions
+ * - ProjectManager: 上傳報價、選擇供應商
+ * - Supervisor: 查看所有報價
+ * - Admin: 完整查看和管理權限
+ *
+ * @routing
+ * - 當前頁: /projects/[id]/quotes
+ * - 專案詳情: /projects/[id]
+ * - 供應商詳情: /vendors/[vendorId]
+ * - 採購單詳情: /purchase-orders/[poId]
+ *
+ * @stateManagement
+ * - React Query: 專案資料、報價列表、報價統計快取
+ * - tRPC: API 查詢和 createFromQuote mutation
+ * - React State: selectedQuoteId（當前選擇的報價）
+ * - Toast: 操作結果提示
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Badge, Button, Breadcrumb, Skeleton, Alert
+ * - lucide-react: 圖示庫
+ * - @/components/quote/QuoteUploadForm: 報價上傳表單組件
+ *
+ * @related
+ * - packages/api/src/routers/quote.ts - 報價 API Router
+ * - packages/api/src/routers/purchaseOrder.ts - 採購單 API Router
+ * - apps/web/src/components/quote/QuoteUploadForm.tsx - 報價上傳表單
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁面
+ * - apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx - 採購單詳情頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement and Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';

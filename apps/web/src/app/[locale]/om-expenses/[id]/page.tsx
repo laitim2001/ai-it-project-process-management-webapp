@@ -1,3 +1,42 @@
+/**
+ * @fileoverview O&M Expense Detail Page - 維運費用詳情頁面
+ *
+ * @description
+ * 顯示單一維運費用的完整資訊，包含預算類別、金額、發票和審批狀態。
+ * 提供審批工作流操作，Supervisor 可在此頁面進行審批操作。
+ *
+ * @page /[locale]/om-expenses/[id]
+ *
+ * @features
+ * - 維運費用詳情展示（預算類別、金額、發票號、日期）
+ * - 發票檔案預覽和下載（Azure Blob Storage）
+ * - 審批工作流（提交、審批、拒絕）
+ * - 狀態徽章顯示（Draft, Submitted, Approved, Paid）
+ * - 審批歷史記錄（狀態變更軌跡）
+ * - 編輯操作（僅 Draft 狀態可編輯）
+ * - 權限控制（根據角色和費用狀態控制操作權限）
+ * - 麵包屑導航
+ *
+ * @permissions
+ * - ProjectManager: 查看和編輯自己的維運費用
+ * - Supervisor: 查看所有維運費用，審批 Submitted 費用
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 詳情頁: /om-expenses/[id]
+ * - 編輯頁: /om-expenses/[id]/edit
+ * - 返回列表: /om-expenses
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: UI 組件庫
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { Link, useRouter } from "@/i18n/routing";
@@ -18,17 +57,6 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseMonthlyGrid from '@/components/om-expense/OMExpenseMonthlyGrid';
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
-
-/**
- * OM Expense Detail Page
- *
- * Features:
- * 1. Display OM expense basic information
- * 2. Display related information (OpCo, Vendor)
- * 3. Monthly expense grid editor (core feature)
- * 4. Growth rate display and calculation button
- * 5. Edit and delete functionality
- */
 
 export default function OMExpenseDetailPage({ params }: { params: { id: string } }) {
   const t = useTranslations('omExpenses');

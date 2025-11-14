@@ -1,9 +1,36 @@
 'use client';
 
 /**
- * UserForm 組件
+ * @fileoverview 使用者表單組件
  *
- * 用於新增和編輯使用者的表單組件
+ * @description
+ * 使用者（User）的新增和編輯表單組件，支援電子郵件、姓名和角色選擇。
+ * 用於管理員進行使用者管理操作。
+ *
+ * @module apps/web/src/components/user/UserForm
+ * @component UserForm
+ * @author IT Department
+ * @since Epic 1 - Story 1.4 (User Management)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 新增/編輯模式切換
+ * - 電子郵件驗證（格式檢查）
+ * - 角色選擇（ProjectManager, Supervisor, Admin）
+ * - 表單驗證和錯誤提示
+ * - tRPC mutation 整合（create, update）
+ * - 國際化支援（next-intl）
+ *
+ * @dependencies
+ * - @/lib/trpc - tRPC client（user.create, user.update, user.getRoles）
+ * - next-intl - 國際化
+ * - @/components/ui - Toast 通知
+ *
+ * @related
+ * - ../../app/[locale]/(dashboard)/users/new/page.tsx - 新增使用者頁面
+ * - ../../app/[locale]/(dashboard)/users/[id]/edit/page.tsx - 編輯使用者頁面
+ * - ../../../../packages/api/src/routers/user.ts - User API procedures
+ * - ../../../../packages/db/prisma/schema.prisma - User model
  */
 
 import { useState } from 'react';

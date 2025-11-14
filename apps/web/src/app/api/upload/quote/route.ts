@@ -1,13 +1,78 @@
 /**
- * 報價單文件上傳 API Route
+ * @fileoverview 報價單文件上傳 API Route - 供應商報價檔案上傳服務
+ * @description 處理供應商報價單檔案上傳，並自動建立報價記錄至資料庫
  *
- * Epic 5 - Story 5.2: 為已批准的專案上傳並關聯報價單
+ * 此 API 用於 Epic 5 採購管理流程，允許專案經理為已批准的專案上傳供應商報價單。
+ * 與其他上傳 API 不同，此 API 在上傳成功後會直接建立 Quote 記錄至資料庫，
+ * 並驗證專案狀態（必須有已批准的提案）和供應商存在性。
  *
- * 功能說明:
- * - 處理報價單文件上傳 (PDF, Word, Excel)
- * - 驗證文件類型和大小
- * - 將文件保存到 public/uploads/quotes/
- * - 調用 tRPC API 創建報價記錄
+ * @api
+ * @method POST
+ * @route /api/upload/quote
+ *
+ * @features
+ * - 商業文件格式支援 - 支援 PDF、Word（.doc/.docx）、Excel（.xls/.xlsx）
+ * - 檔案大小驗證 - 限制單一檔案最大 10MB
+ * - 業務邏輯驗證 - 檢查專案是否有已批准提案、供應商是否存在
+ * - 資料庫記錄自動建立 - 上傳成功後自動建立 Quote 記錄（包含 vendor、project 關聯）
+ * - 唯一檔名生成 - 使用 `quote_{projectId}_{vendorId}_{timestamp}.{ext}` 格式
+ * - 自動目錄建立 - 檢查並自動建立 `public/uploads/quotes/` 目錄
+ *
+ * @security
+ * - 檔案類型白名單驗證（ALLOWED_TYPES）
+ * - 檔案大小限制（MAX_FILE_SIZE = 10MB）
+ * - 必填欄位驗證（file, projectId, vendorId, amount）
+ * - 業務規則驗證（專案必須有已批准提案）
+ * - 外鍵驗證（Project 和 Vendor 必須存在）
+ * - 錯誤處理避免伺服器資訊洩漏
+ *
+ * @dependencies
+ * - `next/server` - Next.js App Router API Route 支援
+ * - `fs/promises` - Node.js 檔案系統操作（writeFile, mkdir）
+ * - `fs` - Node.js 檔案系統同步操作（existsSync）
+ * - `path` - 路徑處理工具（join）
+ * - `@itpm/db` - Prisma Client，用於資料庫操作
+ *
+ * @related
+ * - `apps/web/src/app/[locale]/(dashboard)/quotes/page.tsx` - 報價單列表頁面
+ * - `packages/api/src/routers/quote.ts` - 報價單 tRPC Router（查詢、比較報價）
+ * - `packages/db/prisma/schema.prisma` - Quote, Project, Vendor 模型定義
+ * - `apps/web/src/app/api/upload/invoice/route.ts` - 類似功能的發票上傳 API
+ *
+ * @author IT Project Management Team
+ * @since Epic 5 - Story 5.2: 為已批准的專案上傳並關聯報價單
+ *
+ * @example
+ * // 前端呼叫範例（FormData）
+ * const formData = new FormData();
+ * formData.append('file', quoteFile); // File 物件
+ * formData.append('projectId', 'PROJ-2025-001');
+ * formData.append('vendorId', 'VENDOR-001');
+ * formData.append('amount', '50000');
+ *
+ * const response = await fetch('/api/upload/quote', {
+ *   method: 'POST',
+ *   body: formData,
+ * });
+ *
+ * const result = await response.json();
+ * // {
+ * //   success: true,
+ * //   quote: {
+ * //     id: 'QUOTE-001',
+ * //     amount: 50000,
+ * //     filePath: '/uploads/quotes/quote_PROJ-2025-001_VENDOR-001_1234567890.pdf',
+ * //     vendor: { id: 'VENDOR-001', name: 'ABC 科技有限公司' },
+ * //     project: { id: 'PROJ-2025-001', name: 'ERP 系統升級專案' }
+ * //   }
+ * // }
+ *
+ * @example
+ * // 錯誤處理範例（專案無已批准提案）
+ * if (!response.ok) {
+ *   const error = await response.json();
+ *   console.error(error.error); // "專案尚未有已批准的提案，無法上傳報價"
+ * }
  */
 
 import { NextRequest, NextResponse } from 'next/server';

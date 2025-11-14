@@ -1,3 +1,93 @@
+/**
+ * @fileoverview Pagination Component - shadcn/ui 分頁導航組件
+ *
+ * @description
+ * 功能完整的分頁導航組件，提供靈活的分頁導航和智能頁碼顯示策略。
+ * 包含基礎組件（Pagination, PaginationContent, PaginationItem 等）和高階組件（PaginationControls）。
+ * PaginationControls 提供內建分頁邏輯，自動處理頁碼省略和邊界檢查。
+ *
+ * @component Pagination
+ *
+ * @features
+ * - 完整的分頁組件集（Container, Content, Item, Link, Previous, Next, Ellipsis）
+ * - 智能頁碼顯示（總頁數 > 7 時自動省略）
+ * - 當前頁視覺高亮（isActive 狀態）
+ * - 上一頁/下一頁導航按鈕
+ * - 省略號指示器（MoreHorizontal 圖示）
+ * - PaginationControls 高階組件（內建分頁邏輯）
+ * - 完整的無障礙性支援（ARIA 標準）
+ *
+ * @components
+ * - Pagination: 分頁容器（nav 元素）
+ * - PaginationContent: 分頁項目列表（ul 元素）
+ * - PaginationItem: 單一分頁項目容器（li 元素）
+ * - PaginationLink: 分頁連結（支援 isActive 狀態）
+ * - PaginationPrevious: 上一頁按鈕（帶 ChevronLeft 圖示）
+ * - PaginationNext: 下一頁按鈕（帶 ChevronRight 圖示）
+ * - PaginationEllipsis: 省略號指示器（MoreHorizontal 圖示）
+ * - PaginationControls: 高階組件（完整分頁邏輯）
+ *
+ * @example
+ * ```tsx
+ * // 基本用法（手動組裝）
+ * <Pagination>
+ *   <PaginationContent>
+ *     <PaginationItem>
+ *       <PaginationPrevious href="#" />
+ *     </PaginationItem>
+ *     <PaginationItem>
+ *       <PaginationLink href="#" isActive>1</PaginationLink>
+ *     </PaginationItem>
+ *     <PaginationItem>
+ *       <PaginationLink href="#">2</PaginationLink>
+ *     </PaginationItem>
+ *     <PaginationItem>
+ *       <PaginationNext href="#" />
+ *     </PaginationItem>
+ *   </PaginationContent>
+ * </Pagination>
+ *
+ * // 高階組件用法（推薦）
+ * const [currentPage, setCurrentPage] = useState(1);
+ * const totalPages = 20;
+ *
+ * <PaginationControls
+ *   currentPage={currentPage}
+ *   totalPages={totalPages}
+ *   onPageChange={setCurrentPage}
+ * />
+ * ```
+ *
+ * @paginationLogic
+ * PaginationControls 智能頁碼顯示邏輯：
+ * - 總頁數 ≤ 7: 顯示所有頁碼 [1, 2, 3, 4, 5, 6, 7]
+ * - 當前頁 ≤ 4: [1, 2, 3, 4, 5, ..., N]
+ * - 當前頁 ≥ N-3: [1, ..., N-4, N-3, N-2, N-1, N]
+ * - 其他情況: [1, ..., current-1, current, current+1, ..., N]
+ *
+ * @accessibility
+ * - 使用 <nav role="navigation"> 語義化容器
+ * - aria-label="pagination" 導航提示
+ * - aria-current="page" 當前頁標記
+ * - aria-label 描述上一頁/下一頁按鈕
+ * - aria-hidden 隱藏裝飾性省略號
+ * - 禁用狀態視覺提示（pointer-events-none + opacity-50）
+ *
+ * @dependencies
+ * - lucide-react: 圖示庫（ChevronLeft, ChevronRight, MoreHorizontal）
+ * - Tailwind CSS: 樣式系統
+ *
+ * @related
+ * - apps/web/src/components/ui/button.tsx - Button 組件（分頁按鈕樣式基礎）
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/app/[locale]/projects/page.tsx - 使用範例（專案列表分頁）
+ * - apps/web/src/app/[locale]/budget-pools/page.tsx - 使用範例（預算池列表分頁）
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"

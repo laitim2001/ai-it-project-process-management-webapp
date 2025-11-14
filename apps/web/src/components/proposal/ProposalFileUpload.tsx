@@ -1,12 +1,36 @@
 'use client';
 
 /**
- * Module 3: 提案文件上傳組件
+ * @fileoverview 提案文件上傳組件
  *
- * 功能：
- * - 上傳項目計劃書文件 (PDF/PPT)
- * - 顯示已上傳的文件
- * - 下載文件
+ * @description
+ * 預算提案的項目計劃書文件上傳功能，支援 PDF/PPT/Word 格式。
+ * 上傳後文件存儲在 Azure Blob Storage，資料庫記錄文件路徑和元數據。
+ *
+ * @module apps/web/src/components/proposal/ProposalFileUpload
+ * @component ProposalFileUpload
+ * @author IT Department
+ * @since Epic 3 - Story 3.4 (Proposal File Upload)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 文件類型驗證（PDF, PPT, PPTX, DOC, DOCX）
+ * - 文件大小限制（20MB）
+ * - 上傳進度顯示
+ * - 已上傳文件預覽和下載
+ * - 文件替換功能
+ * - 文件大小格式化顯示
+ *
+ * @dependencies
+ * - @/lib/trpc - tRPC client（uploadProposalFile mutation）
+ * - next-intl - 國際化
+ * - @/components/ui - Card, Button, Alert 組件
+ * - lucide-react - 圖標組件
+ *
+ * @related
+ * - ../../app/api/upload/proposal/route.ts - 文件上傳 API endpoint
+ * - ../../../../packages/api/src/routers/budgetProposal.ts - uploadProposalFile procedure
+ * - ../../../../packages/db/prisma/schema.prisma - BudgetProposal.proposalFilePath field
  */
 
 import { useState } from 'react';

@@ -1,13 +1,48 @@
+/**
+ * @fileoverview Operating Company Router - 營運公司管理 API
+ *
+ * @description
+ * 提供營運公司（OpCo）的完整 CRUD 操作和查詢功能。
+ * 營運公司是費用轉嫁和 OM 費用管理的核心實體，支援費用分攤和成本追蹤。
+ * 包含啟用/停用狀態管理，以及級聯刪除保護機制防止誤刪有關聯資料的公司。
+ *
+ * @module api/routers/operatingCompany
+ *
+ * @features
+ * - 建立營運公司（驗證公司代碼唯一性）
+ * - 更新營運公司資訊（支援代碼和名稱修改）
+ * - 查詢營運公司列表（支援啟用/停用過濾）
+ * - 查詢單一營運公司詳情（包含關聯計數）
+ * - 切換營運公司啟用/停用狀態
+ * - 刪除營運公司（級聯刪除檢查保護）
+ *
+ * @procedures
+ * - create: 建立新營運公司（Supervisor only）
+ * - update: 更新營運公司資訊（Supervisor only）
+ * - getById: 查詢單一營運公司詳情
+ * - getAll: 查詢營運公司列表（支援啟用狀態過濾）
+ * - delete: 刪除營運公司（Supervisor only，檢查關聯資料）
+ * - toggleActive: 切換啟用/停用狀態（Supervisor only）
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - OperatingCompany 資料模型
+ * - packages/api/src/routers/omExpense.ts - OM 費用 Router
+ * - packages/api/src/routers/chargeOut.ts - 費用轉嫁 Router
+ * - apps/web/src/app/[locale]/operating-companies/page.tsx - 營運公司列表頁面
+ *
+ * @author IT Department
+ * @since Module 3 - Operating Company Management
+ * @lastModified 2025-11-14
+ */
+
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
-
-/**
- * OperatingCompany Router
- * 營運公司（OpCo）管理 API
- *
- * 用途：管理不同的營運公司，支持費用轉嫁和 OM 費用管理
- */
 
 // ========== Zod Schemas ==========
 

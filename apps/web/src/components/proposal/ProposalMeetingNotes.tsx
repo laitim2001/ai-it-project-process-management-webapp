@@ -1,12 +1,37 @@
 'use client';
 
 /**
- * Module 3: 提案會議記錄組件
+ * @fileoverview 提案會議記錄組件
  *
- * 功能：
- * - 顯示會議記錄
- * - 編輯會議記錄
- * - 記錄會議日期、記錄和介紹人員
+ * @description
+ * 預算提案的會議記錄管理組件，記錄提案評審會議的詳細資訊。
+ * 包含會議日期、會議記錄內容和介紹人員資訊，支援編輯和查看模式切換。
+ *
+ * @module apps/web/src/components/proposal/ProposalMeetingNotes
+ * @component ProposalMeetingNotes
+ * @author IT Department
+ * @since Epic 3 - Story 3.5 (Proposal Meeting Notes)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - 顯示/編輯模式切換
+ * - 會議日期選擇器
+ * - 介紹人員輸入框
+ * - 會議記錄多行文本框
+ * - 必填欄位驗證（日期和記錄）
+ * - 空狀態提示
+ * - 即時數據同步（tRPC invalidation）
+ *
+ * @dependencies
+ * - @/lib/trpc - tRPC client（updateMeetingNotes mutation）
+ * - next-intl - 國際化
+ * - @/components/ui - Card, Button, Input, Textarea, Alert 組件
+ * - lucide-react - 圖標組件
+ *
+ * @related
+ * - ../../app/[locale]/(dashboard)/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
+ * - ../../../../packages/api/src/routers/budgetProposal.ts - updateMeetingNotes procedure
+ * - ../../../../packages/db/prisma/schema.prisma - BudgetProposal meeting fields
  */
 
 import { useState, useEffect } from 'react';

@@ -1,28 +1,50 @@
 /**
- * ================================================================
- * Badge 組件 - 徽章/標籤
- * ================================================================
+ * @fileoverview Badge Component - shadcn/ui 徽章組件
  *
- * 【功能說明】
- * 用於顯示狀態、類別或數量的小型標籤
+ * @description
+ * 基於 shadcn/ui 設計系統的徽章/標籤組件，用於顯示狀態、類別或數量資訊。
+ * 使用 class-variance-authority 提供多種變體樣式，支援主題切換。
+ * 適用於狀態標記、分類標籤、數量指示器等場景。
  *
- * 【變體說明】
- * • default - 主要徽章（藍色）
- * • secondary - 次要徽章（灰色）
- * • destructive - 破壞性操作（紅色）
- * • outline - 邊框樣式
- * • success - 成功狀態（綠色）
- * • warning - 警告狀態（黃色）
- * • error - 錯誤狀態（紅色）
- * • info - 資訊提示（藍色）
+ * @component Badge
  *
- * 【使用範例】
+ * @features
+ * - 8 種變體樣式 (default, secondary, destructive, outline, success, warning, error, info)
+ * - 主題支援 (Light/Dark/System)
+ * - 焦點環樣式 (Focus Ring)
+ * - Hover 效果
+ * - 小巧緊湊的設計
+ *
+ * @example
  * ```tsx
+ * // 基本用法
  * <Badge>預設</Badge>
+ *
+ * // 不同變體
  * <Badge variant="success">已完成</Badge>
  * <Badge variant="warning">待處理</Badge>
  * <Badge variant="error">失敗</Badge>
+ * <Badge variant="destructive">刪除</Badge>
+ * <Badge variant="secondary">次要</Badge>
+ * <Badge variant="outline">輪廓</Badge>
+ * <Badge variant="info">資訊</Badge>
+ *
+ * // 在專案中的使用
+ * <Badge variant="success">{project.status}</Badge>
+ * <Badge variant="warning">{proposal.status}</Badge>
  * ```
+ *
+ * @dependencies
+ * - class-variance-authority: 樣式變體管理
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/app/[locale]/projects/page.tsx - 使用範例 (專案狀態)
+ * - apps/web/src/app/[locale]/proposals/page.tsx - 使用範例 (提案狀態)
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  */
 
 import * as React from "react";

@@ -1,8 +1,9 @@
 /**
- * Auth.js v5 完整配置文件（包含 Prisma）
+ * @fileoverview NextAuth.js v5 完整配置文件
  *
- * 此文件合併 auth.config.ts 的 Edge-compatible 配置
- * 並添加完整的 Providers 和 Prisma 訪問
+ * @description
+ * NextAuth.js v5 認證系統的核心配置文件，整合 Azure AD B2C SSO 和本地密碼認證。
+ * 此文件合併 auth.config.ts 的 Edge-compatible 配置並添加完整的 Providers 和 Prisma 訪問。
  *
  * 文件結構：
  * - auth.config.ts: Edge-compatible 基本配置（用於 middleware）
@@ -10,6 +11,29 @@
  * - middleware.ts: 使用 NextAuth(authConfig)（避免 Prisma）
  *
  * @module apps/web/src/auth
+ * @author IT Department
+ * @since Epic 1 - Story 1.3 (Azure AD B2C Integration)
+ * @lastModified 2025-11-14
+ *
+ * @features
+ * - Azure AD B2C SSO 認證
+ * - 本地密碼認證（Credentials Provider）
+ * - Prisma 資料庫整合
+ * - 自動用戶 upsert（Azure AD B2C 登入時）
+ * - JWT Session 管理
+ * - RBAC 支援（roleId and role object in session）
+ *
+ * @dependencies
+ * - next-auth v5 - 核心認證框架
+ * - @itpm/db (Prisma) - 資料庫訪問
+ * - bcryptjs - 密碼加密
+ * - apps/web/src/auth.config.ts - 基本配置
+ *
+ * @related
+ * - ../../auth.config.ts - Edge-compatible 基本配置
+ * - ./app/api/auth/[...nextauth]/route.ts - API Route Handler
+ * - ./middleware.ts - 認證中間件
+ * - ./components/providers/SessionProvider.tsx - React Session Provider
  */
 
 import NextAuth from 'next-auth';

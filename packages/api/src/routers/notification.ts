@@ -1,12 +1,50 @@
 /**
- * Notification Router
- * Epic 8 - Story 8.2: 通知系統 API 路由
+ * @fileoverview Notification Router - 通知系統 API
  *
- * 功能:
- * - 獲取用戶通知列表 (分頁、篩選)
- * - 標記通知為已讀
- * - 刪除通知
- * - 創建通知 (內部方法，供其他服務調用)
+ * @description
+ * 提供完整的應用內通知和郵件通知功能，實現 Epic 8 的通知系統需求。
+ * 支援提案和費用審批狀態變更的自動通知，使用游標分頁優化大量通知的載入性能。
+ * 整合 EmailService，在創建通知的同時發送郵件通知，確保用戶能及時收到重要訊息。
+ * 支援通知類型分類、已讀/未讀狀態管理、實體關聯（Proposal/Expense/Project）。
+ *
+ * @module api/routers/notification
+ *
+ * @features
+ * - 獲取用戶通知列表（游標分頁、已讀/未讀過濾）
+ * - 查詢單一通知詳情（權限檢查）
+ * - 獲取未讀通知數量（用於 Badge 顯示）
+ * - 標記單一通知為已讀
+ * - 批量標記所有通知為已讀
+ * - 刪除單一通知（權限檢查）
+ * - 創建通知（內部方法，供其他 Router 調用）
+ * - 自動發送郵件通知（整合 EmailService）
+ * - 通知類型分類（提案提交、批准、拒絕、費用提交、批准）
+ * - 實體關聯（Proposal/Expense/Project）
+ *
+ * @procedures
+ * - getAll: 獲取通知列表（游標分頁）
+ * - getById: 查詢單一通知
+ * - getUnreadCount: 獲取未讀數量
+ * - markAsRead: 標記單一通知為已讀
+ * - markAllAsRead: 標記所有通知為已讀
+ * - delete: 刪除單一通知
+ * - create: 創建通知（內部方法 + 郵件發送）
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ * - EmailService: 郵件發送服務
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - Notification 資料模型
+ * - packages/api/src/lib/email.ts - 郵件服務
+ * - packages/api/src/routers/budgetProposal.ts - 提案狀態變更通知
+ * - packages/api/src/routers/expense.ts - 費用狀態變更通知
+ *
+ * @author IT Department
+ * @since Epic 8 - Notification System
+ * @lastModified 2025-11-14
  */
 
 import { z } from "zod";

@@ -1,3 +1,54 @@
+/**
+ * @fileoverview Budget Pool Detail Page - 預算池詳情頁面
+ *
+ * @description
+ * 顯示單一預算池的完整資訊，包含基本資料、預算類別詳情、使用統計和關聯專案列表。
+ * 提供即時預算使用率計算、健康狀態指標和級聯操作（編輯、刪除）功能。
+ * 使用 3 欄響應式佈局（左側 2/3 詳細資訊，右側 1/3 專案列表）。
+ *
+ * @page /[locale]/budget-pools/[id]
+ *
+ * @features
+ * - 預算池基本資訊展示（名稱、財年、總金額、使用金額）
+ * - 預算類別詳細列表（名稱、代碼、總預算、已用金額、使用率）
+ * - 即時使用率計算和視覺化進度條
+ * - 預算統計卡片（已分配、已支出、剩餘、使用率）
+ * - 關聯專案列表（可點擊查看詳情）
+ * - 編輯和刪除操作（含確認對話框）
+ * - 載入狀態骨架屏和錯誤處理
+ *
+ * @permissions
+ * - ProjectManager: 查看自己專案相關的預算池
+ * - Supervisor: 查看所有預算池
+ * - Admin: 完整查看和管理權限
+ *
+ * @routing
+ * - 詳情頁: /budget-pools/[id]
+ * - 編輯頁: /budget-pools/[id]/edit
+ * - 列表頁: /budget-pools
+ *
+ * @stateManagement
+ * - React Query: 預算池資料和統計資料快取
+ * - tRPC: API 查詢和刪除 mutation
+ * - Toast: 操作結果提示
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Table, Badge, Button, Breadcrumb, Skeleton, Alert
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/budgetPool.ts - 預算池 API Router
+ * - apps/web/src/app/[locale]/budget-pools/page.tsx - 預算池列表頁面
+ * - apps/web/src/app/[locale]/budget-pools/[id]/edit/page.tsx - 預算池編輯頁面
+ * - packages/db/prisma/schema.prisma - BudgetPool 和 BudgetCategory 資料模型
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { useRouter } from "@/i18n/routing";

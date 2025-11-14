@@ -1,3 +1,40 @@
+/**
+ * @fileoverview Edit O&M Expense Page - 編輯維運費用頁面
+ *
+ * @description
+ * 提供編輯現有維運費用的表單頁面，支援修改費用資訊。
+ * 僅允許編輯 Draft 狀態的維運費用，使用 React Hook Form 進行表單驗證。
+ *
+ * @page /[locale]/om-expenses/[id]/edit
+ *
+ * @features
+ * - 完整的維運費用編輯表單（預填充現有資料）
+ * - 修改預算類別、金額、描述、發票
+ * - 狀態檢查（僅允許編輯 Draft 費用）
+ * - 即時表單驗證（Zod schema）
+ * - 錯誤處理（權限錯誤、狀態錯誤、網路錯誤）
+ *
+ * @permissions
+ * - ProjectManager: 可編輯自己的 Draft 維運費用
+ * - Supervisor: 可編輯任意 Draft 維運費用
+ * - Admin: 完整權限
+ * - 限制: 僅 Draft 狀態的費用可編輯
+ *
+ * @routing
+ * - 編輯頁: /om-expenses/[id]/edit
+ * - 成功後導向: /om-expenses/[id] (維運費用詳情頁)
+ * - 取消後返回: /om-expenses/[id] (維運費用詳情頁)
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: UI 組件庫
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14
+ */
+
 'use client';
 
 import { Link, useRouter } from "@/i18n/routing";
@@ -15,10 +52,6 @@ import { Button } from '@/components/ui/Button';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseForm from '@/components/om-expense/OMExpenseForm';
 import { api } from '@/lib/trpc';
-
-/**
- * Edit OM Expense Page
- */
 
 export default function EditOMExpensePage({ params }: { params: { id: string } }) {
   const t = useTranslations('omExpenses');

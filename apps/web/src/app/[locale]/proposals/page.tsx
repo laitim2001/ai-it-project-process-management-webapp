@@ -1,11 +1,55 @@
 /**
- * BudgetProposal 列表頁面
+ * @fileoverview Budget Proposals List Page - 預算提案列表頁面
  *
- * 顯示所有預算提案的列表，包含以下功能：
- * - 顯示提案資訊（標題、金額、狀態、專案）
- * - 根據狀態篩選
- * - 新增提案
- * - 查看詳情
+ * @description
+ * 顯示所有預算提案的列表，支援即時搜尋、多條件過濾和雙視圖模式（卡片/表格）。
+ * Project Manager 可查看自己專案的提案，Supervisor 可查看所有提案並進行審批操作。
+ * 整合 tRPC 查詢和 React Query 進行資料快取和即時更新，提供流暢的用戶體驗。
+ *
+ * @page /[locale]/proposals
+ *
+ * @features
+ * - 提案列表展示（支援卡片和表格視圖切換）
+ * - 即時搜尋（提案標題、描述、專案名稱）
+ * - 狀態過濾（Draft, PendingApproval, Approved, Rejected, MoreInfoRequired）
+ * - 專案過濾（根據所屬專案篩選）
+ * - 排序功能（金額、建立日期、狀態）
+ * - 分頁導航（每頁 10/20/50 項）
+ * - 快速操作（查看詳情、編輯、提交審批、刪除）
+ * - 角色權限控制（RBAC）
+ * - 狀態徽章顯示（不同顏色標示不同狀態）
+ *
+ * @permissions
+ * - ProjectManager: 查看自己專案的提案，建立/編輯 Draft 提案
+ * - Supervisor: 查看所有提案，審批 PendingApproval 提案
+ * - Admin: 完整管理權限
+ *
+ * @routing
+ * - 列表頁: /proposals
+ * - 建立頁: /proposals/new
+ * - 詳情頁: /proposals/[id]
+ * - 編輯頁: /proposals/[id]/edit
+ *
+ * @stateManagement
+ * - URL Query Params: 搜尋、過濾、排序、分頁狀態
+ * - React Query: 資料快取和即時更新
+ * - Local State: 視圖模式（卡片/表格）、搜尋輸入
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Table, Card, Badge, Input, Button
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/budgetProposal.ts - 預算提案 API Router
+ * - apps/web/src/components/proposal/BudgetProposalForm.tsx - 提案表單組件
+ * - apps/web/src/app/[locale]/proposals/[id]/page.tsx - 提案詳情頁面
+ * - packages/db/prisma/schema.prisma - BudgetProposal 資料模型
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget Proposal Workflow
+ * @lastModified 2025-11-14
  */
 
 'use client';

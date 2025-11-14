@@ -1,17 +1,63 @@
-'use client';
-
 /**
- * ExpenseForm 組件 - Module 5 費用記錄表頭明細表單
+ * @fileoverview Expense Form Component - 費用記錄表頭明細表單
  *
- * 功能說明：
- * - 費用基本信息（name, purchaseOrderId, projectId, vendorId, invoiceNumber, invoiceDate 等）
- * - 費用項目明細表格（動態新增/刪除行）
- * - 明細字段：itemName, description, amount, category
- * - 自動計算總金額
- * - 表單驗證（至少一個費用項目）
+ * @description
+ * 統一的費用記錄建立/編輯表單組件，支援表頭明細架構。
+ * 整合費用基本資訊和動態費用項目明細表格，提供完整的費用記錄管理功能。
+ * 使用 React Hook Form + Zod 進行表單驗證，並支援自動總金額計算。
  *
- * Module 5: Expense 表頭明細重構 - 前端實施
+ * @component ExpenseForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - 費用基本信息輸入（名稱、發票號碼、日期等）
+ * - 採購單和專案關聯選擇
+ * - 動態費用項目明細表格（新增/編輯/刪除行）
+ * - 自動計算總金額和即時顯示
+ * - 完整表單驗證（Zod schema + 業務規則）
+ * - 布林選項支援（requiresChargeOut, isOperationMaint）
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {any} [props.initialData] - 編輯模式的初始數據（包含 items）
+ * @param {boolean} [props.isEdit=false] - 是否為編輯模式
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <ExpenseForm isEdit={false} />
+ *
+ * // 編輯模式
+ * <ExpenseForm
+ *   isEdit={true}
+ *   initialData={{
+ *     id: 'expense-1',
+ *     name: '辦公設備採購',
+ *     items: [{ itemName: '電腦', amount: 50000 }]
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - react-hook-form: 表單狀態管理和驗證
+ * - @hookform/resolvers/zod: Zod 整合
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Form, Input, Textarea, Card, Checkbox
+ * - next-intl: 國際化
+ *
+ * @related
+ * - packages/api/src/routers/expense.ts - 費用 API Router
+ * - apps/web/src/components/expense/ExpenseActions.tsx - 費用操作組件
+ * - apps/web/src/app/[locale]/expenses/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/expenses/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14 (FIX-036: 修復 vendorId 欄位錯誤)
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";

@@ -1,20 +1,59 @@
 /**
- * Project 詳情頁面
+ * @fileoverview Project Detail Page - 專案詳情頁面
  *
- * 功能說明：
- * - 顯示專案的完整資訊（名稱、描述、狀態、預算池、專案經理、主管）
- * - 顯示專案統計數據（提案數量和金額、採購單數量和金額、費用統計）
- * - 顯示關聯的提案列表
- * - 顯示關聯的採購單列表
- * - 提供編輯和刪除操作
+ * @description
+ * 顯示單一專案的完整資訊，包含基本資料、統計數據、關聯提案列表、採購單列表和預算使用情況。
+ * 使用 3 欄響應式佈局（左側 2/3 詳細資訊，右側 1/3 快速資訊欄）。
+ * 整合 Module 2 預算使用情況功能，提供即時預算追蹤和視覺化進度條。
  *
- * 頁面佈局：
- * - 左側 2/3：專案資訊、統計數據、提案列表、採購單列表
- * - 右側 1/3：快速操作、專案團隊資訊、預算池資訊
+ * @page /[locale]/projects/[id]
  *
- * 業務邏輯：
- * - 刪除前檢查是否有關聯的提案或採購單
- * - 狀態變更影響專案生命週期
+ * @features
+ * - 專案基本資訊展示（名稱、描述、狀態、建立/更新時間）
+ * - 專案統計卡片（提案統計、採購統計、費用統計）
+ * - 預算使用情況（請求預算、批准預算、實際支出、使用率、剩餘預算）
+ * - 關聯提案列表（可點擊查看詳情，顯示狀態和金額）
+ * - 關聯採購單列表（可點擊查看詳情，顯示供應商和金額）
+ * - 專案團隊資訊（專案經理、主管）
+ * - 預算池資訊（名稱、財年、總預算）
+ * - 報價管理入口（查看和管理專案報價）
+ * - 快速操作（新增提案、新增採購單、編輯專案）
+ * - 編輯和刪除操作（含確認對話框）
+ *
+ * @permissions
+ * - ProjectManager: 查看和編輯自己的專案
+ * - Supervisor: 查看所有專案、編輯和刪除
+ * - Admin: 完整查看、編輯和管理權限
+ *
+ * @routing
+ * - 詳情頁: /projects/[id]
+ * - 編輯頁: /projects/[id]/edit
+ * - 報價管理: /projects/[id]/quotes
+ * - 新增提案: /proposals/new?projectId=[id]
+ * - 新增採購單: /purchase-orders/new?projectId=[id]
+ *
+ * @stateManagement
+ * - React Query: 專案資料、統計資料、預算使用情況快取
+ * - tRPC: API 查詢和刪除 mutation
+ * - Toast: 操作結果提示
+ * - Locale: 日期格式化依據當前語言
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢和快取
+ * - shadcn/ui: Card, Badge, Button, Breadcrumb
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/project.ts - 專案 API Router
+ * - apps/web/src/app/[locale]/projects/page.tsx - 專案列表頁面
+ * - apps/web/src/app/[locale]/projects/[id]/edit/page.tsx - 專案編輯頁面
+ * - apps/web/src/app/[locale]/projects/[id]/quotes/page.tsx - 專案報價頁面
+ * - packages/db/prisma/schema.prisma - Project 資料模型
+ *
+ * @author IT Department
+ * @since Epic 2 - Project Management (Module 2: 預算使用情況追蹤)
+ * @lastModified 2025-11-14
  */
 
 'use client';

@@ -1,15 +1,61 @@
-'use client';
-
 /**
- * ExpenseActions 組件 - 費用記錄操作按鈕
+ * @fileoverview Expense Actions Component - 費用記錄狀態操作組件
  *
- * 功能說明：
- * - Draft 狀態：顯示「提交審批」按鈕
- * - Submitted 狀態：顯示「批准」按鈕（僅 Supervisor）
- * - Approved 狀態：顯示「已批准」狀態
+ * @description
+ * 費用記錄的狀態流轉操作按鈕組件，根據費用狀態和用戶角色顯示對應的操作按鈕。
+ * 支援 Draft → Submitted → Approved 的費用審批工作流，並整合確認對話框和錯誤處理。
  *
- * Module 5: Expense 工作流按鈕
+ * @component ExpenseActions
+ *
+ * @features
+ * - 狀態驅動的按鈕顯示（Draft/Submitted/Approved）
+ * - 角色權限控制（Supervisor 才能批准）
+ * - 提交前驗證（必須有至少一個費用項目）
+ * - 確認對話框（AlertDialog）防止誤操作
+ * - 樂觀更新和自動資料刷新
+ * - 載入狀態顯示和錯誤處理
+ * - 國際化支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {string} props.expenseId - 費用記錄 ID
+ * @param {string} props.status - 當前費用狀態（Draft/Submitted/Approved）
+ * @param {number} props.itemsCount - 費用項目數量（用於提交前驗證）
+ *
+ * @example
+ * ```tsx
+ * // Draft 狀態顯示提交按鈕
+ * <ExpenseActions
+ *   expenseId="expense-1"
+ *   status="Draft"
+ *   itemsCount={3}
+ * />
+ *
+ * // Submitted 狀態顯示批准按鈕（Supervisor）
+ * <ExpenseActions
+ *   expenseId="expense-1"
+ *   status="Submitted"
+ *   itemsCount={3}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Button, Card, AlertDialog
+ * - next-intl: 國際化
+ * - lucide-react: 圖示（CheckCircle2, Send, Loader2）
+ *
+ * @related
+ * - packages/api/src/routers/expense.ts - 費用 API Router（submit/approve procedures）
+ * - apps/web/src/components/expense/ExpenseForm.tsx - 費用表單組件
+ * - apps/web/src/app/[locale]/expenses/[id]/page.tsx - 費用詳情頁面
+ *
+ * @author IT Department
+ * @since Epic 6 - Expense Recording & Financial Integration
+ * @lastModified 2025-11-14 (FIX-044: 移除 router.refresh() 避免 HotReload 問題)
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";

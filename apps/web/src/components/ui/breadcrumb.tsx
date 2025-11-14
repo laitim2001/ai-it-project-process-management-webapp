@@ -1,3 +1,64 @@
+/**
+ * @fileoverview Breadcrumb Component - shadcn/ui 麵包屑導航組件
+ *
+ * @description
+ * 基於 Radix UI 的麵包屑導航組件，提供層級式導航路徑顯示。
+ * 遵循 shadcn/ui 設計系統規範，支援主題切換和完整的無障礙性。
+ * 包含多個子組件以構建靈活的麵包屑結構。
+ *
+ * @component Breadcrumb
+ *
+ * @features
+ * - 麵包屑導航列表 (BreadcrumbList)
+ * - 麵包屑項目 (BreadcrumbItem)
+ * - 可點擊連結 (BreadcrumbLink)
+ * - 當前頁面顯示 (BreadcrumbPage)
+ * - 自訂分隔符 (BreadcrumbSeparator)
+ * - 省略符號 (BreadcrumbEllipsis)
+ * - 主題支援 (Light/Dark/System)
+ * - 完整的無障礙性支援 (ARIA labels)
+ *
+ * @subComponents
+ * - Breadcrumb: 麵包屑容器 (nav 元素)
+ * - BreadcrumbList: 麵包屑列表 (ol 元素)
+ * - BreadcrumbItem: 麵包屑項目 (li 元素)
+ * - BreadcrumbLink: 麵包屑連結 (a 元素，支援 asChild)
+ * - BreadcrumbPage: 當前頁面 (span 元素，不可點擊)
+ * - BreadcrumbSeparator: 分隔符 (預設為 ChevronRight 圖示)
+ * - BreadcrumbEllipsis: 省略符號 (MoreHorizontal 圖示)
+ *
+ * @example
+ * ```tsx
+ * <Breadcrumb>
+ *   <BreadcrumbList>
+ *     <BreadcrumbItem>
+ *       <BreadcrumbLink href="/">首頁</BreadcrumbLink>
+ *     </BreadcrumbItem>
+ *     <BreadcrumbSeparator />
+ *     <BreadcrumbItem>
+ *       <BreadcrumbLink href="/projects">專案</BreadcrumbLink>
+ *     </BreadcrumbItem>
+ *     <BreadcrumbSeparator />
+ *     <BreadcrumbItem>
+ *       <BreadcrumbPage>專案詳情</BreadcrumbPage>
+ *     </BreadcrumbItem>
+ *   </BreadcrumbList>
+ * </Breadcrumb>
+ * ```
+ *
+ * @dependencies
+ * - lucide-react: ChevronRight, MoreHorizontal 圖示
+ * - React: forwardRef
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/index.ts - UI 組件索引
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"

@@ -1,3 +1,81 @@
+/**
+ * @fileoverview Dropdown Menu Component - shadcn/ui 下拉選單組件
+ *
+ * @description
+ * 使用原生 React 狀態管理實現的下拉選單組件，提供多種選單項目類型。
+ * 支援巢狀子選單、快捷鍵顯示、核取方塊項目和單選項目。
+ * 遵循 shadcn/ui 設計系統規範，提供完整的鍵盤導航和無障礙性支援。
+ *
+ * @component DropdownMenu
+ *
+ * @features
+ * - 下拉選單容器 (DropdownMenu)
+ * - 觸發按鈕 (DropdownMenuTrigger，支援 asChild)
+ * - 選單內容 (DropdownMenuContent，支援對齊和偏移)
+ * - 標準選單項目 (DropdownMenuItem)
+ * - 核取方塊項目 (DropdownMenuCheckboxItem)
+ * - 單選項目 (DropdownMenuRadioItem)
+ * - 標籤 (DropdownMenuLabel)
+ * - 分隔線 (DropdownMenuSeparator)
+ * - 快捷鍵顯示 (DropdownMenuShortcut)
+ * - 項目分組 (DropdownMenuGroup)
+ * - 巢狀子選單 (DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent)
+ * - 點擊外部關閉
+ * - Escape 鍵關閉
+ * - 主題支援 (Light/Dark/System)
+ *
+ * @subComponents
+ * - DropdownMenu: 選單容器和 Context Provider
+ * - DropdownMenuTrigger: 觸發按鈕
+ * - DropdownMenuContent: 選單內容容器 (支援 align 和 sideOffset)
+ * - DropdownMenuItem: 標準選單項目
+ * - DropdownMenuCheckboxItem: 核取方塊項目 (checked prop)
+ * - DropdownMenuRadioItem: 單選項目 (value prop)
+ * - DropdownMenuLabel: 標籤文字
+ * - DropdownMenuSeparator: 分隔線
+ * - DropdownMenuShortcut: 快捷鍵文字
+ * - DropdownMenuGroup: 項目分組容器
+ * - DropdownMenuSub: 子選單容器
+ * - DropdownMenuSubTrigger: 子選單觸發項目
+ * - DropdownMenuSubContent: 子選單內容
+ *
+ * @example
+ * ```tsx
+ * <DropdownMenu>
+ *   <DropdownMenuTrigger asChild>
+ *     <Button variant="outline">開啟選單</Button>
+ *   </DropdownMenuTrigger>
+ *   <DropdownMenuContent align="end">
+ *     <DropdownMenuLabel>我的帳號</DropdownMenuLabel>
+ *     <DropdownMenuSeparator />
+ *     <DropdownMenuItem>
+ *       個人設定
+ *       <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+ *     </DropdownMenuItem>
+ *     <DropdownMenuCheckboxItem checked={true}>
+ *       顯示通知
+ *     </DropdownMenuCheckboxItem>
+ *     <DropdownMenuSeparator />
+ *     <DropdownMenuItem>登出</DropdownMenuItem>
+ *   </DropdownMenuContent>
+ * </DropdownMenu>
+ * ```
+ *
+ * @dependencies
+ * - lucide-react: Check, ChevronRight 圖示
+ * - React: useState, useEffect, useContext, useRef
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/button.tsx - Button 組件
+ * - apps/web/src/components/ui/index.ts - UI 組件索引
+ * - apps/web/src/components/layout/TopBar.tsx - 使用範例 (用戶選單)
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
+ */
+
 import * as React from "react"
 import { Check, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"

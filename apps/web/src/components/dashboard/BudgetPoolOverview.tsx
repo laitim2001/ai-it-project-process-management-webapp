@@ -1,9 +1,66 @@
 /**
- * 預算池概覽組件
+ * @fileoverview Budget Pool Overview Component - 預算池概覽組件
  *
- * Epic 7 - Story 7.4: 預算池概覽視圖
+ * @description
+ * 在 Dashboard 顯示預算池財務摘要卡片，提供預算使用情況的視覺化概覽。
+ * 以卡片形式展示每個財年的預算池，包含總預算、已用金額、剩餘金額、
+ * 使用率進度條和健康狀態指示器，支援 70%/90% 預警閾值。
  *
- * 顯示所有預算池的財務摘要
+ * @component BudgetPoolOverview
+ *
+ * @features
+ * - 預算池卡片展示（網格佈局，響應式）
+ * - 財務數據展示（總預算、已用、剩餘）
+ * - 使用率進度條（顏色編碼：綠/橙/紅）
+ * - 健康狀態指示器（<70% 健康，70-90% 警告，≥90% 危險）
+ * - 關聯專案統計（總數和活躍數）
+ * - 空狀態處理（無預算池時顯示提示）
+ * - 多語言支援（繁中/英文）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {BudgetPoolSummary[]} props.budgetPools - 預算池摘要陣列
+ * @param {string} props.budgetPools[].id - 預算池 ID
+ * @param {number} props.budgetPools[].fiscalYear - 財年
+ * @param {number} props.budgetPools[].totalAmount - 總預算金額
+ * @param {number} props.budgetPools[].usedAmount - 已使用金額
+ * @param {number} props.budgetPools[].remainingAmount - 剩餘金額
+ * @param {number} props.budgetPools[].usagePercentage - 使用率百分比
+ * @param {number} props.budgetPools[].projectCount - 總專案數
+ * @param {number} props.budgetPools[].activeProjectCount - 活躍專案數
+ *
+ * @example
+ * ```tsx
+ * <BudgetPoolOverview
+ *   budgetPools={[
+ *     {
+ *       id: '123',
+ *       fiscalYear: 2024,
+ *       totalAmount: 1000000,
+ *       usedAmount: 750000,
+ *       remainingAmount: 250000,
+ *       usagePercentage: 75,
+ *       projectCount: 5,
+ *       activeProjectCount: 3
+ *     }
+ *   ]}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - next-intl: 國際化翻譯
+ * - lucide-react: 圖示組件（DollarSign, TrendingUp, TrendingDown, Briefcase）
+ * - shadcn/ui: Card, Progress 組件
+ *
+ * @related
+ * - packages/api/src/routers/dashboard.ts - Dashboard API Router
+ * - apps/web/src/app/[locale]/dashboard/page.tsx - Dashboard 頁面
+ * - apps/web/src/components/ui/card.tsx - Card 組件
+ * - apps/web/src/components/ui/progress.tsx - Progress 組件
+ *
+ * @author IT Department
+ * @since Epic 7 - Dashboard & Basic Reporting
+ * @lastModified 2025-11-14
  */
 
 'use client';

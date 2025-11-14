@@ -1,0 +1,147 @@
+
+> it-project-management-platform@0.1.0 validate:jsdoc C:\ai-it-project-process-management-webapp
+> node scripts/validate-jsdoc.js
+
+🔍 開始掃描專案文件...
+
+📂 掃描目錄: apps/web/src
+📂 掃描目錄: packages/api/src
+📂 掃描目錄: packages/auth/src
+
+✅ 找到 156 個代碼文件
+
+🔍 開始驗證 JSDoc...
+
+
+================================================================================
+📝 JSDoc 驗證報告
+================================================================================
+
+📊 總體統計:
+  - 總文件數: 156
+  - 已有 JSDoc: 156 (100%)
+  - 未有 JSDoc: 0
+  - 有錯誤: 26
+  - 有警告: 66
+
+進度: [██████████████████████████████████████████████████] 100%
+
+❌ 有錯誤的文件 (26):
+
+  📄 apps\web\src\app\[locale]\budget-pools\[id]\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\forgot-password\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\login\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\projects\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\projects\[id]\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\projects\[id]\quotes\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\quotes\new\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\quotes\[id]\edit\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\app\[locale]\register\page.tsx
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+
+  📄 apps\web\src\auth.config.ts
+    ❌ 缺少必要標籤: @fileoverview
+    ❌ 缺少必要標籤: @description
+    ❌ 缺少必要標籤: @author
+    ❌ 缺少必要標籤: @since
+  ... 還有 16 個文件有錯誤
+
+⚠️  有警告的文件 (66):
+
+  📄 apps\web\src\app\api\auth\[...nextauth]\route.ts
+    ⚠️  @related 路徑不存在: `apps/web/src/auth.ts`
+    ⚠️  @related 路徑不存在: `packages/auth/index.ts`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/(auth)/login/page.tsx`
+    ⚠️  @related 路徑不存在: `apps/web/src/components/providers/SessionProvider.tsx`
+
+  📄 apps\web\src\app\api\trpc\[trpc]\route.ts
+    ⚠️  @related 路徑不存在: `packages/api/src/root.ts`
+    ⚠️  @related 路徑不存在: `packages/api/src/routers/`
+    ⚠️  @related 路徑不存在: `apps/web/src/lib/trpc.ts`
+    ⚠️  @related 路徑不存在: `apps/web/src/lib/trpc-provider.tsx`
+
+  📄 apps\web\src\app\api\upload\invoice\route.ts
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/(dashboard)/expenses/new/page.tsx`
+    ⚠️  @related 路徑不存在: `packages/api/src/routers/expense.ts`
+    ⚠️  @related 路徑不存在: `packages/db/prisma/schema.prisma`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/api/upload/quote/route.ts`
+
+  📄 apps\web\src\app\api\upload\proposal\route.ts
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/(dashboard)/proposals/new/page.tsx`
+    ⚠️  @related 路徑不存在: `packages/api/src/routers/budgetProposal.ts`
+    ⚠️  @related 路徑不存在: `packages/db/prisma/schema.prisma`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/api/upload/invoice/route.ts`
+
+  📄 apps\web\src\app\api\upload\quote\route.ts
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/(dashboard)/quotes/page.tsx`
+    ⚠️  @related 路徑不存在: `packages/api/src/routers/quote.ts`
+    ⚠️  @related 路徑不存在: `packages/db/prisma/schema.prisma`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/api/upload/invoice/route.ts`
+
+  📄 apps\web\src\app\layout.tsx
+    ⚠️  @related 路徑不存在: `apps/web/src/app/page.tsx`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/layout.tsx`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/page.tsx`
+
+  📄 apps\web\src\app\page.tsx
+    ⚠️  @related 路徑不存在: `apps/web/src/app/layout.tsx`
+    ⚠️  @related 路徑不存在: `apps/web/src/app/[locale]/page.tsx`
+    ⚠️  @related 路徑不存在: `apps/web/src/i18n/routing.ts`
+
+  📄 apps\web\src\app\[locale]\budget-pools\[id]\page.tsx
+    ⚠️  建議添加標籤: @features
+    ⚠️  建議添加標籤: @dependencies
+    ⚠️  建議添加標籤: @related
+
+  📄 apps\web\src\app\[locale]\charge-outs\new\page.tsx
+    ⚠️  建議添加標籤: @related
+
+  📄 apps\web\src\app\[locale]\charge-outs\page.tsx
+    ⚠️  建議添加標籤: @related
+  ... 還有 56 個文件有警告
+
+================================================================================
+ ELIFECYCLE  Command failed with exit code 1.

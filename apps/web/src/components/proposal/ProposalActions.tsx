@@ -1,10 +1,56 @@
-'use client';
-
 /**
- * ProposalActions 組件
+ * @fileoverview Proposal Actions Component - 預算提案操作按鈕組件
  *
- * 處理預算提案的操作按鈕（提交、審批等）
+ * @description
+ * 預算提案詳情頁面的操作按鈕組件，根據提案狀態顯示不同的操作選項。
+ * 支援提交審批、批准、拒絕和請求更多資訊等工作流程操作。
+ * 整合 tRPC mutation 和 React Query 快取更新機制。
+ *
+ * @component ProposalActions
+ *
+ * @features
+ * - 狀態驅動的按鈕顯示（Draft/PendingApproval/Approved/Rejected）
+ * - 提交審批功能（Draft → PendingApproval）
+ * - 審批操作（批准/拒絕/請求更多資訊）
+ * - 審批評論輸入和驗證
+ * - 即時快取更新（Bug #4/#5 修復）
+ * - 國際化支援（繁中/英文）
+ * - 錯誤處理和成功提示（Toast）
+ * - 用戶身份驗證檢查
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {string} props.proposalId - 提案 ID
+ * @param {string} props.status - 提案狀態（Draft/PendingApproval/Approved/Rejected/MoreInfoRequired）
+ *
+ * @example
+ * ```tsx
+ * // Draft 狀態 - 顯示提交按鈕
+ * <ProposalActions proposalId="uuid" status="Draft" />
+ *
+ * // PendingApproval 狀態 - 顯示審批選項
+ * <ProposalActions proposalId="uuid" status="PendingApproval" />
+ *
+ * // Approved 狀態 - 顯示批准訊息
+ * <ProposalActions proposalId="uuid" status="Approved" />
+ * ```
+ *
+ * @dependencies
+ * - @tanstack/react-query: tRPC mutation 和快取更新
+ * - next-auth/react: 用戶身份驗證
+ * - next-intl: 國際化
+ * - shadcn/ui: useToast
+ *
+ * @related
+ * - packages/api/src/routers/budgetProposal.ts - 提案 API Router (submit, approve)
+ * - apps/web/src/app/[locale]/proposals/[id]/page.tsx - 提案詳情頁面
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget Proposal Workflow
+ * @lastModified 2025-11-14 (Bug #4/#5 修復: 手動觸發快取更新)
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

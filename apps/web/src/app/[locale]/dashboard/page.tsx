@@ -1,7 +1,49 @@
 /**
- * Dashboard 主頁
+ * @fileoverview Dashboard Main Page - 儀表板主頁
  *
- * 顯示項目概覽、關鍵指標和最近活動
+ * @description
+ * 系統主儀表板頁面，提供整體系統概覽和快速訪問入口。
+ * 整合預算、專案、提案統計數據，並提供最近活動時間線和 AI 智能分析建議。
+ * 支持主題切換（淺色/深色/系統），響應式設計適配各種設備。
+ *
+ * @page /[locale]/dashboard
+ *
+ * @features
+ * - 統計卡片展示：月度預算、活躍專案數、待審提案數、預算使用率
+ * - 預算趨勢圖表：6個月歷史趨勢視覺化
+ * - 快速操作面板：6個常用功能的快速訪問入口
+ * - 最近活動列表：系統活動時間線（提案批准、採購單建立、專案新增）
+ * - AI 智能分析：預算優化建議和信心度評分
+ * - 響應式佈局：桌面/平板/手機自適應網格
+ * - 國際化支援：繁體中文/英文雙語切換
+ * - 實時數據同步：Mock 數據（後續將連接 tRPC API）
+ *
+ * @permissions
+ * - ProjectManager: 可查看（受限於自己管理的專案數據）
+ * - Supervisor: 可查看（全局數據總覽）
+ * - Admin: 可查看（系統級全局數據）
+ *
+ * @routing
+ * - 主頁: /dashboard
+ * - PM Dashboard: /dashboard/pm
+ * - Supervisor Dashboard: /dashboard/supervisor
+ *
+ * @dependencies
+ * - next-intl: 國際化翻譯支援
+ * - lucide-react: 圖示庫 (Wallet, FolderKanban, FileText, TrendingUp, etc.)
+ * - shadcn/ui: Card, Badge, Button UI 組件
+ * - DashboardLayout: 統一的儀表板佈局容器
+ *
+ * @related
+ * - apps/web/src/app/[locale]/dashboard/pm/page.tsx - PM 專用儀表板
+ * - apps/web/src/app/[locale]/dashboard/supervisor/page.tsx - Supervisor 儀表板
+ * - apps/web/src/components/layout/dashboard-layout.tsx - Dashboard 佈局組件
+ * - apps/web/src/components/dashboard/StatsCard.tsx - 統計卡片組件
+ * - packages/api/src/routers/dashboard.ts - Dashboard API Router
+ *
+ * @author IT Department
+ * @since Epic 7 - Dashboard & Basic Reporting
+ * @lastModified 2025-11-14
  */
 
 'use client';

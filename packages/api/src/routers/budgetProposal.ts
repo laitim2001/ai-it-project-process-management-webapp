@@ -1,17 +1,55 @@
 /**
- * BudgetProposal tRPC Router
+ * @fileoverview Budget Proposal Router - 預算提案審批工作流 API
  *
- * 提供預算提案管理的 API 端點，包含完整的審批工作流
- * - 取得所有提案
- * - 根據 ID 取得提案
- * - 根據專案取得提案
- * - 建立提案（Draft 狀態）
- * - 更新提案
- * - 提交提案（Draft → PendingApproval）
- * - 審批提案（Approved/Rejected/MoreInfoRequired）
- * - 刪除提案
- * - 新增評論
- * - 取得審批歷史
+ * @description
+ * 提供預算提案的完整生命週期管理，包含創建、編輯、提交、審批的完整工作流。
+ * 預算提案是專案啟動的關鍵步驟，支援多狀態流轉、評論討論、審批歷史記錄。
+ * 整合通知系統（Epic 8），在狀態變更時自動發送通知給相關人員。
+ * 支援文件上傳（計劃書 PDF/PPT）和會議記錄管理功能。
+ *
+ * @module api/routers/budgetProposal
+ *
+ * @features
+ * - 建立預算提案（Draft 狀態，支援草稿保存）
+ * - 更新提案內容（僅 Draft 和 MoreInfoRequired 狀態可編輯）
+ * - 提交提案審批（Draft/MoreInfoRequired → PendingApproval）
+ * - 審批提案（Approved/Rejected/MoreInfoRequired，含批准金額記錄）
+ * - 查詢提案列表（支援狀態、專案、搜尋過濾）
+ * - 查詢單一提案詳情（含評論、歷史記錄、專案資訊）
+ * - 評論系統（支援多人討論，記錄所有評論）
+ * - 審批歷史記錄（完整的狀態變更軌跡）
+ * - 文件上傳管理（計劃書 PDF/PPT）
+ * - 會議記錄管理（日期、記錄、介紹人員）
+ * - 刪除提案（僅 Draft 狀態可刪除）
+ * - 通知整合（狀態變更時自動通知相關人員）
+ *
+ * @procedures
+ * - getAll: 查詢提案列表（支援過濾和搜尋）
+ * - getById: 查詢單一提案詳情
+ * - create: 建立新提案（Draft 狀態）
+ * - update: 更新提案內容
+ * - submit: 提交提案審批
+ * - approve: 審批提案（Supervisor only）
+ * - addComment: 新增評論
+ * - uploadProposalFile: 上傳提案文件
+ * - updateMeetingNotes: 更新會議記錄
+ * - delete: 刪除提案（Draft only）
+ *
+ * @dependencies
+ * - Prisma Client: 資料庫操作
+ * - Zod: 輸入驗證和類型推斷
+ * - tRPC: API 框架和類型安全
+ * - TRPCError: 錯誤處理
+ *
+ * @related
+ * - packages/db/prisma/schema.prisma - BudgetProposal, Comment, History 資料模型
+ * - packages/api/src/routers/project.ts - 關聯的專案 Router
+ * - packages/api/src/routers/notification.ts - 通知系統 Router
+ * - apps/web/src/app/[locale]/proposals/page.tsx - 提案列表頁面
+ *
+ * @author IT Department
+ * @since Epic 4 - Proposal and Approval Workflow
+ * @lastModified 2025-11-14
  */
 
 import { z } from 'zod';

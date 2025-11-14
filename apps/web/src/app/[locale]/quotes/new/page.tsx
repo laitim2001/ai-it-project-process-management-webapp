@@ -1,16 +1,59 @@
-'use client';
-
 /**
- * 新增報價單頁面
+ * @fileoverview New Quote Page - 新增報價單頁面
  *
- * 功能說明：
- * - 選擇專案（只顯示有已批准提案的專案）
- * - 選擇供應商
- * - 輸入報價金額
- * - 上傳報價文件
+ * @description
+ * 提供報價單建立功能的頁面，支援專案選擇、供應商選擇、金額輸入和文件上傳。
+ * 包含完整的表單驗證（文件類型、大小限制）和錯誤處理。
+ * 上傳成功後自動跳轉到報價列表頁面。
  *
- * Epic 5 - Story 5.2: 報價管理
+ * @page /[locale]/quotes/new
+ *
+ * @features
+ * - 專案選擇下拉選單（僅顯示有已批准提案的專案）
+ * - 供應商選擇下拉選單
+ * - 報價金額輸入（支援小數點）
+ * - 報價文件上傳（支援 PDF, DOC, DOCX, XLS, XLSX）
+ * - 文件類型驗證（允許的 MIME types）
+ * - 文件大小驗證（最大 10MB）
+ * - 即時文件資訊顯示（名稱、大小）
+ * - 表單驗證和錯誤提示
+ * - 上傳進度狀態顯示
+ *
+ * @routing
+ * - 當前頁: /quotes/new
+ * - 成功後: /quotes
+ * - 返回: /quotes (取消按鈕)
+ *
+ * @stateManagement
+ * - React State: projectId, vendorId, amount, file, uploading
+ * - tRPC: 專案列表查詢、供應商列表查詢
+ * - Form State: 表單輸入和驗證狀態
+ * - Toast: 操作結果提示
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢
+ * - shadcn/ui: Card, Button, Input, Label, Alert, Breadcrumb
+ * - lucide-react: 圖示庫
+ *
+ * @related
+ * - packages/api/src/routers/quote.ts - 報價 API Router
+ * - apps/web/src/app/api/upload/quote/route.ts - 報價上傳 API 端點
+ * - apps/web/src/app/[locale]/quotes/page.tsx - 報價列表頁面
+ * - apps/web/src/app/[locale]/quotes/[id]/edit/page.tsx - 編輯報價頁面
+ *
+ * @validation
+ * - 專案: 必填
+ * - 供應商: 必填
+ * - 金額: 必填，大於 0
+ * - 文件: 必填，類型限制（PDF, DOC, XLS），大小限制（10MB）
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement and Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';

@@ -1,3 +1,79 @@
+/**
+ * @fileoverview Project Form Component - 專案建立/編輯表單
+ *
+ * @description
+ * 統一的專案表單組件，支援建立新專案和編輯現有專案兩種模式。
+ * 整合預算池選擇、預算類別選擇（Module 2 新增）、專案經理和主管選擇功能。
+ * 提供即時表單驗證、日期範圍檢查和國際化支援。
+ *
+ * @component ProjectForm
+ *
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - 預算池選擇（Combobox 可搜尋下拉選單）
+ * - 預算類別動態載入（依預算池篩選，Module 2 新增）
+ * - 請求預算金額輸入（Module 2 新增）
+ * - 專案經理和主管選擇
+ * - 專案日期範圍選擇和驗證
+ * - 即時表單驗證（必填欄位、日期範圍）
+ * - 國際化支援（繁中/英文）
+ * - 錯誤處理和成功提示（Toast）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {'create' | 'edit'} props.mode - 表單模式
+ * @param {Object} [props.initialData] - 編輯模式的預設值
+ * @param {string} props.initialData.id - 專案 ID
+ * @param {string} props.initialData.name - 專案名稱
+ * @param {string | null} props.initialData.description - 專案說明
+ * @param {string} props.initialData.budgetPoolId - 預算池 ID
+ * @param {string | null} props.initialData.budgetCategoryId - 預算類別 ID
+ * @param {number | null} props.initialData.requestedBudget - 請求預算金額
+ * @param {string} props.initialData.managerId - 專案經理 ID
+ * @param {string} props.initialData.supervisorId - 主管 ID
+ * @param {Date} props.initialData.startDate - 開始日期
+ * @param {Date | null} props.initialData.endDate - 結束日期
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <ProjectForm mode="create" />
+ *
+ * // 編輯模式
+ * <ProjectForm
+ *   mode="edit"
+ *   initialData={{
+ *     id: 'uuid',
+ *     name: 'ERP 系統升級',
+ *     budgetPoolId: 'pool-uuid',
+ *     budgetCategoryId: 'category-uuid',
+ *     requestedBudget: 500000,
+ *     managerId: 'manager-uuid',
+ *     supervisorId: 'supervisor-uuid',
+ *     startDate: new Date('2025-01-01'),
+ *     endDate: new Date('2025-12-31')
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Input, Combobox, Select, Button
+ * - next-intl: 國際化
+ * - React: useState, useEffect
+ *
+ * @related
+ * - packages/api/src/routers/project.ts - 專案 API Router
+ * - packages/api/src/routers/budgetPool.ts - 預算池 API (getCategories)
+ * - apps/web/src/components/ui/combobox.tsx - Combobox 組件
+ * - apps/web/src/app/[locale]/projects/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/projects/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 2 - Project Management
+ * @lastModified 2025-11-13 (FIX-093: 修復 Combobox 選取功能; Module 2: 新增預算類別)
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';

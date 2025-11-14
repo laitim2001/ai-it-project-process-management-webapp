@@ -1,19 +1,67 @@
 /**
- * ================================================================
- * BudgetPoolForm 組件 - 預算池表單（支持 Categories）
- * ================================================================
+ * @fileoverview Budget Pool Form Component - 預算池建立/編輯表單
  *
- * 【功能說明】
- * 創建/編輯預算池表單，支持多個預算類別的 CRUD 操作
+ * @description
+ * 統一的預算池表單組件，支援建立新預算池和編輯現有預算池兩種模式。
+ * 實現預算池基本資訊管理和多個預算類別的動態 CRUD 操作。
+ * 自動計算預算池總額，提供即時驗證、錯誤處理和成功提示功能。
  *
- * 【重要變更】
- * - 移除 totalAmount 欄位（改為從 categories 自動計算）
- * - 新增 description 欄位（可選）
- * - 新增 categories 陣列管理（至少1個類別）
+ * @component BudgetPoolForm
  *
- * 【API 數據結構】
- * Create: { name, financialYear, description?, categories: [...] }
- * Update: { id, name?, description?, categories?: [...] }
+ * @features
+ * - 表單模式切換（建立 vs 編輯）
+ * - 即時表單驗證（類別名稱不重複、金額非負）
+ * - 預算類別動態管理（新增、更新、刪除）
+ * - 自動計算預算池總額（從 categories 總和計算）
+ * - 類別最少數量限制（至少 1 個類別）
+ * - 國際化支援（繁中/英文）
+ * - 錯誤處理和成功提示（Toast）
+ * - 財政年度範圍驗證（2000-2100）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {'create' | 'edit'} props.mode - 表單模式
+ * @param {Object} [props.initialData] - 編輯模式的預設值
+ * @param {string} props.initialData.id - 預算池 ID
+ * @param {string} props.initialData.name - 預算池名稱
+ * @param {string} [props.initialData.description] - 預算池說明
+ * @param {number} props.initialData.financialYear - 財政年度
+ * @param {CategoryFormData[]} [props.initialData.categories] - 預算類別陣列
+ *
+ * @example
+ * ```tsx
+ * // 建立模式
+ * <BudgetPoolForm mode="create" />
+ *
+ * // 編輯模式
+ * <BudgetPoolForm
+ *   mode="edit"
+ *   initialData={{
+ *     id: 'uuid',
+ *     name: '2025財年預算',
+ *     financialYear: 2025,
+ *     categories: [
+ *       { categoryName: '硬體設備', totalAmount: 100000, sortOrder: 0 }
+ *     ]
+ *   }}
+ * />
+ * ```
+ *
+ * @dependencies
+ * - react-hook-form: 表單狀態管理（未使用，採用原生 useState）
+ * - @tanstack/react-query: tRPC 查詢和 mutation
+ * - shadcn/ui: Card, Input, Button, Label
+ * - next-intl: 國際化
+ *
+ * @related
+ * - packages/api/src/routers/budgetPool.ts - 預算池 API Router
+ * - apps/web/src/components/budget-pool/CategoryFormRow.tsx - 類別表單行組件
+ * - apps/web/src/app/[locale]/budget-pools/new/page.tsx - 建立頁面
+ * - apps/web/src/app/[locale]/budget-pools/[id]/edit/page.tsx - 編輯頁面
+ *
+ * @author IT Department
+ * @since Epic 3 - Budget and Project Setup
+ * @lastModified 2025-11-14 (Module 1: Categories 重構)
  */
 
 'use client';

@@ -1,15 +1,51 @@
-'use client';
-
 /**
- * 供應商詳情頁面
+ * @fileoverview Vendor Detail Page - 供應商詳情頁面
  *
- * 功能說明:
- * - 顯示供應商完整資訊
- * - 顯示關聯的報價單和採購單
- * - 編輯和刪除操作
+ * @description
+ * 顯示單一供應商的完整資訊，包含基本資料和相關的報價、採購單記錄。
+ * 提供編輯和刪除操作，支援查看供應商的交易歷史和統計資料。
+ * 整合關聯資料查詢，提供完整的供應商檔案視圖。
  *
- * Epic 4 - Story 5.1: 管理供應商基本資訊
+ * @page /[locale]/vendors/[id]
+ *
+ * @features
+ * - 供應商詳情展示（名稱、聯絡人、電話、電郵、地址）
+ * - 相關報價列表（該供應商的所有報價）
+ * - 相關採購單列表（該供應商的所有採購單）
+ * - 統計資訊卡片（報價數量、採購單數量）
+ * - 編輯操作按鈕（導向編輯頁）
+ * - 刪除操作（檢查是否有相關記錄，提供確認對話框）
+ * - 聯絡資訊快速操作（電郵和電話點擊呼叫）
+ * - 麵包屑導航支援
+ *
+ * @permissions
+ * - ProjectManager: 查看供應商詳情
+ * - Supervisor: 完整權限
+ * - Admin: 完整權限
+ *
+ * @routing
+ * - 詳情頁: /vendors/[id]
+ * - 編輯頁: /vendors/[id]/edit
+ * - 返回列表: /vendors
+ *
+ * @dependencies
+ * - next-intl: 國際化支援
+ * - @tanstack/react-query: tRPC 查詢、mutation 和快取
+ * - shadcn/ui: Card, Button, Alert, Badge
+ *
+ * @related
+ * - packages/api/src/routers/vendor.ts - 供應商 API Router (getById, delete)
+ * - apps/web/src/app/[locale]/vendors/page.tsx - 供應商列表頁面
+ * - apps/web/src/app/[locale]/vendors/[id]/edit/page.tsx - 編輯頁面
+ * - apps/web/src/app/[locale]/quotes/[id]/page.tsx - 報價詳情頁面
+ * - apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx - 採購單詳情頁面
+ *
+ * @author IT Department
+ * @since Epic 5 - Procurement & Vendor Management
+ * @lastModified 2025-11-14
  */
+
+'use client';
 
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';

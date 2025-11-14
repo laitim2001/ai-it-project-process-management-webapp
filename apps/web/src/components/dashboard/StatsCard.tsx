@@ -1,7 +1,58 @@
 /**
- * 統計數據卡片組件
+ * @fileoverview Stats Card Component - 統計數據卡片組件
  *
- * 顯示關鍵指標和趨勢
+ * @description
+ * Dashboard 統計數據展示卡片組件，支援顯示關鍵指標、變化趨勢和視覺化圖示。
+ * 採用現代化卡片設計，支援正向/負向趨勢顯示和自定義背景色，提供良好的視覺層次感。
+ *
+ * @component StatsCard
+ *
+ * @features
+ * - 關鍵指標值顯示（支援字串和數字）
+ * - 變化趨勢顯示（increase/decrease）
+ * - 趨勢圖示（TrendingUp/TrendingDown）
+ * - 自定義圖示和背景色
+ * - Hover 陰影效果
+ * - 響應式設計（支援不同螢幕尺寸）
+ * - 語意化顏色系統（success/error）
+ *
+ * @props
+ * @param {Object} props - 組件屬性
+ * @param {string} props.title - 統計數據標題
+ * @param {string | number} props.value - 統計數據值
+ * @param {Object} [props.change] - 變化趨勢資訊
+ * @param {string} props.change.value - 變化值（如 "+5.2%"）
+ * @param {'increase' | 'decrease'} props.change.type - 變化類型
+ * @param {string} props.change.label - 變化標籤（如 "vs last month"）
+ * @param {React.ReactNode} [props.icon] - 自定義圖示
+ * @param {string} [props.bgColor='bg-primary-500'] - 圖示背景色
+ *
+ * @example
+ * ```tsx
+ * <StatsCard
+ *   title="總預算"
+ *   value="$1,250,000"
+ *   change={{
+ *     value: "+5.2%",
+ *     type: "increase",
+ *     label: "vs last month"
+ *   }}
+ *   icon={<DollarSign />}
+ *   bgColor="bg-blue-500"
+ * />
+ * ```
+ *
+ * @dependencies
+ * - lucide-react: 圖示（TrendingUp, TrendingDown）
+ * - Tailwind CSS: 樣式系統
+ *
+ * @related
+ * - apps/web/src/app/[locale]/dashboard/page.tsx - Dashboard 頁面
+ * - apps/web/src/components/dashboard/StatCard.tsx - 替代統計卡片組件（舊版）
+ *
+ * @author IT Department
+ * @since Epic 7 - Dashboard and Basic Reporting
+ * @lastModified 2025-11-14
  */
 
 'use client';

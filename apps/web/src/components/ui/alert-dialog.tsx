@@ -1,8 +1,23 @@
 /**
- * AlertDialog - 警告對話框組件
+ * @fileoverview Alert Dialog Component - shadcn/ui 警告對話框組件
  *
- * 基於 @radix-ui/react-alert-dialog 的模態確認對話框。
- * 用於需要用戶明確確認的重要或破壞性操作（如刪除、取消等）。
+ * @description
+ * 基於 Radix UI Alert Dialog 的模態確認對話框組件，用於需要用戶明確確認的重要或破壞性操作。
+ * 提供中斷式交互模式，用戶必須明確響應才能繼續操作，適用於刪除、取消等破壞性操作確認場景。
+ * 遵循 shadcn/ui 設計系統規範，支援主題切換和完整的無障礙性功能。
+ *
+ * @component AlertDialog
+ *
+ * @features
+ * - 中斷式交互模式 (必須響應才能繼續)
+ * - 明確的確認/取消按鈕
+ * - 鍵盤導航支援 (Tab、Enter、ESC)
+ * - 背景遮罩和模糊效果
+ * - 平滑縮放和淡入淡出動畫
+ * - 焦點陷阱 (Focus Trap)
+ * - 主題支援 (Light/Dark/System)
+ * - 完整的無障礙性支援 (ARIA 屬性、角色定義)
+ * - WCAG 2.1 AA 標準
  *
  * @example
  * ```tsx
@@ -25,14 +40,27 @@
  * </AlertDialog>
  * ```
  *
- * 特性：
- * - 中斷式交互（必須響應才能繼續）
- * - 明確的確認/取消按鈕
- * - 鍵盤導航（Tab、Enter、ESC）
- * - 背景遮罩和模糊效果
- * - 平滑縮放動畫
- * - 設計系統整合
- * - 完全無障礙（WCAG 2.1 AA）
+ * @accessibility
+ * - role="alertdialog" 自動處理
+ * - aria-labelledby 和 aria-describedby 自動連結
+ * - 焦點陷阱 (Focus Trap) 自動管理
+ * - ESC 鍵關閉對話框
+ * - 背景點擊關閉 (可配置)
+ * - 螢幕閱讀器友善
+ * - WCAG 2.1 AA 標準
+ *
+ * @dependencies
+ * - @radix-ui/react-alert-dialog: Alert Dialog 底層實現
+ * - class-variance-authority: 樣式變體管理
+ *
+ * @related
+ * - apps/web/src/lib/utils.ts - cn() 工具函數
+ * - apps/web/src/components/ui/button.tsx - Button 組件 (用於 Action 和 Cancel)
+ * - apps/web/src/components/ui/dialog.tsx - 一般對話框組件
+ *
+ * @author IT Department
+ * @since Post-MVP - Design System Migration
+ * @lastModified 2025-11-14
  */
 
 import * as React from "react"
