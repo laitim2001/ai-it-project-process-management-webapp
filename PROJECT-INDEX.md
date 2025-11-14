@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-11-13 18:45 (修復 Project Edit Combobox 選取功能 + 翻譯缺失 FIX-093)
+**最後更新**: 2025-11-14 (完成 JSDoc 後續改進：@related 標籤完善 + E2E 測試 TypeScript 錯誤修正)
 
 ---
 
@@ -323,7 +323,8 @@
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **本週進度** | `claudedocs/3-progress/weekly/2025-W45.md` | 2025-W45 每週進度報告（claudedocs V2.0 + Epic 9 規劃） | 🔴 極高 |
+| **本週進度** | `claudedocs/3-progress/weekly/2025-W46.md` | 2025-W46 每週進度報告（JSDoc 遷移完成 + 後續改進） | 🔴 極高 |
+| **本日進度摘要** | `claudedocs/3-progress/daily/2025-11/2025-11-14-progress-summary.md` | 2025-11-14 進度保存摘要（SITUATION-5 完整報告） | 🔴 極高 |
 
 #### 🔄 4. 變更記錄 (4-changes/)
 
@@ -346,8 +347,8 @@
 
 #### 🤖 6. AI 助手指引 (6-ai-assistant/)
 
-> **用途**: AI 助手 Prompt 系統、Session Guides
-> **狀態**: 5 個情境 Prompt + 3 個 Session Guide 完成
+> **用途**: AI 助手 Prompt 系統、Session Guides、JSDoc 遷移文檔
+> **狀態**: 5 個情境 Prompt + 3 個 Session Guide + JSDoc 遷移完成
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
@@ -359,6 +360,12 @@
 | **START-NEW-EPIC** | `claudedocs/6-ai-assistant/session-guides/START-NEW-EPIC.md` | 開始新 Epic 開發指引 | 🔴 極高 |
 | **CONTINUE-DEVELOPMENT** | `claudedocs/6-ai-assistant/session-guides/CONTINUE-DEVELOPMENT.md` | 繼續開發工作指引 | 🔴 極高 |
 | **DEBUG-ISSUES** | `claudedocs/6-ai-assistant/session-guides/DEBUG-ISSUES.md` | Debug 問題排查指引 | 🔴 極高 |
+| **JSDoc 遷移索引** | `claudedocs/6-ai-assistant/jsdoc-migration/README.md` | JSDoc 遷移專案完整索引 | 🔴 極高 |
+| **JSDoc 主計劃** | `claudedocs/6-ai-assistant/jsdoc-migration/JSDOC-MIGRATION-MASTER-PLAN.md` | JSDoc 遷移總體規劃（3 階段策略） | 🔴 極高 |
+| **JSDoc 模板** | `claudedocs/6-ai-assistant/jsdoc-migration/JSDOC-TEMPLATES.md` | JSDoc 標準模板和最佳實踐 | 🔴 極高 |
+| **JSDoc 進度報告** | `claudedocs/6-ai-assistant/jsdoc-migration/JSDOC-MIGRATION-PROGRESS.md` | JSDoc 遷移進度追蹤（156/156 完成） | 🔴 極高 |
+| **JSDoc 驗證報告** | `claudedocs/6-ai-assistant/jsdoc-migration/JSDOC-ACCURACY-VALIDATION-REPORT.md` | JSDoc 準確性驗證報告（40KB，完整分析） | 🔴 極高 |
+| **JSDoc 最終報告** | `claudedocs/6-ai-assistant/jsdoc-migration/JSDOC-FINAL-VERIFICATION-REPORT.md` | JSDoc 遷移最終驗證報告（100% 完成） | 🔴 極高 |
 
 #### 📂 7. 歷史歸檔 (7-archive/)
 
@@ -702,51 +709,45 @@
 
 ## 📊 索引統計
 
-**文件總數**: 280+ 個重要文件（完整索引，已驗證）
-**專案總文件**: 313+ 個 MD 文件（包含 Sample-Docs 和 claudedocs）
+**文件總數**: 290+ 個重要文件（完整索引，已驗證）
+**專案總文件**: 320+ 個 MD 文件（包含 Sample-Docs 和 claudedocs）
 **核心項目文件**: ~80 個（不含範例和第三方框架）
 **docs/ 文檔**: 70+ 文檔，按 8 個功能類別組織
 **索引策略**: 兩層索引（L1: PROJECT-INDEX.md 核心文件 + L2: 子目錄 README.md 完整列表）
 **新增 README**: 7 個導航索引文件（docs/README.md + 6 個子目錄索引）
 **核心文件索引**: 21 個 docs/ 核心文件直接索引於 PROJECT-INDEX.md
-**最後更新**: 2025-10-26 19:00
+**最後更新**: 2025-11-14 16:30
 **維護者**: AI 助手 + 開發團隊
 
-**當前專案狀態**（2025-10-26）:
+**當前專案狀態**（2025-11-14）:
 - 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
 - ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
 - 🌟 **設計系統遷移完成**: Phase 2-4 全部完成 (29 個頁面 + 15+ 新 UI 組件)
 - 🔧 **環境優化完成**: 跨平台設置指引 + 自動化環境檢查
 - 📚 **文檔重組完成**: Method C 深度整理，docs/ 按功能完整分類
+- ✨ **JSDoc 遷移完成**: 156/156 頁面組件 100% JSDoc 文檔化 + 所有後續改進完成
 - 📈 **累計代碼**: ~30,000+ 行核心代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
-- 💼 **開發階段**: Post-MVP 增強階段 - 質量提升與開發體驗優化
+- 💼 **開發階段**: Post-MVP 增強階段 - 代碼品質提升與開發體驗優化
 
-**本次更新變更**（2025-10-26 19:00 - Method C 文檔深度整理 + 索引擴充）:
-- ✅ **文檔重組**:
-  - 創建 4 個新 docs/ 子目錄: design-system/, research/, development/, implementation/
-  - 移動 11 個 docs/ 根目錄散落文件到適當分類
-  - 移動 3 個根目錄開發指南到 docs/development/
-  - 移動 DESIGN-SYSTEM-GUIDE.md 到 docs/design-system/
-  - 歸檔 3 個 Epic 記錄到 archive/epic-records/
-- ✅ **新增導航索引**:
-  - docs/README.md (主索引，70+ 文檔完整導航)
-  - docs/design-system/README.md (設計系統文檔索引)
-  - docs/research/README.md (用戶研究文檔索引)
-  - docs/development/README.md (開發指南索引)
-  - docs/implementation/README.md (實施記錄索引)
-  - docs/infrastructure/README.md (基礎設施索引)
-  - docs/stories/README.md (用戶故事總覽，33 個 stories)
-- ✅ **索引策略優化**（方案 B+C 混合）:
-  - **兩層索引架構**: L1 (PROJECT-INDEX.md 核心文件) + L2 (子目錄 README.md 完整列表)
-  - **核心文件提升**: 21 個高頻使用的 docs/ 文件直接索引於 PROJECT-INDEX.md
-  - **索引說明標註**: 各章節添加「索引說明」，明確兩層索引策略
-  - **詳細說明增強**: 為核心文件添加更詳細的描述（如技術細節、文件大小、關聯信息）
-  - **優先級調整**: 根據實際使用頻率調整部分文件重要性標籤
-- ✅ **索引更新**:
-  - PROJECT-INDEX.md (更新所有移動文件路徑 + 擴充 21 個核心文件索引)
-  - 新增文檔總覽和歸檔記錄索引
-  - 反映完整的目錄重組結構
+**本次更新變更**（2025-11-14 16:30 - JSDoc 遷移完成 + 索引更新）:
+- ✅ **JSDoc 遷移文檔索引**:
+  - 新增 6 個 JSDoc 遷移核心文件到 6-ai-assistant/jsdoc-migration/ 索引
+  - 包含：README、主計劃、模板、進度報告、驗證報告、最終報告
+  - 完整記錄 156/156 頁面組件的 JSDoc 文檔化過程
+- ✅ **進度追蹤更新**:
+  - 更新本週進度引用: 2025-W45.md → 2025-W46.md
+  - 新增本日進度摘要: 2025-11-14-progress-summary.md (SITUATION-5 完整報告)
+  - 記錄所有低優先級改進完成狀態
+- ✅ **專案狀態更新**:
+  - 新增 JSDoc 遷移完成里程碑
+  - 更新文件總數統計: 280+ → 290+ 個重要文件
+  - 更新專案總文件: 313+ → 320+ 個 MD 文件
+  - 反映最新的代碼品質改進成果
+- ✅ **索引維護**:
+  - 更新時間戳: 2025-10-26 → 2025-11-14
+  - 驗證索引一致性（0 個嚴重問題，327 個可選建議）
+  - 保持兩層索引架構完整性
   - 更新索引統計（280+ 文件，21 個核心文件直接索引）
 - ✅ **歸檔管理**:
   - 創建 archive/epic-records/ 目錄
