@@ -7,6 +7,15 @@
  *
  * @module components/notification
  *
+ * @features
+ * - 統一導出通知相關組件
+ * - 提供簡化的導入路徑
+ * - 支援按需導入（Tree-shaking）
+ *
+ * @dependencies
+ * - `./NotificationBell` - 通知鈴鐺組件模組
+ * - `./NotificationDropdown` - 通知下拉選單組件模組
+ *
  * @exports
  * - NotificationBell: 通知鈴鐺組件（顯示未讀數量徽章）
  * - NotificationDropdown: 通知下拉選單組件（顯示通知列表）

@@ -34,6 +34,17 @@
  * - @tanstack/react-query: tRPC 查詢和快取
  * - shadcn/ui: UI 組件庫
  *
+ * @related
+ * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router（getAll、getCategories）
+ * - `packages/api/src/routers/operatingCompany.ts` - OperatingCompany API Router（OpCo 過濾器）
+ * - `packages/db/prisma/schema.prisma` - OMExpense 和 OperatingCompany 資料模型定義
+ * - `apps/web/src/app/[locale]/om-expenses/new/page.tsx` - OMExpense 建立頁
+ * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁（卡片點擊導向）
+ * - `apps/web/src/app/[locale]/om-expenses/[id]/edit/page.tsx` - OMExpense 編輯頁
+ * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
+ * - `apps/web/src/components/ui/card.tsx` - Card UI 組件（列表卡片展示）
+ * - `apps/web/src/components/ui/badge.tsx` - Badge UI 組件（狀態徽章和增長率）
+ *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
  * @lastModified 2025-11-14

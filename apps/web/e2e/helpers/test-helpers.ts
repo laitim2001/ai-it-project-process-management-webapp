@@ -3,7 +3,7 @@
  * 用於錯誤處理、表單驗證、邊界條件測試
  */
 
-import { Page, expect } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
 
 /**
  * 登入輔助函數 - ProjectManager 角色
@@ -354,7 +354,7 @@ export function generateRandomEmail(): string {
  * 格式化日期為 YYYY-MM-DD
  */
 export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] ?? '';
 }
 
 /**

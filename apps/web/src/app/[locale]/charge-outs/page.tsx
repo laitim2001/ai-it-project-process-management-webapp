@@ -35,6 +35,16 @@
  * - @tanstack/react-query: tRPC 查詢和快取
  * - shadcn/ui: UI 組件庫
  *
+ * @related
+ * - `packages/api/src/routers/chargeOut.ts` - ChargeOut API Router（列表查詢、狀態過濾）
+ * - `packages/api/src/routers/operatingCompany.ts` - OperatingCompany API Router（OpCo 過濾器）
+ * - `packages/api/src/routers/project.ts` - Project API Router（專案過濾器）
+ * - `packages/db/prisma/schema.prisma` - ChargeOut, OperatingCompany, Project 資料模型定義
+ * - `apps/web/src/app/[locale]/charge-outs/new/page.tsx` - ChargeOut 建立頁
+ * - `apps/web/src/app/[locale]/charge-outs/[id]/page.tsx` - ChargeOut 詳情頁
+ * - `apps/web/src/app/[locale]/charge-outs/[id]/edit/page.tsx` - ChargeOut 編輯頁
+ * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
+ *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
  * @lastModified 2025-11-14

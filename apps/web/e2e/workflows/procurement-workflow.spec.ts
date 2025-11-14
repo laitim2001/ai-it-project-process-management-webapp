@@ -61,7 +61,7 @@ test.describe('採購工作流', () => {
       let url = managerPage.url();
       if (url.includes('/vendors/') && url !== '/vendors' && url !== '/vendors/new') {
         // 成功重定向到詳情頁
-        vendorId = url.split('/vendors/')[1].split('?')[0].split('/')[0];
+        vendorId = (url.split('/vendors/')[1]?.split('?')[0]?.split('/')[0] ?? '');
         console.log(`✅ 從 URL 提取供應商 ID: ${vendorId}`);
       } else {
         // 沒有重定向，使用 API 查詢最新創建的供應商
@@ -75,7 +75,7 @@ test.describe('採購工作流', () => {
         await managerPage.waitForTimeout(2000);
 
         // 在頁面中執行代碼來查詢 API 並獲取剛創建的供應商
-        vendorId = await managerPage.evaluate(async (vendorName) => {
+        vendorId = await managerPage.evaluate(async (vendorName: string) => {
           try {
             // 查詢所有供應商，找到名稱匹配的
             const response = await fetch('/api/trpc/vendor.getAll?input=' + encodeURIComponent(JSON.stringify({ json: { page: 1, limit: 100 } })));
@@ -296,13 +296,13 @@ test.describe('採購工作流', () => {
       let url = managerPage.url();
       if (url.includes('/purchase-orders/') && url !== '/purchase-orders' && url !== '/purchase-orders/new') {
         // 成功重定向到詳情頁
-        purchaseOrderId = url.split('/purchase-orders/')[1].split('?')[0].split('/')[0];
+        purchaseOrderId = (url.split('/purchase-orders/')[1]?.split('?')[0]?.split('/')[0] ?? '');
         console.log(`✅ 從 URL 提取採購訂單 ID: ${purchaseOrderId}`);
       } else {
         // 沒有重定向，使用 API 查詢最新創建的採購訂單
         console.log(`⏳ URL 未包含採購訂單 ID，使用 API 查詢...`);
 
-        purchaseOrderId = await managerPage.evaluate(async (poName) => {
+        purchaseOrderId = await managerPage.evaluate(async (poName: string) => {
           try {
             const response = await fetch('/api/trpc/purchaseOrder.getAll?input=' + encodeURIComponent(JSON.stringify({ json: { page: 1, limit: 100 } })));
             const result = await response.json();
@@ -455,13 +455,13 @@ test.describe('採購工作流', () => {
       let url = managerPage.url();
       if (url.includes('/expenses/') && url !== '/expenses' && url !== '/expenses/new') {
         // 成功重定向到詳情頁
-        expenseId = url.split('/expenses/')[1].split('?')[0].split('/')[0];
+        expenseId = (url.split('/expenses/')[1]?.split('?')[0]?.split('/')[0] ?? '');
         console.log(`✅ 從 URL 提取費用 ID: ${expenseId}`);
       } else {
         // 沒有重定向，使用 API 查詢最新創建的費用
         console.log(`⏳ URL 未包含費用 ID，使用 API 查詢...`);
 
-        expenseId = await managerPage.evaluate(async (expenseName) => {
+        expenseId = await managerPage.evaluate(async (expenseName: string) => {
           try {
             const response = await fetch('/api/trpc/expense.getAll?input=' + encodeURIComponent(JSON.stringify({ json: { page: 1, limit: 100 } })));
             const result = await response.json();

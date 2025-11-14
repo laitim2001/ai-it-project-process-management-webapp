@@ -33,6 +33,14 @@
  * - @tanstack/react-query: tRPC 查詢和快取
  * - shadcn/ui: UI 組件庫
  *
+ * @related
+ * - `packages/api/src/routers/chargeOut.ts` - ChargeOut API Router（查詢詳情、審批工作流操作）
+ * - `packages/db/prisma/schema.prisma` - ChargeOut, ChargeOutItem, Expense, Project, OperatingCompany 資料模型定義
+ * - `apps/web/src/components/charge-out/ChargeOutActions.tsx` - ChargeOut 操作按鈕組件（提交、確認、拒絕、標記為已支付）
+ * - `apps/web/src/app/[locale]/charge-outs/[id]/edit/page.tsx` - ChargeOut 編輯頁（僅 Draft 狀態可導向）
+ * - `apps/web/src/app/[locale]/charge-outs/page.tsx` - ChargeOut 列表頁（返回列表）
+ * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
+ *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
  * @lastModified 2025-11-14

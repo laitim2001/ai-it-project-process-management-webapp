@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * @fileoverview 提案評論區組件
+ * @fileoverview 提案評論區組件 - 提案審批溝通與討論功能
  *
  * @description
  * 提案詳情頁面的評論功能組件，支援查看評論歷史和新增評論。
@@ -27,9 +27,9 @@
  * - @/components/ui - Toast 通知
  *
  * @related
- * - ../../app/[locale]/proposals/[id]/page.tsx - 使用此組件的提案詳情頁
- * - ../../../../packages/api/src/routers/budgetProposal.ts - API addComment procedure
- * - ../../../../packages/db/prisma/schema.prisma - Comment model
+ * - `apps/web/src/app/[locale]/proposals/[id]/page.tsx` - 使用此組件的提案詳情頁
+ * - `packages/api/src/routers/budgetProposal.ts` - API addComment procedure
+ * - `packages/db/prisma/schema.prisma` - Comment model 定義
  */
 
 import { useState } from 'react';

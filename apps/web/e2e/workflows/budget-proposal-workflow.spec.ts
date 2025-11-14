@@ -51,11 +51,11 @@ test.describe('預算申請工作流', () => {
         if (i > 0) {
           await managerPage.click('button:has-text("新增類別")');
         }
-        await managerPage.fill(`input[name="categories.${i}.categoryName"]`, category.categoryName);
-        await managerPage.fill(`input[name="categories.${i}.categoryCode"]`, category.categoryCode);
+        await managerPage.fill(`input[name="categories.${i}.categoryName"]`, category?.categoryName ?? '');
+        await managerPage.fill(`input[name="categories.${i}.categoryCode"]`, category?.categoryCode ?? '');
         await managerPage.fill(
           `input[name="categories.${i}.totalAmount"]`,
-          category.totalAmount
+          category?.totalAmount ?? ''
         );
       }
 
@@ -67,7 +67,7 @@ test.describe('預算申請工作流', () => {
 
       // 提取預算池 ID
       const url = managerPage.url();
-      budgetPoolId = url.split('/budget-pools/')[1];
+      budgetPoolId = url.split('/budget-pools/')[1] ?? '';
 
       // 驗證預算池創建成功
       await expect(managerPage.locator('h1')).toContainText(budgetPoolData.name);
@@ -107,7 +107,7 @@ test.describe('預算申請工作流', () => {
           if (!select || select.options.length <= 1) return false;
           // 檢查是否有對應 value 的選項
           for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].value === poolId) return true;
+            if (select.options[i]?.value === poolId) return true;
           }
           return false;
         },
@@ -153,14 +153,14 @@ test.describe('預算申請工作流', () => {
       // 提取項目 ID - 如果重定向成功就從 URL 獲取,否則從其他地方獲取
       let url = managerPage.url();
       if (url.includes('/projects/')) {
-        projectId = url.split('/projects/')[1].split('?')[0].split('/')[0];
+        projectId = (url.split('/projects/')[1]?.split('?')[0]?.split('/')[0] ?? '');
       } else {
         // 重定向未完成,手動導航到項目列表查找最新項目
         await managerPage.goto('/projects');
         await managerPage.waitForSelector('text=' + projectData.name);
         const projectLink = managerPage.locator(`a:has-text("${projectData.name}")`).first();
         const href = await projectLink.getAttribute('href');
-        projectId = href?.split('/projects/')[1] || '';
+        projectId = (href?.split('/projects/')[1] ?? '');
       }
 
       // 手動導航到項目詳情頁確保頁面載入
@@ -210,7 +210,7 @@ test.describe('預算申請工作流', () => {
 
       // 提取提案 ID
       const url = managerPage.url();
-      proposalId = url.split('/proposals/')[1];
+      proposalId = url.split('/proposals/')[1] ?? '';
 
       // 驗證提案創建成功
       await expect(managerPage.locator('h1')).toContainText(proposalData.title);
@@ -318,16 +318,16 @@ test.describe('預算申請工作流', () => {
         if (i > 0) {
           await managerPage.click('button:has-text("新增類別")');
         }
-        await managerPage.fill(`input[name="categories.${i}.categoryName"]`, category.categoryName);
-        await managerPage.fill(`input[name="categories.${i}.categoryCode"]`, category.categoryCode);
-        await managerPage.fill(`input[name="categories.${i}.totalAmount"]`, category.totalAmount);
+        await managerPage.fill(`input[name="categories.${i}.categoryName"]`, category?.categoryName ?? '');
+        await managerPage.fill(`input[name="categories.${i}.categoryCode"]`, category?.categoryCode ?? '');
+        await managerPage.fill(`input[name="categories.${i}.totalAmount"]`, category?.totalAmount ?? '');
       }
 
       await managerPage.click('button[type="submit"]:has-text("創建預算池")');
       await managerPage.waitForURL(/\/budget-pools\/[a-f0-9-]+/);
 
       const url = managerPage.url();
-      budgetPoolId = url.split('/budget-pools/')[1];
+      budgetPoolId = url.split('/budget-pools/')[1] ?? '';
 
       console.log(`✅ 預算池已創建: ${budgetPoolId}`);
       await waitForEntityPersisted(managerPage, 'budgetPool', budgetPoolId);
@@ -351,7 +351,7 @@ test.describe('預算申請工作流', () => {
           const select = document.querySelector('select[name="budgetPoolId"]') as HTMLSelectElement;
           if (!select || select.options.length <= 1) return false;
           for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].value === poolId) return true;
+            if (select.options[i]?.value === poolId) return true;
           }
           return false;
         },
@@ -385,13 +385,13 @@ test.describe('預算申請工作流', () => {
 
       let url = managerPage.url();
       if (url.includes('/projects/')) {
-        projectId = url.split('/projects/')[1].split('?')[0].split('/')[0];
+        projectId = (url.split('/projects/')[1]?.split('?')[0]?.split('/')[0] ?? '');
       } else {
         await managerPage.goto('/projects');
         await managerPage.waitForSelector('text=' + projectData.name);
         const projectLink = managerPage.locator(`a:has-text("${projectData.name}")`).first();
         const href = await projectLink.getAttribute('href');
-        projectId = href?.split('/projects/')[1] || '';
+        projectId = (href?.split('/projects/')[1] ?? '');
       }
 
       await managerPage.goto(`/projects/${projectId}`);
@@ -419,7 +419,7 @@ test.describe('預算申請工作流', () => {
       await managerPage.waitForURL(/\/proposals\/[a-f0-9-]+/);
 
       const url = managerPage.url();
-      proposalId = url.split('/proposals/')[1];
+      proposalId = url.split('/proposals/')[1] ?? '';
 
       console.log(`✅ 預算提案已創建: ${proposalId}`);
       await waitForEntityPersisted(managerPage, 'budgetProposal', proposalId);

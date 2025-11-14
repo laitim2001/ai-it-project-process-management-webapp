@@ -27,8 +27,8 @@ export const generateBudgetPoolData = () => ({
 export const generateProjectData = () => ({
   name: `E2E_Project_${timestamp()}`,
   description: 'E2E 測試項目',
-  startDate: new Date().toISOString().split('T')[0],
-  endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  startDate: (new Date().toISOString().split('T')[0] ?? ''),
+  endDate: (new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] ?? ''),
   requestedBudget: '100000',
 });
 
@@ -56,8 +56,8 @@ export const generateVendorData = () => ({
  */
 export const generatePurchaseOrderData = () => ({
   poNumber: `E2E-PO-${timestamp()}`,
-  poDate: new Date().toISOString().split('T')[0],
-  deliveryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  poDate: (new Date().toISOString().split('T')[0] ?? ''),
+  deliveryDate: (new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] ?? ''),
   totalAmount: '50000',
 });
 
@@ -68,7 +68,7 @@ export const generateExpenseData = () => ({
   name: `E2E_Expense_${timestamp()}`,
   description: 'E2E 測試費用',
   totalAmount: '30000',
-  expenseDate: new Date().toISOString().split('T')[0],
+  expenseDate: (new Date().toISOString().split('T')[0] ?? ''),
   invoiceNumber: `E2E-INV-${timestamp()}`,
   requiresChargeOut: true,
 });

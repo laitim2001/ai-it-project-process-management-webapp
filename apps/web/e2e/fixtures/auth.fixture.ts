@@ -3,7 +3,7 @@
  * 提供預先登入的測試上下文
  */
 
-import { test as base, Page } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 import { loginAsProjectManager, loginAsSupervisor, loginAsAdmin } from '../helpers/test-helpers';
 
 type AuthFixtures = {

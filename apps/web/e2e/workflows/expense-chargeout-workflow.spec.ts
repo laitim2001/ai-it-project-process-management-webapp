@@ -61,7 +61,8 @@ test.describe('費用轉嫁工作流', () => {
 
       // 🔧 使用 API 創建 Expense（Module 5 表頭明細結構）
       const createApiUrl = '/api/trpc/expense.create';
-      const expenseResult = await managerPage.evaluate(
+      type ExpenseDataType = typeof expenseData;
+      const expenseResult = await managerPage.evaluate<unknown, [string, ExpenseDataType, string, string]>(
         async ([url, data, projId, poId]) => {
           const res = await fetch(url, {
             method: 'POST',
@@ -102,7 +103,7 @@ test.describe('費用轉嫁工作流', () => {
       );
 
       // 提取 Expense ID
-      expenseId = expenseResult.result.data.json.id;
+      expenseId = (expenseResult as any).result.data.json.id;
       console.log(`✅ API 創建 Expense 成功: ${expenseId}`);
 
       // 使用 API 驗證 Expense 已持久化
@@ -121,7 +122,7 @@ test.describe('費用轉嫁工作流', () => {
 
       // ProjectManager 提交
       const submitApiUrl = '/api/trpc/expense.submit';
-      await managerPage.evaluate(
+      await managerPage.evaluate<unknown, [string, string]>(
         async ([url, id]) => {
           const res = await fetch(url, {
             method: 'POST',
@@ -145,7 +146,7 @@ test.describe('費用轉嫁工作流', () => {
       // Supervisor 批准
       console.log('🔧 使用 API 批准費用...');
       const approveApiUrl = '/api/trpc/expense.approve';
-      const approveResult = await supervisorPage.evaluate(
+      const approveResult = await supervisorPage.evaluate<unknown, [string, string]>(
         async ([url, id]) => {
           const res = await fetch(url, {
             method: 'POST',
@@ -192,7 +193,8 @@ test.describe('費用轉嫁工作流', () => {
         description: '用於 E2E ChargeOut 測試的營運公司',
       };
 
-      const opCoResult = await supervisorPage.evaluate(
+      type OpCoDataType = typeof opCoData;
+      const opCoResult = await supervisorPage.evaluate<unknown, [string, OpCoDataType]>(
         async ([url, data]) => {
           const res = await fetch(url, {
             method: 'POST',
@@ -209,7 +211,7 @@ test.describe('費用轉嫁工作流', () => {
         [createOpCoApiUrl, opCoData]
       );
 
-      opCoId = opCoResult.result.data.json.id;
+      opCoId = (opCoResult as any).result.data.json.id;
       console.log(`✅ OpCo 創建成功: ${opCoId} (${opCoData.code})`);
 
       // Step 3.2: 創建 ChargeOut via API
@@ -230,7 +232,8 @@ test.describe('費用轉嫁工作流', () => {
         ],
       };
 
-      const chargeOutResult = await managerPage.evaluate(
+      type ChargeOutDataType = typeof chargeOutData;
+      const chargeOutResult = await managerPage.evaluate<unknown, [string, ChargeOutDataType]>(
         async ([url, data]) => {
           const res = await fetch(url, {
             method: 'POST',
@@ -247,7 +250,7 @@ test.describe('費用轉嫁工作流', () => {
         [createChargeOutApiUrl, chargeOutData]
       );
 
-      chargeOutId = chargeOutResult.result.data.json.id;
+      chargeOutId = (chargeOutResult as any).result.data.json.id;
       console.log(`✅ ChargeOut 創建成功: ${chargeOutId}`);
 
       // 驗證 ChargeOut 狀態
