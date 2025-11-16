@@ -499,6 +499,32 @@
         },
         "endDate": {
           "label": "結束日期"
+        },
+        "projectCode": {
+          "label": "專案編號",
+          "placeholder": "例如：CLOUD-2024-001",
+          "invalidFormat": "專案編號只能包含字母、數字、連字號和底線",
+          "alreadyInUse": "此專案編號已被使用",
+          "available": "此專案編號可使用"
+        },
+        "globalFlag": {
+          "label": "全域標誌",
+          "options": {
+            "region": "區域",
+            "rcl": "RCL"
+          }
+        },
+        "priority": {
+          "label": "優先權",
+          "options": {
+            "low": "低",
+            "medium": "中",
+            "high": "高"
+          }
+        },
+        "currency": {
+          "label": "貨幣",
+          "placeholder": "選擇貨幣（選填）"
         }
       },
       "actions": {

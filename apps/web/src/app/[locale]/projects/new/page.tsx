@@ -50,7 +50,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-14
+ * @lastModified 2025-11-16 (FEAT-001: 專案表單新增專案編號、全域標誌、優先權、貨幣欄位)
  */
 
 'use client';

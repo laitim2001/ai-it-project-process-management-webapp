@@ -53,7 +53,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-14 (FIX-093: 修復 Combobox 選取功能)
+ * @lastModified 2025-11-16 (FEAT-001: 新增專案編號、全域標誌、優先權、貨幣欄位)
  */
 
 'use client';
@@ -228,6 +228,11 @@ export default function EditProjectPage() {
                 supervisorId: project.supervisorId,
                 startDate: project.startDate,
                 endDate: project.endDate,
+                // FEAT-001: 專案欄位擴展
+                projectCode: project.projectCode,
+                globalFlag: project.globalFlag,
+                priority: project.priority,
+                currencyId: project.currencyId,
               }}
             />
           </CardContent>

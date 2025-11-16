@@ -499,6 +499,32 @@
         },
         "endDate": {
           "label": "End Date"
+        },
+        "projectCode": {
+          "label": "Project Code",
+          "placeholder": "e.g., CLOUD-2024-001",
+          "invalidFormat": "Project code can only contain letters, numbers, hyphens and underscores",
+          "alreadyInUse": "This project code is already in use",
+          "available": "This project code is available"
+        },
+        "globalFlag": {
+          "label": "Global Flag",
+          "options": {
+            "region": "Region",
+            "rcl": "RCL"
+          }
+        },
+        "priority": {
+          "label": "Priority",
+          "options": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High"
+          }
+        },
+        "currency": {
+          "label": "Currency",
+          "placeholder": "Select currency (optional)"
         }
       },
       "actions": {

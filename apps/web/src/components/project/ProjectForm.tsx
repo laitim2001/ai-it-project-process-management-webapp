@@ -5,6 +5,7 @@
  * 統一的專案表單組件，支援建立新專案和編輯現有專案兩種模式。
  * 整合預算池選擇、預算類別選擇（Module 2 新增）、專案經理和主管選擇功能。
  * 提供即時表單驗證、日期範圍檢查和國際化支援。
+ * FEAT-001 新增：專案編號、全域標誌、優先權、貨幣欄位支援。
  *
  * @component ProjectForm
  *
@@ -13,9 +14,13 @@
  * - 預算池選擇（Combobox 可搜尋下拉選單）
  * - 預算類別動態載入（依預算池篩選，Module 2 新增）
  * - 請求預算金額輸入（Module 2 新增）
+ * - 專案編號輸入（即時驗證唯一性，debounce 500ms，FEAT-001）
+ * - 全域標誌選擇（RCL/Region，FEAT-001）
+ * - 優先權選擇（High/Medium/Low，FEAT-001）
+ * - 貨幣選擇（Combobox 可搜尋，載入啟用的貨幣，FEAT-001）
  * - 專案經理和主管選擇
  * - 專案日期範圍選擇和驗證
- * - 即時表單驗證（必填欄位、日期範圍）
+ * - 即時表單驗證（必填欄位、日期範圍、專案編號格式和唯一性）
  * - 國際化支援（繁中/英文）
  * - 錯誤處理和成功提示（Toast）
  *
@@ -33,6 +38,10 @@
  * @param {string} props.initialData.supervisorId - 主管 ID
  * @param {Date} props.initialData.startDate - 開始日期
  * @param {Date | null} props.initialData.endDate - 結束日期
+ * @param {string} props.initialData.projectCode - 專案編號 (FEAT-001)
+ * @param {string} props.initialData.globalFlag - 全域標誌 'RCL' | 'Region' (FEAT-001)
+ * @param {string} props.initialData.priority - 優先權 'High' | 'Medium' | 'Low' (FEAT-001)
+ * @param {string | null} props.initialData.currencyId - 貨幣 ID (FEAT-001)
  *
  * @example
  * ```tsx
@@ -71,7 +80,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-13 (FIX-093: 修復 Combobox 選取功能; Module 2: 新增預算類別)
+ * @lastModified 2025-11-16 (FEAT-001: 新增專案編號、全域標誌、優先權、貨幣欄位)
  */
 
 'use client';
@@ -81,6 +90,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/use-toast';
+import { useDebounce } from '@/hooks/useDebounce'; // FEAT-001: 專案編號即時驗證
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
 
 interface ProjectFormProps {
@@ -95,6 +105,11 @@ interface ProjectFormProps {
     supervisorId: string;
     startDate: Date;
     endDate: Date | null;
+    // FEAT-001: 專案欄位擴展
+    projectCode: string;
+    globalFlag: string; // 'RCL' | 'Region'
+    priority: string;   // 'High' | 'Medium' | 'Low'
+    currencyId: string | null;
   };
   mode: 'create' | 'edit';
 }
@@ -119,6 +134,11 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     supervisorId: initialData?.supervisorId ?? '',
     startDate: initialData?.startDate ? initialData.startDate.toISOString().split('T')[0] : '',
     endDate: initialData?.endDate ? initialData.endDate.toISOString().split('T')[0] : '',
+    // FEAT-001: 專案欄位擴展
+    projectCode: initialData?.projectCode ?? '',
+    globalFlag: initialData?.globalFlag ?? 'Region', // 預設 Region
+    priority: initialData?.priority ?? 'Medium',     // 預設 Medium
+    currencyId: initialData?.currencyId ?? '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -150,6 +170,21 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       setFormData((prev) => ({ ...prev, budgetCategoryId: '' }));
     }
   }, [formData.budgetPoolId, initialData?.budgetPoolId]);
+
+  // FEAT-001: 查詢啟用的貨幣列表
+  const { data: currencies } = api.currency.getActive.useQuery();
+
+  // FEAT-001: 專案編號即時驗證（debounce 500ms）
+  const debouncedProjectCode = useDebounce(formData.projectCode, 500);
+  const { data: codeAvailability } = api.project.checkCodeAvailability.useQuery(
+    {
+      projectCode: debouncedProjectCode,
+      excludeProjectId: mode === 'edit' ? initialData?.id : undefined,
+    },
+    {
+      enabled: !!debouncedProjectCode && debouncedProjectCode.length > 0, // 只在有輸入時檢查
+    }
+  );
 
   // Fetch users for manager and supervisor dropdowns
   const { data: managers } = api.user.getManagers.useQuery();
@@ -200,6 +235,15 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       newErrors.name = tValidation('required');
     }
 
+    // FEAT-001: 專案編號驗證
+    if (!formData.projectCode.trim()) {
+      newErrors.projectCode = tValidation('required');
+    } else if (!/^[a-zA-Z0-9\-_]+$/.test(formData.projectCode)) {
+      newErrors.projectCode = tFields('projectCode.invalidFormat');
+    } else if (codeAvailability && !codeAvailability.available) {
+      newErrors.projectCode = tFields('projectCode.alreadyInUse');
+    }
+
     if (!formData.budgetPoolId) {
       newErrors.budgetPoolId = tValidation('required');
     }
@@ -245,6 +289,11 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       supervisorId: formData.supervisorId,
       startDate: new Date(formData.startDate),
       endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      // FEAT-001: 專案欄位擴展
+      projectCode: formData.projectCode,
+      globalFlag: formData.globalFlag,
+      priority: formData.priority,
+      currencyId: formData.currencyId.trim() === '' ? undefined : formData.currencyId,
     };
 
     if (mode === 'create') {
@@ -276,6 +325,97 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         />
         {errors.name && (
           <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+        )}
+      </div>
+
+      {/* FEAT-001: 專案編號 */}
+      <div>
+        <label htmlFor="projectCode" className="block text-sm font-medium text-gray-700">
+          {tFields('projectCode.label')} <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="projectCode"
+          name="projectCode"
+          value={formData.projectCode}
+          onChange={(e) => setFormData({ ...formData, projectCode: e.target.value })}
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          placeholder={tFields('projectCode.placeholder')}
+          maxLength={50}
+        />
+        {/* 即時驗證提示 */}
+        {debouncedProjectCode && codeAvailability && (
+          <p className={`mt-1 text-sm ${codeAvailability.available ? 'text-green-600' : 'text-red-600'}`}>
+            {codeAvailability.available ? tFields('projectCode.available') : tFields('projectCode.alreadyInUse')}
+          </p>
+        )}
+        {errors.projectCode && (
+          <p className="mt-1 text-sm text-red-600">{errors.projectCode}</p>
+        )}
+      </div>
+
+      {/* FEAT-001: 全域標誌和優先權 (兩欄並排) */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <label htmlFor="globalFlag" className="block text-sm font-medium text-gray-700">
+            {tFields('globalFlag.label')} <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="globalFlag"
+            name="globalFlag"
+            value={formData.globalFlag}
+            onChange={(e) => setFormData({ ...formData, globalFlag: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          >
+            <option value="Region">{tFields('globalFlag.options.region')}</option>
+            <option value="RCL">{tFields('globalFlag.options.rcl')}</option>
+          </select>
+          {errors.globalFlag && (
+            <p className="mt-1 text-sm text-red-600">{errors.globalFlag}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+            {tFields('priority.label')} <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="priority"
+            name="priority"
+            value={formData.priority}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          >
+            <option value="Low">{tFields('priority.options.low')}</option>
+            <option value="Medium">{tFields('priority.options.medium')}</option>
+            <option value="High">{tFields('priority.options.high')}</option>
+          </select>
+          {errors.priority && (
+            <p className="mt-1 text-sm text-red-600">{errors.priority}</p>
+          )}
+        </div>
+      </div>
+
+      {/* FEAT-001: 貨幣 (Combobox 可搜尋) */}
+      <div>
+        <label htmlFor="currencyId" className="block text-sm font-medium text-gray-700 mb-2">
+          {tFields('currency.label')}
+        </label>
+        <Combobox
+          options={
+            currencies?.map((currency) => ({
+              value: currency.id,
+              label: `${currency.code} - ${currency.name} (${currency.symbol})`,
+            })) ?? []
+          }
+          value={formData.currencyId}
+          onChange={(value) => setFormData({ ...formData, currencyId: value })}
+          placeholder={tFields('currency.placeholder')}
+          searchPlaceholder={tCommon('actions.search')}
+          emptyText={tCommon('noResults')}
+        />
+        {errors.currencyId && (
+          <p className="mt-1 text-sm text-red-600">{errors.currencyId}</p>
         )}
       </div>
 
