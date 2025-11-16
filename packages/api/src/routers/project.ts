@@ -559,6 +559,11 @@ export const projectRouter = createTRPCRouter({
           startDate: input.startDate,
           endDate: input.endDate,
           status: 'Draft', // 預設狀態為草稿
+          // FEAT-001: 專案欄位擴展
+          projectCode: input.projectCode,
+          globalFlag: input.globalFlag,
+          priority: input.priority,
+          currencyId: input.currencyId,
         },
         include: {
           manager: {
