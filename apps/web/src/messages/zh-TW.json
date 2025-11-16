@@ -145,6 +145,7 @@
       "omExpenses": "OM 費用",
       "chargeOuts": "費用轉嫁",
       "users": "用戶管理",
+      "currencies": "貨幣管理",
       "notifications": "通知",
       "settings": "系統設定",
       "help": "幫助中心"
@@ -161,6 +162,7 @@
       "omExpenses": "操作與維護費用管理",
       "chargeOuts": "ChargeOut 費用轉嫁管理",
       "users": "用戶帳號和權限",
+      "currencies": "管理系統貨幣選項",
       "settings": "系統參數設定",
       "help": "使用指南和支援"
     },

@@ -67,6 +67,7 @@ import {
   HelpCircle,
   Target,
   ArrowRightLeft,
+  Coins,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -172,6 +173,12 @@ export function Sidebar() {
           href: "/users",
           icon: Users,
           description: t('descriptions.users')
+        },
+        {
+          name: t('menu.currencies'),
+          href: "/settings/currencies",
+          icon: Coins,
+          description: t('descriptions.currencies')
         },
       ]
     },

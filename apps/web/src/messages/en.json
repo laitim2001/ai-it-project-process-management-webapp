@@ -145,6 +145,7 @@
       "omExpenses": "OM Expenses",
       "chargeOuts": "Charge Outs",
       "users": "Users",
+      "currencies": "Currencies",
       "notifications": "Notifications",
       "settings": "Settings",
       "help": "Help Center"
@@ -161,6 +162,7 @@
       "omExpenses": "Operation and maintenance expense management",
       "chargeOuts": "ChargeOut expense transfer management",
       "users": "User accounts and permissions",
+      "currencies": "Manage system currency options",
       "settings": "System parameter configuration",
       "help": "User guide and support"
     },
