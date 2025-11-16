@@ -2359,6 +2359,78 @@
       "notifications": "通知設定"
     }
   },
+  "currencies": {
+    "title": "貨幣管理",
+    "description": "管理系統可用的貨幣選項",
+    "list": {
+      "title": "貨幣列表",
+      "subtitle": "管理所有可用貨幣",
+      "empty": "尚未有任何貨幣",
+      "loadError": "無法載入貨幣列表"
+    },
+    "form": {
+      "create": {
+        "title": "新增貨幣",
+        "subtitle": "建立新的貨幣選項"
+      },
+      "edit": {
+        "title": "編輯貨幣",
+        "subtitle": "更新貨幣資訊"
+      },
+      "fields": {
+        "code": {
+          "label": "貨幣代碼",
+          "placeholder": "例如：USD",
+          "hint": "必須為 3 個大寫字母（ISO 4217 標準）"
+        },
+        "name": {
+          "label": "貨幣名稱",
+          "placeholder": "例如：美元"
+        },
+        "symbol": {
+          "label": "貨幣符號",
+          "placeholder": "例如：$"
+        },
+        "exchangeRate": {
+          "label": "匯率（選填）",
+          "placeholder": "例如：30.5",
+          "hint": "相對於基準貨幣的匯率"
+        }
+      }
+    },
+    "fields": {
+      "code": "貨幣代碼",
+      "name": "貨幣名稱",
+      "symbol": "貨幣符號",
+      "exchangeRate": "匯率",
+      "status": "狀態",
+      "projectCount": "使用的專案數"
+    },
+    "status": {
+      "active": "啟用",
+      "inactive": "停用"
+    },
+    "filters": {
+      "includeInactive": "顯示停用的貨幣"
+    },
+    "actions": {
+      "create": "新增貨幣",
+      "edit": "編輯",
+      "toggleActive": "切換狀態",
+      "delete": "刪除"
+    },
+    "messages": {
+      "createSuccess": "貨幣建立成功",
+      "createSuccessDesc": "新貨幣已成功建立",
+      "createError": "建立失敗",
+      "updateSuccess": "貨幣更新成功",
+      "updateSuccessDesc": "貨幣資訊已成功更新",
+      "updateError": "更新失敗",
+      "toggleSuccess": "狀態已切換",
+      "toggleSuccessDesc": "貨幣啟用狀態已成功切換",
+      "toggleError": "切換失敗"
+    }
+  },
   "validation": {
     "required": "此欄位為必填",
     "email": "請輸入有效的電子郵件地址",

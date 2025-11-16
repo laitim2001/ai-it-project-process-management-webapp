@@ -2359,6 +2359,78 @@
       "notifications": "通知設定"
     }
   },
+  "currencies": {
+    "title": "Currency Management",
+    "description": "Manage available currency options",
+    "list": {
+      "title": "Currency List",
+      "subtitle": "Manage all available currencies",
+      "empty": "No currencies yet",
+      "loadError": "Unable to load currency list"
+    },
+    "form": {
+      "create": {
+        "title": "Add Currency",
+        "subtitle": "Create a new currency option"
+      },
+      "edit": {
+        "title": "Edit Currency",
+        "subtitle": "Update currency information"
+      },
+      "fields": {
+        "code": {
+          "label": "Currency Code",
+          "placeholder": "e.g. USD",
+          "hint": "Must be 3 uppercase letters (ISO 4217 standard)"
+        },
+        "name": {
+          "label": "Currency Name",
+          "placeholder": "e.g. US Dollar"
+        },
+        "symbol": {
+          "label": "Currency Symbol",
+          "placeholder": "e.g. $"
+        },
+        "exchangeRate": {
+          "label": "Exchange Rate (Optional)",
+          "placeholder": "e.g. 30.5",
+          "hint": "Exchange rate relative to base currency"
+        }
+      }
+    },
+    "fields": {
+      "code": "Currency Code",
+      "name": "Currency Name",
+      "symbol": "Symbol",
+      "exchangeRate": "Exchange Rate",
+      "status": "Status",
+      "projectCount": "Projects Using"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "filters": {
+      "includeInactive": "Show inactive currencies"
+    },
+    "actions": {
+      "create": "Add Currency",
+      "edit": "Edit",
+      "toggleActive": "Toggle Status",
+      "delete": "Delete"
+    },
+    "messages": {
+      "createSuccess": "Currency created successfully",
+      "createSuccessDesc": "New currency has been created successfully",
+      "createError": "Creation failed",
+      "updateSuccess": "Currency updated successfully",
+      "updateSuccessDesc": "Currency information has been updated successfully",
+      "updateError": "Update failed",
+      "toggleSuccess": "Status toggled",
+      "toggleSuccessDesc": "Currency active status has been toggled successfully",
+      "toggleError": "Toggle failed"
+    }
+  },
   "validation": {
     "required": "此欄位為必填",
     "email": "請輸入有效的電子郵件地址",
