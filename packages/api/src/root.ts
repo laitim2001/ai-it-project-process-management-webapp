@@ -29,6 +29,7 @@
  * - expense - 費用記錄管理
  * - dashboard - 儀表板數據
  * - notification - 通知系統
+ * - currency - 貨幣管理 (FEAT-001)
  * - operatingCompany - 經營公司管理
  * - omExpense - O&M 費用管理
  * - chargeOut - 費用歸屬管理
@@ -64,6 +65,7 @@ import { purchaseOrderRouter } from './routers/purchaseOrder';
 import { expenseRouter } from './routers/expense';
 import { dashboardRouter } from './routers/dashboard';
 import { notificationRouter } from './routers/notification';
+import { currencyRouter } from './routers/currency'; // FEAT-001
 import { operatingCompanyRouter } from './routers/operatingCompany';
 import { omExpenseRouter } from './routers/omExpense';
 import { chargeOutRouter } from './routers/chargeOut';
@@ -86,6 +88,7 @@ export const appRouter = createTRPCRouter({
   expense: expenseRouter,
   dashboard: dashboardRouter,
   notification: notificationRouter,
+  currency: currencyRouter, // FEAT-001: Currency Management
   operatingCompany: operatingCompanyRouter,
   omExpense: omExpenseRouter,
   chargeOut: chargeOutRouter,

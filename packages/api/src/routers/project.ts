@@ -67,9 +67,24 @@ import { createTRPCRouter, protectedProcedure } from '../trpc';
 export const projectStatusEnum = z.enum(['Draft', 'InProgress', 'Completed', 'Archived']);
 
 /**
+ * 全域標誌枚舉 (FEAT-001)
+ * - RCL: Regional/Corporate Level（全域專案）
+ * - Region: 區域專案
+ */
+export const globalFlagEnum = z.enum(['RCL', 'Region']);
+
+/**
+ * 優先權枚舉 (FEAT-001)
+ * - High: 高優先
+ * - Medium: 中優先
+ * - Low: 低優先
+ */
+export const priorityEnum = z.enum(['High', 'Medium', 'Low']);
+
+/**
  * 創建專案的驗證 Schema
- * 必填欄位：name（專案名稱）、budgetPoolId（預算池ID）、managerId（專案經理ID）、supervisorId（主管ID）、startDate（開始日期）
- * 可選欄位：description（專案描述）、endDate（結束日期）、budgetCategoryId（預算類別ID）、requestedBudget（請求預算金額）
+ * 必填欄位：name（專案名稱）、projectCode（專案編號）、budgetPoolId（預算池ID）、managerId（專案經理ID）、supervisorId（主管ID）、startDate（開始日期）
+ * 可選欄位：description（專案描述）、endDate（結束日期）、budgetCategoryId（預算類別ID）、requestedBudget（請求預算金額）、globalFlag（全域標誌，預設 Region）、priority（優先權，預設 Medium）、currencyId（貨幣 ID）
  */
 export const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(255),
@@ -81,12 +96,22 @@ export const createProjectSchema = z.object({
   supervisorId: z.string().uuid('Invalid supervisor ID'),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().optional(),
+
+  // FEAT-001: 專案欄位擴展 (4 個新欄位)
+  projectCode: z
+    .string()
+    .min(1, 'Project code is required')
+    .max(50, 'Project code must be <= 50 characters')
+    .regex(/^[a-zA-Z0-9\-_]+$/, 'Project code can only contain letters, numbers, hyphens, and underscores'),
+  globalFlag: globalFlagEnum.default('Region'), // 預設為 Region
+  priority: priorityEnum.default('Medium'), // 預設為 Medium
+  currencyId: z.string().uuid('Invalid currency ID').optional(), // 可選：貨幣 ID
 });
 
 /**
  * 更新專案的驗證 Schema
  * 必填欄位：id（專案ID）
- * 所有其他欄位均為可選
+ * 所有其他欄位均為可選（包含 FEAT-001 的 4 個新欄位）
  */
 export const updateProjectSchema = z.object({
   id: z.string().uuid(),
@@ -101,6 +126,17 @@ export const updateProjectSchema = z.object({
   supervisorId: z.string().uuid().optional(),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
+
+  // FEAT-001: 專案欄位擴展 (4 個新欄位，所有可選)
+  projectCode: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-zA-Z0-9\-_]+$/, 'Project code can only contain letters, numbers, hyphens, and underscores')
+    .optional(),
+  globalFlag: globalFlagEnum.optional(),
+  priority: priorityEnum.optional(),
+  currencyId: z.string().uuid('Invalid currency ID').nullable().optional(), // 可選且可為 null
 });
 
 // ============================================================
@@ -1016,5 +1052,74 @@ export const projectRouter = createTRPCRouter({
       });
 
       return updatedProject;
+    }),
+
+  /**
+   * 檢查專案編號是否可用 (FEAT-001)
+   *
+   * @description
+   * 即時檢查專案編號的唯一性，用於表單驗證。
+   * 如果提供 excludeProjectId，則會排除該專案（用於編輯時檢查）。
+   *
+   * 輸入參數：
+   * - projectCode: 要檢查的專案編號
+   * - excludeProjectId: 要排除的專案 ID（可選，編輯時使用）
+   *
+   * 回傳：
+   * - available: boolean - 專案編號是否可用
+   * - message: string - 提示訊息
+   *
+   * @example
+   * ```typescript
+   * // 建立時檢查
+   * const { available } = await api.project.checkCodeAvailability.query({
+   *   projectCode: 'PROJ-2025-001'
+   * });
+   *
+   * // 編輯時檢查（排除自己）
+   * const { available } = await api.project.checkCodeAvailability.query({
+   *   projectCode: 'PROJ-2025-001',
+   *   excludeProjectId: 'abc-123-def'
+   * });
+   * ```
+   */
+  checkCodeAvailability: protectedProcedure
+    .input(
+      z.object({
+        projectCode: z
+          .string()
+          .min(1)
+          .max(50)
+          .regex(/^[a-zA-Z0-9\-_]+$/),
+        excludeProjectId: z.string().uuid().optional(), // 編輯時排除自己
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const existing = await ctx.prisma.project.findUnique({
+        where: { projectCode: input.projectCode },
+        select: { id: true },
+      });
+
+      // 如果找不到重複，表示可用
+      if (!existing) {
+        return {
+          available: true,
+          message: 'Project code is available',
+        };
+      }
+
+      // 如果找到重複，但是是自己（編輯場景），表示可用
+      if (input.excludeProjectId && existing.id === input.excludeProjectId) {
+        return {
+          available: true,
+          message: 'Project code is available (current project)',
+        };
+      }
+
+      // 否則不可用
+      return {
+        available: false,
+        message: 'Project code is already in use',
+      };
     }),
 });

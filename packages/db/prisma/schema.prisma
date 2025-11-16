@@ -120,6 +120,13 @@ model Project {
   startDate        DateTime
   endDate          DateTime?
   chargeOutDate    DateTime? // Story 6.4: Charge Out 執行時間
+
+  // FEAT-001: 專案欄位擴展 (4 個新欄位)
+  projectCode      String    @unique // 專案編號（用戶自訂，唯一）
+  globalFlag       String    @default("Region") // 全域標誌: "RCL" or "Region"
+  priority         String    @default("Medium") // 優先權: "High", "Medium", "Low"
+  currencyId       String?   // 關聯到 Currency 表
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -127,6 +134,7 @@ model Project {
   supervisor     User             @relation("Supervisor", fields: [supervisorId], references: [id])
   budgetPool     BudgetPool       @relation(fields: [budgetPoolId], references: [id])
   budgetCategory BudgetCategory?  @relation(fields: [budgetCategoryId], references: [id]) // 新增
+  currency       Currency?        @relation(fields: [currencyId], references: [id], onDelete: SetNull) // FEAT-001
   proposals      BudgetProposal[]
   quotes         Quote[]
   purchaseOrders PurchaseOrder[]
@@ -137,6 +145,10 @@ model Project {
   @@index([budgetPoolId])
   @@index([budgetCategoryId]) // 新增索引
   @@index([status])
+  @@index([projectCode]) // FEAT-001: 專案編號索引
+  @@index([globalFlag]) // FEAT-001: 全域標誌索引
+  @@index([priority]) // FEAT-001: 優先權索引
+  @@index([currencyId]) // FEAT-001: 貨幣索引
 }
 
 model BudgetProposal {
@@ -587,4 +599,26 @@ model ChargeOutItem {
 
   @@index([chargeOutId])
   @@index([expenseId])
+}
+
+// ==================================================================
+// 9. 貨幣管理模型 (Currency Management Models)
+// FEAT-001: 專案欄位擴展 - 貨幣支援
+// ==================================================================
+
+model Currency {
+  id           String   @id @default(uuid())
+  code         String   @unique // ISO 4217 貨幣代碼（如: TWD, USD, EUR）
+  name         String   // 貨幣名稱（如: 新台幣, 美元）
+  symbol       String   // 貨幣符號（如: NT$, $, €）
+  exchangeRate Float?   // 對基準貨幣的匯率（可選）
+  active       Boolean  @default(true) // 是否啟用
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 關聯
+  projects Project[] // 使用此貨幣的專案
+
+  @@index([code])
+  @@index([active])
 }
