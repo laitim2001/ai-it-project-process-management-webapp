@@ -355,6 +355,9 @@
     },
     "table": {
       "name": "Project Name",
+      "projectCode": "Project Code",
+      "globalFlag": "Global Flag",
+      "priority": "Priority",
       "status": "Status",
       "budgetPool": "Budget Pool",
       "manager": "Project Manager",
@@ -536,6 +539,9 @@
     },
     "fields": {
       "name": "Project Name",
+      "projectCode": "Project Code",
+      "globalFlag": "Global Flag",
+      "currency": "Currency",
       "manager": "Project Manager",
       "supervisor": "Supervisor",
       "budgetPool": "Budget Pool",
@@ -543,7 +549,13 @@
       "proposals": "Proposals",
       "purchaseOrders": "Purchase Orders",
       "startDate": "Start Date",
-      "endDate": "End Date"
+      "endDate": "End Date",
+      "priority": {
+        "label": "Priority",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
     }
   },
   "proposals": {

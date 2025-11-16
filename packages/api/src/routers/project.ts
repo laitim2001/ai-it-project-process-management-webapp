@@ -315,6 +315,14 @@ export const projectRouter = createTRPCRouter({
               financialYear: true,
             },
           },
+          currency: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              symbol: true,
+            },
+          },
           proposals: {
             select: {
               id: true,

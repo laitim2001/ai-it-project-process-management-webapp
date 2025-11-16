@@ -52,7 +52,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-14
+ * @lastModified 2025-11-16 (FEAT-001: 列表新增專案編號、全域標誌、優先權欄位)
  */
 
 'use client';
@@ -516,6 +516,9 @@ export default function ProjectsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('table.name')}</TableHead>
+                    <TableHead>{t('table.projectCode')}</TableHead>
+                    <TableHead>{t('table.globalFlag')}</TableHead>
+                    <TableHead>{t('table.priority')}</TableHead>
                     <TableHead>{t('table.status')}</TableHead>
                     <TableHead>{t('table.budgetPool')}</TableHead>
                     <TableHead>{t('table.manager')}</TableHead>
@@ -535,6 +538,27 @@ export default function ProjectsPage() {
                         >
                           {project.name}
                         </Link>
+                      </TableCell>
+                      {/* FEAT-001: 專案編號 */}
+                      <TableCell>
+                        <span className="font-mono text-sm">{project.projectCode}</span>
+                      </TableCell>
+                      {/* FEAT-001: 全域標誌 */}
+                      <TableCell>
+                        <Badge variant={project.globalFlag === 'RCL' ? 'default' : 'secondary'}>
+                          {project.globalFlag}
+                        </Badge>
+                      </TableCell>
+                      {/* FEAT-001: 優先權 */}
+                      <TableCell>
+                        <Badge
+                          variant={
+                            project.priority === 'High' ? 'destructive' :
+                            project.priority === 'Medium' ? 'warning' : 'secondary'
+                          }
+                        >
+                          {t(`fields.priority.${project.priority.toLowerCase()}`)}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge

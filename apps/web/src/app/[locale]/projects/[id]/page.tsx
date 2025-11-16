@@ -53,7 +53,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management (Module 2: 預算使用情況追蹤)
- * @lastModified 2025-11-14
+ * @lastModified 2025-11-16 (FEAT-001: 專案資訊新增專案編號、全域標誌、優先權、貨幣欄位)
  */
 
 'use client';
@@ -318,6 +318,44 @@ export default function ProjectDetailPage() {
                     <dd className="text-foreground">{project.description}</dd>
                   </div>
                 )}
+
+                {/* FEAT-001: 專案欄位擴展 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{t('fields.projectCode')}</dt>
+                    <dd className="text-foreground font-mono font-medium mt-1">{project.projectCode}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{t('fields.globalFlag')}</dt>
+                    <dd className="mt-1">
+                      <Badge variant={project.globalFlag === 'RCL' ? 'default' : 'secondary'}>
+                        {project.globalFlag}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{t('fields.priority')}</dt>
+                    <dd className="mt-1">
+                      <Badge
+                        variant={
+                          project.priority === 'High' ? 'destructive' :
+                          project.priority === 'Medium' ? 'warning' : 'secondary'
+                        }
+                      >
+                        {t(`fields.priority.${project.priority.toLowerCase()}`)}
+                      </Badge>
+                    </dd>
+                  </div>
+                  {project.currency && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">{t('fields.currency')}</dt>
+                      <dd className="text-foreground font-medium mt-1">
+                        {project.currency.symbol} {project.currency.code} - {project.currency.name}
+                      </dd>
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">{t('createdAt')}</dt>

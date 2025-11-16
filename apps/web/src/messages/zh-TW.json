@@ -355,6 +355,9 @@
     },
     "table": {
       "name": "專案名稱",
+      "projectCode": "專案編號",
+      "globalFlag": "全域標誌",
+      "priority": "優先權",
       "status": "狀態",
       "budgetPool": "預算池",
       "manager": "專案經理",
@@ -536,6 +539,9 @@
     },
     "fields": {
       "name": "專案名稱",
+      "projectCode": "專案編號",
+      "globalFlag": "全域標誌",
+      "currency": "貨幣",
       "manager": "專案經理",
       "supervisor": "主管",
       "budgetPool": "預算池",
@@ -543,7 +549,13 @@
       "proposals": "提案",
       "purchaseOrders": "採購單",
       "startDate": "開始日期",
-      "endDate": "結束日期"
+      "endDate": "結束日期",
+      "priority": {
+        "label": "優先權",
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      }
     }
   },
   "proposals": {
