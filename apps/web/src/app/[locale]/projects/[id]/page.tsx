@@ -334,7 +334,7 @@ export default function ProjectDetailPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">{t('fields.priority')}</dt>
+                    <dt className="text-sm font-medium text-muted-foreground">{t('fields.priority.label')}</dt>
                     <dd className="mt-1">
                       <Badge
                         variant={
