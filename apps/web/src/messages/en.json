@@ -449,6 +449,17 @@
       "proposals": "Budget Proposals",
       "purchaseOrders": "Purchase Orders",
       "expenses": "Expenses",
+      "fields": {
+        "projectCode": "Project Code",
+        "globalFlag": "Global Flag",
+        "currency": "Currency",
+        "priority": {
+          "label": "Priority",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
       "tabs": {
         "overview": "Overview",
         "proposals": "Proposals",

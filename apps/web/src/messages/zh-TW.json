@@ -449,6 +449,17 @@
       "proposals": "預算提案",
       "purchaseOrders": "採購單",
       "expenses": "費用",
+      "fields": {
+        "projectCode": "專案編號",
+        "globalFlag": "全域標誌",
+        "currency": "貨幣",
+        "priority": {
+          "label": "優先權",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
       "tabs": {
         "overview": "概覽",
         "proposals": "提案",
