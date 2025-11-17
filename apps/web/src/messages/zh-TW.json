@@ -330,7 +330,25 @@
     },
     "filters": {
       "allStatuses": "所有狀態",
-      "allBudgetPools": "所有預算池"
+      "allBudgetPools": "所有預算池",
+      "globalFlag": {
+        "label": "全域標誌",
+        "all": "全部",
+        "rcl": "RCL",
+        "region": "區域"
+      },
+      "priority": {
+        "label": "優先權",
+        "all": "全部",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "currency": {
+        "label": "貨幣",
+        "all": "全部",
+        "placeholder": "選擇貨幣"
+      }
     },
     "sort": {
       "createdAtDesc": "建立時間（新到舊）",
@@ -338,7 +356,11 @@
       "nameAsc": "名稱（A-Z）",
       "nameDesc": "名稱（Z-A）",
       "statusAsc": "狀態（升序）",
-      "statusDesc": "狀態（降序）"
+      "statusDesc": "狀態（降序）",
+      "projectCodeAsc": "專案編號（A-Z）",
+      "projectCodeDesc": "專案編號（Z-A）",
+      "priorityAsc": "優先權（低到高）",
+      "priorityDesc": "優先權（高到低）"
     },
     "pagination": {
       "showing": "顯示 {start} - {end} / {total} 個專案",

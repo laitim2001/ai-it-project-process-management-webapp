@@ -330,7 +330,25 @@
     },
     "filters": {
       "allStatuses": "All Statuses",
-      "allBudgetPools": "All Budget Pools"
+      "allBudgetPools": "All Budget Pools",
+      "globalFlag": {
+        "label": "Global Flag",
+        "all": "All",
+        "rcl": "RCL",
+        "region": "Region"
+      },
+      "priority": {
+        "label": "Priority",
+        "all": "All",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "currency": {
+        "label": "Currency",
+        "all": "All",
+        "placeholder": "Select currency"
+      }
     },
     "sort": {
       "createdAtDesc": "Created (Newest First)",
@@ -338,7 +356,11 @@
       "nameAsc": "Name (A-Z)",
       "nameDesc": "Name (Z-A)",
       "statusAsc": "Status (Ascending)",
-      "statusDesc": "Status (Descending)"
+      "statusDesc": "Status (Descending)",
+      "projectCodeAsc": "Project Code (A-Z)",
+      "projectCodeDesc": "Project Code (Z-A)",
+      "priorityAsc": "Priority (Low to High)",
+      "priorityDesc": "Priority (High to Low)"
     },
     "pagination": {
       "showing": "Showing {start} - {end} / {total} projects",

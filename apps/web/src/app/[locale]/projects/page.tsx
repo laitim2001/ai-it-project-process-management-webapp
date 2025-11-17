@@ -10,9 +10,9 @@
  *
  * @features
  * - 雙視圖模式（卡片視圖和列表視圖）
- * - 即時搜尋（防抖 300ms，專案名稱模糊搜尋）
- * - 多條件過濾（預算池、狀態篩選）
- * - 排序功能（名稱、狀態、建立日期）
+ * - 即時搜尋（防抖 300ms，專案名稱 OR 專案編號模糊搜尋）
+ * - 多條件過濾（預算池、狀態、全域標誌、優先權、貨幣篩選）
+ * - 排序功能（名稱、狀態、建立日期、專案編號、優先權）
  * - 分頁導航（每頁 9 項）
  * - CSV 導出功能（導出所有符合條件的專案）
  * - 快速操作（查看詳情、建立新專案）
@@ -52,7 +52,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-16 (FEAT-001: 列表新增專案編號、全域標誌、優先權欄位)
+ * @lastModified 2025-11-17 (FEAT-001 Phase 5: 新增全域標誌、優先權、貨幣篩選器及排序選項)
  */
 
 'use client';
@@ -132,6 +132,10 @@ export default function ProjectsPage() {
     search: debouncedSearch || undefined,
     status: statusFilter,
     budgetPoolId: budgetPoolFilter,
+    // FEAT-001: 新增篩選參數
+    globalFlag: globalFlagFilter,
+    priority: priorityFilter,
+    currencyId: currencyFilter,
     sortBy,
     sortOrder,
   });
@@ -157,7 +161,6 @@ export default function ProjectsPage() {
    * 查詢所有預算池（用於篩選下拉選單）
    * 只獲取最近 5 年的預算池
    */
-  const currentYear = new Date().getFullYear();
   const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery({
     page: 1,
     limit: 100,
@@ -167,6 +170,16 @@ export default function ProjectsPage() {
   });
 
   const budgetPools = budgetPoolsData?.items ?? [];
+
+  /**
+   * 查詢啟用的貨幣列表（用於篩選下拉選單）
+   * FEAT-001: 貨幣篩選器
+   */
+  const { data: currenciesData } = api.currency.getAll.useQuery({
+    includeInactive: false, // 只顯示啟用的貨幣
+  });
+
+  const currencies = currenciesData ?? [];
 
   // ============================================================
   // 事件處理函數
@@ -217,7 +230,7 @@ export default function ProjectsPage() {
           </div>
           {/* 骨架屏加載動畫 */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
                   <div className="h-6 bg-muted rounded mb-4 animate-pulse"></div>
@@ -358,7 +371,8 @@ export default function ProjectsPage() {
               </div>
 
               {/* 篩選選項 */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {/* 狀態篩選 */}
                 <select
                   value={statusFilter ?? ''}
                   onChange={(e) => {
@@ -378,6 +392,7 @@ export default function ProjectsPage() {
                   <option value="Archived">{tCommon('status.archived')}</option>
                 </select>
 
+                {/* 預算池篩選 */}
                 <select
                   value={budgetPoolFilter ?? ''}
                   onChange={(e) => {
@@ -394,11 +409,62 @@ export default function ProjectsPage() {
                   ))}
                 </select>
 
+                {/* FEAT-001: 全域標誌篩選 */}
+                <select
+                  value={globalFlagFilter ?? ''}
+                  onChange={(e) => {
+                    setGlobalFlagFilter(
+                      e.target.value ? (e.target.value as 'RCL' | 'Region') : undefined
+                    );
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.globalFlag.label')}：{t('filters.globalFlag.all')}</option>
+                  <option value="RCL">{t('filters.globalFlag.rcl')}</option>
+                  <option value="Region">{t('filters.globalFlag.region')}</option>
+                </select>
+
+                {/* FEAT-001: 優先權篩選 */}
+                <select
+                  value={priorityFilter ?? ''}
+                  onChange={(e) => {
+                    setPriorityFilter(
+                      e.target.value ? (e.target.value as 'High' | 'Medium' | 'Low') : undefined
+                    );
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.priority.label')}：{t('filters.priority.all')}</option>
+                  <option value="High">{t('filters.priority.high')}</option>
+                  <option value="Medium">{t('filters.priority.medium')}</option>
+                  <option value="Low">{t('filters.priority.low')}</option>
+                </select>
+
+                {/* FEAT-001: 貨幣篩選 */}
+                <select
+                  value={currencyFilter ?? ''}
+                  onChange={(e) => {
+                    setCurrencyFilter(e.target.value || undefined);
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.currency.label')}：{t('filters.currency.all')}</option>
+                  {currencies.map((currency) => (
+                    <option key={currency.id} value={currency.id}>
+                      {currency.code} - {currency.name}
+                    </option>
+                  ))}
+                </select>
+
+                {/* 排序選項 (FEAT-001: 新增 projectCode 和 priority 排序) */}
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
                     const [newSortBy, newSortOrder] = e.target.value.split('-') as [
-                      'name' | 'status' | 'createdAt',
+                      'name' | 'status' | 'createdAt' | 'projectCode' | 'priority',
                       'asc' | 'desc'
                     ];
                     setSortBy(newSortBy);
@@ -410,6 +476,10 @@ export default function ProjectsPage() {
                   <option value="createdAt-asc">{t('sort.createdAtAsc')}</option>
                   <option value="name-asc">{t('sort.nameAsc')}</option>
                   <option value="name-desc">{t('sort.nameDesc')}</option>
+                  <option value="projectCode-asc">{t('sort.projectCodeAsc')}</option>
+                  <option value="projectCode-desc">{t('sort.projectCodeDesc')}</option>
+                  <option value="priority-asc">{t('sort.priorityAsc')}</option>
+                  <option value="priority-desc">{t('sort.priorityDesc')}</option>
                   <option value="status-asc">{t('sort.statusAsc')}</option>
                   <option value="status-desc">{t('sort.statusDesc')}</option>
                 </select>
@@ -438,7 +508,7 @@ export default function ProjectsPage() {
           <Card className="bg-muted">
             <CardContent className="pt-6">
               <p className="text-muted-foreground text-center">
-                {search || statusFilter || budgetPoolFilter
+                {search || statusFilter || budgetPoolFilter || globalFlagFilter || priorityFilter || currencyFilter
                   ? t('empty.noResults')
                   : t('empty.noProjects')}
               </p>
