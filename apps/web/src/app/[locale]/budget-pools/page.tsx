@@ -72,6 +72,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Download, Wallet, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
 
 export default function BudgetPoolsPage() {
   const t = useTranslations('budgetPools');
@@ -369,19 +370,19 @@ export default function BudgetPoolsPage() {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('fields.totalBudget')}</span>
                           <span className="font-medium text-foreground">
-                            ${(pool.computedTotalAmount ?? pool.totalAmount).toLocaleString('en-US', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            <CurrencyDisplay
+                              amount={pool.computedTotalAmount ?? pool.totalAmount}
+                              currency={pool.currency}
+                            />
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('fields.used')}</span>
                           <span className="font-medium text-foreground">
-                            ${(pool.computedUsedAmount ?? 0).toLocaleString('en-US', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            <CurrencyDisplay
+                              amount={pool.computedUsedAmount ?? 0}
+                              currency={pool.currency}
+                            />
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -449,16 +450,16 @@ export default function BudgetPoolsPage() {
                         <TableCell>FY {pool.financialYear}</TableCell>
                         <TableCell className="text-center">{categoryCount}</TableCell>
                         <TableCell className="text-right font-medium">
-                          ${(pool.computedTotalAmount ?? pool.totalAmount).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                          <CurrencyDisplay
+                            amount={pool.computedTotalAmount ?? pool.totalAmount}
+                            currency={pool.currency}
+                          />
                         </TableCell>
                         <TableCell className="text-right">
-                          ${(pool.computedUsedAmount ?? 0).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                          <CurrencyDisplay
+                            amount={pool.computedUsedAmount ?? 0}
+                            currency={pool.currency}
+                          />
                         </TableCell>
                         <TableCell className="text-right">
                           <span className={`font-medium ${

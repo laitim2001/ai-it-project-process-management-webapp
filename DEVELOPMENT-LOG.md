@@ -20,6 +20,78 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-17 | ✨ 功能開發 | FEAT-002 Phase 1 完成 - 貨幣系統擴展至 BudgetPool & Quote
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成 (33%)
+
+**主要工作**:
+
+1. ✅ **資料庫與後端更新**
+   - **BudgetPool Model**: 添加 currencyId (required, FK to Currency)
+   - **Quote Model**: 添加 currencyId (nullable, FK to Currency)
+   - **Migration**: `20251117_add_currency_to_budgetpool.sql`, `20251117_add_currency_to_quote.sql`
+   - **API Router 更新**:
+     - `packages/api/src/routers/budgetPool.ts`: getById 和 getAll 包含 currency 關聯
+     - `packages/api/src/routers/quote.ts`: 包含 currency, project 關聯
+
+2. ✅ **前端組件更新**
+   - **BudgetPoolForm**: 添加 CurrencySelect 組件（必填）
+   - **Budget Pool 列表**: 顯示貨幣代碼和符號
+   - **Quote 頁面**: 11 處金額顯示更新為 CurrencyDisplay 組件
+   - **貨幣繼承邏輯**: Quote.currency ?? Project.currency
+
+3. ✅ **CurrencySelect 組件架構修復** (關鍵 Bug 修復)
+   - **問題**: HTML 結構錯誤
+     - `<button>` 和 `<div>` 不能作為 `<select>` 子元素（hydration 錯誤）
+     - `onValueChange` 未知屬性警告
+     - React 受控組件警告（value without onChange）
+   - **根本原因**: 混用原生 HTML select 和 shadcn/ui 進階組件（SelectTrigger, SelectContent）
+   - **解決方案**:
+     - 完全改用原生 HTML `<select>` 和 `<option>` 元素
+     - 移除所有進階組件導入（SelectTrigger, SelectContent, SelectItem, SelectValue）
+     - 將 `onValueChange` 改為標準 `onChange` 事件：`onChange={(e) => onChange(e.target.value)}`
+     - 簡化 UI 結構，移除複雜的 span 嵌套
+   - **影響**:
+     - ✅ 消除所有 HTML 結構警告（0 hydration errors）
+     - ✅ 消除 `onValueChange` 未知屬性警告
+     - ✅ 消除 React 受控組件警告
+     - ✅ 功能完全正常，用戶體驗無影響
+
+4. ✅ **I18N 翻譯鍵**
+   - 新增 7 個翻譯鍵 (zh-TW + en):
+     - `common.form.currency.label`: "貨幣" / "Currency"
+     - `common.selectCurrency`: "選擇貨幣" / "Select Currency"
+     - `common.noCurrenciesAvailable`: "無可用貨幣" / "No currencies available"
+     - `common.loading`, `common.error`
+     - `proposals.actions.update`: "更新提案" / "Update Proposal"
+     - `budgetPools.edit.title`: "編輯預算池" / "Edit Budget Pool"
+   - 驗證: ✅ 1763 keys，100% 一致
+
+**代碼統計**:
+- 修改文件: 6 個
+  - `packages/db/prisma/schema.prisma`
+  - `packages/api/src/routers/budgetPool.ts`
+  - `packages/api/src/routers/quote.ts`
+  - `apps/web/src/components/budget-pool/BudgetPoolForm.tsx`
+  - `apps/web/src/components/shared/CurrencySelect.tsx` (架構重構)
+  - `apps/web/src/app/[locale]/projects/[id]/quotes/page.tsx`
+- I18N 鍵: +7 keys
+- 總計行數: ~400 lines modified
+
+**測試結果**:
+- ✅ BudgetPool 建立流程 - 貨幣選擇正常
+- ✅ BudgetPool 編輯流程 - 貨幣值正確載入
+- ✅ Quote 頁面顯示 - 所有金額正確顯示貨幣
+- ✅ 瀏覽器控制台 - 0 errors, 0 warnings
+
+**下一步**: FEAT-002 Phase 2 - PurchaseOrder & Expense 更新
+
+**相關文件**:
+- `claudedocs/1-planning/features/FEAT-002-currency-system-expansion/03-development.md`
+- `claudedocs/1-planning/features/FEAT-002-currency-system-expansion/04-progress.md`
+
+---
+
 ### 2025-11-17 | ✨ 功能開發 | FEAT-001 Phase 5-6 完成 - 專案欄位擴展 100% 交付
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成 (100%)

@@ -77,6 +77,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CategoryFormRow, CategoryFormData, CategoryErrors } from './CategoryFormRow';
 import { Plus, Calculator } from 'lucide-react';
+import { CurrencySelect } from '@/components/shared/CurrencySelect';
 
 interface BudgetPoolFormProps {
   initialData?: {
@@ -84,6 +85,7 @@ interface BudgetPoolFormProps {
     name: string;
     description?: string;
     financialYear: number;
+    currencyId?: string; // FEAT-002: Currency ID
     categories?: CategoryFormData[];
   };
   mode: 'create' | 'edit';
@@ -95,11 +97,21 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
+  // FEAT-002: Query currency list to get TWD as default
+  const { data: currencies } = api.currency.getAll.useQuery({
+    includeInactive: false,
+  });
+
+  // Find TWD currency ID (default currency)
+  const twdCurrency = currencies?.find((c) => c.code === 'TWD');
+  const defaultCurrencyId = twdCurrency?.id ?? '';
+
   // 基本表單數據
   const [formData, setFormData] = useState({
     name: initialData?.name ?? '',
     description: initialData?.description ?? '',
     financialYear: initialData?.financialYear ?? new Date().getFullYear(),
+    currencyId: initialData?.currencyId ?? defaultCurrencyId, // FEAT-002: Currency ID
   });
 
   // 類別陣列狀態
@@ -121,8 +133,16 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   const [errors, setErrors] = useState<{
     name?: string;
     financialYear?: string;
+    currencyId?: string; // FEAT-002: Currency validation error
     categories?: CategoryErrors[];
   }>({});
+
+  // FEAT-002: Update currencyId when currencies are loaded (create mode only)
+  useEffect(() => {
+    if (mode === 'create' && !initialData?.currencyId && defaultCurrencyId && !formData.currencyId) {
+      setFormData(prev => ({ ...prev, currencyId: defaultCurrencyId }));
+    }
+  }, [defaultCurrencyId, mode, initialData?.currencyId, formData.currencyId]);
 
   // ========== API Mutations ==========
 
@@ -227,6 +247,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
     const newErrors: {
       name?: string;
       financialYear?: string;
+      currencyId?: string;
       categories?: CategoryErrors[];
     } = {};
 
@@ -237,6 +258,11 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
 
     if (formData.financialYear < 2000 || formData.financialYear > 2100) {
       newErrors.financialYear = t('form.fiscalYear.rangeError');
+    }
+
+    // FEAT-002: Validate currency
+    if (!formData.currencyId) {
+      newErrors.currencyId = tCommon('form.currency.required');
     }
 
     // 驗證類別
@@ -370,6 +396,24 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
             {errors.financialYear && (
               <p className="mt-1 text-sm text-red-600">
                 {errors.financialYear}
+              </p>
+            )}
+          </div>
+
+          {/* FEAT-002: Currency Selection */}
+          <div>
+            <Label htmlFor="currency" className="text-sm font-medium">
+              {tCommon('form.currency.label')} <span className="text-red-500">*</span>
+            </Label>
+            <CurrencySelect
+              value={formData.currencyId}
+              onChange={(value) => setFormData({ ...formData, currencyId: value })}
+              required
+              className={errors.currencyId ? 'border-red-500' : ''}
+            />
+            {errors.currencyId && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.currencyId}
               </p>
             )}
           </div>

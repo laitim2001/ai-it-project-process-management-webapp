@@ -136,6 +136,7 @@ export const budgetProposalRouter = createTRPCRouter({
               manager: true,
               supervisor: true,
               budgetPool: true,
+              currency: true, // FEAT-002: Include project currency
             },
           },
           comments: {
@@ -183,6 +184,7 @@ export const budgetProposalRouter = createTRPCRouter({
               manager: true,
               supervisor: true,
               budgetPool: true,
+              currency: true, // FEAT-002: Include project currency
             },
           },
           comments: {

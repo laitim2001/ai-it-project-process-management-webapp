@@ -38,6 +38,9 @@
     "form": {
       "description": {
         "label": "Description"
+      },
+      "currency": {
+        "label": "Currency"
       }
     },
     "status": {
@@ -73,6 +76,8 @@
     "required": "Required",
     "optional": "Optional",
     "all": "All",
+    "selectCurrency": "Select Currency",
+    "noCurrenciesAvailable": "No currencies available",
     "pagination": {
       "page": "Page",
       "of": "of",
@@ -729,6 +734,7 @@
     "actions": {
       "create": "Create Proposal",
       "edit": "Edit",
+      "update": "Update Proposal",
       "submit": "Submit for Approval",
       "approve": "Approve",
       "reject": "Reject",

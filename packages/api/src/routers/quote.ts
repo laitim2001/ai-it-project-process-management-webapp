@@ -143,6 +143,7 @@ export const quoteRouter = createTRPCRouter({
               id: true,
               name: true,
               status: true,
+              currency: true, // FEAT-002: Include project currency
             },
           },
           purchaseOrders: {
@@ -228,6 +229,7 @@ export const quoteRouter = createTRPCRouter({
               id: true,
               name: true,
               status: true,
+              currency: true, // FEAT-002: Include project currency
             },
           },
           purchaseOrders: {

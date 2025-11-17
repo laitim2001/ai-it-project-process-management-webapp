@@ -68,6 +68,7 @@ import { FileCheck, Building2, FolderKanban, DollarSign, Calendar, AlertCircle, 
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
 
 export default function QuotesPage() {
   const t = useTranslations('quotes');
@@ -331,7 +332,10 @@ export default function QuotesPage() {
                           <div>
                             <p className="text-xs text-muted-foreground">{t('fields.amount')}</p>
                             <p className="text-2xl font-bold text-primary">
-                              ${quote.amount.toLocaleString()}
+                              <CurrencyDisplay
+                                amount={quote.amount}
+                                currency={quote.project.currency}
+                              />
                             </p>
                           </div>
                         </div>
@@ -379,7 +383,10 @@ export default function QuotesPage() {
                       </TableCell>
                       <TableCell>{quote.project.name}</TableCell>
                       <TableCell className="text-right font-medium">
-                        ${quote.amount.toLocaleString()}
+                        <CurrencyDisplay
+                          amount={quote.amount}
+                          currency={quote.project.currency}
+                        />
                       </TableCell>
                       <TableCell>
                         {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}

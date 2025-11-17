@@ -72,6 +72,7 @@ export const createBudgetPoolSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   financialYear: z.number().int().min(2000).max(2100),
   description: z.string().optional(),
+  currencyId: z.string().uuid('Currency is required'), // FEAT-002: 貨幣 ID（必填）
   categories: z.array(budgetCategorySchema.omit({ id: true, isActive: true })).min(1, 'At least one category is required'),
 });
 
@@ -79,6 +80,7 @@ export const updateBudgetPoolSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
+  currencyId: z.string().uuid().optional(), // FEAT-002: 可選更新貨幣
   categories: z.array(budgetCategorySchema).optional(),
 });
 
@@ -130,6 +132,7 @@ export const budgetPoolRouter = createTRPCRouter({
               ? { name: sortOrder }
               : { financialYear: sortOrder },
           include: {
+            currency: true, // FEAT-002: Include currency
             categories: {
               where: { isActive: true },
               orderBy: { sortOrder: 'asc' },
@@ -174,6 +177,7 @@ export const budgetPoolRouter = createTRPCRouter({
       const pool = await ctx.prisma.budgetPool.findUnique({
         where: { id: input.id },
         include: {
+          currency: true, // FEAT-002: Include currency
           categories: {
             where: { isActive: true },
             orderBy: { sortOrder: 'asc' },
@@ -250,11 +254,24 @@ export const budgetPoolRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createBudgetPoolSchema)
     .mutation(async ({ ctx, input }) => {
-      const { categories, ...poolData } = input;
+      const { categories, currencyId, ...poolData } = input;
+
+      // FEAT-002: Validate currency exists and is active
+      const currency = await ctx.prisma.currency.findUnique({
+        where: { id: currencyId },
+      });
+
+      if (!currency || !currency.active) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid or inactive currency',
+        });
+      }
 
       return ctx.prisma.budgetPool.create({
         data: {
           ...poolData,
+          currencyId, // FEAT-002: Add currencyId
           // DEPRECATED fields - kept for backward compatibility
           totalAmount: categories.reduce((sum, cat) => sum + cat.totalAmount, 0),
           usedAmount: 0,
@@ -263,6 +280,7 @@ export const budgetPoolRouter = createTRPCRouter({
           },
         },
         include: {
+          currency: true, // FEAT-002: Include currency in response
           categories: {
             orderBy: { sortOrder: 'asc' },
           },
@@ -274,14 +292,31 @@ export const budgetPoolRouter = createTRPCRouter({
   update: protectedProcedure
     .input(updateBudgetPoolSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, categories, ...updateData } = input;
+      const { id, categories, currencyId, ...updateData } = input;
+
+      // FEAT-002: Validate currency if provided
+      if (currencyId) {
+        const currency = await ctx.prisma.currency.findUnique({
+          where: { id: currencyId },
+        });
+
+        if (!currency || !currency.active) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid or inactive currency',
+          });
+        }
+      }
 
       // 使用 transaction 確保數據一致性
       return ctx.prisma.$transaction(async (tx) => {
         // 更新預算池基本信息
         const pool = await tx.budgetPool.update({
           where: { id },
-          data: updateData,
+          data: {
+            ...updateData,
+            ...(currencyId && { currencyId }), // FEAT-002: Update currency if provided
+          },
         });
 
         // 處理類別更新
@@ -320,6 +355,7 @@ export const budgetPoolRouter = createTRPCRouter({
         return tx.budgetPool.findUnique({
           where: { id },
           include: {
+            currency: true, // FEAT-002: Include currency
             categories: {
               where: { isActive: true },
               orderBy: { sortOrder: 'asc' },

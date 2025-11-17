@@ -72,6 +72,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Building2, Calendar, DollarSign, TrendingUp, TrendingDown, CheckCircle, ShoppingCart, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { QuoteUploadForm } from '@/components/quote/QuoteUploadForm';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
 
 export default function ProjectQuotesPage() {
   const t = useTranslations('quotes');
@@ -267,7 +268,12 @@ export default function ProjectQuotesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
-                  ${comparison.stats.lowestQuote?.toLocaleString() ?? 'N/A'}
+                  {comparison.stats.lowestQuote ? (
+                    <CurrencyDisplay
+                      amount={comparison.stats.lowestQuote}
+                      currency={project.currency}
+                    />
+                  ) : 'N/A'}
                 </div>
               </CardContent>
             </Card>
@@ -281,7 +287,12 @@ export default function ProjectQuotesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-red-600">
-                  ${comparison.stats.highestQuote?.toLocaleString() ?? 'N/A'}
+                  {comparison.stats.highestQuote ? (
+                    <CurrencyDisplay
+                      amount={comparison.stats.highestQuote}
+                      currency={project.currency}
+                    />
+                  ) : 'N/A'}
                 </div>
               </CardContent>
             </Card>
@@ -292,7 +303,12 @@ export default function ProjectQuotesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-primary">
-                  ${comparison.stats.averageQuote?.toLocaleString() ?? 'N/A'}
+                  {comparison.stats.averageQuote ? (
+                    <CurrencyDisplay
+                      amount={comparison.stats.averageQuote}
+                      currency={project.currency}
+                    />
+                  ) : 'N/A'}
                 </div>
               </CardContent>
             </Card>
@@ -370,7 +386,10 @@ export default function ProjectQuotesPage() {
                             <div>
                               <p className="text-sm text-muted-foreground">{t('fields.amount')}</p>
                               <p className="text-2xl font-bold text-foreground">
-                                ${quote.amount.toLocaleString()}
+                                <CurrencyDisplay
+                                  amount={quote.amount}
+                                  currency={project.currency}
+                                />
                               </p>
                             </div>
                           </div>

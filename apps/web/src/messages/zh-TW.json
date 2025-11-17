@@ -38,6 +38,9 @@
     "form": {
       "description": {
         "label": "描述"
+      },
+      "currency": {
+        "label": "貨幣"
       }
     },
     "status": {
@@ -73,6 +76,8 @@
     "required": "必填",
     "optional": "選填",
     "all": "全部",
+    "selectCurrency": "選擇貨幣",
+    "noCurrenciesAvailable": "無可用貨幣",
     "pagination": {
       "page": "第",
       "of": "頁，共",
@@ -611,6 +616,7 @@
     "actions": {
       "create": "新增提案",
       "edit": "編輯",
+      "update": "更新提案",
       "submit": "提交審批",
       "approve": "批准",
       "reject": "駁回",

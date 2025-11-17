@@ -68,6 +68,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, FileText, LayoutGrid, List, Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
 
 type ProposalStatus = 'Draft' | 'PendingApproval' | 'Approved' | 'Rejected' | 'MoreInfoRequired';
 
@@ -278,7 +279,10 @@ export default function ProposalsPage() {
                       <div className="flex justify-between">
                         <span>{t('fields.amount')}：</span>
                         <span className="font-medium text-primary text-lg">
-                          ${proposal.amount.toLocaleString()}
+                          <CurrencyDisplay
+                            amount={proposal.amount}
+                            currency={proposal.project.currency}
+                          />
                         </span>
                       </div>
 
@@ -343,7 +347,10 @@ export default function ProposalsPage() {
                         </Link>
                       </TableCell>
                       <TableCell className="font-medium">
-                        ${proposal.amount.toLocaleString()}
+                        <CurrencyDisplay
+                          amount={proposal.amount}
+                          currency={proposal.project.currency}
+                        />
                       </TableCell>
                       <TableCell>{getStatusBadge(proposal.status)}</TableCell>
                       <TableCell className="text-muted-foreground">
