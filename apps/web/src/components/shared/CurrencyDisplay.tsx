@@ -46,12 +46,18 @@ import { cn } from '@/lib/utils';
 export interface CurrencyDisplayProps {
   /** 金額 */
   amount: number;
-  /** 貨幣資訊 */
+  /** 貨幣資訊 - 可以是簡化對象或完整 Prisma Currency 模型 */
   currency?: {
     code: string;  // ISO 4217 貨幣代碼（如: TWD, USD）
     symbol: string; // 貨幣符號（如: NT$, $）
     name?: string;  // 貨幣名稱（如: 新台幣）
-  };
+    // Prisma Currency 模型的額外欄位（可選）
+    id?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    exchangeRate?: number | null;
+    active?: boolean;
+  } | null;
   /** 是否顯示貨幣符號（預設: true） */
   showSymbol?: boolean;
   /** 是否顯示貨幣代碼（預設: true） */

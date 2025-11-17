@@ -69,7 +69,17 @@ import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, Building2, Calendar, DollarSign, TrendingUp, TrendingDown, CheckCircle, ShoppingCart, AlertCircle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { FileText, Building2, Calendar, DollarSign, TrendingUp, TrendingDown, CheckCircle, ShoppingCart, AlertCircle, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { QuoteUploadForm } from '@/components/quote/QuoteUploadForm';
 import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
@@ -78,12 +88,15 @@ export default function ProjectQuotesPage() {
   const t = useTranslations('quotes');
   const tNav = useTranslations('navigation');
   const tProjects = useTranslations('projects');
+  const tCommon = useTranslations('common'); // FEAT-002 FIX: 添加 common 翻譯
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
   const projectId = params.id as string;
 
+  // FEAT-002 FIX: AlertDialog 狀態管理
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // 查詢專案資訊
   const { data: project, isLoading: projectLoading } = api.project.getById.useQuery({ id: projectId });
@@ -117,8 +130,18 @@ export default function ProjectQuotesPage() {
    * 選擇報價並生成採購單
    */
   const handleSelectQuote = (quoteId: string) => {
-    if (confirm(t('messages.confirmSelectQuote'))) {
-      createPOMutation.mutate({ projectId, quoteId });
+    setSelectedQuoteId(quoteId);
+    setShowConfirmDialog(true);
+  };
+
+  /**
+   * 確認生成採購單
+   */
+  const handleConfirmSelect = () => {
+    if (selectedQuoteId) {
+      createPOMutation.mutate({ projectId, quoteId: selectedQuoteId });
+      setShowConfirmDialog(false);
+      setSelectedQuoteId(null);
     }
   };
 
@@ -332,7 +355,8 @@ export default function ProjectQuotesPage() {
                 {sortedQuotes.map((quote, index) => {
                   const isLowest = quote.amount === comparison?.stats.lowestQuote;
                   const isHighest = quote.amount === comparison?.stats.highestQuote;
-                  const hasSelectedPO = !!quote.purchaseOrder;
+                  // FEAT-002 FIX: 修正為 purchaseOrders (複數)
+                  const hasSelectedPO = quote.purchaseOrders && quote.purchaseOrders.length > 0;
 
                   return (
                     <div
@@ -408,23 +432,31 @@ export default function ProjectQuotesPage() {
                           {/* 報價文件 */}
                           <div className="flex items-center gap-3">
                             <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
+                            <div className="flex-1">
                               <p className="text-sm text-muted-foreground">{t('fields.document')}</p>
-                              <p className="text-sm text-foreground">{quote.filePath.split('/').pop()}</p>
+                              <a
+                                href={quote.filePath}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline flex items-center gap-1"
+                              >
+                                {quote.filePath.split('/').pop()}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
                             </div>
                           </div>
 
                           {/* 已生成採購單標記 */}
-                          {hasSelectedPO && quote.purchaseOrder && (
+                          {hasSelectedPO && quote.purchaseOrders && quote.purchaseOrders.length > 0 && quote.purchaseOrders[0] && (
                             <div className="flex items-center gap-2 mt-4 p-3 bg-primary/10 border border-primary rounded-lg">
                               <CheckCircle className="h-5 w-5 text-primary" />
                               <div>
                                 <p className="text-sm font-medium text-primary">{t('messages.quoteSelected')}</p>
                                 <Link
-                                  href={`/purchase-orders/${quote.purchaseOrder.id}`}
+                                  href={`/purchase-orders/${quote.purchaseOrders[0]!.id}`}
                                   className="text-sm text-primary hover:underline"
                                 >
-                                  {t('messages.viewPO', { poNumber: quote.purchaseOrder.poNumber })}
+                                  {t('messages.viewPO', { poNumber: quote.purchaseOrders[0]!.poNumber })}
                                 </Link>
                               </div>
                             </div>
@@ -453,6 +485,24 @@ export default function ProjectQuotesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 選擇報價單確認對話框 */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('messages.confirmSelectQuote')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('messages.confirmSelectQuoteDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSelect}>
+              {tCommon('actions.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

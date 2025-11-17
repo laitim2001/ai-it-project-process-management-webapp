@@ -160,7 +160,13 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || tToast('error'));
+        // FEAT-002 FIX: 直接顯示後端返回的錯誤訊息，不要包裝成 Error
+        toast({
+          title: tToast('error'),
+          description: result.error || tToast('error'),
+          variant: 'destructive',
+        });
+        return;
       }
 
       toast({
@@ -189,6 +195,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
       router.refresh();
 
     } catch (error) {
+      // FEAT-002 FIX: 只處理真正的異常錯誤（網絡錯誤等）
       console.error('上傳錯誤:', error);
       toast({
         title: tToast('error'),

@@ -73,6 +73,7 @@ import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart, AlertCircl
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay'; // FEAT-002
 
 export default function ExpensesPage() {
   const t = useTranslations('expenses');
@@ -396,7 +397,14 @@ export default function ExpensesPage() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="text-lg font-semibold text-foreground">
-                                  ${expense.totalAmount.toLocaleString()}
+                                  <CurrencyDisplay
+                                    amount={expense.totalAmount}
+                                    currency={
+                                      expense.currency ??
+                                      expense.purchaseOrder.currency ??
+                                      expense.purchaseOrder.project.currency
+                                    }
+                                  />
                                 </h3>
                                 <Badge variant={getExpenseStatusConfig(expense.status).variant}>
                                   {getExpenseStatusConfig(expense.status).label}
@@ -487,7 +495,14 @@ export default function ExpensesPage() {
                           className="text-primary hover:underline flex items-center justify-end gap-2"
                         >
                           <Receipt className="h-4 w-4" />
-                          ${expense.totalAmount.toLocaleString()}
+                          <CurrencyDisplay
+                            amount={expense.totalAmount}
+                            currency={
+                              expense.currency ??
+                              expense.purchaseOrder.currency ??
+                              expense.purchaseOrder.project.currency
+                            }
+                          />
                         </Link>
                       </TableCell>
                       <TableCell>

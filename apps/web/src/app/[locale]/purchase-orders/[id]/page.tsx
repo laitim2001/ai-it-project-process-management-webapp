@@ -331,15 +331,29 @@ export default function PurchaseOrderDetailPage() {
                   <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-muted-foreground">{t('fields.relatedQuote')}</p>
-                    <p className="text-base text-foreground">
-                      <CurrencyDisplay
+                    <Link
+                      href={`/projects/${purchaseOrder.projectId}/quotes`}
+                      className="text-base text-primary hover:underline font-medium"
+                    >
+                      {purchaseOrder.vendor.name} - <CurrencyDisplay
                         amount={purchaseOrder.quote.amount}
-                        currency={purchaseOrder.quote.currency ?? purchaseOrder.project.currency}
+                        currency={purchaseOrder.currency ?? purchaseOrder.project.currency}
                       />
-                    </p>
+                    </Link>
                     <p className="text-sm text-muted-foreground">
                       {t('detail.uploadedAt', { date: new Date(purchaseOrder.quote.uploadDate).toLocaleDateString('zh-TW') })}
                     </p>
+                    {purchaseOrder.quote.filePath && (
+                      <a
+                        href={purchaseOrder.quote.filePath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline flex items-center gap-1 mt-1"
+                      >
+                        <FileText className="h-3 w-3" />
+                        {t('actions.viewDocument')}
+                      </a>
+                    )}
                   </div>
                 </div>
               )}

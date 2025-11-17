@@ -90,6 +90,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay'; // FEAT-002
 
 /**
  * 費用記錄狀態徽章組件
@@ -108,15 +109,7 @@ function StatusBadge({ status, t }: { status: string; t: any }) {
   return <Badge variant={config?.variant || 'outline'}>{label}</Badge>;
 }
 
-/**
- * 格式化貨幣顯示
- */
-function formatCurrency(amount: number): string {
-  return `$${amount.toLocaleString('zh-TW', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+// FEAT-002: formatCurrency 已移除，改用 CurrencyDisplay 組件
 
 export default function ExpenseDetailPage() {
   const t = useTranslations('expenses');
@@ -320,7 +313,14 @@ export default function ExpenseDetailPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('detail.fields.totalAmount')}</p>
                   <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(expense.totalAmount)}
+                    <CurrencyDisplay
+                      amount={expense.totalAmount}
+                      currency={
+                        expense.currency ??
+                        expense.purchaseOrder?.currency ??
+                        expense.purchaseOrder?.project?.currency
+                      }
+                    />
                   </p>
                 </div>
               </div>
@@ -353,16 +353,16 @@ export default function ExpenseDetailPage() {
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-3">
               {/* 專案 */}
-              {expense.project && (
+              {expense.purchaseOrder?.project && (
                 <div className="flex items-start gap-3">
                   <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-muted-foreground">{t('detail.fields.project')}</p>
                     <Link
-                      href={`/projects/${expense.project.id}`}
+                      href={`/projects/${expense.purchaseOrder.project.id}`}
                       className="text-base text-primary hover:underline"
                     >
-                      {expense.project.name}
+                      {expense.purchaseOrder.project.name}
                     </Link>
                   </div>
                 </div>
@@ -383,7 +383,13 @@ export default function ExpenseDetailPage() {
                       {expense.purchaseOrder.name}
                     </Link>
                     <p className="text-sm text-muted-foreground">
-                      {formatCurrency(expense.purchaseOrder.totalAmount)}
+                      <CurrencyDisplay
+                        amount={expense.purchaseOrder.totalAmount}
+                        currency={
+                          expense.purchaseOrder.currency ??
+                          expense.purchaseOrder.project?.currency
+                        }
+                      />
                     </p>
                   </div>
                 </div>
@@ -455,7 +461,14 @@ export default function ExpenseDetailPage() {
                               {item.category || '-'}
                             </TableCell>
                             <TableCell className="text-right font-semibold">
-                              {formatCurrency(item.amount)}
+                              <CurrencyDisplay
+                                amount={item.amount}
+                                currency={
+                                  expense.currency ??
+                                  expense.purchaseOrder?.currency ??
+                                  expense.purchaseOrder?.project?.currency
+                                }
+                              />
                             </TableCell>
                           </TableRow>
                         );
@@ -471,7 +484,14 @@ export default function ExpenseDetailPage() {
                         {t('detail.total')}
                       </span>
                       <span className="text-2xl font-bold text-primary">
-                        {formatCurrency(expense.totalAmount)}
+                        <CurrencyDisplay
+                          amount={expense.totalAmount}
+                          currency={
+                            expense.currency ??
+                            expense.purchaseOrder?.currency ??
+                            expense.purchaseOrder?.project?.currency
+                          }
+                        />
                       </span>
                     </div>
                   </div>

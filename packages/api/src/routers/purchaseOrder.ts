@@ -658,6 +658,134 @@ export const purchaseOrderRouter = createTRPCRouter({
     }),
 
   /**
+   * 從報價單創建採購單
+   * @param projectId - 專案ID
+   * @param quoteId - 報價單ID
+   * @returns 新創建的 PurchaseOrder
+   */
+  createFromQuote: protectedProcedure
+    .input(z.object({
+      projectId: z.string().min(1, '專案ID為必填'),
+      quoteId: z.string().min(1, '報價單ID為必填'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // 驗證專案是否存在
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案',
+        });
+      }
+
+      // 驗證報價單是否存在
+      const quote = await ctx.prisma.quote.findUnique({
+        where: { id: input.quoteId },
+        include: {
+          vendor: true,
+          project: true,
+        },
+      });
+
+      if (!quote) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該報價單',
+        });
+      }
+
+      // 驗證報價單是否屬於該專案
+      if (quote.projectId !== input.projectId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '報價單不屬於該專案',
+        });
+      }
+
+      // 檢查是否已經有從此報價單生成的採購單
+      const existingPO = await ctx.prisma.purchaseOrder.findFirst({
+        where: {
+          projectId: input.projectId,
+          quoteId: input.quoteId,
+        },
+      });
+
+      if (existingPO) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: '該報價單已經生成過採購單',
+        });
+      }
+
+      // 生成 PO 編號
+      const poCount = await ctx.prisma.purchaseOrder.count({
+        where: { projectId: input.projectId },
+      });
+      const poNumber = `PO-${project.projectCode || input.projectId.slice(0, 8)}-${String(poCount + 1).padStart(3, '0')}`;
+
+      return await ctx.prisma.$transaction(async (tx) => {
+        // 創建採購單表頭
+        const po = await tx.purchaseOrder.create({
+          data: {
+            name: `${quote.vendor.name} - ${project.name}`,
+            description: `從報價單生成 (報價金額: ${quote.amount})`,
+            projectId: input.projectId,
+            vendorId: quote.vendorId,
+            quoteId: input.quoteId,
+            date: new Date(),
+            totalAmount: quote.amount,
+            status: 'Draft',
+            poNumber,
+          },
+        });
+
+        // 創建預設採購品項
+        await tx.purchaseOrderItem.create({
+          data: {
+            purchaseOrderId: po.id,
+            itemName: `報價採購項目 - ${quote.vendor.name}`,
+            description: `基於報價單生成`,
+            quantity: 1,
+            unitPrice: quote.amount,
+            subtotal: quote.amount,
+            sortOrder: 0,
+          },
+        });
+
+        // 返回完整的 PO（含明細）
+        return await tx.purchaseOrder.findUnique({
+          where: { id: po.id },
+          include: {
+            items: {
+              orderBy: { sortOrder: 'asc' },
+            },
+            project: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            quote: {
+              select: {
+                id: true,
+                amount: true,
+              },
+            },
+          },
+        });
+      });
+    }),
+
+  /**
    * 獲取採購單統計資訊
    * @returns { totalPOs, totalAmount, POsByProject, POsWithExpenses }
    */
