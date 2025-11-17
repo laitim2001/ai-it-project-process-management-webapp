@@ -20,6 +20,112 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-17 23:30 | ✨ 功能開發 | FEAT-001 Phase 1-4 完成 + Phase 5 進行中
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ⏳ Phase 5 進行中 (85% 完成)
+
+**主要工作**:
+
+1. ✅ **Phase 1: 資料庫與後端開發** (2025-11-16)
+   - 創建 Currency Model (ISO 4217 標準，6 種預設貨幣)
+   - 更新 Project Model (新增 4 個欄位: projectCode, globalFlag, priority, currencyId)
+   - 創建 Migration 和 Seed 腳本
+   - 實現 Currency API Router (完整 CRUD + 啟用/停用)
+   - 更新 Project API Router (create/update procedures)
+   - Commit: `167a03f`
+
+2. ✅ **Phase 2: 前端表單開發** (2025-11-16)
+   - 更新 ProjectForm 組件 (4 個新欄位 UI)
+   - 實現專案編號即時唯一性驗證 (debounce 500ms)
+   - 添加全域標誌 Select (RCL/Region)
+   - 添加優先權 Select (High/Medium/Low)
+   - 添加貨幣 Combobox (可搜尋，顯示啟用貨幣)
+   - I18N 支援 (14 個新鍵)
+   - Commit: `9cb0c86`
+
+3. ✅ **Phase 3: 列表與詳情頁開發** (2025-11-16)
+   - 專案列表新增 3 個欄位顯示 (projectCode, globalFlag, priority)
+   - 使用 Badge 組件視覺化狀態
+   - 專案詳情頁新增 4 個欄位顯示
+   - 更新 Project Router getById (include currency)
+   - I18N 支援 (9 個新鍵)
+   - Commit: `0c4b59c`
+
+4. ✅ **Phase 4: 貨幣管理頁面 UI** (2025-11-16)
+   - 創建 `/settings/currencies` 頁面 (470 行)
+   - 實現完整 CRUD 功能 (新增、編輯、啟用/停用)
+   - 顯示貨幣使用統計 (專案數量)
+   - Dialog 表單 (ISO 4217 驗證)
+   - I18N 支援 (42 個新鍵)
+   - Commit: `09719fc`
+
+5. ✅ **側邊欄導航整合** (2025-11-17)
+   - 在系統管理區塊添加「貨幣管理」入口
+   - 使用 Coins 圖示
+   - I18N 支援 (2 個新鍵)
+   - Commit: `13165d7`
+
+6. ✅ **Bug 修復** (2025-11-17)
+   - 修正 i18n 翻譯鍵缺失問題 (`projects.detail.fields.*`)
+   - 修正 priority 欄位翻譯路徑錯誤 (物件 vs 字串)
+   - 修正 useToast import 路徑
+   - Commits: `37840d9`, `155cb5e`, `7ea3de2`
+
+7. ⏳ **Phase 5: 專案列表頁面進階功能** (進行中)
+   - ✅ API Router 更新:
+     - 新增篩選參數: projectCode, globalFlag, priority, currencyId
+     - 更新搜尋邏輯: 專案名稱 OR 專案編號
+     - 更新排序選項: 支持 projectCode 和 priority
+   - ✅ 前端 State 更新:
+     - 添加新的篩選器 state (globalFlagFilter, priorityFilter, currencyFilter)
+     - 更新 sortBy 類型
+   - ⏸️ 前端 UI 更新: 待完成
+   - ⏸️ 測試: 待完成
+
+**技術決策**:
+
+1. **搜尋邏輯增強**: 使用 OR 條件 (專案名稱 OR 專案編號)
+   - 理由: 用戶可能記得專案編號而不是名稱，提供更好的搜尋體驗
+
+2. **貨幣管理獨立路由**: `/settings/currencies`
+   - 理由: 獨立路由清晰，側邊欄可直接訪問，符合設定子頁面模式
+
+3. **Phase 5 後端先行**: 先完成 API 再完成 UI
+   - 理由: 確保 API 完整性，前端可以逐步測試每個篩選器
+
+**影響範圍**:
+- ✅ 資料庫: 新增 Currency 表，Project 表新增 4 個欄位
+- ✅ API: 新增 Currency Router，更新 Project Router
+- ✅ 前端: 12+ 個組件/頁面更新
+- ✅ I18N: +116 keys (zh-TW + en)
+- ✅ 側邊欄: 系統管理區塊新增貨幣管理入口
+
+**代碼統計**:
+- 新增行數: +2,500 lines
+- 修改文件: 12 個
+- 新增文件: 2 個 (CurrenciesPage, 2025-W47.md)
+- Commits: 10 次
+- I18N 總鍵數: 1857 keys (100% zh-TW/en 一致)
+
+**相關文件**:
+- `packages/db/prisma/schema.prisma` - Currency Model
+- `packages/api/src/routers/currency.ts` - Currency API
+- `packages/api/src/routers/project.ts` - Project API (Phase 1 & 5)
+- `apps/web/src/components/project/ProjectForm.tsx` - Phase 2
+- `apps/web/src/app/[locale]/projects/[id]/page.tsx` - Phase 3
+- `apps/web/src/app/[locale]/projects/page.tsx` - Phase 3 & 5
+- `apps/web/src/app/[locale]/settings/currencies/page.tsx` - Phase 4
+- `apps/web/src/components/layout/Sidebar.tsx` - 導航整合
+- `apps/web/src/messages/zh-TW.json` - I18N zh-TW
+- `apps/web/src/messages/en.json` - I18N en
+
+**下一步**:
+- [ ] 完成 Phase 5 前端 UI (4 個篩選器 + 排序選項)
+- [ ] 完成 Phase 6 完整手動測試
+- [ ] 更新 FEAT-001 需求文檔驗收標準
+
+---
+
 ### 2025-11-14 16:00 | 📚 文檔 | 創建 .claude.md 模式文檔系統
 
 **類型**: 文檔 | **負責人**: AI 助手 | **狀態**: ✅ 完成

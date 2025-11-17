@@ -173,7 +173,12 @@ export const projectRouter = createTRPCRouter({
           budgetPoolId: z.string().min(1).optional(),
           managerId: z.string().uuid().optional(),
           supervisorId: z.string().uuid().optional(),
-          sortBy: z.enum(['name', 'status', 'createdAt']).default('createdAt'),
+          // FEAT-001: 新增篩選參數
+          projectCode: z.string().optional(),
+          globalFlag: globalFlagEnum.optional(),
+          priority: priorityEnum.optional(),
+          currencyId: z.string().uuid().optional(),
+          sortBy: z.enum(['name', 'status', 'createdAt', 'projectCode', 'priority']).default('createdAt'),
           sortOrder: z.enum(['asc', 'desc']).default('desc'),
         })
         .optional()
@@ -187,6 +192,11 @@ export const projectRouter = createTRPCRouter({
       const budgetPoolId = input?.budgetPoolId;
       const managerId = input?.managerId;
       const supervisorId = input?.supervisorId;
+      // FEAT-001: 新增篩選參數
+      const projectCode = input?.projectCode;
+      const globalFlag = input?.globalFlag;
+      const priority = input?.priority;
+      const currencyId = input?.currencyId;
       const sortBy = input?.sortBy ?? 'createdAt';
       const sortOrder = input?.sortOrder ?? 'desc';
 
@@ -195,16 +205,31 @@ export const projectRouter = createTRPCRouter({
         AND: [
           search
             ? {
-                name: {
-                  contains: search,
-                  mode: 'insensitive' as const,
-                },
+                OR: [
+                  {
+                    name: {
+                      contains: search,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                  {
+                    projectCode: {
+                      contains: search,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                ],
               }
             : {},
           status ? { status } : {},
           budgetPoolId ? { budgetPoolId } : {},
           managerId ? { managerId } : {},
           supervisorId ? { supervisorId } : {},
+          // FEAT-001: 新增篩選條件
+          projectCode ? { projectCode: { contains: projectCode, mode: 'insensitive' as const } } : {},
+          globalFlag ? { globalFlag } : {},
+          priority ? { priority } : {},
+          currencyId ? { currencyId } : {},
         ],
       };
 
@@ -219,6 +244,10 @@ export const projectRouter = createTRPCRouter({
               ? { name: sortOrder }
               : sortBy === 'status'
               ? { status: sortOrder }
+              : sortBy === 'projectCode'
+              ? { projectCode: sortOrder }
+              : sortBy === 'priority'
+              ? { priority: sortOrder }
               : { createdAt: sortOrder },
           include: {
             manager: {

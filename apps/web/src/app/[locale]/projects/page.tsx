@@ -101,7 +101,11 @@ export default function ProjectsPage() {
     'Draft' | 'InProgress' | 'Completed' | 'Archived' | undefined
   >(undefined);
   const [budgetPoolFilter, setBudgetPoolFilter] = useState<string | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt'>('createdAt');
+  // FEAT-001: 新增篩選器
+  const [globalFlagFilter, setGlobalFlagFilter] = useState<'RCL' | 'Region' | undefined>(undefined);
+  const [priorityFilter, setPriorityFilter] = useState<'High' | 'Medium' | 'Low' | undefined>(undefined);
+  const [currencyFilter, setCurrencyFilter] = useState<string | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt' | 'projectCode' | 'priority'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
 
