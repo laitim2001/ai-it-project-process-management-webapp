@@ -451,6 +451,8 @@
       "viewQuotes": "View Quotes",
       "quoteManagementDesc": "Upload vendor quotes, compare quotes, and select the final vendor to generate purchase orders",
       "manageQuotes": "Manage Quotes",
+      "uploadQuote": "Upload Quote",
+      "viewAllQuotes": "View All Quotes",
       "purchaseOrdersList": "Purchase Orders",
       "newPurchaseOrder": "New Purchase Order",
       "noPurchaseOrders": "No purchase orders yet",

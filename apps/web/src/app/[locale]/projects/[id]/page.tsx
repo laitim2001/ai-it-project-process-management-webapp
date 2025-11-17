@@ -179,6 +179,12 @@ export default function ProjectDetailPage() {
   const { data: budgetUsage } = api.project.getBudgetUsage.useQuery({ projectId: id });
 
   /**
+   * 查詢專案的所有報價單
+   * 用於在專案詳情頁顯示報價記錄和已選擇報價摘要
+   */
+  const { data: quotes } = api.quote.getByProject.useQuery({ projectId: id });
+
+  /**
    * 刪除專案 Mutation
    * 成功後跳轉回專案列表頁面
    */
@@ -508,26 +514,95 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    {t('quoteManagement')}
+                    {t('quoteManagement')} ({quotes?.length || 0})
                   </CardTitle>
                   <Link href={`/projects/${id}/quotes`}>
                     <Button variant="outline" size="sm">
-                      {t('viewQuotes')}
+                      {t('manageQuotes')}
                     </Button>
                   </Link>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-6">
-                  <p className="text-muted-foreground mb-4">
-                    {t('quoteManagementDesc')}
-                  </p>
-                  <Link href={`/projects/${id}/quotes`}>
-                    <Button>
-                      {t('manageQuotes')}
-                    </Button>
-                  </Link>
-                </div>
+                {!quotes || quotes.length === 0 ? (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground mb-4">
+                      {t('noQuotes')}
+                    </p>
+                    <Link href={`/projects/${id}/quotes`}>
+                      <Button>
+                        {t('uploadQuote')}
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* 已選擇的報價摘要 */}
+                    {(() => {
+                      const selectedQuote = quotes.find(q =>
+                        q.purchaseOrders && q.purchaseOrders.some(po => po.projectId === id)
+                      );
+                      return selectedQuote ? (
+                        <div className="p-4 border-2 border-primary bg-primary/5 rounded-lg">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="default">已選擇</Badge>
+                                <h3 className="font-medium text-foreground">{selectedQuote.vendor.name}</h3>
+                              </div>
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  ${selectedQuote.amount.toLocaleString()}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(selectedQuote.uploadDate).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* 所有報價列表 */}
+                    <div className="space-y-2">
+                      {quotes.map((quote) => {
+                        const isSelected = quote.purchaseOrders && quote.purchaseOrders.some(po => po.projectId === id);
+                        return (
+                          <div
+                            key={quote.id}
+                            className={`border rounded-lg p-3 ${isSelected ? 'border-primary/30 bg-primary/5' : 'border-border'}`}
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm">{quote.vendor.name}</span>
+                                  {isSelected && <Badge variant="outline" className="text-xs">已選用</Badge>}
+                                </div>
+                                <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                                  <span>${quote.amount.toLocaleString()}</span>
+                                  <span>•</span>
+                                  <span>{new Date(quote.uploadDate).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 查看詳情按鈕 */}
+                    <div className="pt-2">
+                      <Link href={`/projects/${id}/quotes`}>
+                        <Button variant="outline" className="w-full">
+                          {t('viewAllQuotes')}
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

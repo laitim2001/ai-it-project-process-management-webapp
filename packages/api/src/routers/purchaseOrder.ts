@@ -705,15 +705,38 @@ export const purchaseOrderRouter = createTRPCRouter({
         });
       }
 
-      // 檢查是否已經有從此報價單生成的採購單
-      const existingPO = await ctx.prisma.purchaseOrder.findFirst({
+      // 檢查該專案是否已經選擇過任何報價單（一個專案只能選擇一份報價單）
+      const existingProjectPO = await ctx.prisma.purchaseOrder.findFirst({
+        where: {
+          projectId: input.projectId,
+          quoteId: { not: null }, // 只檢查從報價單生成的 PO
+        },
+        include: {
+          quote: {
+            select: {
+              id: true,
+              vendor: { select: { name: true } },
+            },
+          },
+        },
+      });
+
+      if (existingProjectPO) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `該專案已經選擇了報價單（供應商：${existingProjectPO.quote?.vendor.name || '未知'}），一個專案只能選擇一份報價單`,
+        });
+      }
+
+      // 檢查是否已經有從此報價單生成的採購單（雙重保險）
+      const existingQuotePO = await ctx.prisma.purchaseOrder.findFirst({
         where: {
           projectId: input.projectId,
           quoteId: input.quoteId,
         },
       });
 
-      if (existingPO) {
+      if (existingQuotePO) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: '該報價單已經生成過採購單',
