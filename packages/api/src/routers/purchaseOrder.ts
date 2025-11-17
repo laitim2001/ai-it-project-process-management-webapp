@@ -147,6 +147,7 @@ export const purchaseOrderRouter = createTRPCRouter({
               id: true,
               name: true,
               status: true,
+              currency: true, // FEAT-002: 用於貨幣繼承
             },
           },
           vendor: {
@@ -163,6 +164,7 @@ export const purchaseOrderRouter = createTRPCRouter({
               filePath: true,
             },
           },
+          currency: true, // FEAT-002: PO 的貨幣
           _count: {
             select: {
               expenses: true,
@@ -216,10 +218,12 @@ export const purchaseOrderRouter = createTRPCRouter({
                   financialYear: true,
                 },
               },
+              currency: true, // FEAT-002: 用於貨幣繼承
             },
           },
           vendor: true,
           quote: true,
+          currency: true, // FEAT-002: PO 的貨幣
           items: {
             orderBy: { sortOrder: 'asc' },
           },

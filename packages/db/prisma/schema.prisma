@@ -230,6 +230,7 @@ model PurchaseOrder {
   description  String?   @db.Text // 新增：描述
   date         DateTime  @default(now())
   totalAmount  Float // 由明細自動計算
+  currencyId   String? // FEAT-002: 貨幣ID (nullable, 繼承自 Project)
   status       String    @default("Draft") // 新增：Draft, Submitted, Approved, Completed, Cancelled
   projectId    String
   vendorId     String
@@ -241,11 +242,13 @@ model PurchaseOrder {
   project  Project             @relation(fields: [projectId], references: [id])
   vendor   Vendor              @relation(fields: [vendorId], references: [id])
   quote    Quote?              @relation(fields: [quoteId], references: [id])
+  currency Currency?           @relation("PurchaseOrderCurrency", fields: [currencyId], references: [id]) // FEAT-002
   items    PurchaseOrderItem[] // 新增：明細項目
   expenses Expense[]
 
   @@index([projectId])
   @@index([vendorId])
+  @@index([currencyId]) // FEAT-002: 貨幣索引
   @@index([status]) // 新增索引
 }
 
@@ -256,6 +259,7 @@ model Expense {
 
   // 財務信息
   totalAmount Float // 新增：改為 totalAmount，由明細自動計算
+  currencyId  String? // FEAT-002: 貨幣ID (nullable, 繼承自 PurchaseOrder)
   status      String @default("Draft") // "Draft", "PendingApproval", "Approved", "Paid", "Rejected"
 
   // 發票信息
@@ -281,12 +285,14 @@ model Expense {
   purchaseOrder  PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
   budgetCategory BudgetCategory? @relation(fields: [budgetCategoryId], references: [id]) // 新增
   vendor         Vendor?         @relation(fields: [vendorId], references: [id]) // 新增
+  currency       Currency?       @relation("ExpenseCurrency", fields: [currencyId], references: [id]) // FEAT-002
   items          ExpenseItem[] // 新增：明細項目
   chargeOutItems ChargeOutItem[] // 新增：關聯的費用轉嫁明細
 
   @@index([purchaseOrderId])
   @@index([budgetCategoryId]) // 新增索引
   @@index([vendorId]) // 新增索引
+  @@index([currencyId]) // FEAT-002: 貨幣索引
   @@index([status])
   @@index([requiresChargeOut]) // 新增索引
   @@index([isOperationMaint]) // 新增索引
@@ -620,8 +626,10 @@ model Currency {
   updatedAt    DateTime @updatedAt
 
   // 關聯
-  projects    Project[]    @relation("ProjectCurrency") // 使用此貨幣的專案
-  budgetPools BudgetPool[] @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
+  projects       Project[]        @relation("ProjectCurrency") // 使用此貨幣的專案
+  budgetPools    BudgetPool[]     @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
+  purchaseOrders PurchaseOrder[]  @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
+  expenses       Expense[]        @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
 
   @@index([code])
   @@index([active])

@@ -65,6 +65,7 @@ import { ShoppingCart, FileText, Building2, Calendar, DollarSign, Edit, Receipt,
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PurchaseOrderActions } from '@/components/purchase-order/PurchaseOrderActions';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay'; // FEAT-002
 import {
   Table,
   TableBody,
@@ -103,13 +104,6 @@ function ExpenseStatusBadge({ status, t }: { status: string; t: any }) {
   const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'outline' as const };
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
-}
-
-/**
- * 格式化貨幣顯示
- */
-function formatCurrency(amount: number): string {
-  return `$${amount.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export default function PurchaseOrderDetailPage() {
@@ -280,7 +274,10 @@ export default function PurchaseOrderDetailPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('fields.totalAmount')}</p>
                   <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(purchaseOrder.totalAmount)}
+                    <CurrencyDisplay
+                      amount={purchaseOrder.totalAmount}
+                      currency={purchaseOrder.currency ?? purchaseOrder.project.currency}
+                    />
                   </p>
                 </div>
               </div>
@@ -335,7 +332,10 @@ export default function PurchaseOrderDetailPage() {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-muted-foreground">{t('fields.relatedQuote')}</p>
                     <p className="text-base text-foreground">
-                      {formatCurrency(purchaseOrder.quote.amount)}
+                      <CurrencyDisplay
+                        amount={purchaseOrder.quote.amount}
+                        currency={purchaseOrder.quote.currency ?? purchaseOrder.project.currency}
+                      />
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {t('detail.uploadedAt', { date: new Date(purchaseOrder.quote.uploadDate).toLocaleDateString('zh-TW') })}
@@ -394,10 +394,16 @@ export default function PurchaseOrderDetailPage() {
                               {item.quantity}
                             </TableCell>
                             <TableCell className="text-right">
-                              {formatCurrency(item.unitPrice)}
+                              <CurrencyDisplay
+                                amount={item.unitPrice}
+                                currency={purchaseOrder.currency ?? purchaseOrder.project.currency}
+                              />
                             </TableCell>
                             <TableCell className="text-right font-semibold">
-                              {formatCurrency(subtotal)}
+                              <CurrencyDisplay
+                                amount={subtotal}
+                                currency={purchaseOrder.currency ?? purchaseOrder.project.currency}
+                              />
                             </TableCell>
                           </TableRow>
                         );
@@ -411,7 +417,10 @@ export default function PurchaseOrderDetailPage() {
                     <div className="flex items-center justify-between gap-8">
                       <span className="text-base font-medium text-muted-foreground">{t('detail.items.total')}</span>
                       <span className="text-2xl font-bold text-primary">
-                        {formatCurrency(purchaseOrder.totalAmount)}
+                        <CurrencyDisplay
+                          amount={purchaseOrder.totalAmount}
+                          currency={purchaseOrder.currency ?? purchaseOrder.project.currency}
+                        />
                       </span>
                     </div>
                   </div>

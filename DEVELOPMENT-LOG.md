@@ -20,6 +20,82 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-17 | ✨ 功能開發 | FEAT-002 Phase 2 完成 - 貨幣系統擴展至 PurchaseOrder & Expense
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成 (67% of FEAT-002)
+
+**主要工作**:
+
+1. ✅ **Task 2.1: PurchaseOrder Model 更新**
+   - **Prisma Schema 更新**:
+     - 添加 `currencyId String?` 欄位（nullable, 繼承自 Project）
+     - 添加 `currency Currency?` 關聯（relation name: "PurchaseOrderCurrency"）
+     - 添加 `@@index([currencyId])` 索引
+     - Currency model 添加 `purchaseOrders` 反向關聯
+
+   - **資料庫同步**: 使用 `npx prisma db push` 直接同步（開發環境）
+   - **Prisma Client**: 自動重新生成
+
+   - **API Router 更新** (`packages/api/src/routers/purchaseOrder.ts`):
+     - `getAll`: 添加 `currency: true` + `project.currency: true`
+     - `getById`: 添加 `currency: true` + `project.currency: true`
+
+   - **前端頁面更新**:
+     - **列表頁** (`apps/web/src/app/[locale]/purchase-orders/page.tsx`):
+       - 導入 `CurrencyDisplay` 組件
+       - 卡片視圖 + 列表視圖：使用貨幣繼承 `po.currency ?? po.project.currency`
+     - **詳情頁** (`apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx`):
+       - 刪除 `formatCurrency` 輔助函數
+       - 5 處金額顯示更新為 `CurrencyDisplay`:
+         - 總金額
+         - Quote 金額（繼承：`quote.currency ?? project.currency`）
+         - 品項明細單價
+         - 品項明細小計
+         - 明細總計
+
+2. ✅ **Task 2.2: Expense Model 更新**
+   - **Prisma Schema 更新**:
+     - 添加 `currencyId String?` 欄位（nullable, 繼承自 PurchaseOrder）
+     - 添加 `currency Currency?` 關聯（relation name: "ExpenseCurrency"）
+     - 添加 `@@index([currencyId])` 索引
+     - Currency model 添加 `expenses` 反向關聯
+
+   - **資料庫同步**: 使用 `npx prisma db push`
+   - **Prisma Client**: 自動重新生成
+
+   - **API Router 更新** (`packages/api/src/routers/expense.ts`):
+     - `getAll`: 添加完整貨幣關聯鏈（expense, purchaseOrder, project）
+     - `getById`: 添加完整貨幣關聯鏈
+
+3. ✅ **Task 2.3: 完整測試**
+   - **代碼品質檢查**:
+     - API package typecheck: ✅ 0 errors
+     - Web package typecheck: 46 errors（皆為現有錯誤，非 FEAT-002 引入）
+     - 開發伺服器啟動: ✅ 成功
+   - **貨幣繼承鏈驗證**:
+     - ✅ Expense → PurchaseOrder → Project → Currency
+     - ✅ Quote → Project → Currency
+     - ✅ 所有層級支援 fallback
+
+**技術亮點**:
+- **一致的貨幣繼承模式**:
+  - PurchaseOrder: `po.currency ?? po.project.currency`
+  - Expense: `expense.currency ?? expense.purchaseOrder.currency ?? expense.purchaseOrder.project.currency`
+- **完整的 API 支援**: 所有查詢包含完整貨幣關聯鏈
+- **UI 一致性**: 所有金額顯示使用 `CurrencyDisplay`
+
+**變更文件**:
+- Prisma Schema: 3 models（PurchaseOrder, Expense, Currency）
+- API Routers: 2 files（purchaseOrder.ts, expense.ts）
+- Frontend Pages: 2 files（purchase-orders/page.tsx, purchase-orders/[id]/page.tsx）
+- 總計：~80 lines modified
+
+**下一步**:
+- [ ] FEAT-002 Phase 3: Quote 顯示層面更新（可選）
+- [ ] Expense 頁面顯示層面更新（類似 PurchaseOrder）
+
+---
+
 ### 2025-11-17 | ✨ 功能開發 | FEAT-002 Phase 1 完成 - 貨幣系統擴展至 BudgetPool & Quote
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成 (33%)

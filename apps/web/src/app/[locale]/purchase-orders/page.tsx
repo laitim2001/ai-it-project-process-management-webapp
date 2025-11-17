@@ -66,6 +66,7 @@ import { ShoppingCart, Building2, FileText, Calendar, DollarSign, AlertCircle, L
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay'; // FEAT-002
 
 export default function PurchaseOrdersPage() {
   const t = useTranslations('purchaseOrders');
@@ -333,9 +334,12 @@ export default function PurchaseOrdersPage() {
                         <div className="text-right space-y-2">
                           <div>
                             <p className="text-xs text-muted-foreground">{t('fields.totalAmount')}</p>
-                            <p className="text-2xl font-bold text-primary">
-                              ${po.totalAmount.toLocaleString()}
-                            </p>
+                            <div className="text-2xl font-bold text-primary">
+                              <CurrencyDisplay
+                                amount={po.totalAmount}
+                                currency={po.currency ?? po.project.currency}
+                              />
+                            </div>
                           </div>
                           {po._count && (
                             <div className="text-sm text-muted-foreground">
@@ -390,7 +394,10 @@ export default function PurchaseOrdersPage() {
                       <TableCell>{po.project.name}</TableCell>
                       <TableCell>{po.vendor.name}</TableCell>
                       <TableCell className="text-right font-medium">
-                        ${po.totalAmount.toLocaleString()}
+                        <CurrencyDisplay
+                          amount={po.totalAmount}
+                          currency={po.currency ?? po.project.currency}
+                        />
                       </TableCell>
                       <TableCell className="text-center">
                         {po._count ? po._count.expenses : 0}

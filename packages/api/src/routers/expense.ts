@@ -172,6 +172,7 @@ export const expenseRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   budgetPoolId: true,
+                  currency: true, // FEAT-002: 用於貨幣繼承
                 },
               },
               vendor: {
@@ -180,8 +181,10 @@ export const expenseRouter = createTRPCRouter({
                   name: true,
                 },
               },
+              currency: true, // FEAT-002: PO 的貨幣
             },
           },
+          currency: true, // FEAT-002: Expense 的貨幣
         },
       });
 
@@ -215,6 +218,7 @@ export const expenseRouter = createTRPCRouter({
               project: {
                 include: {
                   budgetPool: true,
+                  currency: true, // FEAT-002: 用於貨幣繼承
                   manager: {
                     select: {
                       id: true,
@@ -232,6 +236,7 @@ export const expenseRouter = createTRPCRouter({
                 },
               },
               vendor: true,
+              currency: true, // FEAT-002: PO 的貨幣
               quote: {
                 select: {
                   id: true,
@@ -253,6 +258,7 @@ export const expenseRouter = createTRPCRouter({
               categoryName: true,
             },
           },
+          currency: true, // FEAT-002: Expense 的貨幣
         },
       });
 
