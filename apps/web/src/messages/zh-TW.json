@@ -1334,7 +1334,8 @@
       "error": "錯誤",
       "poCreatedSuccess": "採購單 {poNumber} 已成功創建！",
       "poCreatedError": "創建採購單失敗: {message}",
-      "confirmSelectQuote": "確定選擇此報價並生成採購單嗎？\n\n此操作將創建一張新的採購單記錄。",
+      "confirmSelectQuote": "確定選擇此報價並生成採購單嗎？",
+      "confirmSelectQuoteDescription": "此操作將創建一張新的採購單記錄，採購單將基於此報價的金額和供應商信息。",
       "quoteSelected": "此報價已被選用",
       "viewPO": "查看採購單 #{poNumber}"
     },
@@ -1528,6 +1529,7 @@
       "create": "新增採購單",
       "edit": "編輯",
       "view": "查看",
+      "viewDocument": "查看文件",
       "delete": "刪除",
       "backToList": "返回採購單列表",
       "title": "操作",

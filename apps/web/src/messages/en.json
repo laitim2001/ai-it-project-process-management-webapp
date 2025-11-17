@@ -1334,7 +1334,8 @@
       "error": "Error",
       "poCreatedSuccess": "Purchase order {poNumber} has been created successfully!",
       "poCreatedError": "Failed to create purchase order: {message}",
-      "confirmSelectQuote": "Confirm selecting this quote and generating a purchase order?\n\nThis will create a new purchase order record.",
+      "confirmSelectQuote": "Confirm selecting this quote and generating a purchase order?",
+      "confirmSelectQuoteDescription": "This will create a new purchase order record based on this quote's amount and vendor information.",
       "quoteSelected": "This quote has been selected",
       "viewPO": "View Purchase Order #{poNumber}"
     },
@@ -1528,6 +1529,7 @@
       "create": "New Purchase Order",
       "edit": "Edit",
       "view": "View",
+      "viewDocument": "View Document",
       "delete": "Delete",
       "backToList": "Back to Purchase Order List",
       "title": "Actions",

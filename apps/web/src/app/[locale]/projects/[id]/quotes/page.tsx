@@ -355,8 +355,8 @@ export default function ProjectQuotesPage() {
                 {sortedQuotes.map((quote, index) => {
                   const isLowest = quote.amount === comparison?.stats.lowestQuote;
                   const isHighest = quote.amount === comparison?.stats.highestQuote;
-                  // FEAT-002 FIX: 修正為 purchaseOrders (複數)
-                  const hasSelectedPO = quote.purchaseOrders && quote.purchaseOrders.length > 0;
+                  // FEAT-002 FIX: 檢查是否屬於當前專案的 PO
+                  const hasSelectedPO = quote.purchaseOrders && quote.purchaseOrders.some(po => po.projectId === projectId);
 
                   return (
                     <div
@@ -366,7 +366,7 @@ export default function ProjectQuotesPage() {
                         ${isLowest ? 'border-green-500 bg-green-50' : ''}
                         ${isHighest ? 'border-red-500 bg-red-50' : ''}
                         ${!isLowest && !isHighest ? 'border-border hover:border-primary' : ''}
-                        ${hasSelectedPO ? 'opacity-60' : ''}
+                        ${hasSelectedPO ? 'border-primary bg-primary/5' : ''}
                       `}
                     >
                       {/* 最低/最高標記 */}
@@ -447,20 +447,24 @@ export default function ProjectQuotesPage() {
                           </div>
 
                           {/* 已生成採購單標記 */}
-                          {hasSelectedPO && quote.purchaseOrders && quote.purchaseOrders.length > 0 && quote.purchaseOrders[0] && (
-                            <div className="flex items-center gap-2 mt-4 p-3 bg-primary/10 border border-primary rounded-lg">
-                              <CheckCircle className="h-5 w-5 text-primary" />
-                              <div>
-                                <p className="text-sm font-medium text-primary">{t('messages.quoteSelected')}</p>
-                                <Link
-                                  href={`/purchase-orders/${quote.purchaseOrders[0]!.id}`}
-                                  className="text-sm text-primary hover:underline"
-                                >
-                                  {t('messages.viewPO', { poNumber: quote.purchaseOrders[0]!.poNumber })}
-                                </Link>
+                          {hasSelectedPO && (() => {
+                            // 找到屬於當前專案的 PO
+                            const currentProjectPO = quote.purchaseOrders?.find(po => po.projectId === projectId);
+                            return currentProjectPO && (
+                              <div className="flex items-center gap-2 mt-4 p-3 bg-primary/10 border border-primary rounded-lg">
+                                <CheckCircle className="h-5 w-5 text-primary" />
+                                <div>
+                                  <p className="text-sm font-medium text-primary">{t('messages.quoteSelected')}</p>
+                                  <Link
+                                    href={`/purchase-orders/${currentProjectPO.id}`}
+                                    className="text-sm text-primary hover:underline"
+                                  >
+                                    {t('messages.viewPO', { poNumber: currentProjectPO.poNumber })}
+                                  </Link>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
                         </div>
 
                         {/* 右側：操作按鈕 */}
