@@ -706,10 +706,15 @@ export const purchaseOrderRouter = createTRPCRouter({
       }
 
       // 檢查該專案是否已經選擇過任何報價單（一個專案只能選擇一份報價單）
+      // 注意：只檢查從報價生成的 PO，不包括手動創建的 PO
+      // 排除當前正在處理的報價（允許重新生成同一報價的PO）
       const existingProjectPO = await ctx.prisma.purchaseOrder.findFirst({
         where: {
-          projectId: input.projectId,
-          quoteId: { not: null }, // 只檢查從報價單生成的 PO
+          AND: [
+            { projectId: input.projectId },
+            { quoteId: { not: null } }, // 只檢查從報價單生成的 PO
+            { quoteId: { not: input.quoteId } }, // 排除當前正在處理的報價
+          ],
         },
         include: {
           quote: {

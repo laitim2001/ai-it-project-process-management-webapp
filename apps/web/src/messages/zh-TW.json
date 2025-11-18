@@ -451,6 +451,7 @@
       "viewQuotes": "查看報價",
       "quoteManagementDesc": "在報價管理頁面中可以上傳供應商報價、比較報價，並選擇最終供應商生成採購單",
       "manageQuotes": "管理報價",
+      "noQuotes": "尚無報價記錄",
       "uploadQuote": "上傳報價",
       "viewAllQuotes": "查看所有報價",
       "purchaseOrdersList": "採購單",
