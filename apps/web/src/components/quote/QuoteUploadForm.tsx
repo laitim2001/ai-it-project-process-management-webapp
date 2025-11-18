@@ -170,7 +170,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
       }
 
       toast({
-        title: tToast('success'),
+        title: tToast('success.title'),
         description: t('messages.uploadSuccess'),
         variant: 'success',
       });
