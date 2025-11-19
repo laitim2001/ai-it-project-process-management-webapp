@@ -180,7 +180,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // 保存文件到 public/uploads/quotes/
-    const uploadDir = join(process.cwd(), 'apps', 'web', 'public', 'uploads', 'quotes');
+    // 注意：在開發模式下 process.cwd() 可能返回 apps/web 或 monorepo 根目錄
+    // 需要檢測並調整路徑
+    const cwd = process.cwd();
+    const uploadDir = cwd.endsWith('apps/web') || cwd.endsWith('apps\\web')
+      ? join(cwd, 'public', 'uploads', 'quotes')  // 已在 apps/web 目錄
+      : join(cwd, 'apps', 'web', 'public', 'uploads', 'quotes');  // 在 monorepo 根目錄
     const filePath = join(uploadDir, fileName);
 
     // 確保目錄存在
