@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-11-17 (完成 FEAT-001 Phase 5-6：專案列表進階功能 + 完整測試 - 100% 交付)
+**最後更新**: 2025-11-19 (完成 Bug 修復：報價上傳路徑問題 + 5 個關鍵 bug 修復)
 
 ---
 
@@ -472,6 +472,8 @@
 |---------|------|------|--------|
 | **tRPC Route Handler** | `apps/web/src/app/api/trpc/[trpc]/route.ts` | tRPC API 路由處理器 | 🔴 極高 |
 | **NextAuth API** | `apps/web/src/app/api/auth/[...nextauth]/route.ts` | NextAuth 認證 API 路由處理器 | 🔴 極高 |
+| **Quote Upload API** | `apps/web/src/app/api/upload/quote/route.ts` | 報價單文件上傳 API（含業務驗證、自動建立記錄）| 🟡 高 |
+| **Invoice Upload API** | `apps/web/src/app/api/upload/invoice/route.ts` | 發票文件上傳 API | 🟡 高 |
 
 #### 中間件
 
@@ -582,6 +584,9 @@
 | **NotificationBell** | `apps/web/src/components/notification/NotificationBell.tsx` | 通知鈴鐺圖標元件（Epic 8） | 🟡 高 |
 | **NotificationDropdown** | `apps/web/src/components/notification/NotificationDropdown.tsx` | 通知下拉選單元件（Epic 8） | 🟡 高 |
 | **Notification 元件索引** | `apps/web/src/components/notification/index.ts` | 通知元件統一導出（Epic 8） | 🟢 中 |
+| **CurrencyDisplay** | `apps/web/src/components/shared/CurrencyDisplay.tsx` | 貨幣格式化顯示組件（支援繼承、符號、代碼）（FEAT-002） | 🟡 高 |
+| **CurrencySelect** | `apps/web/src/components/shared/CurrencySelect.tsx` | 貨幣選擇下拉組件（原生 select，載入啟用貨幣）（FEAT-002） | 🟡 高 |
+| **QuoteUploadForm** | `apps/web/src/components/quote/QuoteUploadForm.tsx` | 報價單上傳表單組件（文件類型驗證、自動刷新）（Epic 5） | 🟡 高 |
 
 #### Hooks 與工具
 
