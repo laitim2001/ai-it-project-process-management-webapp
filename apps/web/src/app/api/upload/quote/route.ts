@@ -185,12 +185,27 @@ export async function POST(request: NextRequest) {
 
     // 確保目錄存在
     try {
+      console.log('[Quote Upload] 上傳目錄:', uploadDir);
+      console.log('[Quote Upload] 文件路徑:', filePath);
+      console.log('[Quote Upload] 文件名:', fileName);
+
       if (!existsSync(uploadDir)) {
+        console.log('[Quote Upload] 目錄不存在，正在創建...');
         await mkdir(uploadDir, { recursive: true });
+        console.log('[Quote Upload] 目錄創建成功');
       }
+
       await writeFile(filePath, buffer);
+      console.log('[Quote Upload] 文件保存成功');
+
+      // 驗證文件是否真的存在
+      if (existsSync(filePath)) {
+        console.log('[Quote Upload] 文件驗證：存在');
+      } else {
+        console.log('[Quote Upload] 文件驗證：不存在！');
+      }
     } catch (error) {
-      console.error('文件寫入失敗:', error);
+      console.error('[Quote Upload] 文件寫入失敗:', error);
       return NextResponse.json(
         { error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}` },
         { status: 500 }

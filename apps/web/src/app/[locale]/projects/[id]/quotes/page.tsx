@@ -92,6 +92,7 @@ export default function ProjectQuotesPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const utils = api.useUtils(); // 添加 utils 用於 invalidate 查詢
   const projectId = params.id as string;
 
   // FEAT-002 FIX: AlertDialog 狀態管理
@@ -265,7 +266,9 @@ export default function ProjectQuotesPage() {
         <QuoteUploadForm
           projectId={projectId}
           onSuccess={() => {
-            // 刷新報價列表
+            // 刷新報價列表 - invalidate 所有相關查詢
+            utils.quote.getByProject.invalidate({ projectId });
+            utils.quote.compare.invalidate({ projectId });
             router.refresh();
           }}
         />
