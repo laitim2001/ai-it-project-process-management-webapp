@@ -57,7 +57,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseForm from '@/components/om-expense/OMExpenseForm';
 import { api } from '@/lib/trpc';

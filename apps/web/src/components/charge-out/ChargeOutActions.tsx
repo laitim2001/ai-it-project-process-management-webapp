@@ -63,7 +63,7 @@ import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,

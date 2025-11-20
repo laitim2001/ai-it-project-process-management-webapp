@@ -56,7 +56,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, Link } from "@/i18n/routing";
 import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';

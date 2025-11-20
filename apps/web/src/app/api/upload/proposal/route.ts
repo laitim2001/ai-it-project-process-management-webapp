@@ -1,9 +1,12 @@
 /**
- * @fileoverview 提案文件上傳 API Route - 預算提案文件上傳服務
- * @description 處理預算提案計劃書檔案上傳，支援 PDF、PPT、Word 格式
+ * @fileoverview 提案文件上傳 API Route - 預算提案文件上傳服務（Azure Blob Storage）
+ * @description 處理預算提案計劃書檔案上傳至 Azure Blob Storage，支援 PDF、PPT、Word 格式
  *
  * 此 API 用於 Epic 3 預算提案工作流程，允許專案經理在提交預算提案時上傳專案計劃書。
- * 檔案上傳後保存至伺服器本地檔案系統，並返回檔案路徑供前端儲存至資料庫。
+ * 檔案上傳後保存至 Azure Blob Storage，並返回 Blob URL 供前端儲存至資料庫。
+ *
+ * **✨ Azure 部署準備階段 3 更新**: 文件存儲已從本地文件系統遷移到 Azure Blob Storage，
+ * 確保在 Azure App Service 容器環境中文件永久保存。
  *
  * @api
  * @method POST
@@ -14,7 +17,8 @@
  * - 檔案大小驗證 - 限制單一檔案最大 20MB，適合包含圖表的完整計劃書
  * - 檔案類型驗證 - 使用 MIME Type 驗證，確保只接受文件格式
  * - 唯一檔名生成 - 使用 `proposal_{proposalId}_{timestamp}.{ext}` 格式避免檔名衝突
- * - 自動目錄建立 - 檢查並自動建立 `public/uploads/proposals/` 目錄
+ * - ✨ Azure Blob Storage - 文件永久保存至 Azure Blob Storage（支持本地 Azurite 開發環境）
+ * - 環境自動檢測 - 本地開發使用 Azurite，生產環境使用 Azure Blob Storage
  *
  * @security
  * - 檔案類型白名單驗證（ALLOWED_TYPES）
@@ -25,9 +29,9 @@
  *
  * @dependencies
  * - `next/server` - Next.js App Router API Route 支援
- * - `fs/promises` - Node.js 檔案系統操作（writeFile, mkdir）
- * - `fs` - Node.js 檔案系統同步操作（existsSync）
- * - `path` - 路徑處理工具（join）
+ * - `@/lib/azure-storage` - Azure Blob Storage 服務層（uploadToBlob, BLOB_CONTAINERS）
+ * - `@azure/storage-blob` - Azure Blob Storage SDK（間接依賴）
+ * - `@azure/identity` - Azure 身份驗證（間接依賴，用於 Managed Identity）
  *
  * @related
  * - `apps/web/src/app/[locale]/proposals/new/page.tsx` - 提案新增頁面（呼叫此 API）
@@ -50,7 +54,7 @@
  * });
  *
  * const result = await response.json();
- * // { success: true, filePath: '/uploads/proposals/proposal_PROP-2025-001_1234567890.pdf', ... }
+ * // { success: true, filePath: 'https://itpmprodstorage.blob.core.windows.net/proposals/proposal_PROP-2025-001_1234567890.pdf', ... }
  *
  * @example
  * // 錯誤處理範例
@@ -61,9 +65,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
 const ALLOWED_TYPES = [
@@ -128,24 +130,37 @@ export async function POST(request: NextRequest) {
     // 生成唯一文件名
     const timestamp = Date.now();
     const fileExtension = TYPE_TO_EXTENSION[file.type];
-    const fileName = `proposal_${proposalId}_${timestamp}.${fileExtension}`;
+    const blobName = `proposal_${proposalId}_${timestamp}.${fileExtension}`;
 
-    // 確保上傳目錄存在
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'proposals');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
+    // 上傳文件到 Azure Blob Storage
+    let blobUrl: string;
+    try {
+      console.log('[Proposal Upload] 開始上傳到 Azure Blob Storage...');
+      console.log('[Proposal Upload] Blob 名稱:', blobName);
+      console.log('[Proposal Upload] Container:', BLOB_CONTAINERS.PROPOSALS);
+
+      const uploadResult = await uploadToBlob(
+        file,
+        BLOB_CONTAINERS.PROPOSALS,
+        blobName,
+        file.type
+      );
+
+      blobUrl = uploadResult.url;
+      console.log('[Proposal Upload] 上傳成功，Blob URL:', blobUrl);
+      console.log('[Proposal Upload] 文件大小:', uploadResult.size, 'bytes');
+    } catch (error) {
+      console.error('[Proposal Upload] Azure Blob Storage 上傳失敗:', error);
+      return NextResponse.json(
+        { error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}` },
+        { status: 500 }
+      );
     }
 
-    // 將文件保存到磁盤
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const filePath = join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-
-    // 返回文件路徑（用於前端更新數據庫）
+    // 返回 Blob URL（用於前端更新數據庫）
     return NextResponse.json({
       success: true,
-      filePath: `/uploads/proposals/${fileName}`,
+      filePath: blobUrl, // ✅ 使用 Azure Blob Storage URL
       fileName: file.name,
       fileSize: file.size,
     });

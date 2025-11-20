@@ -37,8 +37,8 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';

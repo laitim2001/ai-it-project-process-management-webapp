@@ -48,7 +48,7 @@
 import { useRouter, Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import {
   Breadcrumb,

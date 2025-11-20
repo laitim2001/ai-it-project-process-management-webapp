@@ -62,7 +62,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';

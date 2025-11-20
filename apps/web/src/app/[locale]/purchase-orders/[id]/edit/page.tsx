@@ -62,7 +62,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Link } from "@/i18n/routing";
 
 export default function EditPurchaseOrderPage() {

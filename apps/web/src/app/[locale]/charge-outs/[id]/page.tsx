@@ -53,7 +53,7 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Building2, FolderOpen, DollarSign, Calendar, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';

@@ -58,7 +58,7 @@ import { Link } from "@/i18n/routing";
 import { useToast } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { ShoppingCart, FileText, Building2, Calendar, DollarSign, Edit, Receipt, AlertCircle, Package } from 'lucide-react';

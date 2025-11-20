@@ -48,7 +48,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseForm from '@/components/om-expense/OMExpenseForm';
 import { useRouter } from "@/i18n/routing";

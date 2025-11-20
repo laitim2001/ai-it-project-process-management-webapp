@@ -64,7 +64,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';

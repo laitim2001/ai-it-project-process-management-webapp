@@ -55,7 +55,7 @@ import { Link } from "@/i18n/routing";
 import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Building2, Mail, Phone, User, Edit, Trash2, FileText, ShoppingCart, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';

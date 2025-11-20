@@ -59,7 +59,7 @@ import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
