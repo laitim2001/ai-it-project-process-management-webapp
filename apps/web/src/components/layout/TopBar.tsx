@@ -58,8 +58,8 @@ import { useState } from "react"
 import { Search, Menu, LogOut, User, Settings, ChevronDown, Bell } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { useTranslations } from 'next-intl'
-import { Button } from "@/components/ui/Button"
-import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,

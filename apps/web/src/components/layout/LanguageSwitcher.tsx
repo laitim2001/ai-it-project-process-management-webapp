@@ -47,7 +47,7 @@
 
 import { useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
