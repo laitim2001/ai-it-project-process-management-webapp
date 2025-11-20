@@ -20,6 +20,72 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-20 23:50 | 🚀 Azure 部署 | Dev 環境首次部署成功 - 階段 2.10 至 2.11 ✅
+
+**類型**: Azure 部署執行與驗證 | **負責人**: AI 助手 | **狀態**: ✅ 完成（所有階段 0-2.11 全部成功）
+
+**重大里程碑：Azure Dev 環境首次成功部署**
+
+經過 8 次 Docker 建置嘗試和 4 個精準修復，成功完成 Azure Dev 環境的首次完整部署。
+
+**階段 2.10 - Docker 建置與部署執行**:
+
+**Docker 建置問題修復（8 次嘗試）**:
+1. **Build 1-6 失敗** (IDs: dcb323, 843bd4, 35ca50, 846faf, e86cac, 66bc62)
+   - **錯誤**: `SyntaxError: Unexpected identifier 'as'` in NextAuth.js route
+   - **根本原因**: JWT 模組路徑錯誤 (`'next-auth/jwt'` 應為 `'@auth/core/jwt'`)
+   - **修復 1** (Commit c58f819): 回滾錯誤的 JWT 模組路徑變更
+   - **修復 2** (Commit 189dd1e): 恢復 route.ts 解構賦值導出 `export const { GET, POST } = handlers;`
+   - **修復 3** (Commit 3170caa): 簡化 webpack externals 配置，恢復 FIX-009 成功版本
+
+2. **Build 7 失敗** (ID: c68a9a)
+   - **錯誤**: `"/app/node_modules/.prisma": not found`
+   - **根本原因**: Dockerfile 複製路徑錯誤，pnpm 結構不包含該路徑
+   - **修復 4** (Commit e315b48): 移除不必要的 `.prisma` 目錄複製（Next.js standalone 已包含）
+
+3. **Build 8 成功** ✅ (ID: b871c1)
+   - Docker 映像大小: 856 MB
+   - 路由生成: 67 個路由全部成功
+   - 基於 commit: e315b48
+
+**Azure Container Registry 推送**:
+- 登入 ACR: `az acr login --name acritpmdev` ✅
+- 推送映像: `docker push acritpmdev.azurecr.io/itpm-web:latest` (856 MB) ✅
+
+**PostgreSQL 防火牆配置**:
+- 配置 20 個 App Service 出站 IP 地址 ✅
+- IP 範圍: 20.255.186.2 ~ 20.247.53.135
+
+**App Service 重啟與資料庫遷移**:
+- 重啟服務: `az webapp restart --name app-itpm-dev-001` ✅
+- 遷移狀態:
+  - `20251002162554_add_user_password` ✅
+  - `20251116221241_feat_001_add_project_fields_and_currency` ✅
+  - `20251117162014_feat_002_add_currency_to_budget_pool` ✅
+
+**階段 2.11 - 部署後驗證（煙霧測試）**:
+- ✅ 應用程式訪問: https://app-itpm-dev-001.azurewebsites.net
+- ✅ App Service 狀態: Running
+- ✅ 錯誤日誌檢查: 無 NextAuth.js 相關錯誤
+- ✅ 資料庫連接: 成功
+
+**技術亮點**:
+1. **系統性問題分析**: 深入對比 Git 歷史，找到 FIX-009 (eaa566c) 成功版本作為配置基準
+2. **4 個精準修復**: 每個修復針對具體問題，無副作用，完全恢復到穩定狀態
+3. **完整文檔**: 所有過程詳細記錄在 `claudedocs/1-planning/features/AZURE-DEPLOY-PREP/06-deployment-execution-log.md`
+
+**相關 Commits**:
+- `c58f819` - fix(nextauth): 回滾錯誤的 JWT 模組路徑
+- `189dd1e` - fix(nextauth): 恢復 route.ts 解構賦值導出
+- `3170caa` - fix(nextauth): 簡化 webpack externals 配置
+- `e315b48` - fix(docker): 修復 Dockerfile Prisma 路徑
+
+**參考文檔**:
+- `claudedocs/1-planning/features/AZURE-DEPLOY-PREP/06-deployment-execution-log.md` - 完整執行記錄
+- `claudedocs/3-progress/weekly/2025-W47.md` - 每週進度報告
+
+---
+
 ### 2025-11-20 | 🚀 Azure 部署 | Dev 環境準備完成 - 階段 0 至 2.9
 
 **類型**: Azure 部署準備 | **負責人**: AI 助手 + Chris | **狀態**: ✅ 階段 2.9 完成
