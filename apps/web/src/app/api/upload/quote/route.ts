@@ -1,10 +1,13 @@
 /**
- * @fileoverview 報價單文件上傳 API Route - 供應商報價檔案上傳服務
- * @description 處理供應商報價單檔案上傳，並自動建立報價記錄至資料庫
+ * @fileoverview 報價單文件上傳 API Route - 供應商報價檔案上傳服務（Azure Blob Storage）
+ * @description 處理供應商報價單檔案上傳至 Azure Blob Storage，並自動建立報價記錄至資料庫
  *
  * 此 API 用於 Epic 5 採購管理流程，允許專案經理為已批准的專案上傳供應商報價單。
  * 與其他上傳 API 不同，此 API 在上傳成功後會直接建立 Quote 記錄至資料庫，
  * 並驗證專案狀態（必須有已批准的提案）和供應商存在性。
+ *
+ * **✨ Azure 部署準備階段 3 更新**: 文件存儲已從本地文件系統遷移到 Azure Blob Storage，
+ * 確保在 Azure App Service 容器環境中文件永久保存。
  *
  * @api
  * @method POST
@@ -16,7 +19,8 @@
  * - 業務邏輯驗證 - 檢查專案是否有已批准提案、供應商是否存在
  * - 資料庫記錄自動建立 - 上傳成功後自動建立 Quote 記錄（包含 vendor、project 關聯）
  * - 唯一檔名生成 - 使用 `quote_{projectId}_{vendorId}_{timestamp}.{ext}` 格式
- * - 自動目錄建立 - 檢查並自動建立 `public/uploads/quotes/` 目錄
+ * - ✨ Azure Blob Storage - 文件永久保存至 Azure Blob Storage（支持本地 Azurite 開發環境）
+ * - 環境自動檢測 - 本地開發使用 Azurite，生產環境使用 Azure Blob Storage
  *
  * @security
  * - 檔案類型白名單驗證（ALLOWED_TYPES）
@@ -28,10 +32,10 @@
  *
  * @dependencies
  * - `next/server` - Next.js App Router API Route 支援
- * - `fs/promises` - Node.js 檔案系統操作（writeFile, mkdir）
- * - `fs` - Node.js 檔案系統同步操作（existsSync）
- * - `path` - 路徑處理工具（join）
  * - `@itpm/db` - Prisma Client，用於資料庫操作
+ * - `@/lib/azure-storage` - Azure Blob Storage 服務層（uploadToBlob, BLOB_CONTAINERS）
+ * - `@azure/storage-blob` - Azure Blob Storage SDK（間接依賴）
+ * - `@azure/identity` - Azure 身份驗證（間接依賴，用於 Managed Identity）
  *
  * @related
  * - `apps/web/src/app/[locale]/quotes/page.tsx` - 報價單列表頁面
@@ -61,7 +65,7 @@
  * //   quote: {
  * //     id: 'QUOTE-001',
  * //     amount: 50000,
- * //     filePath: '/uploads/quotes/quote_PROJ-2025-001_VENDOR-001_1234567890.pdf',
+ * //     filePath: 'https://itpmprodstorage.blob.core.windows.net/quotes/quote_PROJ-2025-001_VENDOR-001_1234567890.pdf',
  * //     vendor: { id: 'VENDOR-001', name: 'ABC 科技有限公司' },
  * //     project: { id: 'PROJ-2025-001', name: 'ERP 系統升級專案' }
  * //   }
@@ -76,10 +80,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { prisma } from '@itpm/db';
+import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
 const ALLOWED_TYPES = [
@@ -173,57 +175,40 @@ export async function POST(request: NextRequest) {
     // 生成唯一文件名
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
-    const fileName = `quote_${projectId}_${vendorId}_${timestamp}.${fileExtension}`;
+    const blobName = `quote_${projectId}_${vendorId}_${timestamp}.${fileExtension}`;
 
-    // 文件存儲路徑
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // 保存文件到 public/uploads/quotes/
-    // 注意：在開發模式下 process.cwd() 可能返回 apps/web 或 monorepo 根目錄
-    // 需要檢測並調整路徑
-    const cwd = process.cwd();
-    const uploadDir = cwd.endsWith('apps/web') || cwd.endsWith('apps\\web')
-      ? join(cwd, 'public', 'uploads', 'quotes')  // 已在 apps/web 目錄
-      : join(cwd, 'apps', 'web', 'public', 'uploads', 'quotes');  // 在 monorepo 根目錄
-    const filePath = join(uploadDir, fileName);
-
-    // 確保目錄存在
+    // 上傳文件到 Azure Blob Storage
+    let blobUrl: string;
     try {
-      console.log('[Quote Upload] 上傳目錄:', uploadDir);
-      console.log('[Quote Upload] 文件路徑:', filePath);
-      console.log('[Quote Upload] 文件名:', fileName);
+      console.log('[Quote Upload] 開始上傳到 Azure Blob Storage...');
+      console.log('[Quote Upload] Blob 名稱:', blobName);
+      console.log('[Quote Upload] Container:', BLOB_CONTAINERS.QUOTES);
 
-      if (!existsSync(uploadDir)) {
-        console.log('[Quote Upload] 目錄不存在，正在創建...');
-        await mkdir(uploadDir, { recursive: true });
-        console.log('[Quote Upload] 目錄創建成功');
-      }
+      const uploadResult = await uploadToBlob(
+        file,
+        BLOB_CONTAINERS.QUOTES,
+        blobName,
+        file.type
+      );
 
-      await writeFile(filePath, buffer);
-      console.log('[Quote Upload] 文件保存成功');
-
-      // 驗證文件是否真的存在
-      if (existsSync(filePath)) {
-        console.log('[Quote Upload] 文件驗證：存在');
-      } else {
-        console.log('[Quote Upload] 文件驗證：不存在！');
-      }
+      blobUrl = uploadResult.url;
+      console.log('[Quote Upload] 上傳成功，Blob URL:', blobUrl);
+      console.log('[Quote Upload] 文件大小:', uploadResult.size, 'bytes');
     } catch (error) {
-      console.error('[Quote Upload] 文件寫入失敗:', error);
+      console.error('[Quote Upload] Azure Blob Storage 上傳失敗:', error);
       return NextResponse.json(
         { error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}` },
         { status: 500 }
       );
     }
 
-    // 創建報價記錄
+    // 創建報價記錄（使用 Blob URL）
     const quote = await prisma.quote.create({
       data: {
         projectId,
         vendorId,
         amount: parseFloat(amount),
-        filePath: `/uploads/quotes/${fileName}`,
+        filePath: blobUrl, // ✅ 使用 Azure Blob Storage URL
         uploadDate: new Date(),
       },
       include: {
@@ -258,10 +243,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// 禁用 Next.js 的 body parser，讓我們手動處理文件上傳
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

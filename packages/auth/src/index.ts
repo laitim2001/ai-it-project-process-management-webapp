@@ -3,7 +3,7 @@
  *
  * @description
  * NextAuth.js 認證系統的核心配置，支援雙重認證模式：
- * 1. **Azure AD B2C SSO** - 企業級單一登入（生產環境）
+ * 1. **Azure AD (Microsoft Entra ID) SSO** - 企業級單一登入（生產環境）
  * 2. **Credentials Provider** - 本地帳號密碼認證（開發/測試）
  *
  * 使用 JWT 會話策略，無需資料庫會話表，所有會話資訊加密儲存於 JWT token。
@@ -88,7 +88,7 @@ console.log('🚀 NextAuth 配置文件正在載入...');
 import type { User as NextAuthUser } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import AzureADB2CProvider from 'next-auth/providers/azure-ad-b2c';
+import AzureADProvider from 'next-auth/providers/azure-ad';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
@@ -171,26 +171,24 @@ export const authOptions: any = {
 
   // 認證提供者
   providers: [
-    // Azure AD B2C Provider (Epic 1 - Story 1.3)
-    ...(process.env.AZURE_AD_B2C_CLIENT_ID && process.env.AZURE_AD_B2C_CLIENT_SECRET
+    // Azure AD Provider (Microsoft Entra ID)
+    ...(process.env.AZURE_AD_CLIENT_ID && process.env.AZURE_AD_CLIENT_SECRET
       ? [
-          AzureADB2CProvider({
-            clientId: process.env.AZURE_AD_B2C_CLIENT_ID,
-            clientSecret: process.env.AZURE_AD_B2C_CLIENT_SECRET,
-            // @ts-ignore - tenantId is required for Azure AD B2C but not in type definition
-            tenantId: process.env.AZURE_AD_B2C_TENANT_NAME || '',
-            primaryUserFlow: process.env.AZURE_AD_B2C_PRIMARY_USER_FLOW || 'B2C_1_signupsignin',
+          AzureADProvider({
+            clientId: process.env.AZURE_AD_CLIENT_ID,
+            clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
+            tenantId: process.env.AZURE_AD_TENANT_ID,
             authorization: {
               params: {
-                scope: process.env.AZURE_AD_B2C_SCOPE || 'openid profile email offline_access',
+                scope: 'openid profile email User.Read',
               },
             },
             // 自定義 profile 映射
             profile(profile: any) {
               return {
                 id: profile.sub || profile.oid,
-                email: profile.email || profile.emails?.[0] || profile.preferred_username,
-                name: profile.name || `${profile.given_name || ''} ${profile.family_name || ''}`.trim(),
+                email: profile.email || profile.preferred_username || profile.upn,
+                name: profile.name,
                 image: profile.picture,
                 emailVerified: profile.email_verified ? new Date() : null,
                 roleId: 1, // 預設為 ProjectManager
@@ -279,8 +277,8 @@ export const authOptions: any = {
         console.log('⚠️ JWT callback: 用戶不存在');
       }
 
-      // Azure AD B2C 登入時，確保用戶在資料庫中存在
-      if (account?.provider === 'azure-ad-b2c' && user) {
+      // Azure AD 登入時，確保用戶在資料庫中存在
+      if (account?.provider === 'azure-ad' && user) {
         const dbUser = await prisma.user.upsert({
           where: { email: user.email },
           update: {

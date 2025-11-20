@@ -1,9 +1,12 @@
 /**
- * @fileoverview 發票文件上傳 API Route - 費用記錄檔案上傳服務
- * @description 處理費用發票檔案上傳，支援多種檔案格式，並進行嚴格驗證
+ * @fileoverview 發票文件上傳 API Route - 費用記錄檔案上傳服務（Azure Blob Storage）
+ * @description 處理費用發票檔案上傳至 Azure Blob Storage，支援多種檔案格式，並進行嚴格驗證
  *
  * 此 API 用於 Epic 6 費用管理流程，允許專案經理在記錄費用時上傳發票掃描檔或電子檔。
- * 檔案上傳後保存至伺服器本地檔案系統，並返回檔案路徑供前端儲存至資料庫。
+ * 檔案上傳後保存至 Azure Blob Storage，並返回 Blob URL 供前端儲存至資料庫。
+ *
+ * **✨ Azure 部署準備階段 3 更新**: 文件存儲已從本地文件系統遷移到 Azure Blob Storage，
+ * 確保在 Azure App Service 容器環境中文件永久保存。
  *
  * @api
  * @method POST
@@ -14,7 +17,8 @@
  * - 檔案大小驗證 - 限制單一檔案最大 10MB，防止伺服器儲存空間濫用
  * - 檔案類型驗證 - 使用 MIME Type 驗證，拒絕不支援的檔案格式
  * - 唯一檔名生成 - 使用 `invoice_{purchaseOrderId}_{timestamp}.{ext}` 格式避免檔名衝突
- * - 本地檔案系統儲存 - 儲存至 `public/uploads/invoices/` 目錄，可直接透過 URL 訪問
+ * - ✨ Azure Blob Storage - 文件永久保存至 Azure Blob Storage（支持本地 Azurite 開發環境）
+ * - 環境自動檢測 - 本地開發使用 Azurite，生產環境使用 Azure Blob Storage
  *
  * @security
  * - 檔案類型白名單驗證（ALLOWED_TYPES）
@@ -25,8 +29,9 @@
  *
  * @dependencies
  * - `next/server` - Next.js App Router API Route 支援
- * - `fs/promises` - Node.js 檔案系統操作（writeFile）
- * - `path` - 路徑處理工具（join）
+ * - `@/lib/azure-storage` - Azure Blob Storage 服務層（uploadToBlob, BLOB_CONTAINERS）
+ * - `@azure/storage-blob` - Azure Blob Storage SDK（間接依賴）
+ * - `@azure/identity` - Azure 身份驗證（間接依賴，用於 Managed Identity）
  *
  * @related
  * - `apps/web/src/app/[locale]/expenses/new/page.tsx` - 費用新增頁面（呼叫此 API）
@@ -49,7 +54,7 @@
  * });
  *
  * const result = await response.json();
- * // { success: true, filePath: '/uploads/invoices/invoice_PO-2025-001_1234567890.pdf', ... }
+ * // { success: true, filePath: 'https://itpmprodstorage.blob.core.windows.net/invoices/invoice_PO-2025-001_1234567890.pdf', ... }
  *
  * @example
  * // 錯誤處理範例
@@ -60,8 +65,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
 const ALLOWED_TYPES = [
@@ -120,33 +124,39 @@ export async function POST(request: NextRequest) {
     // 生成唯一文件名
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
-    const fileName = `invoice_${purchaseOrderId}_${timestamp}.${fileExtension}`;
+    const blobName = `invoice_${purchaseOrderId}_${timestamp}.${fileExtension}`;
 
-    // 文件存儲路徑
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // 保存文件到 public/uploads/invoices/
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'invoices');
-    const filePath = join(uploadDir, fileName);
-
-    // 確保目錄存在並寫入文件
+    // 上傳文件到 Azure Blob Storage
+    let blobUrl: string;
     try {
-      await writeFile(filePath, buffer);
+      console.log('[Invoice Upload] 開始上傳到 Azure Blob Storage...');
+      console.log('[Invoice Upload] Blob 名稱:', blobName);
+      console.log('[Invoice Upload] Container:', BLOB_CONTAINERS.INVOICES);
+
+      const uploadResult = await uploadToBlob(
+        file,
+        BLOB_CONTAINERS.INVOICES,
+        blobName,
+        file.type
+      );
+
+      blobUrl = uploadResult.url;
+      console.log('[Invoice Upload] 上傳成功，Blob URL:', blobUrl);
+      console.log('[Invoice Upload] 文件大小:', uploadResult.size, 'bytes');
     } catch (error) {
-      console.error('文件寫入失敗:', error);
+      console.error('[Invoice Upload] Azure Blob Storage 上傳失敗:', error);
       return NextResponse.json(
-        { error: '文件上傳失敗，請稍後再試' },
+        { error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}` },
         { status: 500 }
       );
     }
 
-    // 返回文件路徑
+    // 返回 Blob URL
     return NextResponse.json({
       success: true,
       message: '發票上傳成功',
-      filePath: `/uploads/invoices/${fileName}`,
-      fileName: fileName,
+      filePath: blobUrl, // ✅ 使用 Azure Blob Storage URL
+      fileName: blobName,
       originalName: file.name,
     });
 
@@ -158,10 +168,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// 禁用 Next.js 的 body parser
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
