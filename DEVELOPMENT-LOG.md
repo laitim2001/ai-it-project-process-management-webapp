@@ -20,6 +20,56 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-20 | 🚀 Azure 部署 | Dev 環境準備完成 - 階段 0 至 2.9
+
+**類型**: Azure 部署準備 | **負責人**: AI 助手 + Chris | **狀態**: ✅ 階段 2.9 完成
+
+**重大變更：Azure AD B2C → Azure AD 遷移**
+
+在階段 2.7 配置 Key Vault 之前，收到新需求需要使用 **Azure AD (Microsoft Entra ID) SSO** 而非 **Azure AD B2C**。
+採用**方案 A（立即遷移）**以避免未來返工。
+
+**Azure AD 應用註冊**:
+- App Name: `itpm-web-dev`
+- Tenant ID: `d669e5ca-6325-48ee-a72e-656a87ad559d`
+- Client ID: `f0d8a3fe-158c-4791-8606-536230e4f8ac`
+- Redirect URIs: localhost + App Service URL
+
+**代碼修改** (Commit 116c4bf):
+- ✅ `packages/auth/src/index.ts` - 切換到 AzureADProvider
+- ✅ `apps/web/src/app/[locale]/login/page.tsx` - 更新 UI 和文檔
+- ✅ `apps/web/src/app/api/upload/invoice/route.ts` - 移除 deprecated config
+- ✅ `apps/web/src/app/api/upload/quote/route.ts` - 移除 deprecated config
+
+**Azure 資源創建完成**:
+1. ✅ 資源群組: `rg-itpm-dev` (eastasia)
+2. ✅ Key Vault: `kv-itpm-dev` (12 個密鑰，包含 Azure AD 憑證)
+3. ✅ PostgreSQL: `psql-itpm-dev-001` (v16, Standard_B1ms, 32GB)
+4. ✅ Blob Storage: `stgitpmdev001` (quotes + invoices containers)
+5. ✅ Container Registry: `acritpmdev` (Basic SKU)
+6. ✅ App Service Plan: `plan-itpm-dev` (B1 Linux)
+7. ✅ App Service: `app-itpm-dev-001` (Managed Identity 已啟用)
+
+**環境配置**:
+- ✅ Key Vault 訪問策略已配置（User + App Service）
+- ✅ App Service 環境變數已配置（19 個，全部從 Key Vault 引用）
+- ✅ ACR 已連接到 App Service
+
+**遇到的問題與解決**:
+1. ✅ Azure CLI Token 過期 → 重新登入
+2. ✅ Dockerfile eslint-config 引用錯誤 → 移除引用
+3. ✅ Next.js 14 deprecated config → 移除 export config
+4. ✅ rdbms-connect extension 文件鎖定 → 手動刪除並重裝
+5. ✅ Microsoft.Web provider 未註冊 → 註冊 provider
+
+**下一步**: 階段 2.10 - 首次部署（Docker build + push + 資料庫遷移）
+
+**相關文檔**:
+- 執行日誌: `claudedocs/1-planning/features/AZURE-DEPLOY-PREP/06-deployment-execution-log.md`
+- Git Commit: `116c4bf` (Azure AD 遷移)
+
+---
+
 ### 2025-11-17 | ✨ 功能開發 | FEAT-002 Phase 2 完成 - 貨幣系統擴展至 PurchaseOrder & Expense
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成 (67% of FEAT-002)
