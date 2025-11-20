@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@itpm/api', '@itpm/db'],
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
   experimental: {
     typedRoutes: true,
     // Disable worker threads that may conflict with Prisma
@@ -13,13 +15,11 @@ const nextConfig = {
     cpus: 1,
   },
   // Configure webpack to handle Prisma properly
-  webpack: (config, { isServer, nextRuntime }) => {
-    // Prisma Client 需要在所有 server-side 和 middleware contexts 中標記為 external
-    // 這包括：Node.js runtime (isServer=true) 和 Edge runtime (nextRuntime='edge')
-    if (isServer || nextRuntime === 'edge' || nextRuntime === 'nodejs') {
+  webpack: (config, { isServer }) => {
+    // Prisma Client 只需要在 server-side (Node.js) runtime 中標記為 external
+    // Edge runtime 不使用 Prisma（由 auth.config.ts 處理）
+    if (isServer) {
       config.externals.push('@prisma/client');
-      config.externals.push('@itpm/db');
-      config.externals.push('bcryptjs');
     }
     return config;
   },
