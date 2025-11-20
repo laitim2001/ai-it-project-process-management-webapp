@@ -59,15 +59,8 @@
 import { handlers } from '../../../../auth';
 
 /**
- * NextAuth.js GET Handler
- * 處理 GET 請求（如 Session 查詢、OAuth Callback）
+ * NextAuth.js Handlers
+ * 處理所有認證相關請求（GET: Session查詢/OAuth Callback, POST: 登入/登出/Credentials驗證）
  * @type {import('next/server').NextApiHandler}
  */
-export const GET = handlers.GET;
-
-/**
- * NextAuth.js POST Handler
- * 處理 POST 請求（如登入、登出、Credentials 驗證）
- * @type {import('next/server').NextApiHandler}
- */
-export const POST = handlers.POST;
+export const { GET, POST } = handlers;
