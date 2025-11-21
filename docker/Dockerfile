@@ -98,9 +98,16 @@ COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/
 # Explicitly copy Prisma Client for pnpm monorepo compatibility
 # Standalone output doesn't automatically include @prisma/client from workspace packages
 # This is required because next.config.mjs marks @prisma/client as webpack external
-# We need to copy to root node_modules (where standalone looks for it)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma ./node_modules/.prisma
+#
+# Node.js module resolution: require('@prisma/client') looks for:
+# 1. node_modules/@prisma/client/
+# 2. Parent directories' node_modules/@prisma/client/
+#
+# We create a complete @prisma/client package structure that Node.js can resolve
+# Copy the complete @prisma/client package from pnpm virtual store to standard node_modules structure
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client ./node_modules/@prisma/client
+# Copy the generated Prisma Client (.prisma directory) to standard location
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
 
 # Switch to non-root user
 USER nextjs
