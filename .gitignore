@@ -176,8 +176,14 @@ docker-compose.override.yml
 # Azure Functions
 local.settings.json
 
-# Azure CLI
-.azure/
+# Azure CLI - 只忽略敏感文件，保留配置範例
+.azure/credentials.json
+.azure/*.local
+.azure/**/sp-*.json
+!.azure/environments/
+!.azure/scripts/
+!.azure/docs/
+!.azure/README.md
 
 # ------------------------------------------------------------------------------
 # Temporary Files

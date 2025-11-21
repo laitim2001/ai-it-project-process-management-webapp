@@ -69,12 +69,34 @@ services:
     networks:
       - itpm-network
 
+  # Azurite for Azure Blob Storage emulation (local development)
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: itpm-azurite-dev
+    restart: unless-stopped
+    ports:
+      - '10000:10000' # Blob service
+      - '10001:10001' # Queue service (not used yet)
+      - '10002:10002' # Table service (not used yet)
+    volumes:
+      - azurite_data:/data
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --loose
+    healthcheck:
+      test: nc 127.0.0.1 10000 -z
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - itpm-network
+
 volumes:
   postgres_data:
     driver: local
   pgadmin_data:
     driver: local
   redis_data:
+    driver: local
+  azurite_data:
     driver: local
 
 networks:

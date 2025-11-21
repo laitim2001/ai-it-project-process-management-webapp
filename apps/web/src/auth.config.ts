@@ -127,6 +127,14 @@ export const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
 
   // ========================================
+  // 🌐 Trust Host Configuration
+  // ========================================
+  // trustHost: true 允許 NextAuth 接受來自任何 Host 的請求
+  // 這在 Docker 容器、反向代理、Azure App Service 等環境中是必需的
+  // 因為請求的 Host header 可能與 NEXTAUTH_URL 不完全匹配
+  trustHost: true,
+
+  // ========================================
   // 🐞 Debug Configuration
   // ========================================
   debug: process.env.NODE_ENV === 'development',

@@ -252,18 +252,19 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ### 步驟 3: 啟動 Docker 服務
 
 ```bash
-# 啟動所有服務 (PostgreSQL, Redis, MailHog, pgAdmin)
+# 啟動所有服務 (PostgreSQL, Redis, MailHog, Azurite, pgAdmin)
 docker-compose up -d
 
 # 查看服務狀態
 docker-compose ps
 
 # 預期輸出:
-# NAME                  IMAGE                      STATUS
-# itpm-postgres-dev     postgres:16-alpine         Up 30 seconds (healthy)
-# itpm-redis-dev        redis:7-alpine             Up 30 seconds (healthy)
-# itpm-mailhog          mailhog/mailhog:latest     Up 30 seconds
-# itpm-pgadmin          dpage/pgadmin4:latest      Up 30 seconds
+# NAME                  IMAGE                                STATUS
+# itpm-postgres-dev     postgres:16-alpine                   Up 30 seconds (healthy)
+# itpm-redis-dev        redis:7-alpine                       Up 30 seconds (healthy)
+# itpm-mailhog          mailhog/mailhog:latest               Up 30 seconds
+# itpm-azurite-dev      mcr.microsoft.com/azure-storage/azurite   Up 30 seconds (healthy)
+# itpm-pgadmin          dpage/pgadmin4:latest                Up 30 seconds
 ```
 
 **驗證服務**:
@@ -273,7 +274,26 @@ docker-compose ps
 | PostgreSQL | `localhost:5434` | 資料庫 |
 | pgAdmin | `http://localhost:5050` | 資料庫管理 (登入: `admin@itpm.local` / `admin123`) |
 | Redis | `localhost:6381` | 緩存 |
+| **Azurite Blob** | `http://localhost:10000` | **Azure Blob Storage 模擬器 (文件上傳)** |
 | MailHog UI | `http://localhost:8025` | 查看測試郵件 |
+
+**🔍 驗證 Azurite 連接**:
+```bash
+# 測試 Azurite Blob Service
+curl http://127.0.0.1:10000/devstoreaccount1?comp=list
+
+# 預期回應: XML 格式的 Container 列表（初始為空）
+# <?xml version="1.0" encoding="UTF-8"?>
+# <EnumerationResults ServiceEndpoint="http://127.0.0.1:10000/devstoreaccount1">
+#   <Containers/>
+# </EnumerationResults>
+```
+
+**💡 Azurite 說明**:
+- Azurite 是 Azure Blob Storage 的本地模擬器
+- 確保開發環境與生產環境代碼一致性
+- 無需 Azure 帳號即可進行文件上傳功能開發
+- 文件存儲在 Docker Volume: `azurite_data`
 
 **常見問題**:
 - ❌ **Port 已被佔用**: 修改 `docker-compose.yml` 中的端口映射
@@ -454,7 +474,7 @@ pnpm dev
 
 **可能原因**:
 - Docker Desktop 未啟動
-- 端口被佔用（5432, 6379, 1025, 8025）
+- 端口被佔用（5434, 6381, 1025, 8025, 10000-10002）
 - WSL 2 未啟用（Windows）
 
 **解決方案**:
@@ -464,18 +484,90 @@ pnpm dev
 docker ps
 
 # 檢查端口佔用 (Windows)
-netstat -ano | findstr "5434 6381 1025 8025"
+netstat -ano | findstr "5434 6381 1025 8025 10000"
 
 # 檢查端口佔用 (macOS/Linux)
-lsof -i :5434 -i :6381 -i :1025 -i :8025
+lsof -i :5434 -i :6381 -i :1025 -i :8025 -i :10000
 
 # 如果端口被佔用，修改 docker-compose.yml:
 # postgres:
 #   ports:
 #     - '5435:5432'  # 改為 5435
+# azurite:
+#   ports:
+#     - '10010:10000'  # Blob service 改為 10010
 ```
 
-### 問題 2: pnpm install 失敗
+### 問題 2: Azurite 容器無法啟動或文件上傳失敗
+
+**症狀 1**: `Error starting userland proxy: listen tcp4 0.0.0.0:10000: bind: address already in use`
+
+**解決方案**:
+```bash
+# 檢查 10000 端口佔用 (Windows)
+netstat -ano | findstr :10000
+
+# 檢查 10000 端口佔用 (macOS/Linux)
+lsof -i :10000
+
+# 停止佔用端口的進程或修改 docker-compose.yml 中的端口映射
+```
+
+**症狀 2**: 文件上傳失敗，錯誤訊息: `Error: connect ECONNREFUSED 127.0.0.1:10000`
+
+**可能原因**:
+- Azurite 容器未啟動
+- 環境變數配置錯誤
+- Next.js 開發伺服器未重啟
+
+**解決方案**:
+```bash
+# 1. 確認 Azurite 容器正在運行
+docker-compose ps azurite
+
+# 如果未運行，啟動 Azurite
+docker-compose up -d azurite
+
+# 2. 確認環境變數設置
+cat .env | grep AZURE_STORAGE_USE_DEVELOPMENT
+# 應顯示: AZURE_STORAGE_USE_DEVELOPMENT=true
+
+# 3. 重啟 Next.js 開發伺服器
+# 停止當前的 pnpm dev (Ctrl+C)
+pnpm dev
+```
+
+**症狀 3**: 上傳成功但無法下載文件或文件不存在
+
+**可能原因**: Container 未自動創建
+
+**解決方案**:
+```bash
+# 方法 1: 使用測試腳本自動創建 (推薦)
+node scripts/test-blob-storage.js
+
+# 方法 2: 手動使用 Azure Storage Explorer
+# 1. 下載安裝: https://azure.microsoft.com/features/storage-explorer/
+# 2. 連接到 Azurite:
+#    - Connection String: UseDevelopmentStorage=true
+# 3. 手動創建 containers: quotes, invoices, proposals
+```
+
+**症狀 4**: 需要清空 Azurite 測試數據
+
+**解決方案**:
+```bash
+# 停止並刪除 Azurite 容器和數據卷
+docker-compose down azurite
+docker volume rm ai-it-project-process-management-webapp_azurite_data
+
+# 重新啟動 Azurite（會創建新的空數據卷）
+docker-compose up -d azurite
+```
+
+---
+
+### 問題 3: pnpm install 失敗
 
 **症狀**: 依賴安裝時報錯
 
@@ -615,12 +707,16 @@ pnpm check:env
 - [ ] pnpm >= 8.0.0: `pnpm --version`
 - [ ] Docker 正在運行: `docker ps`
 - [ ] PostgreSQL 容器健康: `docker-compose ps postgres`
+- [ ] **Azurite 容器健康**: `docker-compose ps azurite`
+- [ ] **Azurite 連接測試**: `curl http://127.0.0.1:10000/devstoreaccount1?comp=list`
 - [ ] .env 檔案存在且配置正確: `cat .env`
+- [ ] **Azurite 環境變數**: `.env` 包含 `AZURE_STORAGE_USE_DEVELOPMENT=true`
 - [ ] 依賴已安裝: `ls node_modules`
 - [ ] Prisma Client 已生成: `ls node_modules/.prisma/client`
 - [ ] 資料庫已遷移: 訪問 `http://localhost:5050` (pgAdmin)
 - [ ] 開發服務器啟動: `pnpm dev`
 - [ ] 應用可訪問: 打開 `http://localhost:3000`
+- [ ] **文件上傳功能測試**: 登入後測試報價單/發票上傳功能
 
 ---
 

@@ -15,7 +15,9 @@
 # ----------------------------------------------------------------------------
 # Stage 1: Base - Setup Node.js and pnpm
 # ----------------------------------------------------------------------------
-FROM node:20-alpine AS base
+# Use Alpine 3.17 which includes OpenSSL 1.1.x (required by Prisma)
+# Alpine 3.19+ uses OpenSSL 3.x which is incompatible with Prisma engines
+FROM node:20-alpine3.17 AS base
 
 # Install dependencies for native modules
 RUN apk add --no-cache libc6-compat
@@ -85,13 +87,20 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder
-# Next.js standalone output (already includes all required node_modules and Prisma Client)
+# Next.js standalone output (includes most dependencies)
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 # Copy Prisma schema files (required for runtime migrations and introspection)
 COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
+
+# Explicitly copy Prisma Client for pnpm monorepo compatibility
+# Standalone output doesn't automatically include @prisma/client from workspace packages
+# This is required because next.config.mjs marks @prisma/client as webpack external
+# We need to copy to root node_modules (where standalone looks for it)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma ./node_modules/.prisma
 
 # Switch to non-root user
 USER nextjs
