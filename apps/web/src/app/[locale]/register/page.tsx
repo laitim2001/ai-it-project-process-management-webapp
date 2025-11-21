@@ -96,14 +96,28 @@ export default function RegisterPage() {
     }
 
     try {
-      // TODO: 實現註冊 API 調用
-      // const result = await signUp({ email, password, name });
+      // 調用註冊 API
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-      // 模擬 API 調用
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = await response.json();
 
+      if (!response.ok) {
+        // API 返回錯誤（400 或 500）
+        setError(data.error || t('errors.registerFailed'));
+        setIsLoading(false);
+        return;
+      }
+
+      // 註冊成功
       setSuccess(true);
     } catch (err) {
+      console.error('❌ 註冊異常:', err);
       setError(t('errors.registerFailed'));
     } finally {
       setIsLoading(false);

@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "2.7.4",
+    "@azure/identity": "^4.13.0",
+    "@azure/storage-blob": "^12.29.1",
     "@hookform/resolvers": "^5.2.2",
     "@itpm/api": "workspace:*",
     "@itpm/auth": "workspace:*",
@@ -46,6 +48,8 @@
     "@trpc/next": "^10.45.1",
     "@trpc/react-query": "^10.45.1",
     "@trpc/server": "^10.45.1",
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

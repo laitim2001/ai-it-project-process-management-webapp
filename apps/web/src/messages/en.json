@@ -226,15 +226,40 @@
     },
     "register": {
       "title": "Sign Up",
-      "subtitle": "建立您的帳號",
-      "name": "Name",
-      "email": "Email",
-      "password": "Password",
-      "confirmPassword": "Confirm Password",
-      "hasAccount": "已有帳號？",
-      "signIn": "Login",
+      "subtitle": "Create Your Account",
+      "description": "Please fill in the following information to create a new account",
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter your name"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter your email"
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Set password (at least 8 characters)"
+      },
+      "confirmPassword": {
+        "label": "Confirm Password",
+        "placeholder": "Enter password again"
+      },
+      "hasAccount": "Already have an account?",
+      "loginNow": "Sign in now",
+      "signIn": "Sign In",
       "registerButton": "Sign Up",
-      "registering": "註冊中..."
+      "registering": "Signing up...",
+      "errors": {
+        "passwordMismatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "registerFailed": "Registration failed, please try again later",
+        "emailAlreadyExists": "This email is already registered"
+      },
+      "successTitle": "Registration Successful",
+      "successDescription": "Your account has been successfully created",
+      "successMessage": "Click the button below to go to the login page",
+      "goToLogin": "Go to Login",
+      "termsAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy"
     },
     "forgotPassword": {
       "title": "Forgot Password",

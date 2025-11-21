@@ -20,6 +20,93 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-21 | 🔐 用戶註冊系統 | 完整實現用戶註冊功能 ✅
+
+**類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+用戶在手動測試後發現兩個問題：
+1. Login 頁面的 Register 連結缺少 i18n 語言路由（跳轉到 `/register` 而非 `/zh-TW/register`）
+2. Register 頁面僅有 mock 實現（顯示成功但未創建資料庫記錄、無密碼加密、無重複帳號檢查）
+
+**實現內容**:
+
+1. **創建完整註冊 API** (`apps/web/src/app/api/auth/register/route.ts`):
+   - POST endpoint 完整實現（229 行）
+   - Zod schema 輸入驗證（name, email, password）
+   - bcrypt 密碼加密（10 salt rounds）
+   - 重複 email 檢查（Prisma unique constraint）
+   - 預設 roleId = 1 (ProjectManager)
+   - 完整錯誤處理（400 驗證錯誤、400 重複帳號、500 系統錯誤）
+
+2. **修復 Login 頁面 i18n 路由問題**:
+   - 文件：`apps/web/src/app/[locale]/login/page.tsx`
+   - Line 61: 添加 `Link` import from `@/i18n/routing`
+   - Lines 277-282: 將 `<a href="/register">` 改為 `<Link href="/register">`
+   - 結果：現在正確導航至 `/zh-TW/register`
+
+3. **更新 Register 頁面連接實際 API**:
+   - 文件：`apps/web/src/app/[locale]/register/page.tsx`
+   - Lines 98-124: 替換 mock `setTimeout` 為實際 API 調用
+   - 使用 `fetch('/api/auth/register')` POST 請求
+   - 完整錯誤處理和成功狀態管理
+
+4. **更新翻譯文件**:
+   - `apps/web/src/messages/zh-TW.json` (Lines 252-257):
+     - 新增 `emailAlreadyExists` 錯誤訊息
+   - `apps/web/src/messages/en.json` (Lines 227-263):
+     - 完整重構 register 命名空間結構
+     - 匹配 zh-TW.json 嵌套結構
+     - 新增所有缺失的翻譯鍵
+
+5. **安裝必要依賴**:
+   - 執行：`pnpm add bcrypt @types/bcrypt --filter=web`
+   - 修正 monorepo workspace 安裝方式
+
+**錯誤修復過程**:
+
+1. **錯誤1 - Link is not defined**:
+   - 錯誤：`ReferenceError: Link is not defined` at `login/page.tsx:277:14`
+   - 原因：改用 `<Link>` 但忘記 import
+   - 修復：在 Line 61 添加 Link import
+
+2. **錯誤2 - Module not found bcrypt**:
+   - 錯誤：`Module not found: Can't resolve 'bcrypt'` at `api/auth/register/route.ts:41:1`
+   - 原因：bcrypt 未安裝
+   - 修復：使用 `--filter=web` 安裝到正確 workspace
+
+**測試結果** (用戶確認):
+- ✅ i18n 路由正常：`/zh-TW/login` → `/zh-TW/register`
+- ✅ 註冊功能正常：創建 User 記錄到資料庫
+- ✅ 密碼加密：bcrypt hash 儲存
+- ✅ 重複檢查：相同 email 顯示錯誤
+- ✅ 登入功能：可使用新註冊帳號登入
+- **用戶反饋**: "經過測試之後, 現在可以正常注冊和登錄了"
+
+**技術亮點**:
+- **完整的註冊流程**: 輸入驗證 → 重複檢查 → 密碼加密 → 用戶創建
+- **安全性**: bcrypt 10 rounds, 密碼不明文儲存, Prisma unique constraint
+- **i18n 路由**: 正確使用 next-intl Link 組件保持語言前綴
+- **錯誤處理**: 區分驗證錯誤、重複帳號、系統錯誤，提供清晰的用戶反饋
+- **用戶體驗**: 即時反饋、清晰的錯誤訊息、成功狀態頁面
+
+**代碼統計**:
+- 新增檔案：1 個 (229 行)
+- 修改檔案：5 個
+- 新增依賴：2 個 (bcrypt + @types/bcrypt)
+- 修改行數：~100 lines
+- 新增翻譯鍵：2 個 (emailAlreadyExists 中英文)
+
+**相關檔案**:
+- `apps/web/src/app/api/auth/register/route.ts` (新增)
+- `apps/web/src/app/[locale]/login/page.tsx`
+- `apps/web/src/app/[locale]/register/page.tsx`
+- `apps/web/src/messages/zh-TW.json`
+- `apps/web/src/messages/en.json`
+- `apps/web/package.json` (bcrypt 依賴)
+
+---
+
 ### 2025-11-20 23:50 | 🚀 Azure 部署 | Dev 環境首次部署成功 - 階段 2.10 至 2.11 ✅
 
 **類型**: Azure 部署執行與驗證 | **負責人**: AI 助手 | **狀態**: ✅ 完成（所有階段 0-2.11 全部成功）

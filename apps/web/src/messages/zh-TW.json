@@ -227,14 +227,39 @@
     "register": {
       "title": "註冊",
       "subtitle": "建立您的帳號",
-      "name": "姓名",
-      "email": "電子郵件",
-      "password": "密碼",
-      "confirmPassword": "確認密碼",
+      "description": "請填寫以下資訊以建立新帳號",
+      "name": {
+        "label": "姓名",
+        "placeholder": "輸入您的姓名"
+      },
+      "email": {
+        "label": "電子郵件",
+        "placeholder": "輸入您的電子郵件"
+      },
+      "password": {
+        "label": "密碼",
+        "placeholder": "設定密碼（至少 8 個字元）"
+      },
+      "confirmPassword": {
+        "label": "確認密碼",
+        "placeholder": "再次輸入密碼"
+      },
       "hasAccount": "已有帳號？",
+      "loginNow": "立即登入",
       "signIn": "登入",
       "registerButton": "註冊",
-      "registering": "註冊中..."
+      "registering": "註冊中...",
+      "errors": {
+        "passwordMismatch": "密碼不一致",
+        "passwordTooShort": "密碼長度至少 8 個字元",
+        "registerFailed": "註冊失敗，請稍後再試",
+        "emailAlreadyExists": "此 Email 已被註冊"
+      },
+      "successTitle": "註冊成功",
+      "successDescription": "您的帳號已成功建立",
+      "successMessage": "請點擊下方按鈕前往登入頁面",
+      "goToLogin": "前往登入",
+      "termsAgreement": "繼續使用即表示您同意我們的服務條款和隱私政策"
     },
     "forgotPassword": {
       "title": "忘記密碼",

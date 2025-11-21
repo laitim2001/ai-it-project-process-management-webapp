@@ -58,7 +58,7 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useRouter } from '@/i18n/routing';
+import { useRouter, Link } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -182,34 +182,33 @@ export default function LoginPage() {
 
         <CardContent className="space-y-6">
           {/* Azure AD (Microsoft Entra ID) SSO 登入按鈕 */}
-          {process.env.AZURE_AD_CLIENT_ID && (
-            <>
-              <Button
-                type="button"
-                onClick={handleAzureLogin}
-                disabled={isLoading}
-                className="w-full"
-                variant="outline"
-              >
-                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"
-                  />
-                </svg>
-                {t('azureLogin')}
-              </Button>
+          {/* 移除環境變數檢查以避免 hydration mismatch - 按鈕始終顯示 */}
+          <>
+            <Button
+              type="button"
+              onClick={handleAzureLogin}
+              disabled={isLoading}
+              className="w-full"
+              variant="outline"
+            >
+              <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"
+                />
+              </svg>
+              {t('azureLogin')}
+            </Button>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-card px-2 text-muted-foreground">{t('orDivider')}</span>
-                </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t" />
               </div>
-            </>
-          )}
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-card px-2 text-muted-foreground">{t('orDivider')}</span>
+              </div>
+            </div>
+          </>
 
           {/* Email/Password 登入表單 */}
           <form onSubmit={handleCredentialsLogin} className="space-y-4">
@@ -275,12 +274,12 @@ export default function LoginPage() {
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
             <span className="text-muted-foreground">{t('noAccount')}</span>{' '}
-            <a
+            <Link
               href="/register"
               className="text-primary font-medium hover:underline"
             >
               {t('register')}
-            </a>
+            </Link>
           </div>
           <p className="text-center text-xs text-muted-foreground w-full">
             {t('termsAgreement')}
