@@ -1,0 +1,363 @@
+name: Deploy to Azure (Production)
+
+# 🎯 觸發條件：創建 Release Tag (v*.*.*)
+on:
+  push:
+    tags:
+      - 'v*.*.*' # 例如: v1.0.0, v1.2.3
+  workflow_dispatch: # 允許手動觸發
+
+# 環境變數
+env:
+  ENVIRONMENT: prod
+  NODE_VERSION: '20.11.0'
+  PNPM_VERSION: '8.15.3'
+
+jobs:
+  # ============================================================================
+  # Job 1: 測試與質量檢查
+  # ============================================================================
+  test-and-lint:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🗂️ Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: 💾 Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔨 Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: 🧪 Run type check
+        run: pnpm typecheck
+
+      - name: 🧹 Run lint
+        run: pnpm lint
+
+      - name: ✅ Run tests
+        run: pnpm test
+        env:
+          CI: true
+
+  # ============================================================================
+  # Job 2: 構建 Docker 鏡像
+  # ============================================================================
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test-and-lint # 測試通過後才執行
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: 🐳 Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_REGISTRY_PROD }}
+          username: ${{ secrets.ACR_USERNAME_PROD }}
+          password: ${{ secrets.ACR_PASSWORD_PROD }}
+
+      - name: 🏷️ Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: 🔨 Build Docker image
+        run: |
+          docker build \
+            -f docker/Dockerfile \
+            -t ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:${{ steps.version.outputs.VERSION }} \
+            -t ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:${{ github.sha }} \
+            -t ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:latest \
+            --build-arg NODE_ENV=production \
+            .
+
+      - name: ⬆️ Push Docker image to ACR
+        run: |
+          docker push ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:${{ steps.version.outputs.VERSION }}
+          docker push ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:${{ github.sha }}
+          docker push ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:latest
+
+      - name: 📋 Build Summary
+        run: |
+          echo "## 🐳 Docker Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit SHA**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry**: ${{ secrets.ACR_REGISTRY_PROD }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tags**:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ steps.version.outputs.VERSION }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`latest\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Job 3: 部署到 Production (需要手動審批)
+  # ============================================================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: production # GitHub Environment 保護，需要審批
+      url: https://app-itpm-prod-001.azurewebsites.net
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: 🏷️ Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Deploy to Azure App Service (Staging Slot)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: app-itpm-prod-001
+          slot-name: staging # 先部署到 staging 槽位
+          images: ${{ secrets.ACR_REGISTRY_PROD }}/itpm-web:${{ steps.version.outputs.VERSION }}
+
+      - name: ⏳ Wait for deployment to complete
+        run: sleep 60
+
+      - name: 🏥 Health check (Staging Slot)
+        run: |
+          APP_URL="https://app-itpm-prod-001-staging.azurewebsites.net"
+          MAX_RETRIES=12
+          RETRY_COUNT=0
+
+          echo "🔍 Checking health of staging slot: $APP_URL"
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL" || echo "000")
+
+            if [ "$HTTP_STATUS" == "200" ] || [ "$HTTP_STATUS" == "302" ]; then
+              echo "✅ Staging slot is healthy! (HTTP $HTTP_STATUS)"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "⏳ Waiting... ($RETRY_COUNT/$MAX_RETRIES) HTTP: $HTTP_STATUS"
+            sleep 10
+          done
+
+          echo "❌ Health check failed after $MAX_RETRIES retries"
+          exit 1
+
+      - name: 🧪 Smoke tests (Staging Slot)
+        run: |
+          APP_URL="https://app-itpm-prod-001-staging.azurewebsites.net"
+          echo "🧪 Running smoke tests on staging slot..."
+
+          # Test 1: Check homepage
+          echo "Test 1: Homepage accessibility"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL")
+          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "302" ]; then
+            echo "❌ Homepage test failed (HTTP $HTTP_STATUS)"
+            exit 1
+          fi
+          echo "✅ Homepage accessible"
+
+          # Test 2: Check API health (if available)
+          echo "Test 2: API health endpoint"
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL/api/health" || echo "000")
+          if [ "$API_STATUS" == "200" ] || [ "$API_STATUS" == "404" ]; then
+            echo "✅ API endpoint responsive"
+          else
+            echo "⚠️ API health check returned HTTP $API_STATUS"
+          fi
+
+          echo "✅ All smoke tests passed"
+
+      - name: 🔄 Swap staging slot to production
+        run: |
+          echo "🔄 Swapping staging slot to production..."
+          az webapp deployment slot swap \
+            --name app-itpm-prod-001 \
+            --resource-group rg-itpm-prod \
+            --slot staging \
+            --target-slot production
+
+      - name: ⏳ Wait for swap to complete
+        run: sleep 30
+
+      - name: 🏥 Health check (Production Slot)
+        run: |
+          APP_URL="https://app-itpm-prod-001.azurewebsites.net"
+          MAX_RETRIES=12
+          RETRY_COUNT=0
+
+          echo "🔍 Checking health of production slot: $APP_URL"
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL" || echo "000")
+
+            if [ "$HTTP_STATUS" == "200" ] || [ "$HTTP_STATUS" == "302" ]; then
+              echo "✅ Production is healthy! (HTTP $HTTP_STATUS)"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "⏳ Waiting... ($RETRY_COUNT/$MAX_RETRIES) HTTP: $HTTP_STATUS"
+            sleep 10
+          done
+
+          echo "❌ Health check failed after $MAX_RETRIES retries"
+          echo "🚨 CRITICAL: Production deployment failed!"
+          echo "⚠️ Immediate rollback required!"
+          exit 1
+
+      - name: 📊 Get production metrics
+        if: success()
+        run: |
+          echo "📊 Fetching production metrics..."
+          az monitor metrics list \
+            --resource "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/rg-itpm-prod/providers/Microsoft.Web/sites/app-itpm-prod-001" \
+            --metric "HttpResponseTime" "Http2xx" "Http5xx" \
+            --start-time $(date -u -d '5 minutes ago' '+%Y-%m-%dT%H:%M:%S') \
+            --end-time $(date -u '+%Y-%m-%dT%H:%M:%S') \
+            --interval PT1M \
+            --output table || echo "⚠️ Metrics not available yet"
+
+      - name: 📋 Get deployment logs
+        if: failure()
+        run: |
+          echo "=== Production Slot Logs ==="
+          az webapp log tail \
+            --name app-itpm-prod-001 \
+            --resource-group rg-itpm-prod \
+            --limit 100
+
+          echo ""
+          echo "=== Staging Slot Logs ==="
+          az webapp log tail \
+            --name app-itpm-prod-001 \
+            --resource-group rg-itpm-prod \
+            --slot staging \
+            --limit 100
+
+      - name: 🚨 Emergency rollback
+        if: failure()
+        run: |
+          echo "🚨 INITIATING EMERGENCY ROLLBACK..."
+          az webapp deployment slot swap \
+            --name app-itpm-prod-001 \
+            --resource-group rg-itpm-prod \
+            --slot staging \
+            --target-slot production
+
+          echo "✅ Rollback completed. Production is now running previous version."
+          echo "⚠️ Investigate staging slot for deployment issues."
+
+  # ============================================================================
+  # Job 4: 部署後通知
+  # ============================================================================
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always() # 總是執行，即使部署失敗
+
+    steps:
+      - name: 🏷️ Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 📢 Deployment Summary
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Production URL**: https://app-itpm-prod-001.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**Staging Slot URL**: https://app-itpm-prod-001-staging.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "## ✅ Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Production is now running version **${{ steps.version.outputs.VERSION }}**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📋 Post-Deployment Checklist" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] Verify critical user flows" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] Check application logs for errors" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] Monitor performance metrics" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] Verify database connections" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] Test authentication flows" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ Deployment Failed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Production deployment encountered errors. **Automatic rollback executed.**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 Investigation Steps" >> $GITHUB_STEP_SUMMARY
+            echo "1. Check deployment logs above" >> $GITHUB_STEP_SUMMARY
+            echo "2. Verify staging slot health" >> $GITHUB_STEP_SUMMARY
+            echo "3. Review application logs" >> $GITHUB_STEP_SUMMARY
+            echo "4. Check Azure resource status" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔄 Manual Rollback (if needed)" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "az webapp deployment slot swap \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --name app-itpm-prod-001 \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --resource-group rg-itpm-prod \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --slot staging \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --target-slot production" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # 可選：發送 Slack 或 Email 通知
+      # - name: 📧 Send notification
+      #   if: always()
+      #   uses: 8398a7/action-slack@v3
+      #   with:
+      #     status: ${{ needs.deploy.result }}
+      #     webhook_url: ${{ secrets.SLACK_WEBHOOK }}

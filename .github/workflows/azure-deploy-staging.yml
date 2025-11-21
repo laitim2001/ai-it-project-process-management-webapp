@@ -1,0 +1,232 @@
+name: Deploy to Azure (Staging)
+
+# 🎯 觸發條件：Push 到 main 分支
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # 允許手動觸發
+
+# 環境變數
+env:
+  ENVIRONMENT: staging
+  NODE_VERSION: '20.11.0'
+  PNPM_VERSION: '8.15.3'
+
+jobs:
+  # ============================================================================
+  # Job 1: 測試與質量檢查
+  # ============================================================================
+  test-and-lint:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🗂️ Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: 💾 Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔨 Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: 🧪 Run type check
+        run: pnpm typecheck
+
+      - name: 🧹 Run lint
+        run: pnpm lint
+
+      - name: ✅ Run tests
+        run: pnpm test
+        env:
+          CI: true
+
+  # ============================================================================
+  # Job 2: 構建並部署到 Azure Staging 環境
+  # ============================================================================
+  build-and-deploy:
+    name: Build & Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: test-and-lint # 測試通過後才執行
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_STAGING }}
+
+      - name: 🐳 Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_REGISTRY_STAGING }}
+          username: ${{ secrets.ACR_USERNAME_STAGING }}
+          password: ${{ secrets.ACR_PASSWORD_STAGING }}
+
+      - name: 🔨 Build Docker image
+        run: |
+          docker build \
+            -f docker/Dockerfile \
+            -t ${{ secrets.ACR_REGISTRY_STAGING }}/itpm-web:${{ github.sha }} \
+            -t ${{ secrets.ACR_REGISTRY_STAGING }}/itpm-web:latest \
+            --build-arg NODE_ENV=production \
+            .
+
+      - name: ⬆️ Push Docker image to ACR
+        run: |
+          docker push ${{ secrets.ACR_REGISTRY_STAGING }}/itpm-web:${{ github.sha }}
+          docker push ${{ secrets.ACR_REGISTRY_STAGING }}/itpm-web:latest
+
+      - name: 🚀 Deploy to Azure App Service (Staging Slot)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: app-itpm-staging-001
+          slot-name: staging # 部署到 staging 槽位
+          images: ${{ secrets.ACR_REGISTRY_STAGING }}/itpm-web:${{ github.sha }}
+
+      - name: ⏳ Wait for deployment to complete
+        run: sleep 60
+
+      - name: 🏥 Health check (Staging Slot)
+        run: |
+          APP_URL="https://app-itpm-staging-001-staging.azurewebsites.net"
+          MAX_RETRIES=12
+          RETRY_COUNT=0
+
+          echo "🔍 Checking health of staging slot: $APP_URL"
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL" || echo "000")
+
+            if [ "$HTTP_STATUS" == "200" ] || [ "$HTTP_STATUS" == "302" ]; then
+              echo "✅ Staging slot is healthy! (HTTP $HTTP_STATUS)"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "⏳ Waiting... ($RETRY_COUNT/$MAX_RETRIES) HTTP: $HTTP_STATUS"
+            sleep 10
+          done
+
+          echo "❌ Health check failed after $MAX_RETRIES retries"
+          exit 1
+
+      - name: 🔄 Swap staging slot to production
+        run: |
+          echo "🔄 Swapping staging slot to production..."
+          az webapp deployment slot swap \
+            --name app-itpm-staging-001 \
+            --resource-group rg-itpm-staging \
+            --slot staging \
+            --target-slot production
+
+      - name: ⏳ Wait for swap to complete
+        run: sleep 30
+
+      - name: 🏥 Health check (Production Slot)
+        run: |
+          APP_URL="https://app-itpm-staging-001.azurewebsites.net"
+          MAX_RETRIES=12
+          RETRY_COUNT=0
+
+          echo "🔍 Checking health of production slot: $APP_URL"
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL" || echo "000")
+
+            if [ "$HTTP_STATUS" == "200" ] || [ "$HTTP_STATUS" == "302" ]; then
+              echo "✅ Production slot is healthy! (HTTP $HTTP_STATUS)"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "⏳ Waiting... ($RETRY_COUNT/$MAX_RETRIES) HTTP: $HTTP_STATUS"
+            sleep 10
+          done
+
+          echo "❌ Health check failed after $MAX_RETRIES retries"
+          echo "⚠️ Consider manual rollback using slot swap"
+          exit 1
+
+      - name: 📋 Get deployment logs
+        if: failure()
+        run: |
+          echo "=== Production Slot Logs ==="
+          az webapp log tail \
+            --name app-itpm-staging-001 \
+            --resource-group rg-itpm-staging \
+            --limit 50
+
+          echo ""
+          echo "=== Staging Slot Logs ==="
+          az webapp log tail \
+            --name app-itpm-staging-001 \
+            --resource-group rg-itpm-staging \
+            --slot staging \
+            --limit 50
+
+  # ============================================================================
+  # Job 3: 部署後通知
+  # ============================================================================
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: always() # 總是執行，即使部署失敗
+
+    steps:
+      - name: 📢 Deployment Summary
+        run: |
+          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**App URL**: https://app-itpm-staging-001.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**Staging Slot URL**: https://app-itpm-staging-001-staging.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.build-and-deploy.result }}" == "success" ]; then
+            echo "✅ **Deployment successful!** Slot swap completed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Deployment failed!** Consider rollback." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔄 Rollback Command" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "az webapp deployment slot swap \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --name app-itpm-staging-001 \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --resource-group rg-itpm-staging \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --slot staging \\" >> $GITHUB_STEP_SUMMARY
+            echo "  --target-slot production" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,176 @@
+# ==============================================================================
+# Docker Compose - Production Configuration
+# ==============================================================================
+# 用途: 生產環境的 Docker Compose 配置（僅用於本地模擬生產環境）
+# 注意: 實際生產環境部署到 Azure App Service，不使用此文件
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # Web Application (Production Build)
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        NODE_ENV: production
+    image: itpm-web:latest
+    container_name: itpm-web-prod
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Node.js
+      NODE_ENV: production
+      PORT: 3000
+
+      # Database (使用外部 Azure PostgreSQL)
+      DATABASE_URL: ${DATABASE_URL}
+
+      # NextAuth.js
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+
+      # Azure AD B2C
+      AZURE_AD_B2C_TENANT_NAME: ${AZURE_AD_B2C_TENANT_NAME}
+      AZURE_AD_B2C_TENANT_ID: ${AZURE_AD_B2C_TENANT_ID}
+      AZURE_AD_B2C_CLIENT_ID: ${AZURE_AD_B2C_CLIENT_ID}
+      AZURE_AD_B2C_CLIENT_SECRET: ${AZURE_AD_B2C_CLIENT_SECRET}
+      AZURE_AD_B2C_PRIMARY_USER_FLOW: ${AZURE_AD_B2C_PRIMARY_USER_FLOW}
+
+      # Azure Blob Storage (使用 Azure 雲端存儲)
+      AZURE_STORAGE_USE_DEVELOPMENT: "false"
+      AZURE_STORAGE_ACCOUNT_NAME: ${AZURE_STORAGE_ACCOUNT_NAME}
+      AZURE_STORAGE_ACCOUNT_KEY: ${AZURE_STORAGE_ACCOUNT_KEY}
+      AZURE_STORAGE_CONTAINER_QUOTES: ${AZURE_STORAGE_CONTAINER_QUOTES:-quotes}
+      AZURE_STORAGE_CONTAINER_INVOICES: ${AZURE_STORAGE_CONTAINER_INVOICES:-invoices}
+      AZURE_STORAGE_CONTAINER_PROPOSALS: ${AZURE_STORAGE_CONTAINER_PROPOSALS:-proposals}
+
+      # SendGrid Email
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_FROM_NAME: ${SENDGRID_FROM_NAME:-IT Project Management}
+
+      # Redis (使用外部 Azure Cache for Redis)
+      REDIS_URL: ${REDIS_URL}
+
+      # Feature Flags
+      NEXT_PUBLIC_FEATURE_AI_ASSISTANT: ${NEXT_PUBLIC_FEATURE_AI_ASSISTANT:-false}
+      NEXT_PUBLIC_FEATURE_EXTERNAL_INTEGRATION: ${NEXT_PUBLIC_FEATURE_EXTERNAL_INTEGRATION:-false}
+
+    depends_on:
+      - redis
+    networks:
+      - itpm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ----------------------------------------------------------------------------
+  # Redis Cache (本地 Redis，生產環境使用 Azure Cache for Redis)
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: itpm-redis-prod
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-your-redis-password}
+    volumes:
+      - redis_data:/data
+    networks:
+      - itpm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # ----------------------------------------------------------------------------
+  # Nginx Reverse Proxy (可選，用於 SSL 終止和負載均衡)
+  # ----------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: itpm-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # SSL 證書目錄
+    depends_on:
+      - web
+    networks:
+      - itpm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+# ==============================================================================
+# Networks
+# ==============================================================================
+networks:
+  itpm-network:
+    driver: bridge
+
+# ==============================================================================
+# Volumes
+# ==============================================================================
+volumes:
+  redis_data:
+    driver: local
+
+# ==============================================================================
+# 使用說明
+# ==============================================================================
+# 本地模擬生產環境部署:
+#
+# 1. 準備環境變數:
+#    cp .env.example .env.production
+#    # 編輯 .env.production，填入生產環境配置
+#
+# 2. 構建並啟動:
+#    docker-compose -f docker/docker-compose.prod.yml --env-file .env.production up -d
+#
+# 3. 查看日誌:
+#    docker-compose -f docker/docker-compose.prod.yml logs -f web
+#
+# 4. 停止服務:
+#    docker-compose -f docker/docker-compose.prod.yml down
+#
+# 5. 重建鏡像:
+#    docker-compose -f docker/docker-compose.prod.yml build --no-cache
+#
+# ==============================================================================
+# 注意事項
+# ==============================================================================
+# - 此配置僅用於本地模擬生產環境，不用於實際生產部署
+# - 實際生產環境部署到 Azure App Service
+# - 資料庫和 Redis 應使用 Azure 託管服務
+# - SSL 證書由 Azure App Service 自動管理
+# - 環境變數通過 Azure Key Vault 管理
+# ==============================================================================

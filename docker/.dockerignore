@@ -1,0 +1,76 @@
+# ============================================================================
+# Docker Ignore - Exclude unnecessary files from Docker build context
+# ============================================================================
+# This reduces build context size and speeds up Docker builds
+# ============================================================================
+
+# Node modules (will be installed in Docker)
+node_modules/
+**/node_modules/
+
+# Build artifacts
+.next/
+.turbo/
+dist/
+build/
+out/
+
+# Environment files (use secrets management)
+.env
+.env.*
+!.env.example
+
+# Development files
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+
+# Local development
+postgres_data/
+redis_data/
+pgadmin_data/
+uploads/
+public/uploads/
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
