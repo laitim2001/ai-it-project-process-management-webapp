@@ -39,7 +39,7 @@
 import NextAuth from 'next-auth';
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import AzureADB2C from 'next-auth/providers/azure-ad-b2c';
+import AzureAD from 'next-auth/providers/azure-ad';
 import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
 import { authConfig as baseAuthConfig } from './auth.config';
@@ -98,18 +98,26 @@ export const authConfig: NextAuthConfig = {
 
   // 認證提供者（包含 Prisma 訪問）
   providers: [
-    // Azure AD B2C Provider (Epic 1 - Story 1.3)
-    ...(process.env.AUTH_AZURE_AD_B2C_ID && process.env.AUTH_AZURE_AD_B2C_SECRET
+    // Azure AD (Entra ID) Provider - 企業 SSO (Epic 1 - Story 1.3)
+    // 僅在環境變數配置完整時啟用
+    ...(process.env.AZURE_AD_CLIENT_ID &&
+        process.env.AZURE_AD_CLIENT_SECRET &&
+        process.env.AZURE_AD_TENANT_ID
       ? [
-          AzureADB2C({
-            clientId: process.env.AUTH_AZURE_AD_B2C_ID,
-            clientSecret: process.env.AUTH_AZURE_AD_B2C_SECRET,
-            issuer: process.env.AUTH_AZURE_AD_B2C_ISSUER,
+          AzureAD({
+            clientId: process.env.AZURE_AD_CLIENT_ID,
+            clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
+            tenantId: process.env.AZURE_AD_TENANT_ID,
+            authorization: {
+              params: {
+                scope: 'openid profile email User.Read',
+              },
+            },
             // 自定義 profile 映射
             profile(profile: any) {
               return {
                 id: profile.sub || profile.oid,
-                email: profile.email || profile.emails?.[0] || profile.preferred_username,
+                email: profile.email || profile.preferred_username || profile.upn,
                 name: profile.name || `${profile.given_name || ''} ${profile.family_name || ''}`.trim(),
                 image: profile.picture,
                 emailVerified: profile.email_verified ? new Date() : null,
@@ -206,8 +214,8 @@ export const authConfig: NextAuthConfig = {
         console.log('⚠️ JWT callback: 用戶不存在');
       }
 
-      // Azure AD B2C 登入時，確保用戶在資料庫中存在
-      if (account?.provider === 'azure-ad-b2c' && user) {
+      // Azure AD (Entra ID) 登入時，確保用戶在資料庫中存在
+      if (account?.provider === 'azure-ad' && user) {
         const dbUser = await prisma.user.upsert({
           where: { email: user.email },
           update: {

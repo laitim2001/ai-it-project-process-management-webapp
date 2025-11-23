@@ -222,7 +222,22 @@
       "orLoginWith": "Or sign in with",
       "azureAD": "Azure AD",
       "loggingIn": "Logging in...",
-      "termsAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy"
+      "termsAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy",
+      "errors": {
+        "invalidCredentials": "Invalid email or password",
+        "configurationError": "System configuration error, please contact administrator",
+        "accessDenied": "Access denied",
+        "verificationRequired": "Email verification required",
+        "loginFailed": "Login failed, please try again",
+        "emailRequired": "Please enter your email",
+        "passwordRequired": "Please enter your password",
+        "emailPasswordRequired": "Please enter your email and password",
+        "invalidEmailFormat": "Invalid email format",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "accountLocked": "Account is locked, please contact administrator",
+        "accountDisabled": "Account is disabled",
+        "sessionExpired": "Session expired, please login again"
+      }
     },
     "register": {
       "title": "Sign Up",

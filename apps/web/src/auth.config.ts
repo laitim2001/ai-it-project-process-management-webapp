@@ -71,8 +71,8 @@ export const authConfig: NextAuthConfig = {
   // 📄 Pages Configuration
   // ========================================
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: '/zh-TW/login',  // 添加預設 locale 前綴以修復 404 問題
+    error: '/zh-TW/login',
   },
 
   // ========================================

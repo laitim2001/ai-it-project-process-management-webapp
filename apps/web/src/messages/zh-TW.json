@@ -222,7 +222,22 @@
       "orLoginWith": "或使用以下方式登入",
       "azureAD": "Azure AD",
       "loggingIn": "登入中...",
-      "termsAgreement": "繼續使用即表示您同意我們的服務條款和隱私政策"
+      "termsAgreement": "繼續使用即表示您同意我們的服務條款和隱私政策",
+      "errors": {
+        "invalidCredentials": "電子郵件或密碼錯誤",
+        "configurationError": "系統配置錯誤，請聯絡管理員",
+        "accessDenied": "存取被拒絕",
+        "verificationRequired": "需要電子郵件驗證",
+        "loginFailed": "登入失敗，請重試",
+        "emailRequired": "請輸入電子郵件",
+        "passwordRequired": "請輸入密碼",
+        "emailPasswordRequired": "請輸入電子郵件和密碼",
+        "invalidEmailFormat": "電子郵件格式無效",
+        "passwordTooShort": "密碼長度至少 8 個字元",
+        "accountLocked": "帳號已被鎖定，請聯絡管理員",
+        "accountDisabled": "帳號已被停用",
+        "sessionExpired": "登入階段已過期，請重新登入"
+      }
     },
     "register": {
       "title": "註冊",

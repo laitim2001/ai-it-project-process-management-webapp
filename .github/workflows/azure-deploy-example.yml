@@ -1,0 +1,359 @@
+# ============================================================================
+# Azure Deployment Workflow - Example Configuration
+# ============================================================================
+# 此為範例配置,展示如何在 CI/CD pipeline 中整合 seed data 執行
+# 實際使用時請根據專案需求調整
+#
+# 觸發條件:
+#   - Push 到 main 分支
+#   - 手動觸發 (workflow_dispatch)
+#
+# 重要步驟:
+#   1. Build Docker image
+#   2. Push to ACR
+#   3. Run database migrations
+#   4. ⭐ Run seed data (關鍵步驟 - 防止 Registration API 500 錯誤)
+#   5. Deploy to Azure App Service
+#   6. Verify deployment
+# ============================================================================
+
+name: Azure Deployment (Example)
+
+on:
+  # 自動觸發: Push 到 main 分支
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'claudedocs/**'
+
+  # 手動觸發
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment Environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - uat
+          - production
+        default: 'dev'
+
+# 環境變數
+env:
+  AZURE_RESOURCE_GROUP: rg-itpm-dev
+  AZURE_APP_SERVICE: app-itpm-dev-001
+  AZURE_CONTAINER_REGISTRY: acritpmdev
+  DOCKER_IMAGE_NAME: itpm-web
+  NODE_VERSION: '20.11.0'
+
+jobs:
+  # ========================================
+  # Job 1: Build and Test
+  # ========================================
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run type check
+        run: pnpm typecheck
+
+      - name: Run linting
+        run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test
+
+  # ========================================
+  # Job 2: Build and Push Docker Image
+  # ========================================
+  build-docker:
+    name: Build and Push Docker Image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.DOCKER_IMAGE_NAME }}:latest \
+            -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} \
+            -f docker/Dockerfile .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.DOCKER_IMAGE_NAME }}:latest
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+
+  # ========================================
+  # Job 3: Database Migration and Seed
+  # ========================================
+  database-setup:
+    name: Database Migration and Seed
+    needs: build-docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.3
+
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm db:generate
+
+      # ========================================
+      # Step 3.1: Run Migrations
+      # ========================================
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.AZURE_DATABASE_URL }}
+        run: |
+          echo "🔄 Running database migrations..."
+          pnpm --filter db prisma migrate deploy
+          echo "✅ Migrations completed"
+
+      # ========================================
+      # Step 3.2: ⭐ Run Seed Data (關鍵步驟!)
+      # ========================================
+      # 此步驟確保 Role 和 Currency 基礎資料存在
+      # 防止 Registration API 返回 500 錯誤 (P2003 外鍵約束錯誤)
+      - name: ⭐ Run minimal seed data
+        env:
+          DATABASE_URL: ${{ secrets.AZURE_DATABASE_URL }}
+        run: |
+          echo "🌱 Running minimal seed data..."
+          pnpm db:seed:minimal
+          echo "✅ Seed data completed"
+
+      # ========================================
+      # Step 3.3: Verify Seed Data
+      # ========================================
+      - name: Verify seed data
+        env:
+          DATABASE_URL: ${{ secrets.AZURE_DATABASE_URL }}
+        run: |
+          echo "🔍 Verifying seed data..."
+
+          # 安裝 PostgreSQL client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+          # 從 DATABASE_URL 提取連接參數
+          DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\(.*\):.*/\1/p')
+          DB_NAME=$(echo $DATABASE_URL | sed -n 's/.*\/\(.*\)?.*/\1/p' | cut -d'?' -f1)
+          DB_USER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\(.*\):.*/\1/p')
+          DB_PASS=$(echo $DATABASE_URL | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p')
+
+          # 驗證 Role 表
+          ROLE_COUNT=$(PGPASSWORD=$DB_PASS psql -h $DB_HOST -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM \"Role\";")
+
+          if [ $ROLE_COUNT -ge 3 ]; then
+            echo "✅ Role table verified: $ROLE_COUNT records"
+          else
+            echo "❌ Role table verification failed: only $ROLE_COUNT records (expected >= 3)"
+            exit 1
+          fi
+
+          # 驗證 Currency 表
+          CURRENCY_COUNT=$(PGPASSWORD=$DB_PASS psql -h $DB_HOST -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM \"Currency\";")
+
+          if [ $CURRENCY_COUNT -ge 6 ]; then
+            echo "✅ Currency table verified: $CURRENCY_COUNT records"
+          else
+            echo "⚠️  Currency table: $CURRENCY_COUNT records (expected >= 6)"
+          fi
+
+          echo "✅ Seed data verification completed"
+
+  # ========================================
+  # Job 4: Deploy to Azure App Service
+  # ========================================
+  deploy:
+    name: Deploy to Azure App Service
+    needs: database-setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_APP_SERVICE }}
+          images: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Restart App Service
+        run: |
+          az webapp restart \
+            --name ${{ env.AZURE_APP_SERVICE }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+
+  # ========================================
+  # Job 5: Post-Deployment Verification
+  # ========================================
+  verify-deployment:
+    name: Verify Deployment
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for service to be ready
+        run: |
+          echo "⏳ Waiting for service to be ready..."
+          sleep 30
+
+      - name: Check application health
+        run: |
+          echo "🔍 Checking application health..."
+
+          # 健康檢查
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.AZURE_APP_SERVICE }}.azurewebsites.net)
+
+          if [ $STATUS_CODE -eq 200 ]; then
+            echo "✅ Application is healthy (HTTP $STATUS_CODE)"
+          else
+            echo "❌ Application health check failed (HTTP $STATUS_CODE)"
+            exit 1
+          fi
+
+      # ========================================
+      # ⭐ 關鍵測試: Registration API 驗證
+      # ========================================
+      # 此測試確保 Registration API 正常運作
+      # 如果失敗,可能表示 seed data 未正確執行
+      - name: ⭐ Test Registration API
+        run: |
+          echo "🧪 Testing Registration API..."
+
+          # 生成隨機 email 以避免衝突
+          RANDOM_EMAIL="test-$(date +%s)@example.com"
+
+          # 測試註冊 API
+          RESPONSE=$(curl -s -X POST \
+            https://${{ env.AZURE_APP_SERVICE }}.azurewebsites.net/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"CI Test User\",
+              \"email\": \"$RANDOM_EMAIL\",
+              \"password\": \"TestPassword123\"
+            }" \
+            -w "\n%{http_code}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+
+          echo "Response: $BODY"
+          echo "HTTP Code: $HTTP_CODE"
+
+          # 驗證回應
+          if [ $HTTP_CODE -eq 201 ]; then
+            if echo "$BODY" | grep -q '"success":true'; then
+              echo "✅ Registration API test PASSED"
+            else
+              echo "❌ Registration API returned unexpected response"
+              echo "Response body: $BODY"
+              exit 1
+            fi
+          else
+            echo "❌ Registration API test FAILED (HTTP $HTTP_CODE)"
+            echo "Response body: $BODY"
+
+            # 如果是 500 錯誤,提示檢查 seed data
+            if [ $HTTP_CODE -eq 500 ]; then
+              echo "⚠️  500 Error detected - this may indicate missing seed data"
+              echo "   Please verify that 'Run minimal seed data' step executed successfully"
+            fi
+
+            exit 1
+          fi
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "========================================"
+          echo "🚀 Deployment Summary"
+          echo "========================================"
+          echo "Environment: ${{ github.event.inputs.environment || 'dev' }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "App Service: ${{ env.AZURE_APP_SERVICE }}"
+          echo "Image: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+          echo "========================================"
+
+# ============================================================================
+# Required GitHub Secrets:
+# ============================================================================
+# - ACR_USERNAME:          Azure Container Registry 使用者名稱
+# - ACR_PASSWORD:          Azure Container Registry 密碼
+# - AZURE_CREDENTIALS:     Azure Service Principal 憑證 (JSON)
+# - AZURE_DATABASE_URL:    Azure PostgreSQL 連接字串
+#
+# Service Principal 格式:
+# {
+#   "clientId": "xxx",
+#   "clientSecret": "xxx",
+#   "subscriptionId": "xxx",
+#   "tenantId": "xxx"
+# }
+# ============================================================================
+
+# ============================================================================
+# 使用說明:
+# ============================================================================
+# 1. 複製此檔案到 .github/workflows/ 目錄
+# 2. 根據實際情況調整環境變數和配置
+# 3. 在 GitHub Secrets 中設定所需的 secrets
+# 4. Push 到 main 分支或手動觸發 workflow
+# 5. 監控 workflow 執行狀態和日誌
+#
+# 重要提示:
+# - ⭐ 標記的步驟是防止 Registration API 500 錯誤的關鍵
+# - 如果部署後 Registration API 失敗,首先檢查 seed data 是否執行成功
+# - 可以手動執行 `pnpm db:seed:minimal` 來修復 seed data 問題
+# ============================================================================

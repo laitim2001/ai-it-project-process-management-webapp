@@ -38,6 +38,7 @@
     "db:migrate": "pnpm --filter db prisma migrate dev",
     "db:push": "pnpm --filter db prisma db push",
     "db:seed": "pnpm --filter db prisma db seed",
+    "db:seed:minimal": "pnpm --filter db db:seed:minimal",
     "index:check": "node scripts/check-index-sync.js",
     "index:check:incremental": "node scripts/check-index-sync.js --incremental",
     "index:fix": "node scripts/check-index-sync.js --auto-fix",

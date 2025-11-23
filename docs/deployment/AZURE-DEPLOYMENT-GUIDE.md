@@ -384,11 +384,13 @@ unzip -p app-logs.zip | grep -i "error"
 | `[next-intl] MISSING_MESSAGE` | 翻譯 key 缺失 | 檢查並更新 `zh-TW.json` |
 | `Error: Cannot find module 'prisma'` | Prisma Client 未生成 | 在 Dockerfile 添加 `pnpm db:generate` |
 
-### 2.6 數據庫遷移 (如有需要)
+### 2.6 數據庫遷移和 Seed Data
+
+#### 2.6.1 執行資料庫遷移
+
+⚠️ **注意**: 只在數據庫 schema 有變更時執行
 
 ```bash
-# ⚠️ 注意: 只在數據庫 schema 有變更時執行
-
 # 1. 設定 DATABASE_URL 環境變數 (使用 Azure PostgreSQL)
 export DATABASE_URL='postgresql://itpmadmin:PASSWORD@psql-itpm-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require'
 
@@ -401,6 +403,133 @@ docker run --rm \
   acritpmdev.azurecr.io/itpm-web:latest \
   pnpm db:migrate
 ```
+
+#### 2.6.2 ⭐ 執行 Seed Data (關鍵步驟!)
+
+**🚨 這是防止 Registration API 500 錯誤的關鍵步驟!**
+
+Azure 部署後必須執行 seed data 初始化，確保 Role 和 Currency 等基礎表包含必要資料。
+
+**為什麼必要?**
+- User 表的 `roleId` 字段引用 Role 表，如果 Role 表為空，用戶註冊會失敗 (P2003 外鍵約束錯誤)
+- BudgetPool 需要 Currency 表資料
+- 本地環境有完整 seed data，Azure 環境只有 schema（只執行了 migration）
+
+**執行方式一: 使用自動化腳本（推薦）**:
+
+```bash
+# 自動化腳本包含環境變數檢查、執行和驗證
+./scripts/azure-seed.sh
+
+# 預期輸出:
+# ✅ 環境變數檢查通過
+# ✅ 數據庫連接成功
+# 🌱 Running minimal seed (基礎資料初始化)...
+# ✅ 種子數據執行成功
+# ✅ Role 資料驗證通過 (3 筆記錄)
+# ✅ Currency 資料驗證通過 (6 筆記錄)
+```
+
+**執行方式二: 手動執行**:
+
+```bash
+# 設定環境變數
+export DATABASE_URL='postgresql://itpmadmin:PASSWORD@psql-itpm-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require'
+
+# 執行 minimal seed（只包含 Role 和 Currency）
+pnpm db:seed:minimal
+
+# 或者在 Docker 容器中執行
+docker run --rm \
+  -e DATABASE_URL='postgresql://...' \
+  acritpmdev.azurecr.io/itpm-web:latest \
+  pnpm db:seed:minimal
+```
+
+#### 2.6.3 驗證 Seed Data
+
+執行 seed 後，**必須驗證**基礎資料已正確插入：
+
+```bash
+# 方式一: 使用 psql 命令行
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-dev-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_dev \
+  -c "SELECT * FROM \"Role\";"
+
+# 預期結果（3 筆記錄）:
+#  id |     name
+# ----+----------------
+#   1 | ProjectManager
+#   2 | Supervisor
+#   3 | Admin
+
+# 驗證 Currency 表
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-dev-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_dev \
+  -c "SELECT code, name FROM \"Currency\";"
+
+# 預期結果（6 筆記錄）:
+# code | name
+# -----+--------
+# TWD  | 新台幣
+# USD  | 美元
+# CNY  | 人民幣
+# HKD  | 港幣
+# JPY  | 日圓
+# EUR  | 歐元
+```
+
+**檢查點**:
+- [ ] Role 表包含 3 筆記錄 (ID: 1, 2, 3)
+- [ ] Currency 表包含 6 筆記錄 (TWD, USD, CNY, HKD, JPY, EUR)
+- [ ] 所有記錄的主鍵和欄位值正確
+
+#### 2.6.4 Seed Data 故障排除
+
+**問題: Seed 執行失敗**
+
+```bash
+# 檢查數據庫連接
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-dev-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_dev \
+  -c "SELECT 1;"
+
+# 如果連接失敗，檢查:
+# 1. DATABASE_URL 環境變數是否正確
+# 2. PostgreSQL 防火牆規則是否允許當前 IP
+# 3. SSL 模式是否設置為 'require'
+```
+
+**問題: Seed 執行後 Role 表仍為空**
+
+```bash
+# 檢查是否有錯誤訊息
+pnpm db:seed:minimal 2>&1 | grep -i "error"
+
+# 手動插入 Role 資料（緊急修復）
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-dev-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_dev <<'SQL'
+INSERT INTO "Role" (id, name, description) VALUES
+  (1, 'ProjectManager', '專案經理'),
+  (2, 'Supervisor', '主管'),
+  (3, 'Admin', '系統管理員')
+ON CONFLICT (id) DO NOTHING;
+SQL
+```
+
+**⚠️ 重要提醒**:
+- 如果跳過此步驟，用戶註冊功能將會失敗 (500 錯誤)
+- Seed script 使用 upsert 模式，可以安全重複執行
+- 完整的 seed data 實施總結: `claudedocs/AZURE-SEED-DATA-IMPLEMENTATION-SUMMARY.md`
+- 部署檢查清單: `claudedocs/AZURE-DEPLOYMENT-CHECKLIST.md`
 
 ---
 

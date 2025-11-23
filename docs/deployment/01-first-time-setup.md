@@ -329,25 +329,158 @@ az webapp config appsettings set \
 
 ## 🚀 階段 4: 首次應用部署
 
-### 4.1 執行資料庫遷移
+### 4.1 執行資料庫遷移和 Seed Data
 
-在首次部署前，必須在 Azure PostgreSQL 上執行 Prisma 遷移：
+在首次部署前，必須在 Azure PostgreSQL 上執行 Prisma 遷移**並初始化 seed data**。
+
+#### Step 1: 執行資料庫遷移
+
+從本地連接到 Azure PostgreSQL 並執行 schema 遷移：
 
 ```bash
-# 從本地連接到 Azure PostgreSQL
 # 使用 .azure/output/${ENVIRONMENT}-database-credentials.txt 中的連接字符串
-
 cd packages/db
 
 # 設置 DATABASE_URL 環境變數
 export DATABASE_URL="postgresql://itpmadmin:PASSWORD@psql-itpm-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require"
 
-# 執行遷移
+# 執行遷移（創建表結構）
 npx prisma migrate deploy
 
 # 驗證遷移
 npx prisma db push --skip-generate
 ```
+
+#### Step 2: ⭐ 執行 Seed Data（必需！）
+
+**🚨 這是防止 Registration API 500 錯誤的關鍵步驟!**
+
+遷移只創建表結構，seed data 負責插入基礎資料（Role 和 Currency）。如果跳過此步驟，用戶註冊會失敗。
+
+**方式一: 使用自動化腳本（推薦）**:
+
+```bash
+# 返回專案根目錄
+cd ../..
+
+# 執行自動化 seed script（包含驗證）
+./scripts/azure-seed.sh
+
+# 預期輸出:
+# ✅ 環境變數檢查通過
+# ✅ 數據庫連接成功
+# 🌱 Running minimal seed (基礎資料初始化)...
+# ✅ 種子數據執行成功
+# ✅ Role 資料驗證通過 (3 筆記錄)
+# ✅ Currency 資料驗證通過 (6 筆記錄)
+```
+
+**方式二: 手動執行**:
+
+```bash
+# 確保 DATABASE_URL 環境變數已設置
+echo $DATABASE_URL
+
+# 執行 minimal seed
+pnpm db:seed:minimal
+
+# 預期輸出:
+# 🌱 開始執行種子數據（最小化模式）
+# ✅ 成功創建/更新 3 個角色
+# ✅ 成功創建/更新 6 個貨幣
+# ✅ 種子數據執行成功
+```
+
+#### Step 3: 驗證 Seed Data
+
+**必須驗證**基礎資料已正確插入，否則應用程式無法正常運行：
+
+```bash
+# 驗證 Role 表（必需 3 筆記錄）
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-$ENVIRONMENT-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_$ENVIRONMENT \
+  -c "SELECT id, name FROM \"Role\" ORDER BY id;"
+
+# 預期結果:
+#  id |     name
+# ----+----------------
+#   1 | ProjectManager
+#   2 | Supervisor
+#   3 | Admin
+
+# 驗證 Currency 表（必需 6 筆記錄）
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-$ENVIRONMENT-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_$ENVIRONMENT \
+  -c "SELECT code, name, active FROM \"Currency\" ORDER BY code;"
+
+# 預期結果:
+# code | name   | active
+# -----+--------+--------
+# CNY  | 人民幣 | t
+# EUR  | 歐元   | t
+# HKD  | 港幣   | t
+# JPY  | 日圓   | t
+# TWD  | 新台幣 | t
+# USD  | 美元   | t
+```
+
+**檢查點（必須全部通過）**:
+- [ ] Role 表包含 3 筆記錄（ID: 1, 2, 3）
+- [ ] Role 名稱正確：ProjectManager, Supervisor, Admin
+- [ ] Currency 表包含 6 筆記錄
+- [ ] 所有 Currency 的 active 狀態為 true
+
+#### Seed Data 故障排除
+
+**問題: Seed 執行失敗**:
+
+```bash
+# 檢查數據庫連接
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-$ENVIRONMENT-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_$ENVIRONMENT \
+  -c "SELECT 1;"
+
+# 如果連接失敗，檢查:
+# 1. DATABASE_URL 是否正確（包含 ?sslmode=require）
+# 2. PostgreSQL 防火牆規則是否允許當前 IP
+# 3. 網絡連接是否正常
+```
+
+**問題: Role 表為空**:
+
+```bash
+# 緊急修復：手動插入 Role 資料
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-$ENVIRONMENT-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_$ENVIRONMENT <<'SQL'
+INSERT INTO "Role" (id, name, description) VALUES
+  (1, 'ProjectManager', '專案經理'),
+  (2, 'Supervisor', '主管'),
+  (3, 'Admin', '系統管理員')
+ON CONFLICT (id) DO NOTHING;
+SQL
+
+# 驗證插入成功
+PGPASSWORD='PASSWORD' psql \
+  -h psql-itpm-$ENVIRONMENT-001.postgres.database.azure.com \
+  -U itpmadmin \
+  -d itpm_$ENVIRONMENT \
+  -c "SELECT COUNT(*) FROM \"Role\";"
+# 應該返回: 3
+```
+
+**⚠️ 重要提醒**:
+- Seed data 是**必需步驟**，不可跳過
+- 如果跳過，用戶註冊會失敗並返回 500 錯誤（P2003 外鍵約束）
+- Seed script 使用 upsert 模式，可安全重複執行
+- 相關文檔：`claudedocs/AZURE-DEPLOYMENT-CHECKLIST.md`、`claudedocs/AZURE-SEED-DATA-IMPLEMENTATION-SUMMARY.md`
 
 ### 4.2 構建並推送 Docker 鏡像
 

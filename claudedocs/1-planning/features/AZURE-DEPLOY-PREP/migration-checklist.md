@@ -5,6 +5,31 @@
 
 ---
 
+## ⚠️ 重要提醒：資料庫 Seed Data
+
+> **🚨 Azure 部署必讀!**
+>
+> 除了 Azure AD 遷移，Azure 首次部署後**必須執行資料庫 seed data 初始化**，否則會導致 **Registration API 500 錯誤** (P2003 外鍵約束)。
+>
+> **快速檢查**:
+> - [ ] 已執行 `pnpm db:migrate` (創建表結構)
+> - [ ] **已執行 `pnpm db:seed:minimal`** (插入基礎資料：Role、Currency)
+> - [ ] 已驗證 Role 表包含 3 筆記錄 (ID: 1, 2, 3)
+> - [ ] 已驗證 Currency 表包含 6 筆記錄
+>
+> **完整步驟請參閱**:
+> - 📋 **部署檢查清單**: `claudedocs/AZURE-DEPLOYMENT-CHECKLIST.md` (Section "Step 4: 執行 Seed Data")
+> - 📖 **部署手冊**: `docs/deployment/AZURE-DEPLOYMENT-GUIDE.md` (Section 2.6)
+> - 📝 **實施總結**: `claudedocs/AZURE-SEED-DATA-IMPLEMENTATION-SUMMARY.md`
+> - 🔧 **自動化腳本**: `scripts/azure-seed.sh`
+>
+> **為什麼必要?**
+> - User 表的 `roleId` 字段引用 Role 表，如果 Role 表為空，用戶註冊會失敗
+> - BudgetPool 需要 Currency 表資料
+> - 本地環境有完整 seed data，Azure 環境只有 schema（只執行了 migration）
+
+---
+
 ## ✅ 已完成的修改
 
 ### 1. `apps/web/src/auth.ts` - NextAuth 主配置文件

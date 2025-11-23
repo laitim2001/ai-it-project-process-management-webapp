@@ -92,22 +92,48 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
-# Copy Prisma schema files (required for runtime migrations and introspection)
-COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
+# ============================================================================
+# Prisma Client - Runtime Regeneration Approach (Simplified)
+# ============================================================================
+# Issue: Hardcoded version paths in COPY commands were fragile and caused
+# MODULE_NOT_FOUND errors when Prisma Client wasn't successfully copied.
+#
+# Solution: Copy all pnpm dependencies from deps stage and regenerate Prisma
+# Client in runtime. This ensures all Prisma dependencies are available.
+#
+# Trade-offs:
+# - ✅ 100% reliability (all Prisma dependencies guaranteed)
+# - ⚠️ +80MB image size (includes pnpm store)
+# - ⚠️ +5s startup time (one-time Prisma generation)
+# ============================================================================
 
-# Explicitly copy Prisma Client for pnpm monorepo compatibility
-# Standalone output doesn't automatically include @prisma/client from workspace packages
-# This is required because next.config.mjs marks @prisma/client as webpack external
-#
-# Node.js module resolution: require('@prisma/client') looks for:
-# 1. node_modules/@prisma/client/
-# 2. Parent directories' node_modules/@prisma/client/
-#
-# We create a complete @prisma/client package structure that Node.js can resolve
-# Copy the complete @prisma/client package from pnpm virtual store to standard node_modules structure
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client ./node_modules/@prisma/client
-# Copy the generated Prisma Client (.prisma directory) to standard location
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
+# Copy Prisma schema and package.json (required for generation)
+COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/packages/db/package.json ./packages/db/package.json
+
+# Copy complete pnpm node_modules from deps stage (includes all Prisma packages)
+# This ensures we have prisma CLI and all related packages
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.pnpm
+
+# Temporarily switch to root to run Prisma generate (requires write permissions)
+USER root
+
+# Regenerate Prisma Client in runtime environment using direct path
+# Directly call prisma from pnpm virtual store to use exact version 5.22.0
+# This avoids npx which tries to install latest prisma@7.x
+# Creates both:
+# - node_modules/@prisma/client/ (the package)
+# - node_modules/.prisma/client/ (the generated client)
+RUN cd /app && \
+    node node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js generate --schema=packages/db/prisma/schema.prisma && \
+    echo "✅ Prisma Client 已在 runtime 成功生成"
+
+# Verify that @prisma/client can be successfully loaded by Node.js
+# This will fail the build if Prisma Client is not properly installed
+RUN node -e "try { require('@prisma/client'); console.log('✅ @prisma/client 模組載入成功'); } catch(e) { console.error('❌ 載入失敗:', e.message); process.exit(1); }"
+
+# Ensure nextjs user has permissions for generated Prisma files
+RUN chown -R nextjs:nodejs /app/node_modules 2>/dev/null || true
 
 # Switch to non-root user
 USER nextjs

@@ -16,13 +16,13 @@
  * - 詳細錯誤訊息（區分重複帳號、驗證錯誤、系統錯誤）
  *
  * @security
- * - 密碼使用 bcrypt 加密，不存明文
+ * - 密碼使用 bcryptjs 加密，不存明文
  * - Email 唯一性約束防止重複註冊
  * - 輸入驗證防止注入攻擊
  * - 錯誤訊息不洩露敏感信息
  *
  * @dependencies
- * - bcrypt: 密碼加密庫
+ * - bcryptjs: 密碼加密庫（純 JavaScript 實現，Azure 兼容）
  * - zod: 輸入驗證
  * - @prisma/client: 數據庫操作
  *
@@ -38,7 +38,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@itpm/db';
 
@@ -70,7 +70,7 @@ type RegisterInput = z.infer<typeof registerSchema>;
 // ========================================
 
 /**
- * bcrypt salt rounds
+ * bcryptjs salt rounds
  * 10 輪是安全性和效能的平衡點
  */
 const BCRYPT_SALT_ROUNDS = 10;
@@ -204,6 +204,16 @@ export async function POST(request: NextRequest) {
     // Error Handling
     // ========================================
     console.error('❌ 註冊錯誤:', error);
+
+    // 詳細的錯誤日誌記錄（用於 Azure 診斷）
+    if (error instanceof Error) {
+      console.error('錯誤類型:', error.constructor.name);
+      console.error('錯誤訊息:', error.message);
+      console.error('錯誤堆疊:', error.stack);
+    } else {
+      console.error('未知錯誤類型:', typeof error);
+      console.error('錯誤值:', JSON.stringify(error, null, 2));
+    }
 
     // 檢查是否為 Prisma 唯一性約束錯誤（防禦性檢查）
     if (error instanceof Error && error.message.includes('Unique constraint')) {
