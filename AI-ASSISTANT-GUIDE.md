@@ -103,7 +103,61 @@
 **實際總時程**: 8.5 週
 **當前進度**: 🎉 **所有 8 個 Epic 全部完成，達成 100% MVP 目標！**
 
-### **📅 最近更新** (2025-11-06 15:30)
+### **📅 最近更新** (2025-11-24 20:30)
+
+#### **🚀 Azure 部署架構重組完成** ✅ (2025-11-24)
+- ✅ **完整部署目錄結構** (~43 個文件)
+  - azure/ 目錄完整建立（README + scripts + environments + templates + tests）
+  - 6 個自動化部署腳本（01-setup-resources.sh 到 06-deploy-app.sh）
+  - 2 個環境部署入口腳本（deploy-to-personal.sh, deploy-to-company.sh）
+  - 5 個輔助工具腳本（helper/ 目錄）
+  - 3 個 Bicep Infrastructure as Code 模板
+  - 3 個測試和驗證腳本
+
+- ✅ **AI 助手指引系統** (4 個完整場景化指引)
+  - SITUATION-6: 個人 Azure 環境部署指引 (~564 行)
+  - SITUATION-7: 公司 Azure 環境部署指引 (~706 行)
+  - SITUATION-8: 個人 Azure 問題排查指引
+  - SITUATION-9: 公司 Azure 問題排查指引
+  - 完整部署流程、檢查清單、故障排查策略
+
+- ✅ **Azure 部署文檔系統** (8 個詳細記錄)
+  - AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md (~308 行文件結構指引)
+  - AZURE-DEPLOYMENT-CHECKLIST.md (部署檢查清單)
+  - AZURE-LOGIN-I18N-FIX-DEPLOYMENT.md (v7 I18N 修復部署記錄)
+  - AZURE-NEXTAUTH-CONFIGURATION-ERROR-ROOT-CAUSE.md (NextAuth 根因分析)
+  - AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md (v8 Prisma 修復成功記錄)
+  - AZURE-SEED-DATA-IMPLEMENTATION-SUMMARY.md (種子數據實施總結)
+  - COMPLETE-DEPLOYMENT-DIAGNOSIS-AND-FIX.md (完整診斷和修復記錄)
+
+- ✅ **問題修復與優化** (關鍵技術突破)
+  - Prisma Client 自動生成機制（Docker runtime regeneration）
+  - User.emailVerified 和 User.image 欄位缺失修復
+  - Dockerfile 優化（Multi-stage build + Prisma generate on runtime）
+  - 註冊 API 500 錯誤根因排查（P2003 外鍵約束，缺少 Role seed data）
+  - I18N 翻譯鍵重複問題修復（zh-TW.json common.actions.delete 重複）
+
+**代碼統計**:
+- 56 files changed
+- 11,153 insertions(+), 57 deletions(-)
+- Git commit: 37c9390
+- 已推送到 GitHub (main 分支)
+
+**技術架構完善**:
+- 🐳 Docker 建置流程優化（Alpine 3.17 + OpenSSL 1.1.x + Prisma 5.22.0）
+- 🔧 Azure App Service 完整配置（環境變數 + 啟動命令 + 健康檢查）
+- 📊 Azure PostgreSQL 連線設定（SSL mode + 防火牆規則）
+- 🔐 Azure AD B2C 整合驗證（SSO + Local authentication）
+- 📧 SendGrid 郵件服務整合（通知系統 Epic 8）
+
+**功能特性**:
+- 🚀 完整自動化部署流程（從資源建立到應用部署）
+- 🎯 雙環境支援（個人訂閱 + 公司訂閱）
+- 📋 場景化 AI 助手指引（4 大場景覆蓋）
+- 🔍 詳細的故障排查文檔
+- ✅ 生產就緒狀態（Docker + Azure + CI/CD）
+
+---
 
 #### **🌐 I18N 國際化完整實施** ✅ (2025-11-06)
 - ✅ **I18N 全面修復** (~73+ 問題)
@@ -781,12 +835,28 @@ npm run index:health            # 完整健康檢查
 | `packages/db/prisma/schema.prisma` | 資料庫設計（Prisma Schema） | ~400行 |
 | `package.json` | 根目錄依賴與腳本配置 | ~60行 |
 | `turbo.json` | Turborepo 構建配置 | ~50行 |
+| `claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` ⭐ | Azure 部署文件結構指引（查閱優先級） | ~308行 |
+| `azure/README.md` ⭐ | Azure 部署主入口文檔 | ~250行 |
+| `claudedocs/6-ai-assistant/prompts/SITUATION-6-AZURE-DEPLOY-PERSONAL.md` ⭐ | 個人 Azure 環境部署場景化指引 | ~564行 |
+| `claudedocs/6-ai-assistant/prompts/SITUATION-7-AZURE-DEPLOY-COMPANY.md` ⭐ | 公司 Azure 環境部署場景化指引 | ~706行 |
+| `docker/Dockerfile` ⭐ | Docker 生產環境建置配置（Multi-stage build） | ~150行 |
 | `claudedocs/I18N-SESSION-SUMMARY.md` ⭐ | I18N 完整會話總結（73+ 問題、340+ 翻譯鍵） | ~600行 |
 | `claudedocs/I18N-IMPLEMENTATION-PLAN.md` ⭐ | I18N 完整實施計劃與技術架構 | ~800行 |
 | `claudedocs/I18N-ISSUES-LOG.md` ⭐ | I18N 問題追蹤記錄（FIX-059 至 FIX-073） | ~1,000行 |
 | `claudedocs/I18N-PROGRESS.md` ⭐ | I18N 開發進度追蹤與測試驗證記錄 | ~1,100行 |
 
 ### 🟡 高重要性（常用）
+
+#### **Azure 部署與運維**
+| 文件路徑 | 用途說明 | 代碼行數 |
+|---------|---------|----------|
+| `azure/scripts/deploy-to-personal.sh` | 個人 Azure 訂閱自動化部署入口 | ~150行 |
+| `azure/scripts/deploy-to-company.sh` | 公司 Azure 訂閱自動化部署入口 | ~180行 |
+| `azure/environments/personal/dev.env.example` | 個人環境環境變數範本 | ~80行 |
+| `claudedocs/AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md` | v8 Prisma Client 修復部署成功記錄 | ~400行 |
+| `claudedocs/COMPLETE-DEPLOYMENT-DIAGNOSIS-AND-FIX.md` | 完整部署問題診斷和修復過程 | ~500行 |
+| `claudedocs/6-ai-assistant/prompts/SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md` | 個人環境故障排查指引 | ~400行 |
+| `claudedocs/6-ai-assistant/prompts/SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md` | 公司環境故障排查指引 | ~400行 |
 
 #### **架構與設計文檔**
 | 文件路徑 | 用途說明 | 代碼行數 |
@@ -978,12 +1048,18 @@ dist/ build/                   # 構建產物
 | **API 設計？** | `docs/fullstack-architecture/6-api-design-trpc.md` | L1 |
 | **MVP 開發計劃？** | `claudedocs/planning/mvp-development-plan.md` ⭐ | L1 |
 | **MVP 實施檢查清單？** | `claudedocs/planning/mvp-implementation-checklist.md` ⭐ | L1 |
+| **Azure 部署指引？** | `claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` ⭐ | L1 |
+| **個人 Azure 部署？** | `claudedocs/6-ai-assistant/prompts/SITUATION-6-AZURE-DEPLOY-PERSONAL.md` ⭐ | L1 |
+| **公司 Azure 部署？** | `claudedocs/6-ai-assistant/prompts/SITUATION-7-AZURE-DEPLOY-COMPANY.md` ⭐ | L1 |
+| **Azure 問題排查？** | `SITUATION-8 (個人)` 或 `SITUATION-9 (公司)` | L1 |
+| **Docker 建置配置？** | `docker/Dockerfile` | L1 |
+| **Prisma 部署問題？** | `claudedocs/AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md` | L2 |
 | **環境設置？** | `.env.example`, `docs/development/SETUP-COMPLETE.md` | L2 |
 | **開發記錄？** | `DEVELOPMENT-LOG.md` | L1 |
 | **問題修復記錄？** | `FIXLOG.md` | L1 |
 | **完整文件索引？** | `PROJECT-INDEX.md` | L2 |
 | **索引維護方法？** | `INDEX-MAINTENANCE-GUIDE.md` | L3 |
-| **檢查索引狀態？** | 執行 `npm run index:check` | CLI |
+| **檢查索引狀態？** | 執行 `pnpm index:check` | CLI |
 
 ---
 
@@ -1330,4 +1406,4 @@ git push origin feature-branch  # 推送到遠程
 
 **🎯 記住：良好的導航系統是團隊效率的倍增器！**
 
-**最後更新**: 2025-11-01 22:50
+**最後更新**: 2025-11-24 20:30

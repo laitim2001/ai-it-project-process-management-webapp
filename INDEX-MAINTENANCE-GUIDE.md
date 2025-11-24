@@ -13,8 +13,11 @@
 - 新增重要項目文檔 (*.md)
 - 新增主要代碼模組 (src/, lib/, components/)
 - **新增Next.js頁面文件** (app/**/page.tsx, layout.tsx, route.ts)
+- **新增 Azure 部署文件** (azure/, claudedocs/AZURE-*.md, docker/Dockerfile)
+- **新增 AI 助手場景化指引** (claudedocs/6-ai-assistant/prompts/SITUATION-*.md)
 - 重構項目結構
 - 新增 API 端點或資料庫表
+- 新增自動化腳本 (azure/scripts/*.sh)
 
 #### 🟡 建議更新 (Sprint 結束時)
 - 新增配置文件
@@ -74,6 +77,110 @@ git commit -m "feat: 新增功能文檔並更新索引"
 - [ ] 評估文件重要性變化
 - [ ] 優化索引結構
 - [ ] 更新 AI 助手使用指南
+
+---
+
+## 🚀 Azure 部署文件維護專項
+
+### 🎯 目的
+Azure 部署架構重組完成後(2025-11-24),新增了 43+ 個部署相關文件,需要建立專門的維護策略確保這些文件的組織性和可追溯性。
+
+### 📁 Azure 文件結構
+
+#### 1. 執行層 (`azure/` 目錄)
+**優先級**: ⭐⭐⭐⭐⭐ 最高 - 部署時必須查閱
+
+| 目錄/文件 | 用途 | 維護時機 |
+|---------|------|----------|
+| `azure/README.md` | 部署主入口文檔 | 架構變更時 |
+| `azure/scripts/01-06.sh` | 6 個自動化部署腳本 | 資源配置變更時 |
+| `azure/scripts/deploy-to-personal.sh` | 個人環境部署入口 | 環境流程變更時 |
+| `azure/scripts/deploy-to-company.sh` | 公司環境部署入口 | 環境流程變更時 |
+| `azure/scripts/helper/` | 5 個輔助工具腳本 | 工具邏輯變更時 |
+| `azure/environments/personal/` | 個人環境配置範本 | 變數新增/修改時 |
+| `azure/environments/company/` | 公司環境配置範本 | 變數新增/修改時 |
+| `azure/templates/` | 3 個 Bicep IaC 模板 | 基礎設施變更時 |
+| `azure/tests/` | 3 個測試腳本 | 驗證邏輯變更時 |
+
+#### 2. 文檔層 (`docs/deployment/` 目錄)
+**優先級**: ⭐⭐⭐⭐ 高 - 了解流程時必須閱讀
+
+| 文件 | 用途 | 維護時機 |
+|------|------|----------|
+| `AZURE-DEPLOYMENT-GUIDE.md` | 完整部署指南 | 流程變更時 |
+| `00-prerequisites.md` | 前置需求 | 依賴變更時 |
+| `01-first-time-setup.md` | 首次部署指南 | 初始化流程變更時 |
+| `02-ci-cd-setup.md` | CI/CD 配置 | Pipeline 變更時 |
+| `03-troubleshooting.md` | 故障排查 | 新問題發現時 |
+| `04-rollback.md` | 回滾程序 | 回滾策略變更時 |
+
+#### 3. 記錄層 (`claudedocs/` Azure 文檔)
+**優先級**: ⭐⭐⭐ 中 - 參考價值,了解歷史和問題分析
+
+| 文件 | 用途 | 維護時機 |
+|------|------|----------|
+| `AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` | 文件結構指引 | 目錄結構變更時 |
+| `AZURE-DEPLOYMENT-CHECKLIST.md` | 部署檢查清單 | 檢查項目變更時 |
+| `AZURE-*-DEPLOYMENT.md` | 部署記錄文檔 | 部署完成後記錄 |
+| `COMPLETE-DEPLOYMENT-DIAGNOSIS-AND-FIX.md` | 診斷和修復記錄 | 問題解決後記錄 |
+
+#### 4. AI 助手指引 (`claudedocs/6-ai-assistant/prompts/`)
+**優先級**: ⭐⭐⭐⭐ 高 - AI 助手部署和排查必讀
+
+| 文件 | 用途 | 維護時機 |
+|------|------|----------|
+| `SITUATION-6-AZURE-DEPLOY-PERSONAL.md` | 個人環境部署指引 | 流程/工具變更時 |
+| `SITUATION-7-AZURE-DEPLOY-COMPANY.md` | 公司環境部署指引 | 流程/安全策略變更時 |
+| `SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md` | 個人環境排查指引 | 新問題模式發現時 |
+| `SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md` | 公司環境排查指引 | 新問題模式發現時 |
+
+### 🔄 Azure 文件維護流程
+
+#### 觸發維護的場景
+1. **Azure 資源配置變更** (Resource Group, App Service, Database, etc.)
+   - 必須更新: `azure/scripts/01-06.sh`, `azure/environments/*.env.example`
+   - 建議更新: `docs/deployment/`, AI 助手指引
+
+2. **Docker 建置流程變更** (Dockerfile, 建置參數, 依賴版本)
+   - 必須更新: `docker/Dockerfile`
+   - 建議更新: `docs/deployment/01-first-time-setup.md`, 部署記錄文檔
+
+3. **環境變數新增或修改** (DATABASE_URL, NEXTAUTH_SECRET, 新服務 API key)
+   - 必須更新: `azure/environments/*.env.example`, `docs/deployment/environment-variables-map.md`
+   - 建議更新: AI 助手指引 (SITUATION-6, SITUATION-7)
+
+4. **新問題發現和解決** (Prisma Client, 數據庫連線, I18N 等)
+   - 必須更新: `docs/deployment/03-troubleshooting.md`
+   - 記錄到: `claudedocs/AZURE-*-DEPLOYMENT.md` (新建或更新)
+   - 建議更新: AI 助手故障排查指引 (SITUATION-8, SITUATION-9)
+
+5. **CI/CD Pipeline 變更** (.github/workflows/, Azure DevOps Pipelines)
+   - 必須更新: `docs/deployment/02-ci-cd-setup.md`
+   - 建議更新: `.github/workflows/azure-deploy-example.yml`
+
+#### Azure 文件同步檢查清單
+- [ ] `azure/` 腳本是否反映最新配置?
+- [ ] `docs/deployment/` 文檔是否與實際流程同步?
+- [ ] `claudedocs/6-ai-assistant/prompts/` 指引是否包含最新排查方法?
+- [ ] 環境變數範本 (*.env.example) 是否完整?
+- [ ] `AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` 是否更新目錄結構?
+- [ ] `PROJECT-INDEX.md` 和 `AI-ASSISTANT-GUIDE.md` 是否索引所有 Azure 文件?
+
+### 💡 Azure 文件維護最佳實踐
+
+#### ✅ DO (推薦做法)
+1. **部署前更新文檔** - 確保文檔與即將部署的配置同步
+2. **部署後記錄問題** - 立即記錄遇到的問題和解決方案到 `claudedocs/`
+3. **定期審查 AI 指引** - 每月檢查 SITUATION-6 到 SITUATION-9 是否需要更新
+4. **保持環境變數範本完整** - 新增環境變數時同步更新所有 .env.example
+5. **版本標記** - 重大變更時在文檔中標註日期和版本號
+
+#### ❌ DON'T (避免做法)
+1. **直接修改執行層腳本而不更新文檔** - 導致文檔與實際不符
+2. **忘記更新 AI 助手指引** - AI 助手會根據過時信息給出錯誤建議
+3. **刪除歷史部署記錄** - 應移至 `claudedocs/archive/azure-deployments/` 保留
+4. **混淆不同環境的配置** - 個人/公司環境配置要分開維護
+5. **忽略索引更新** - Azure 文件變更後必須更新 PROJECT-INDEX.md
 
 ---
 

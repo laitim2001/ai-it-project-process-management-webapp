@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-11-19 (完成 Bug 修復：報價上傳路徑問題 + 5 個關鍵 bug 修復)
+**最後更新**: 2025-11-24 21:30 (完成 Azure 部署架構重組 + 核心文檔同步更新)
 
 ---
 
@@ -222,6 +222,74 @@
 | **本地開發設置** | `docs/infrastructure/local-dev-setup.md` | 本地開發環境設置指南（Docker Compose, PostgreSQL:5434, Redis:6381） | 🟡 高 |
 | **Azure 基礎設施** | `docs/infrastructure/azure-infrastructure-setup.md` | Azure 雲端基礎設施設置（App Service, Database, Blob Storage） | 🟡 高 |
 | **專案設置檢查清單** | `docs/infrastructure/project-setup-checklist.md` | 完整的設置檢查清單 | 🟢 中 |
+
+### Azure 部署與運維
+
+> **重大更新**: 2025-11-24 完成 Azure 部署架構重組
+> **結構**: 4 層架構 - 執行層 (azure/) | 文檔層 (docs/deployment/) | 記錄層 (claudedocs/) | AI 助手指引
+> **說明**: 完整的 Azure 部署自動化系統和故障排查指引
+> **完整索引**: 參見 [AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md](./claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md)
+
+#### 📂 執行層 - Azure 部署腳本與配置 (⭐⭐⭐⭐⭐ 最高優先級)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Azure 部署主入口** | `azure/README.md` | Azure 部署完整說明文檔（~250行） | 🔴 極高 |
+| **個人環境部署腳本** | `azure/scripts/deploy-to-personal.sh` | 個人 Azure 訂閱自動化部署入口（~150行） | 🔴 極高 |
+| **公司環境部署腳本** | `azure/scripts/deploy-to-company.sh` | 公司 Azure 訂閱自動化部署入口（~180行，含安全確認） | 🔴 極高 |
+| **01-資源設置腳本** | `azure/scripts/01-setup-resources.sh` | Azure Resource Group 和 App Service 資源建立 | 🟡 高 |
+| **02-數據庫設置腳本** | `azure/scripts/02-setup-database.sh` | Azure PostgreSQL 資料庫配置 | 🟡 高 |
+| **03-存儲設置腳本** | `azure/scripts/03-setup-storage.sh` | Azure Blob Storage 設置 | 🟡 高 |
+| **04-容器註冊表設置** | `azure/scripts/04-setup-acr.sh` | Azure Container Registry 配置 | 🟡 高 |
+| **05-Docker 建置腳本** | `azure/scripts/05-build-docker.sh` | Docker 映像建置自動化 | 🟡 高 |
+| **06-應用部署腳本** | `azure/scripts/06-deploy-app.sh` | App Service 應用部署和健康檢查 | 🟡 高 |
+| **個人環境配置範本** | `azure/environments/personal/dev.env.example` | 個人開發環境環境變數範本（~80行） | 🔴 極高 |
+| **個人環境說明** | `azure/environments/personal/README.md` | 個人環境配置指南 | 🟡 高 |
+| **公司環境配置範本** | `azure/environments/company/dev.env.example` | 公司開發環境環境變數範本 | 🔴 極高 |
+| **公司環境說明** | `azure/environments/company/README.md` | 公司環境配置指南 | 🟡 高 |
+| **App Service Bicep** | `azure/templates/app-service.bicep` | App Service Infrastructure as Code 模板 | 🟡 高 |
+| **Database Bicep** | `azure/templates/database.bicep` | Database Infrastructure as Code 模板 | 🟡 高 |
+| **Storage Bicep** | `azure/templates/storage.bicep` | Storage Infrastructure as Code 模板 | 🟡 高 |
+| **Azure 連線測試腳本** | `azure/tests/test-azure-connectivity.sh` | Azure 資源連線診斷工具 | 🟡 高 |
+| **部署驗證腳本** | `azure/scripts/helper/verify-deployment.sh` | 部署後驗證工具 | 🟡 高 |
+| **Smoke 測試腳本** | `azure/tests/smoke-test.sh` | 應用程式基本功能測試 | 🟡 高 |
+| **Docker 建置配置** | `docker/Dockerfile` | 生產環境 Docker 建置配置（Multi-stage build，Alpine 3.17，Prisma 自動生成）（~150行） | 🔴 極高 |
+| **GitHub Actions 範例** | `.github/workflows/azure-deploy-example.yml` | CI/CD 自動化部署範例配置（~360行） | 🟡 高 |
+
+#### 📚 文檔層 - Azure 部署指南 (⭐⭐⭐⭐ 高優先級)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **Azure 部署完整指南** | `docs/deployment/AZURE-DEPLOYMENT-GUIDE.md` | 完整的 Azure 部署操作手冊 | 🔴 極高 |
+| **部署前置需求** | `docs/deployment/00-prerequisites.md` | Azure 訂閱、工具、權限需求 | 🔴 極高 |
+| **首次部署指南** | `docs/deployment/01-first-time-setup.md` | 首次部署完整步驟 | 🔴 極高 |
+| **CI/CD 配置指南** | `docs/deployment/02-ci-cd-setup.md` | GitHub Actions 自動化部署配置 | 🟡 高 |
+| **故障排查指南** | `docs/deployment/03-troubleshooting.md` | 常見問題和解決方案 | 🔴 極高 |
+| **回滾程序** | `docs/deployment/04-rollback.md` | 部署失敗回滾流程 | 🟡 高 |
+| **環境變數對照表** | `docs/deployment/environment-variables-map.md` | 所有環境變數完整說明 | 🔴 極高 |
+| **Key Vault 密鑰清單** | `docs/deployment/key-vault-secrets-list.md` | Azure Key Vault 密鑰管理 | 🟡 高 |
+
+#### 📋 記錄層 - Azure 部署歷史記錄 (⭐⭐⭐ 參考價值)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **部署文件結構指引** | `claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` | Azure 文件 4 層架構和查閱優先級（~308行）⭐ | 🔴 極高 |
+| **部署檢查清單** | `claudedocs/AZURE-DEPLOYMENT-CHECKLIST.md` | 部署前檢查清單 | 🟡 高 |
+| **v7 I18N 修復部署** | `claudedocs/AZURE-LOGIN-I18N-FIX-DEPLOYMENT.md` | v7 登入頁 I18N 問題修復記錄 | 🟡 高 |
+| **NextAuth 根因分析** | `claudedocs/AZURE-NEXTAUTH-CONFIGURATION-ERROR-ROOT-CAUSE.md` | NextAuth 配置錯誤深度分析 | 🟡 高 |
+| **v8 Prisma 修復成功** | `claudedocs/AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md` | v8 Prisma Client 修復部署成功記錄（~400行） | 🔴 極高 |
+| **種子數據實施總結** | `claudedocs/AZURE-SEED-DATA-IMPLEMENTATION-SUMMARY.md` | 數據庫種子數據策略和實施 | 🟡 高 |
+| **完整診斷和修復** | `claudedocs/COMPLETE-DEPLOYMENT-DIAGNOSIS-AND-FIX.md` | 完整部署問題診斷和修復過程（~500行） | 🔴 極高 |
+| **Prisma 遷移指南** | `claudedocs/PRISMA-MIGRATION-GUIDE-FOR-AZURE.md` | Azure 環境 Prisma 遷移最佳實踐 | 🟡 高 |
+
+#### 🤖 AI 助手指引 - 場景化部署和排查 (⭐⭐⭐⭐ 高優先級)
+
+| 文件名稱 | 路徑 | 說明 | 重要性 |
+|---------|------|------|--------|
+| **SITUATION-6: 個人部署** | `claudedocs/6-ai-assistant/prompts/SITUATION-6-AZURE-DEPLOY-PERSONAL.md` | 個人 Azure 環境完整部署指引（~564行）⭐ | 🔴 極高 |
+| **SITUATION-7: 公司部署** | `claudedocs/6-ai-assistant/prompts/SITUATION-7-AZURE-DEPLOY-COMPANY.md` | 公司 Azure 環境完整部署指引（~706行）⭐ | 🔴 極高 |
+| **SITUATION-8: 個人排查** | `claudedocs/6-ai-assistant/prompts/SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md` | 個人環境故障排查指引（~400行） | 🔴 極高 |
+| **SITUATION-9: 公司排查** | `claudedocs/6-ai-assistant/prompts/SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md` | 公司環境故障排查指引（~400行） | 🔴 極高 |
 
 ### 實施記錄
 
@@ -720,54 +788,54 @@
 
 ## 📊 索引統計
 
-**文件總數**: 290+ 個重要文件（完整索引，已驗證）
-**專案總文件**: 320+ 個 MD 文件（包含 Sample-Docs 和 claudedocs）
+**文件總數**: 330+ 個重要文件（完整索引，已驗證）
+**專案總文件**: 370+ 個文件（包含 Azure 部署腳本、Sample-Docs 和 claudedocs）
+**Azure 部署文件**: 43+ 個文件（4 層架構：執行層、文檔層、記錄層、AI 助手指引）
 **核心項目文件**: ~80 個（不含範例和第三方框架）
 **docs/ 文檔**: 70+ 文檔，按 8 個功能類別組織
 **索引策略**: 兩層索引（L1: PROJECT-INDEX.md 核心文件 + L2: 子目錄 README.md 完整列表）
 **新增 README**: 7 個導航索引文件（docs/README.md + 6 個子目錄索引）
 **核心文件索引**: 21 個 docs/ 核心文件直接索引於 PROJECT-INDEX.md
-**最後更新**: 2025-11-14 16:30
+**最後更新**: 2025-11-24 21:30
 **維護者**: AI 助手 + 開發團隊
 
-**當前專案狀態**（2025-11-14）:
+**當前專案狀態**（2025-11-24）:
 - 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
 - ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
 - 🌟 **設計系統遷移完成**: Phase 2-4 全部完成 (29 個頁面 + 15+ 新 UI 組件)
 - 🔧 **環境優化完成**: 跨平台設置指引 + 自動化環境檢查
 - 📚 **文檔重組完成**: Method C 深度整理，docs/ 按功能完整分類
 - ✨ **JSDoc 遷移完成**: 156/156 頁面組件 100% JSDoc 文檔化 + 所有後續改進完成
-- 📈 **累計代碼**: ~30,000+ 行核心代碼
+- 🚀 **Azure 部署架構完成**: 完整的 4 層部署系統 (43+ 文件，6 個自動化腳本，4 個 AI 助手指引)
+- 📈 **累計代碼**: ~30,000+ 行核心代碼 + 11,153 行 Azure 部署相關代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
 - 💼 **開發階段**: Post-MVP 增強階段 - 代碼品質提升與開發體驗優化
 
-**本次更新變更**（2025-11-14 16:30 - JSDoc 遷移完成 + 索引更新）:
-- ✅ **JSDoc 遷移文檔索引**:
-  - 新增 6 個 JSDoc 遷移核心文件到 6-ai-assistant/jsdoc-migration/ 索引
-  - 包含：README、主計劃、模板、進度報告、驗證報告、最終報告
-  - 完整記錄 156/156 頁面組件的 JSDoc 文檔化過程
-- ✅ **進度追蹤更新**:
-  - 更新本週進度引用: 2025-W45.md → 2025-W46.md
-  - 新增本日進度摘要: 2025-11-14-progress-summary.md (SITUATION-5 完整報告)
-  - 記錄所有低優先級改進完成狀態
+**本次更新變更**（2025-11-24 21:30 - Azure 部署架構重組 + 核心文檔同步更新）:
+- ✅ **Azure 部署文件完整索引** (新增「Azure 部署與運維」章節):
+  - 📂 **執行層**: 20+ 個文件（部署腳本、環境配置、IaC 模板、測試腳本）
+  - 📚 **文檔層**: 8 個文件（完整部署指南、故障排查、環境變數對照表）
+  - 📋 **記錄層**: 8 個文件（部署歷史記錄、問題分析、根因診斷）
+  - 🤖 **AI 助手指引**: 4 個文件（SITUATION-6 到 SITUATION-9，場景化部署和排查指引）
+  - 🐳 **Docker 配置**: Dockerfile、GitHub Actions 範例（CI/CD 自動化）
+- ✅ **核心文檔同步更新**:
+  - 更新 `AI-ASSISTANT-GUIDE.md`: 新增 Azure 部署最近更新章節（~75行）、更新重要文件索引
+  - 更新 `INDEX-MAINTENANCE-GUIDE.md`: 新增 Azure 部署文件維護專項章節（~102行）、4 層架構維護策略
+  - 更新 `PROJECT-INDEX.md`: 新增完整 Azure 部署文件索引（43+ 文件），按 4 層架構組織
 - ✅ **專案狀態更新**:
-  - 新增 JSDoc 遷移完成里程碑
-  - 更新文件總數統計: 280+ → 290+ 個重要文件
-  - 更新專案總文件: 313+ → 320+ 個 MD 文件
-  - 反映最新的代碼品質改進成果
+  - 新增 Azure 部署架構完成里程碑
+  - 更新文件總數統計: 290+ → 330+ 個重要文件
+  - 更新專案總文件: 320+ → 370+ 個文件
+  - 新增 Azure 部署文件統計: 43+ 個文件（4 層架構）
+  - 代碼統計更新: +11,153 行 Azure 部署相關代碼
 - ✅ **索引維護**:
-  - 更新時間戳: 2025-10-26 → 2025-11-14
-  - 驗證索引一致性（0 個嚴重問題，327 個可選建議）
+  - 更新時間戳: 2025-11-14 → 2025-11-24
   - 保持兩層索引架構完整性
-  - 更新索引統計（280+ 文件，21 個核心文件直接索引）
-- ✅ **歸檔管理**:
-  - 創建 archive/epic-records/ 目錄
-  - 歸檔 EPIC1-RECORD.md, EPIC2-RECORD.md, 認證系統實現摘要.md
-- ✅ **文檔組織原則**:
-  - 按功能分類: design-system, research, development, implementation
-  - 清晰索引: 每個子目錄包含 README.md 導航
-  - 易於發現: docs/README.md 提供完整導航路徑
-  - 核心優先: 高頻文件直接索引，低頻文件二級導航
+  - Azure 文件按優先級組織（⭐⭐⭐⭐⭐ 最高 到 ⭐⭐⭐ 參考）
+- ✅ **目錄結構優化**:
+  - 在「基礎設施」章節後新增「Azure 部署與運維」獨立章節
+  - 4 個子章節清晰組織（執行層、文檔層、記錄層、AI 助手指引）
+  - 每個子章節標註優先級星級，便於快速查閱
 
 **歷史更新**（2025-10-15 22:50）:
 - ✅ 佈局組件改造：Sidebar 和 TopBar 改造為 Source 項目風格
