@@ -185,15 +185,30 @@ log_info "授予 Managed Identity AcrPull 權限"
 
 ACR_RESOURCE_ID=$(az acr show \
     --name "$ACR_NAME" \
-    --query "id" -o tsv)
+    --resource-group "$RESOURCE_GROUP" \
+    --query "id" -o tsv 2>/dev/null || echo "")
 
-az role assignment create \
-    --assignee "$PRINCIPAL_ID" \
-    --role "AcrPull" \
-    --scope "$ACR_RESOURCE_ID" \
-    --output none
+if [ -n "$ACR_RESOURCE_ID" ] && [ -n "$PRINCIPAL_ID" ]; then
+    # 檢查角色分配是否已存在
+    EXISTING_ROLE=$(az role assignment list \
+        --assignee "$PRINCIPAL_ID" \
+        --role "AcrPull" \
+        --scope "$ACR_RESOURCE_ID" \
+        --query "[0].id" -o tsv 2>/dev/null || echo "")
 
-log_success "ACR 存取權限已配置"
+    if [ -z "$EXISTING_ROLE" ]; then
+        az role assignment create \
+            --assignee "$PRINCIPAL_ID" \
+            --role "AcrPull" \
+            --scope "$ACR_RESOURCE_ID" \
+            --output none 2>/dev/null || log_warning "角色分配可能已存在或權限不足"
+    else
+        log_info "AcrPull 角色分配已存在"
+    fi
+    log_success "ACR 存取權限已配置"
+else
+    log_warning "無法獲取 ACR Resource ID 或 Principal ID，跳過角色分配"
+fi
 
 # 配置應用設定
 log_section "⚙️  配置應用設定"
@@ -254,19 +269,20 @@ log_success "診斷日誌已配置"
 # 顯示 App Service 資訊
 log_section "📊 App Service 資訊"
 
-APP_INFO=$(az webapp show \
-    --name "$APP_SERVICE_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --output json)
+# 使用 Azure CLI 原生查詢，避免依賴 jq
+APP_DISP_NAME=$(az webapp show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query "name" -o tsv)
+APP_HOSTNAME=$(az webapp show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query "defaultHostName" -o tsv)
+APP_STATE=$(az webapp show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query "state" -o tsv)
+APP_PLAN=$(az webapp show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query "appServicePlanId" -o tsv | sed 's|.*/||')
+APP_LOC=$(az webapp show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query "location" -o tsv)
+APP_IDENTITY=$(az webapp show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query "identity.principalId" -o tsv)
 
-echo "$APP_INFO" | jq -r '
-"名稱:             " + .name,
-"URL:              https://" + .defaultHostName,
-"狀態:             " + .state,
-"SKU:              " + .appServicePlanId | split("/") | last,
-"位置:             " + .location,
-"Managed Identity: " + .identity.principalId
-'
+echo "名稱:             $APP_DISP_NAME"
+echo "URL:              https://$APP_HOSTNAME"
+echo "狀態:             $APP_STATE"
+echo "SKU:              $APP_PLAN"
+echo "位置:             $APP_LOC"
+echo "Managed Identity: $APP_IDENTITY"
 
 # 完成總結
 log_section "✅ App Service 設置完成"

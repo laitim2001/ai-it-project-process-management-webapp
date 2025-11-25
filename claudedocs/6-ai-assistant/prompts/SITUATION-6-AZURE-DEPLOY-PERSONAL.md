@@ -101,6 +101,9 @@ docker --version   # 確認 Docker daemon 運行中
 pnpm check:env
 ```
 
+> **注意**: 部署腳本已移除 `jq` 依賴，改用 Azure CLI 原生查詢語法 (`--query` + `-o tsv`)。
+> Windows Git Bash 環境無需額外安裝任何工具。
+
 ### 一鍵部署到 Dev 環境
 ```bash
 # 從項目根目錄執行
@@ -557,7 +560,20 @@ bash azure/scripts/helper/verify-deployment.sh
 
 ---
 
-**版本**: 1.0.0
-**最後更新**: 2025-11-23
+**版本**: 1.1.0
+**最後更新**: 2025-11-25
 **維護者**: 開發團隊
 **適用環境**: 個人 Azure 訂閱（開發、測試、學習）
+
+---
+
+## 📝 更新記錄
+
+### v1.1.0 (2025-11-25)
+- ✅ v9-fresh-build 部署驗證通過
+- ✅ 所有部署腳本已移除 `jq` 依賴（Windows Git Bash 相容）
+- ✅ 腳本改用 Azure CLI 原生查詢語法
+- 驗證記錄：`claudedocs/AZURE-SITUATION-6-VALIDATION-V9.md`
+
+### v1.0.0 (2025-11-23)
+- 初始版本

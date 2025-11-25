@@ -164,15 +164,19 @@ EXISTING_SERVER=$(az postgres flexible-server show \
 if [ -n "$EXISTING_SERVER" ]; then
     log_warning "PostgreSQL 伺服器已存在: $SERVER_NAME"
 
-    # 顯示現有伺服器資訊
-    echo "$EXISTING_SERVER" | jq -r '
-    "伺服器名稱:   " + .name,
-    "狀態:         " + .state,
-    "版本:         " + .version,
-    "SKU:          " + .sku.name,
-    "儲存空間:     " + (.storage.storageSizeGb | tostring) + " GB",
-    "FQDN:         " + .fullyQualifiedDomainName
-    '
+    # 顯示現有伺服器資訊（使用 Azure CLI 原生查詢，避免依賴 jq）
+    SERVER_STATE=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "state" -o tsv 2>/dev/null || echo "unknown")
+    SERVER_VERSION=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "version" -o tsv 2>/dev/null || echo "unknown")
+    SERVER_SKU=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "sku.name" -o tsv 2>/dev/null || echo "unknown")
+    SERVER_STORAGE=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "storage.storageSizeGb" -o tsv 2>/dev/null || echo "unknown")
+    SERVER_FQDN=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "fullyQualifiedDomainName" -o tsv 2>/dev/null || echo "unknown")
+
+    echo "伺服器名稱:   $SERVER_NAME"
+    echo "狀態:         $SERVER_STATE"
+    echo "版本:         $SERVER_VERSION"
+    echo "SKU:          $SERVER_SKU"
+    echo "儲存空間:     $SERVER_STORAGE GB"
+    echo "FQDN:         $SERVER_FQDN"
 
     echo ""
     read -p "繼續使用現有伺服器? (yes/no): " CONFIRM_EXISTING
@@ -394,22 +398,27 @@ log_success "資料庫參數配置完成"
 # ------------------------------------------------------------------------------
 log_section "📊 PostgreSQL 伺服器資訊"
 
-SERVER_INFO=$(az postgres flexible-server show \
-    --name "$SERVER_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --output json)
+# 使用 Azure CLI 原生查詢，避免依賴 jq
+FINAL_NAME=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "name" -o tsv)
+FINAL_FQDN=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "fullyQualifiedDomainName" -o tsv)
+FINAL_STATE=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "state" -o tsv)
+FINAL_VERSION=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "version" -o tsv)
+FINAL_SKU=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "sku.name" -o tsv)
+FINAL_TIER=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "sku.tier" -o tsv)
+FINAL_STORAGE=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "storage.storageSizeGb" -o tsv)
+FINAL_BACKUP=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "backup.backupRetentionDays" -o tsv)
+FINAL_HA=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "highAvailability.mode" -o tsv)
+FINAL_LOCATION=$(az postgres flexible-server show --name "$SERVER_NAME" --resource-group "$RESOURCE_GROUP" --query "location" -o tsv)
 
-echo "$SERVER_INFO" | jq -r '
-"伺服器名稱:       " + .name,
-"完整域名:         " + .fullyQualifiedDomainName,
-"狀態:             " + .state,
-"PostgreSQL 版本:  " + .version,
-"SKU:              " + .sku.name + " (" + .sku.tier + ")",
-"儲存空間:         " + (.storage.storageSizeGb | tostring) + " GB",
-"備份保留:         " + (.backup.backupRetentionDays | tostring) + " 天",
-"高可用性:         " + .highAvailability.mode,
-"位置:             " + .location
-'
+echo "伺服器名稱:       $FINAL_NAME"
+echo "完整域名:         $FINAL_FQDN"
+echo "狀態:             $FINAL_STATE"
+echo "PostgreSQL 版本:  $FINAL_VERSION"
+echo "SKU:              $FINAL_SKU ($FINAL_TIER)"
+echo "儲存空間:         $FINAL_STORAGE GB"
+echo "備份保留:         $FINAL_BACKUP 天"
+echo "高可用性:         $FINAL_HA"
+echo "位置:             $FINAL_LOCATION"
 
 # ------------------------------------------------------------------------------
 # 完成總結

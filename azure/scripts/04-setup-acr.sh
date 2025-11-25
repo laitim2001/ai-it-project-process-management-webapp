@@ -213,18 +213,20 @@ fi
 # 顯示 ACR 資訊
 log_section "📊 ACR 資訊"
 
-ACR_INFO=$(az acr show \
-    --name "$ACR_NAME" \
-    --output json)
+# 使用 Azure CLI 原生查詢，避免依賴 jq
+ACR_DISP_NAME=$(az acr show --name "$ACR_NAME" --query "name" -o tsv)
+ACR_LOGIN=$(az acr show --name "$ACR_NAME" --query "loginServer" -o tsv)
+ACR_SKU_NAME=$(az acr show --name "$ACR_NAME" --query "sku.name" -o tsv)
+ACR_STATE=$(az acr show --name "$ACR_NAME" --query "provisioningState" -o tsv)
+ACR_ADMIN=$(az acr show --name "$ACR_NAME" --query "adminUserEnabled" -o tsv)
+ACR_LOC=$(az acr show --name "$ACR_NAME" --query "location" -o tsv)
 
-echo "$ACR_INFO" | jq -r '
-"名稱:             " + .name,
-"登入伺服器:       " + .loginServer,
-"SKU:              " + .sku.name,
-"狀態:             " + .provisioningState,
-"管理員啟用:       " + (.adminUserEnabled | tostring),
-"位置:             " + .location
-'
+echo "名稱:             $ACR_DISP_NAME"
+echo "登入伺服器:       $ACR_LOGIN"
+echo "SKU:              $ACR_SKU_NAME"
+echo "狀態:             $ACR_STATE"
+echo "管理員啟用:       $ACR_ADMIN"
+echo "位置:             $ACR_LOC"
 
 # 完成總結
 log_section "✅ Container Registry 設置完成"

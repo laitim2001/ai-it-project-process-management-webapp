@@ -185,18 +185,20 @@ fi
 # ------------------------------------------------------------------------------
 log_section "📊 資源組詳情"
 
-RG_INFO=$(az group show --name "$RESOURCE_GROUP" --output json)
+# 使用 Azure CLI 原生查詢，避免依賴 jq
+RG_NAME=$(az group show --name "$RESOURCE_GROUP" --query "name" -o tsv)
+RG_LOCATION=$(az group show --name "$RESOURCE_GROUP" --query "location" -o tsv)
+RG_STATE=$(az group show --name "$RESOURCE_GROUP" --query "properties.provisioningState" -o tsv)
+RG_ID=$(az group show --name "$RESOURCE_GROUP" --query "id" -o tsv)
 
-echo "$RG_INFO" | jq -r '
-"資源組名稱:   " + .name,
-"區域:         " + .location,
-"狀態:         " + .properties.provisioningState,
-"資源組 ID:    " + .id
-'
+echo "資源組名稱:   $RG_NAME"
+echo "區域:         $RG_LOCATION"
+echo "狀態:         $RG_STATE"
+echo "資源組 ID:    $RG_ID"
 
-# 顯示標籤
+# 顯示標籤（使用 Azure CLI 原生格式）
 log_info "標籤:"
-echo "$RG_INFO" | jq -r '.tags | to_entries | .[] | "  • \(.key): \(.value)"'
+az group show --name "$RESOURCE_GROUP" --query "tags" -o table 2>/dev/null || echo "  (無標籤)"
 
 # ------------------------------------------------------------------------------
 # 設置資源鎖定（僅生產環境）

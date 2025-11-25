@@ -124,14 +124,22 @@ else
     fi
 fi
 
+# 獲取 Storage Account Key（用於後續操作）
+log_section "🔑 獲取 Storage Account Key"
+STORAGE_KEY=$(az storage account keys list \
+    --resource-group "$RESOURCE_GROUP" \
+    --account-name "$STORAGE_ACCOUNT" \
+    --query "[0].value" -o tsv)
+log_success "Storage Account Key 獲取成功"
+
 # 啟用 Blob 軟刪除（保留 7 天）
 log_section "🗑️  啟用 Blob 軟刪除"
 
 az storage blob service-properties delete-policy update \
     --account-name "$STORAGE_ACCOUNT" \
+    --account-key "$STORAGE_KEY" \
     --enable true \
     --days-retained 7 \
-    --auth-mode login \
     --output none
 
 log_success "Blob 軟刪除已啟用（7 天保留期）"
@@ -158,7 +166,7 @@ for container in "${CONTAINERS[@]}"; do
     az storage container create \
         --name "$container" \
         --account-name "$STORAGE_ACCOUNT" \
-        --auth-mode login \
+        --account-key "$STORAGE_KEY" \
         --public-access off \
         --output none
 
@@ -180,7 +188,7 @@ az storage cors add \
     --exposed-headers "*" \
     --max-age 3600 \
     --account-name "$STORAGE_ACCOUNT" \
-    --auth-mode login \
+    --account-key "$STORAGE_KEY" \
     --output none
 
 log_success "CORS 規則已配置"
@@ -227,20 +235,22 @@ log_success "憑證已保存到: .azure/output/${ENVIRONMENT}-storage-credential
 # 顯示 Storage Account 資訊
 log_section "📊 Storage Account 資訊"
 
-STORAGE_INFO=$(az storage account show \
-    --name "$STORAGE_ACCOUNT" \
-    --resource-group "$RESOURCE_GROUP" \
-    --output json)
+# 使用 Azure CLI 原生查詢，避免依賴 jq
+STOR_NAME=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "name" -o tsv)
+STOR_SKU=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "sku.name" -o tsv)
+STOR_STATE=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "provisioningState" -o tsv)
+STOR_TIER=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "accessTier" -o tsv)
+STOR_BLOB=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "primaryEndpoints.blob" -o tsv)
+STOR_HTTPS=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "enableHttpsTrafficOnly" -o tsv)
+STOR_TLS=$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "minimumTlsVersion" -o tsv)
 
-echo "$STORAGE_INFO" | jq -r '
-"名稱:             " + .name,
-"SKU:              " + .sku.name,
-"狀態:             " + .provisioningState,
-"存取層級:         " + .accessTier,
-"主要端點:         " + .primaryEndpoints.blob,
-"HTTPS Only:       " + (.enableHttpsTrafficOnly | tostring),
-"最小 TLS 版本:    " + .minimumTlsVersion
-'
+echo "名稱:             $STOR_NAME"
+echo "SKU:              $STOR_SKU"
+echo "狀態:             $STOR_STATE"
+echo "存取層級:         $STOR_TIER"
+echo "主要端點:         $STOR_BLOB"
+echo "HTTPS Only:       $STOR_HTTPS"
+echo "最小 TLS 版本:    $STOR_TLS"
 
 # 列出所有 Containers
 log_info "已創建的 Containers:"

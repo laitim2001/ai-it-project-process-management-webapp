@@ -1,10 +1,15 @@
 # Azure 部署完整操作手冊
 
 **專案**: IT Project Process Management Platform
-**版本**: 2.0
-**最後更新**: 2025-11-21
+**版本**: 2.1
+**最後更新**: 2025-11-25
 **適用環境**: Azure App Service (Docker Container)
 **目標讀者**: DevOps Engineer, Developer
+
+> **v2.1 更新**:
+> - 所有部署腳本已移除 `jq` 依賴，改用 Azure CLI 原生查詢
+> - 新增公司環境部署的 Prisma lazy loading 解決方案
+> - 個人環境 v9-fresh-build 驗證通過
 
 ---
 
