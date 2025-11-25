@@ -72,8 +72,11 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { type NextRequest } from 'next/server';
 
-import { appRouter, createInnerTRPCContext } from '@itpm/api';
 import { auth } from '@/auth';
+import { appRouter, createInnerTRPCContext } from '@itpm/api';
+
+// Force dynamic rendering to avoid build-time Prisma initialization
+export const dynamic = 'force-dynamic';
 
 /**
  * tRPC Request Handler

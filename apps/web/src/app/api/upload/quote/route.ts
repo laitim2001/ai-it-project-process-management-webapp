@@ -79,9 +79,12 @@
  * }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { BLOB_CONTAINERS, uploadToBlob } from '@/lib/azure-storage';
 import { prisma } from '@itpm/db';
-import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
+import { NextRequest, NextResponse } from 'next/server';
+
+// Force dynamic rendering to avoid build-time Prisma initialization
+export const dynamic = 'force-dynamic';
 
 // 允許的文件類型
 const ALLOWED_TYPES = [
@@ -147,10 +150,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!project) {
-      return NextResponse.json(
-        { error: '專案不存在' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '專案不存在' }, { status: 404 });
     }
 
     if (project.proposals.length === 0) {
@@ -166,10 +166,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!vendor) {
-      return NextResponse.json(
-        { error: '供應商不存在' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '供應商不存在' }, { status: 404 });
     }
 
     // 生成唯一文件名
@@ -197,7 +194,9 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('[Quote Upload] Azure Blob Storage 上傳失敗:', error);
       return NextResponse.json(
-        { error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}` },
+        {
+          error: `文件上傳失敗: ${error instanceof Error ? error.message : '未知錯誤'}`,
+        },
         { status: 500 }
       );
     }
@@ -234,7 +233,6 @@ export async function POST(request: NextRequest) {
         project: quote.project,
       },
     });
-
   } catch (error) {
     console.error('報價單上傳錯誤:', error);
     return NextResponse.json(

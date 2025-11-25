@@ -37,10 +37,13 @@
  * @lastModified 2025-11-21
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import { z } from 'zod';
 import { prisma } from '@itpm/db';
+import bcrypt from 'bcryptjs';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+// Force dynamic rendering to avoid build-time Prisma initialization
+export const dynamic = 'force-dynamic';
 
 // ========================================
 // 🔐 Input Validation Schema

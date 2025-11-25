@@ -59,6 +59,13 @@
 import { handlers } from '../../../../auth';
 
 /**
+ * Force this route to be dynamic at runtime
+ * This prevents Next.js from trying to evaluate the route at build time
+ * which would fail because Prisma needs a database connection
+ */
+export const dynamic = 'force-dynamic';
+
+/**
  * NextAuth.js Handlers
  * 處理所有認證相關請求（GET: Session查詢/OAuth Callback, POST: 登入/登出/Credentials驗證）
  * @type {import('next/server').NextApiHandler}
