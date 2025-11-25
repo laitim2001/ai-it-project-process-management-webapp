@@ -115,7 +115,7 @@ echo ""
 # 階段 1: 設置資源群組
 echo "=== 階段 1/6: 設置資源群組 ==="
 if [ -f "$SCRIPT_DIR/01-setup-resources.sh" ]; then
-  bash "$SCRIPT_DIR/01-setup-resources.sh"
+  bash "$SCRIPT_DIR/01-setup-resources.sh" "$ENV"
   echo "✅ 資源群組設置完成"
 else
   echo "⚠️  腳本不存在，跳過: 01-setup-resources.sh"
@@ -125,7 +125,7 @@ echo ""
 # 階段 2: 設置資料庫
 echo "=== 階段 2/6: 設置 PostgreSQL 資料庫 ==="
 if [ -f "$SCRIPT_DIR/02-setup-database.sh" ]; then
-  bash "$SCRIPT_DIR/02-setup-database.sh"
+  bash "$SCRIPT_DIR/02-setup-database.sh" "$ENV"
   echo "✅ 資料庫設置完成"
 else
   echo "⚠️  腳本不存在，跳過: 02-setup-database.sh"
@@ -135,7 +135,7 @@ echo ""
 # 階段 3: 設置儲存體
 echo "=== 階段 3/6: 設置 Blob Storage ==="
 if [ -f "$SCRIPT_DIR/03-setup-storage.sh" ]; then
-  bash "$SCRIPT_DIR/03-setup-storage.sh"
+  bash "$SCRIPT_DIR/03-setup-storage.sh" "$ENV"
   echo "✅ 儲存體設置完成"
 else
   echo "⚠️  腳本不存在，跳過: 03-setup-storage.sh"
@@ -145,7 +145,7 @@ echo ""
 # 階段 4: 設置 Container Registry
 echo "=== 階段 4/6: 設置 Container Registry ==="
 if [ -f "$SCRIPT_DIR/04-setup-acr.sh" ]; then
-  bash "$SCRIPT_DIR/04-setup-acr.sh"
+  bash "$SCRIPT_DIR/04-setup-acr.sh" "$ENV"
   echo "✅ Container Registry 設置完成"
 else
   echo "⚠️  腳本不存在，跳過: 04-setup-acr.sh"
@@ -155,7 +155,7 @@ echo ""
 # 階段 5: 設置 App Service
 echo "=== 階段 5/6: 設置 App Service ==="
 if [ -f "$SCRIPT_DIR/05-setup-appservice.sh" ]; then
-  bash "$SCRIPT_DIR/05-setup-appservice.sh"
+  bash "$SCRIPT_DIR/05-setup-appservice.sh" "$ENV"
   echo "✅ App Service 設置完成"
 else
   echo "⚠️  腳本不存在，跳過: 05-setup-appservice.sh"
@@ -165,7 +165,7 @@ echo ""
 # 階段 6: 部署應用程式
 echo "=== 階段 6/6: 部署應用程式 ==="
 if [ -f "$SCRIPT_DIR/06-deploy-app.sh" ]; then
-  bash "$SCRIPT_DIR/06-deploy-app.sh"
+  bash "$SCRIPT_DIR/06-deploy-app.sh" "$ENV"
   echo "✅ 應用程式部署完成"
 else
   echo "⚠️  腳本不存在，跳過: 06-deploy-app.sh"
