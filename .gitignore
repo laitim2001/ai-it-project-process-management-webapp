@@ -193,6 +193,10 @@ local.settings.json
 !.azure/docs/
 !.azure/README.md
 
+# Azure 環境配置 - 忽略實際配置，只保留範例
+azure/environments/**/*.env
+!azure/environments/**/*.env.example
+
 # ------------------------------------------------------------------------------
 # Temporary Files
 # ------------------------------------------------------------------------------
