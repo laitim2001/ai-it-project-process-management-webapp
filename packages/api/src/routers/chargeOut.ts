@@ -55,7 +55,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
-import { Prisma } from '@itpm/db';
+import type { Prisma } from '@itpm/db';
 
 /**
  * ChargeOut 狀態枚舉
