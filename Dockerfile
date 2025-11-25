@@ -15,7 +15,6 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/api/package.json ./packages/api/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install dependencies with frozen lockfile
@@ -36,12 +35,19 @@ COPY --from=deps /app/packages ./packages
 # Copy source code
 COPY . .
 
-# Generate Prisma Client
+# Copy Prisma schema first
+COPY packages/db/prisma ./packages/db/prisma
+
+# Generate Prisma Client - must be done before build
 RUN pnpm db:generate
 
 # Build the application
 # Next.js collects anonymous telemetry data, disable it
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Skip static page generation that requires database connection
+ENV SKIP_ENV_VALIDATION=1
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
 RUN pnpm build
 
@@ -50,36 +56,42 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Set production environment
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
-COPY --from=builder /app/apps/web/public ./apps/web/public
-
 # Set permissions for prerender cache
 RUN mkdir -p apps/web/.next
+RUN mkdir -p apps/web/public
 RUN chown nextjs:nodejs apps/web/.next
+
+# Copy built application - public folder may not exist if empty
+COPY --from=builder /app/apps/web/public* ./apps/web/
 
 # Automatically leverage Next.js standalone output
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-# Copy Prisma schema and generated client
+# Copy Prisma schema
 COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.pnpm
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# Copy Prisma client and engine from pnpm store (required for runtime)
+RUN mkdir -p node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma ./node_modules/@prisma
+# Copy engine files
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma/engines ./node_modules/@prisma/engines
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # Start the Next.js application
 CMD ["node", "apps/web/server.js"]

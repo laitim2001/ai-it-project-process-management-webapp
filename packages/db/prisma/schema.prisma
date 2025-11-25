@@ -2,7 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // Binary targets for cross-platform Docker builds (Alpine Linux musl)
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -260,7 +262,7 @@ model Expense {
   // 財務信息
   totalAmount Float // 新增：改為 totalAmount，由明細自動計算
   currencyId  String? // FEAT-002: 貨幣ID (nullable, 繼承自 PurchaseOrder)
-  status      String @default("Draft") // "Draft", "PendingApproval", "Approved", "Paid", "Rejected"
+  status      String  @default("Draft") // "Draft", "PendingApproval", "Approved", "Paid", "Rejected"
 
   // 發票信息
   invoiceNumber   String? // 新增：發票號碼
@@ -626,10 +628,10 @@ model Currency {
   updatedAt    DateTime @updatedAt
 
   // 關聯
-  projects       Project[]        @relation("ProjectCurrency") // 使用此貨幣的專案
-  budgetPools    BudgetPool[]     @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
-  purchaseOrders PurchaseOrder[]  @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
-  expenses       Expense[]        @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
+  projects       Project[]       @relation("ProjectCurrency") // 使用此貨幣的專案
+  budgetPools    BudgetPool[]    @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
+  purchaseOrders PurchaseOrder[] @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
+  expenses       Expense[]       @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
 
   @@index([code])
   @@index([active])
