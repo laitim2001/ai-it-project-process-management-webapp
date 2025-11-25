@@ -699,7 +699,191 @@ process:
 
 ---
 
-**版本**: 1.0.0
-**最後更新**: 2025-11-23
+## 🎯 實戰經驗：2025-11-25 首次部署記錄
+
+> 本章節記錄首次部署到公司 Azure 環境的實際經驗和解決方案，供後續部署參考。
+
+### 實際使用的資源
+
+```yaml
+resource_group: RG-RCITest-RAPO-N8N  # 使用現有資源群組
+location: eastasia
+
+resources_created:
+  postgresql: psql-itpm-company-dev-001
+  storage: stitpmcompanydev001
+  acr: acritpmcompany
+  app_service_plan: asp-itpm-company-dev-001
+  app_service: app-itpm-company-dev-001
+
+service_principal:
+  name: RIT
+  tenant_id: 4f63aaa0-5612-4fe8-8175-9f9f4d26c7b4
+  client_id: a19dfe76-8dde-4e94-b8c4-ee18ea514d09
+  subscription_id: 30dac177-6dcb-412e-94f6-da9308fd1d09
+```
+
+### 關鍵問題與解決方案
+
+#### 問題 1: Key Vault 創建權限不足
+
+**症狀**:
+```
+ERROR: The subscription is not registered to use namespace 'Microsoft.KeyVault'
+或
+ERROR: Authorization failed for action 'Microsoft.KeyVault/vaults/write'
+```
+
+**解決方案**: 直接使用 App Service App Settings 配置環境變數
+```bash
+# 不使用 Key Vault，直接配置 App Settings
+az webapp config appsettings set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --settings \
+    DATABASE_URL="postgresql://..." \
+    NEXTAUTH_SECRET="..." \
+    NEXTAUTH_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+```
+
+#### 問題 2: Docker 建置時 Prisma 初始化失敗
+
+**症狀**:
+```
+PrismaClientInitializationError: Prisma Client could not locate the Query Engine
+或
+Error: ENOENT: no such file or directory, open '.../libquery_engine-linux-musl-openssl-3.0.x.so.node'
+```
+
+**根本原因**: Prisma Client 在 `import` 時就嘗試初始化，但 Docker 建置階段沒有資料庫連接。
+
+**解決方案**: 使用 Proxy 模式實現真正的 lazy loading
+
+```typescript
+// packages/db/src/index.ts
+import { PrismaClient } from "@prisma/client";
+
+let prismaInstance: PrismaClient | null = null;
+
+function getPrisma(): PrismaClient {
+  if (!prismaInstance) {
+    prismaInstance = new PrismaClient();
+  }
+  return prismaInstance;
+}
+
+// 使用 Proxy 實現真正的 lazy loading
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop: keyof PrismaClient) {
+    return getPrisma()[prop];
+  },
+});
+```
+
+同時需要在 `schema.prisma` 添加：
+```prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+```
+
+#### 問題 3: API Routes 在建置時預渲染
+
+**症狀**:
+```
+Error during Next.js build: Cannot read properties of undefined
+（在建置 API routes 時發生）
+```
+
+**解決方案**: 在所有使用資料庫的 API routes 添加：
+```typescript
+export const dynamic = 'force-dynamic';
+```
+
+需要修改的檔案：
+- `apps/web/src/app/api/auth/[...nextauth]/route.ts`
+- `apps/web/src/app/api/projects/route.ts`
+- `apps/web/src/app/api/projects/[id]/route.ts`
+- `apps/web/src/app/api/health/route.ts`
+
+#### 問題 4: Database 網路連接
+
+**症狀**:
+```
+Connection timeout 或 ECONNREFUSED
+```
+
+**解決方案**: 配置 PostgreSQL 防火牆規則
+```bash
+# 添加 Azure 服務訪問
+az postgres flexible-server firewall-rule create \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --name psql-itpm-company-dev-001 \
+  --rule-name AllowAzureServices \
+  --start-ip-address 0.0.0.0 \
+  --end-ip-address 0.0.0.0
+
+# 如需本地開發測試，添加開發機 IP
+az postgres flexible-server firewall-rule create \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --name psql-itpm-company-dev-001 \
+  --rule-name AllowDevMachine \
+  --start-ip-address <YOUR_IP> \
+  --end-ip-address <YOUR_IP>
+```
+
+### 部署流程驗證清單
+
+```yaml
+deployment_checklist:
+  pre_deployment:
+    - [ ] Service Principal 登入成功
+    - [ ] 資源群組存在且有權限
+    - [ ] ACR 已建立且可登入
+
+  docker_build:
+    - [ ] Prisma Proxy lazy loading 已實作
+    - [ ] binaryTargets 包含 linux-musl-openssl-3.0.x
+    - [ ] API routes 已添加 dynamic export
+    - [ ] Docker build 成功完成
+
+  deployment:
+    - [ ] 映像已推送到 ACR
+    - [ ] App Service 配置正確
+    - [ ] 環境變數已設定（App Settings 或 Key Vault）
+    - [ ] 資料庫防火牆規則已配置
+
+  post_deployment:
+    - [ ] 網站可訪問
+    - [ ] 資料庫連接正常
+    - [ ] 認證功能正常
+```
+
+### 有用的診斷命令
+
+```bash
+# 檢查 App Service 狀態
+az webapp show --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N --query state
+
+# 查看即時日誌
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+
+# 檢查容器設定
+az webapp config container show --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+
+# 重啟應用
+az webapp restart --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+
+# 檢查 ACR 映像
+az acr repository show-tags --name acritpmcompany --repository itpm-web
+```
+
+---
+
+**版本**: 1.1.0
+**最後更新**: 2025-11-25
 **維護者**: DevOps Team + Azure Administrator
 **適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境）
+**更新記錄**: 
+- v1.1.0 (2025-11-25): 添加首次部署實戰經驗章節

@@ -73,6 +73,147 @@ change_management:
 
 ## 🔍 企業級問題診斷
 
+### 問題 0: Docker 建置失敗 - Prisma 初始化問題（實戰經驗）
+
+> ⚠️ **高頻問題**：這是首次部署時遇到的主要障礙，記錄詳細解決方案。
+
+#### 症狀
+```
+❌ docker build 失敗
+❌ PrismaClientInitializationError: Prisma Client could not locate the Query Engine
+❌ Error: ENOENT: no such file or directory, open '.../libquery_engine-linux-musl-openssl-3.0.x.so.node'
+❌ Next.js build 階段嘗試連接資料庫
+```
+
+#### 根本原因分析
+```yaml
+root_cause:
+  issue: Prisma Client 在 import 時就嘗試初始化
+  why_fails:
+    - Docker 建置階段沒有資料庫連接
+    - Next.js build 會預渲染 API routes
+    - Alpine Linux 需要特定的 binary target
+
+  affected_files:
+    - packages/db/src/index.ts
+    - packages/db/prisma/schema.prisma
+    - apps/web/src/app/api/**/route.ts
+```
+
+#### 解決方案
+
+**步驟 1: 實作 Prisma Proxy Lazy Loading**
+```typescript
+// packages/db/src/index.ts
+import { PrismaClient } from "@prisma/client";
+
+let prismaInstance: PrismaClient | null = null;
+
+function getPrisma(): PrismaClient {
+  if (!prismaInstance) {
+    prismaInstance = new PrismaClient();
+  }
+  return prismaInstance;
+}
+
+// 使用 Proxy 實現真正的 lazy loading
+// 只有在實際調用方法時才會初始化 PrismaClient
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop: keyof PrismaClient) {
+    return getPrisma()[prop];
+  },
+});
+
+export * from "@prisma/client";
+```
+
+**步驟 2: 添加 Alpine Linux Binary Target**
+```prisma
+// packages/db/prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+```
+
+**步驟 3: 防止 API Routes 預渲染**
+```typescript
+// 在所有使用資料庫的 API route 文件開頭添加
+export const dynamic = 'force-dynamic';
+```
+
+需要修改的檔案清單：
+- `apps/web/src/app/api/auth/[...nextauth]/route.ts`
+- `apps/web/src/app/api/projects/route.ts`
+- `apps/web/src/app/api/projects/[id]/route.ts`
+- `apps/web/src/app/api/health/route.ts`
+
+**步驟 4: Dockerfile 配置**
+```dockerfile
+# 確保建置階段有佔位符 DATABASE_URL
+ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
+ENV SKIP_ENV_VALIDATION=1
+
+# 確保 Prisma 生成在正確位置
+RUN pnpm prisma generate --schema=./packages/db/prisma/schema.prisma
+```
+
+#### 驗證修復
+```bash
+# 重新建置 Docker 映像
+docker build --no-cache -t acritpmcompany.azurecr.io/itpm-web:latest -f Dockerfile .
+
+# 確認建置成功後推送
+docker push acritpmcompany.azurecr.io/itpm-web:latest
+```
+
+---
+
+### 問題 0.5: 資源創建權限被拒（實戰經驗）
+
+#### 症狀
+```
+❌ Authorization failed for action 'Microsoft.KeyVault/vaults/write'
+❌ The subscription is not registered to use namespace 'Microsoft.XXX'
+❌ 無法創建某些 Azure 資源
+```
+
+#### 診斷步驟
+```bash
+# 檢查當前帳號權限
+az role assignment list \
+  --assignee $(az account show --query user.name -o tsv) \
+  --query "[].{Role:roleDefinitionName, Scope:scope}" \
+  -o table
+
+# 檢查訂閱註冊的資源提供者
+az provider list --query "[?registrationState=='Registered'].namespace" -o table
+```
+
+#### 解決方案：替代方案
+
+**Key Vault 替代方案 - 直接使用 App Settings**
+```bash
+# 當無法創建 Key Vault 時，直接配置環境變數
+az webapp config appsettings set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --settings \
+    DATABASE_URL="postgresql://adminuser:password@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm?sslmode=require" \
+    NEXTAUTH_SECRET="your-generated-secret" \
+    NEXTAUTH_URL="https://app-itpm-company-dev-001.azurewebsites.net" \
+    NODE_ENV="production"
+```
+
+**注意事項**：
+- App Settings 中的值會顯示在 Azure Portal 中
+- 對於高度敏感的生產環境，仍應申請 Key Vault 權限
+- 可以聯繫 Azure Administrator 申請：
+  - `Microsoft.KeyVault/vaults/write` 權限
+  - 或請求在共用 Key Vault 中創建 secrets
+
+---
+
 ### 問題 1: 生產環境無法訪問 - 嚴重故障
 
 #### 症狀
@@ -735,8 +876,73 @@ post_mortem_meeting:
 
 ---
 
-**版本**: 1.0.0
-**最後更新**: 2025-11-23
+## 🎯 實戰經驗總結：2025-11-25 首次部署
+
+### 遇到的問題和解決時間
+
+| 問題 | 嚴重性 | 解決時間 | 解決方案 |
+|------|--------|----------|----------|
+| Prisma 建置初始化 | 高 | ~2 小時 | Proxy lazy loading |
+| Key Vault 權限不足 | 中 | ~30 分鐘 | 改用 App Settings |
+| API Route 預渲染 | 中 | ~30 分鐘 | dynamic export |
+| Alpine binary target | 低 | ~15 分鐘 | schema.prisma 配置 |
+
+### 關鍵學習
+
+```yaml
+lessons_learned:
+  1_prisma_lazy_loading:
+    - 標準的 singleton 模式不夠，需要 Proxy
+    - import 時就會觸發初始化
+    - 必須延遲到實際調用時才初始化
+
+  2_docker_build:
+    - 建置階段需要 DATABASE_URL 佔位符
+    - SKIP_ENV_VALIDATION=1 很重要
+    - Alpine Linux 需要特定 binary target
+
+  3_nextjs_api_routes:
+    - 預設會在建置時預渲染
+    - 使用資料庫的 route 必須標記 dynamic
+    - export const dynamic = 'force-dynamic'
+
+  4_enterprise_permissions:
+    - 不一定有權限創建所有資源
+    - 準備替代方案（如 App Settings）
+    - 提前與 Azure Admin 確認權限範圍
+```
+
+### 推薦的診斷順序
+
+```yaml
+troubleshooting_order:
+  1. Docker 建置失敗:
+     - 檢查 Prisma lazy loading
+     - 檢查 binaryTargets
+     - 檢查 dynamic exports
+
+  2. 部署失敗:
+     - 檢查 ACR 登入
+     - 檢查映像是否存在
+     - 檢查 App Service 配置
+
+  3. 運行時錯誤:
+     - 檢查環境變數
+     - 檢查資料庫連接
+     - 查看 App Service 日誌
+
+  4. 權限問題:
+     - 列出當前權限
+     - 確認資源提供者註冊
+     - 聯繫 Azure Administrator
+```
+
+---
+
+**版本**: 1.1.0
+**最後更新**: 2025-11-25
 **維護者**: DevOps Team + Azure Administrator
 **適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境）
 **審批**: 需要 DevOps Team Lead 和 Azure Administrator 批准
+**更新記錄**:
+- v1.1.0 (2025-11-25): 添加 Docker 建置問題、權限問題章節，以及實戰經驗總結
