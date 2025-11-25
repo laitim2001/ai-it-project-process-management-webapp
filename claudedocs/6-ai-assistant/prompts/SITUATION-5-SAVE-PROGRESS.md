@@ -29,8 +29,17 @@
 
 ## 3. 執行索引維護
 - 運行 `pnpm index:check` 檢查文件同步
+- 運行 `pnpm index:check:incremental` 增量檢查（較快）
+- 運行 `pnpm index:health` 完整健康檢查
 - 如果需要,運行 `pnpm index:fix` 修復
 - 手動檢查 `PROJECT-INDEX.md` 是否需要更新
+- 參考: `INDEX-MAINTENANCE-GUIDE.md` 的 Azure 文件維護專項
+
+## 3.5 Azure 文檔同步檢查 (如有 Azure 相關變更)
+- 檢查 `azure/` 目錄文檔是否需要更新
+- 檢查 `docs/deployment/` 是否需要更新
+- 參考: `claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md`
+- 更新 AI 助手指引 (SITUATION-6~9) 如果部署流程有變更
 
 ## 4. 檢查代碼品質
 - 運行 `pnpm typecheck` (TypeScript 檢查)
@@ -128,17 +137,43 @@ Edit: claudedocs/2-sprints/epic-X/sprint-X/checklist.md
 ### Step 3: 執行索引維護 (3 分鐘)
 
 ```bash
-# 1. 檢查索引同步
+# 1. 快速檢查索引同步
 Bash: pnpm index:check
 
-# 2. 如果有問題,嘗試自動修復
+# 2. 增量檢查（只檢查變更文件，較快）
+Bash: pnpm index:check:incremental
+
+# 3. 完整健康檢查（定期執行）
+Bash: pnpm index:health
+
+# 4. 如果有問題,嘗試自動修復
 Bash: pnpm index:fix
 
-# 3. 手動檢查 PROJECT-INDEX.md
+# 5. 手動檢查 PROJECT-INDEX.md
 Read: PROJECT-INDEX.md (檢查最後更新時間)
 
-# 4. 如果需要,手動更新
+# 6. 如果需要,手動更新
 Edit: PROJECT-INDEX.md (更新時間戳和新文件)
+```
+
+### Step 3.5: Azure 文檔同步檢查 (如有 Azure 相關變更)
+
+```bash
+# 1. 檢查 Azure 配置是否有變更
+Bash: git diff --name-only | grep -E "^azure/|^docs/deployment/|^docker/"
+
+# 2. 如果有變更,檢查對應文檔是否需要更新
+Read: claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md (了解 4 層架構)
+
+# 3. 更新 AI 助手指引 (如部署流程有變更)
+# - SITUATION-6: 個人環境部署
+# - SITUATION-7: 公司環境部署
+# - SITUATION-8: 個人環境問題排查
+# - SITUATION-9: 公司環境問題排查
+
+# 4. 更新環境變數文檔 (如有新增變數)
+Edit: docs/deployment/environment-variables-map.md
+Edit: azure/environments/personal/*.env.example
 ```
 
 ### Step 4: 檢查代碼品質 (3 分鐘)
@@ -265,6 +300,7 @@ Bash: git log --oneline -1
 - ✅ DEVELOPMENT-LOG.md 已更新
 - ✅ PROJECT-INDEX.md 已檢查/更新
 - ✅ Sprint checklist 已更新 (如果有)
+- ✅ Azure 文檔已同步檢查 (如有相關變更)
 
 ## 下次開始前
 **快速恢復指引**:
@@ -339,6 +375,7 @@ Bash: git log --oneline -1
 1. 更新本週進度
 2. Git 提交和推送
 3. 生成簡短摘要
+4. 檢查 Azure 配置同步 (如有變更)
 
 當前工作: [一句話描述]
 ```
@@ -346,13 +383,25 @@ Bash: git log --oneline -1
 ---
 
 ## 🔗 相關文檔
+
+### 開發流程指引
 - [情況1: 專案入門](./SITUATION-1-PROJECT-ONBOARDING.md)
 - [情況2: 開發前準備](./SITUATION-2-FEATURE-DEV-PREP.md)
 - [情況3: 舊功能進階](./SITUATION-3-FEATURE-ENHANCEMENT.md)
 - [情況4: 新功能開發](./SITUATION-4-NEW-FEATURE-DEV.md)
 
+### Azure 部署指引
+- [情況6: Azure 個人環境部署](./SITUATION-6-AZURE-DEPLOY-PERSONAL.md)
+- [情況7: Azure 公司環境部署](./SITUATION-7-AZURE-DEPLOY-COMPANY.md)
+- [情況8: Azure 個人環境問題排查](./SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md)
+- [情況9: Azure 公司環境問題排查](./SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md)
+
+### 索引和文檔維護
+- [INDEX-MAINTENANCE-GUIDE.md](../../../INDEX-MAINTENANCE-GUIDE.md) - 索引維護策略
+- [AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md](../../AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md) - Azure 文件結構
+
 ---
 
 **維護者**: AI 助手 + 開發團隊
-**最後更新**: 2025-11-08
-**版本**: 1.0
+**最後更新**: 2025-11-25
+**版本**: 1.1

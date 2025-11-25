@@ -80,6 +80,7 @@ Read: [找到的相關文件]
 - **數據模型**: ✅ 支援 / ⚠️ 需修改 / ❌ 需新增
 - **API**: ✅ 可用 / ⚠️ 需擴展 / ❌ 需新增
 - **前端組件**: ✅ 可重用 / ⚠️ 需調整 / ❌ 需新建
+- **部署環境**: ✅ 本地開發 / ⚠️ 需 Azure 環境配置 / ⚠️ 需更新環境變數
 
 ## 文件變更清單
 ### 後端
@@ -101,13 +102,28 @@ Read: [找到的相關文件]
 
 ## 風險評估
 - ⚠️ [識別的風險] → [緩解措施]
+
+## Azure 部署考量 (如需要)
+- **環境**: 個人環境 / 公司環境
+- **部署指引**: 參考 SITUATION-6 或 SITUATION-7
+- **環境變數**: 確認 Key Vault 已配置新增變數
 ```
 
 ---
 
 ## 🔗 相關文檔
+
+### 開發流程指引
 - [情況1: 專案入門](./SITUATION-1-PROJECT-ONBOARDING.md)
 - [情況3: 舊功能進階/修正](./SITUATION-3-FEATURE-ENHANCEMENT.md)
 - [情況4: 新功能開發](./SITUATION-4-NEW-FEATURE-DEV.md)
+- [情況5: 保存進度](./SITUATION-5-SAVE-PROGRESS.md)
 
-**最後更新**: 2025-11-08
+### Azure 部署指引
+- [情況6: Azure 個人環境部署](./SITUATION-6-AZURE-DEPLOY-PERSONAL.md)
+- [情況7: Azure 公司環境部署](./SITUATION-7-AZURE-DEPLOY-COMPANY.md)
+- [情況8: Azure 個人環境問題排查](./SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md)
+- [情況9: Azure 公司環境問題排查](./SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md)
+
+**最後更新**: 2025-11-25
+**版本**: 1.1

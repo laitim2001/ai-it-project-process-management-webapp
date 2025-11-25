@@ -118,10 +118,27 @@ Write: claudedocs/5-status/testing/e2e/E2E-新功能-REPORT.md
 - [ ] 格式化 (Prettier)
 - [ ] 註解完整 (複雜邏輯)
 
+### 部署準備 (如需 Azure 部署)
+- [ ] 本地測試通過
+- [ ] 環境變數確認 (新增變數已加入 Key Vault)
+- [ ] Azure 環境配置已確認
+- [ ] 部署指引已閱讀 (SITUATION-6 或 SITUATION-7)
+
 ---
 
 ## 🔗 相關文檔
+
+### 開發流程指引
+- [情況1: 專案入門](./SITUATION-1-PROJECT-ONBOARDING.md)
+- [情況2: 開發前準備](./SITUATION-2-FEATURE-DEV-PREP.md)
 - [情況3: 舊功能進階/修正](./SITUATION-3-FEATURE-ENHANCEMENT.md)
 - [情況5: 保存進度](./SITUATION-5-SAVE-PROGRESS.md)
 
-**最後更新**: 2025-11-08
+### Azure 部署指引 (新功能需部署測試時)
+- [情況6: Azure 個人環境部署](./SITUATION-6-AZURE-DEPLOY-PERSONAL.md)
+- [情況7: Azure 公司環境部署](./SITUATION-7-AZURE-DEPLOY-COMPANY.md)
+- [情況8: Azure 個人環境問題排查](./SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md)
+- [情況9: Azure 公司環境問題排查](./SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md)
+
+**最後更新**: 2025-11-25
+**版本**: 1.1

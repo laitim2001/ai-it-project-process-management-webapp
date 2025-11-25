@@ -87,12 +87,15 @@ Read: package.json (了解依賴和腳本)
 - **開發模式**: Turborepo Monorepo
 
 ## 當前狀態
-- **階段**: Post-MVP 完成,準備 Epic 9-10
-- **完成度**: Epic 1-8 (100%), Epic 9-10 (規劃中)
+- **階段**: Post-MVP 完成 + Azure 部署架構完成,準備 Epic 9-10
+- **完成度**: Epic 1-8 (100%), Azure 部署 (100%), Epic 9-10 (規劃中)
 - **最新分支**: main
 - **最後提交**: [commit message]
 
 ## 最近完成
+- ✅ **Azure 部署架構重組** (2025-11-24): 43+ 個文件,4 層架構,6 個自動化腳本
+- ✅ **FEAT-001 專案欄位擴展** (2025-11-17): Phase 1-6 完成,貨幣管理功能
+- ✅ FIX-088~095: 系統性修復 (deprecated fields cleanup, API 優化)
 - ✅ FIX-081~087: 搜尋/過濾/語言切換系統性修復
 - ✅ claudedocs V2.0 流程導向重組
 - ✅ 設計系統遷移完成
@@ -108,12 +111,15 @@ Read: package.json (了解依賴和腳本)
 - **API**: packages/api/src/
 - **數據庫**: packages/db/prisma/
 - **認證**: packages/auth/
+- **Azure 部署**: azure/, docs/deployment/
+- **AI 助手指引**: claudedocs/6-ai-assistant/prompts/
 
 ## 下一步建議
 1. 檢查是否有 TODO 或 FIXME 註解
 2. 運行 `pnpm dev` 啟動開發服務器
 3. 檢查 `pnpm check:env` 確認環境配置
 4. 閱讀 MASTER-ROADMAP.md 了解 Epic 9-10 規劃
+5. 若需 Azure 部署,閱讀 `azure/README.md` 和 SITUATION-6/7 指引
 ```
 
 ---
@@ -140,6 +146,10 @@ AI 助手應該能回答以下問題:
 6. **如何啟動?**
    - `pnpm install` → `pnpm dev`
 
+7. **Azure 部署?**
+   - 參考 SITUATION-6 (個人環境) 或 SITUATION-7 (公司環境)
+   - 入口文檔: `azure/README.md`
+
 ---
 
 ## 📚 推薦閱讀順序 (深入了解)
@@ -162,18 +172,32 @@ AI 助手應該能回答以下問題:
 3. apps/web/src/components/ - 組件庫
 4. claudedocs/4-changes/bug-fixes/ - Bug 修復歷史
 
+### Azure 部署 (按需)
+1. azure/README.md - Azure 部署入口
+2. SITUATION-6-AZURE-DEPLOY-PERSONAL.md - 個人環境部署指引
+3. SITUATION-7-AZURE-DEPLOY-COMPANY.md - 公司環境部署指引
+4. docs/deployment/ - 完整部署文檔
+5. claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md - 文件結構指引
+
 ---
 
 ## 🔗 相關文檔
 
+### 開發流程指引
 - [情況2: 開發新功能/修復前準備](./SITUATION-2-FEATURE-DEV-PREP.md)
 - [情況3: 舊功能進階/修正](./SITUATION-3-FEATURE-ENHANCEMENT.md)
 - [情況4: 新功能開發](./SITUATION-4-NEW-FEATURE-DEV.md)
 - [情況5: 保存進度](./SITUATION-5-SAVE-PROGRESS.md)
 - [AI 助手會話指引](../session-guides/START-NEW-EPIC.md)
 
+### Azure 部署指引
+- [情況6: Azure 個人環境部署](./SITUATION-6-AZURE-DEPLOY-PERSONAL.md)
+- [情況7: Azure 公司環境部署](./SITUATION-7-AZURE-DEPLOY-COMPANY.md)
+- [情況8: Azure 個人環境問題排查](./SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md)
+- [情況9: Azure 公司環境問題排查](./SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md)
+
 ---
 
 **維護者**: AI 助手 + 開發團隊
-**最後更新**: 2025-11-08
-**版本**: 1.0
+**最後更新**: 2025-11-25
+**版本**: 1.1

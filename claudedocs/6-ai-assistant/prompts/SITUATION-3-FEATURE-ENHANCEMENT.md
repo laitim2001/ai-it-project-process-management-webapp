@@ -113,7 +113,17 @@ TodoWrite: 更新任務狀態
 ---
 
 ## 🔗 相關文檔
+
+### 開發流程指引
+- [情況1: 專案入門](./SITUATION-1-PROJECT-ONBOARDING.md)
+- [情況2: 開發前準備](./SITUATION-2-FEATURE-DEV-PREP.md)
 - [情況4: 新功能開發](./SITUATION-4-NEW-FEATURE-DEV.md)
 - [情況5: 保存進度](./SITUATION-5-SAVE-PROGRESS.md)
 
-**最後更新**: 2025-11-08
+### Azure 部署指引 (如修復涉及 Azure 環境)
+- [情況6: Azure 個人環境部署](./SITUATION-6-AZURE-DEPLOY-PERSONAL.md)
+- [情況8: Azure 個人環境問題排查](./SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md)
+- [情況9: Azure 公司環境問題排查](./SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md)
+
+**最後更新**: 2025-11-25
+**版本**: 1.1
