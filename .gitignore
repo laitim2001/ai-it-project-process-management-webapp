@@ -159,6 +159,14 @@ lerna-debug.log*
 logs/
 *.log
 
+# Azure deployment logs (downloaded from Azure)
+LogFiles/
+*-logs/
+*-logs.zip
+azure-logs*.zip
+webapp-logs.zip
+app-logs.zip
+
 # ------------------------------------------------------------------------------
 # Docker
 # ------------------------------------------------------------------------------
@@ -193,6 +201,14 @@ temp/
 *.tmp
 *.temp
 nul
+
+# Temporary PowerShell scripts
+delete-extension.ps1
+find-azure-processes.ps1
+*.local.ps1
+
+# Dockerfile backups
+docker/Dockerfile.backup*
 
 # ------------------------------------------------------------------------------
 # Build Artifacts
