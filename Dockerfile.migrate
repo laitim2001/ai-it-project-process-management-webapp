@@ -1,0 +1,37 @@
+# Prisma Migration + Seed Dockerfile
+# 用於執行資料庫遷移和種子資料的專用映像
+#
+# 功能：
+# 1. 執行 prisma migrate deploy（創建/更新表結構）
+# 2. 執行 seed-minimal.ts（插入基礎資料：Role, Currency）
+#
+# 使用方式：
+#   docker build -f Dockerfile.migrate -t itpm-migrate .
+#   docker run --env DATABASE_URL="..." itpm-migrate
+
+FROM node:20-alpine
+
+# Install OpenSSL 3.0 for Prisma compatibility
+RUN apk add --no-cache openssl libc6-compat
+
+WORKDIR /app
+
+# Install Prisma CLI and tsx globally
+RUN npm install -g prisma@5.22.0 tsx@4.7.1
+
+# Copy Prisma schema, migrations, and seed scripts
+COPY packages/db/prisma ./packages/db/prisma
+
+# Set working directory and install dependencies directly (avoid workspace protocol)
+WORKDIR /app/packages/db
+RUN npm init -y && npm install @prisma/client@5.22.0
+
+# Skip prisma generate during build (SSL issues in corporate network)
+# It will be executed at runtime in the migrate-and-seed.sh script
+
+# Copy the migration and seed script
+COPY scripts/migrate-and-seed.sh /app/migrate-and-seed.sh
+RUN chmod +x /app/migrate-and-seed.sh
+
+# Entry point: run migration then seed
+ENTRYPOINT ["/app/migrate-and-seed.sh"]

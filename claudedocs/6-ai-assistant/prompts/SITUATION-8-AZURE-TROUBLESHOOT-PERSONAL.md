@@ -5,6 +5,7 @@
 **目標環境**: 個人 Azure 訂閱（開發、測試環境）
 
 **觸發情境**:
+
 - 部署失敗或異常
 - 應用程式無法訪問
 - 資料庫連接錯誤
@@ -19,6 +20,7 @@
 ## 🎯 個人環境問題排查原則
 
 ### 1. 快速診斷優先
+
 ```yaml
 troubleshooting_mindset:
   - ✅ 從最常見問題開始檢查
@@ -29,6 +31,7 @@ troubleshooting_mindset:
 ```
 
 ### 2. 自助解決為主
+
 ```yaml
 self_service_approach:
   工具:
@@ -45,6 +48,7 @@ self_service_approach:
 ```
 
 ### 3. 學習機會
+
 ```yaml
 learning_mindset:
   每個問題都是學習機會:
@@ -58,9 +62,83 @@ learning_mindset:
 
 ## 🔍 常見問題快速診斷
 
+### 🔴 問題 0: 容器內 Migrations 缺失（高頻致命問題）
+
+> ⚠️ **最常見根本原因**: 這是個人環境部署失敗最常見的原因之一！
+
+#### 症狀
+
+```
+❌ 用戶註冊返回 500 Internal Server Error
+❌ API 返回 "The table public.Role does not exist"
+❌ API 返回 "The table public.Currency does not exist"
+❌ 容器日誌顯示 "No migration found in prisma/migrations"
+❌ Seed 失敗或無法執行
+```
+
+#### 快速診斷
+
+```bash
+# 1. 檢查 .dockerignore 是否排除 migrations
+grep -n "migrations" .dockerignore
+# 如果看到未被註解的 "**/migrations"，這就是問題！
+
+# 2. 驗證本地 Docker image 中 migrations 是否存在
+docker build -f docker/Dockerfile -t test-build .
+docker run --rm test-build ls -la /app/packages/db/prisma/migrations/
+# 應該看到 3 個資料夾：20251024082756_init, 20251111065801_new, 20251126100000_add_currency
+
+# 3. 查看日誌中的 migration 訊息
+az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev | grep -i "migration"
+# 應該看到 "3 migrations found" 而非 "No migration found"
+```
+
+#### 根本原因
+
+```yaml
+root_cause_chain:
+  level_1: .dockerignore 包含 "**/migrations" 規則
+  level_2: Docker build context 排除 migrations 資料夾
+  level_3: Container 中 /app/packages/db/prisma/migrations/ 為空
+  level_4: prisma migrate deploy 報告 "No migration found"
+  level_5: 資料庫表結構未建立
+  level_6: 應用程式嘗試操作不存在的表 → 500 錯誤
+```
+
+#### 快速修復
+
+```bash
+# 步驟 1: 修改 .dockerignore
+# 找到並註解掉 migrations 排除規則
+# 將 "**/migrations" 改為 "# **/migrations"
+
+# 步驟 2: 確認 .gitignore 允許 migration SQL
+# 添加這行: !packages/db/prisma/migrations/**/*.sql
+
+# 步驟 3: 重建並推送 Docker image
+docker build -f docker/Dockerfile -t acritpmdev.azurecr.io/itpm-web:latest .
+docker push acritpmdev.azurecr.io/itpm-web:latest
+
+# 步驟 4: 重啟 App Service
+az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
+
+# 步驟 5: 驗證 migration 執行成功
+az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev | grep -i "migration"
+# 預期: "3 migrations found" 和 "All migrations have been successfully applied"
+
+# 步驟 6: 執行 Seed（如果需要）
+curl -X POST "https://app-itpm-dev-001.azurewebsites.net/api/admin/seed" \
+  -H "Content-Type: application/json"
+```
+
+**詳細說明**: 參見 `azure/docs/DEPLOYMENT-TROUBLESHOOTING.md`
+
+---
+
 ### 問題 1: 應用程式無法訪問 - HTTP 502/503 錯誤
 
 #### 症狀
+
 ```
 ❌ https://app-itpm-dev-001.azurewebsites.net 返回 502 Bad Gateway
 ❌ 或 503 Service Unavailable
@@ -68,6 +146,7 @@ learning_mindset:
 ```
 
 #### 快速診斷步驟
+
 ```bash
 # 1. 檢查 App Service 狀態
 az webapp show \
@@ -90,6 +169,7 @@ az webapp log show \
 #### 常見原因和快速修復
 
 **原因 1: 容器啟動失敗**
+
 ```yaml
 症狀:
   - 日誌顯示 "Container didn't respond to HTTP pings"
@@ -119,6 +199,7 @@ az webapp log show \
 ```
 
 **原因 2: 資料庫連接失敗**
+
 ```yaml
 症狀:
   - 日誌顯示 "Can't reach database server"
@@ -146,6 +227,7 @@ az webapp log show \
 ```
 
 **原因 3: 記憶體不足**
+
 ```yaml
 症狀:
   - 日誌顯示 "JavaScript heap out of memory"
@@ -170,6 +252,7 @@ az webapp log show \
 ### 問題 2: 部署失敗
 
 #### 症狀
+
 ```
 ❌ bash azure/scripts/deploy-to-personal.sh dev 失敗
 ❌ Docker 映像推送失敗
@@ -177,6 +260,7 @@ az webapp log show \
 ```
 
 #### 診斷步驟
+
 ```bash
 # 1. 檢查 Azure 登入狀態
 az account show
@@ -194,6 +278,7 @@ az acr login --name acritpmdev
 #### 常見原因和快速修復
 
 **原因 1: Docker 映像構建失敗**
+
 ```yaml
 症狀:
   - Docker build 過程中出現錯誤
@@ -218,6 +303,7 @@ az acr login --name acritpmdev
 ```
 
 **原因 2: ACR 推送權限問題**
+
 ```yaml
 症狀:
   - docker push 失敗
@@ -235,6 +321,7 @@ az acr login --name acritpmdev
 ```
 
 **原因 3: 資源配額限制**
+
 ```yaml
 症狀:
   - "QuotaExceeded" 錯誤
@@ -257,6 +344,7 @@ az acr login --name acritpmdev
 ### 問題 3: 資料庫連接錯誤
 
 #### 症狀
+
 ```
 ❌ Error: getaddrinfo ENOTFOUND psql-itpm-dev-001.postgres.database.azure.com
 ❌ Error: connect ETIMEDOUT
@@ -264,6 +352,7 @@ az acr login --name acritpmdev
 ```
 
 #### 快速診斷腳本
+
 ```bash
 # 使用自動化診斷腳本
 bash azure/tests/test-azure-connectivity.sh dev
@@ -278,6 +367,7 @@ bash azure/tests/test-azure-connectivity.sh dev
 #### 常見原因和快速修復
 
 **原因 1: 防火牆阻擋**
+
 ```bash
 # 快速修復: 允許所有 Azure 服務訪問
 az postgres flexible-server firewall-rule create \
@@ -298,6 +388,7 @@ az postgres flexible-server firewall-rule create \
 ```
 
 **原因 2: 密碼錯誤**
+
 ```bash
 # 重置資料庫管理員密碼
 NEW_PASSWORD="NewSecurePassword123!"
@@ -318,6 +409,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 **原因 3: SSL 連接問題**
+
 ```yaml
 症狀:
   - "SSL connection has been closed unexpectedly"
@@ -338,6 +430,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ### 問題 4: 文件上傳失敗 (Blob Storage)
 
 #### 症狀
+
 ```
 ❌ BlobServiceClient is not defined
 ❌ Error: Upload failed with status code 403
@@ -345,6 +438,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 #### 快速診斷
+
 ```bash
 # 1. 檢查 Storage Account
 az storage account show \
@@ -369,6 +463,7 @@ az storage blob upload \
 #### 快速修復
 
 **原因 1: 容器不存在**
+
 ```bash
 # 創建缺失的容器
 az storage container create \
@@ -390,6 +485,7 @@ az storage container set-permission \
 ```
 
 **原因 2: Managed Identity 權限不足**
+
 ```bash
 # 獲取 App Service Managed Identity
 PRINCIPAL_ID=$(az webapp identity show \
@@ -405,6 +501,7 @@ az role assignment create \
 ```
 
 **原因 3: 環境變數配置錯誤**
+
 ```bash
 # 檢查環境變數
 az webapp config appsettings list \
@@ -426,6 +523,7 @@ az webapp config appsettings set \
 ### 問題 5: 登入失敗 (Azure AD B2C 或本地認證)
 
 #### 症狀
+
 ```
 ❌ AADSTS50011: The reply URL does not match
 ❌ NextAuth callback error
@@ -433,6 +531,7 @@ az webapp config appsettings set \
 ```
 
 #### Azure AD B2C 問題診斷
+
 ```bash
 # 驗證配置
 az webapp config appsettings list \
@@ -448,6 +547,7 @@ echo "https://app-itpm-dev-001.azurewebsites.net/api/auth/callback/azure-ad-b2c"
 #### 快速修復
 
 **原因 1: Redirect URI 未註冊**
+
 ```yaml
 解決步驟:
   1. 前往 Azure Portal → Azure AD B2C → App registrations
@@ -460,6 +560,7 @@ echo "https://app-itpm-dev-001.azurewebsites.net/api/auth/callback/azure-ad-b2c"
 ```
 
 **原因 2: 本地認證資料庫問題**
+
 ```bash
 # 檢查 User 表
 pnpm db:studio
@@ -477,6 +578,7 @@ pnpm db:migrate
 ## 🛠️ 自動化診斷工具
 
 ### 完整診斷套件
+
 ```bash
 # 1. 環境配置檢查
 pnpm check:env
@@ -495,6 +597,7 @@ bash azure/tests/smoke-test.sh dev
 ```
 
 ### 快速日誌查看
+
 ```bash
 # 即時日誌串流（推薦）
 az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev
@@ -517,6 +620,7 @@ az webapp log download \
 ## 🔄 快速回滾和重置
 
 ### 回滾到上一個版本
+
 ```bash
 # 查看可用的 Docker 映像版本
 az acr repository show-tags --name acritpmdev --repository itpm-web
@@ -533,6 +637,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 ### 完全重新部署
+
 ```bash
 # 從頭開始重新部署（保留資料庫）
 bash azure/scripts/deploy-to-personal.sh dev
@@ -543,6 +648,7 @@ pnpm db:seed
 ```
 
 ### 重置環境變數
+
 ```bash
 # 重新配置所有環境變數
 bash azure/scripts/helper/configure-app-settings.sh dev
@@ -562,6 +668,7 @@ az webapp config appsettings set \
 ## 📊 性能問題診斷
 
 ### 查看資源使用
+
 ```bash
 # CPU 和記憶體使用率
 az monitor metrics list \
@@ -578,6 +685,7 @@ az monitor metrics list \
 ```
 
 ### 如果響應慢
+
 ```yaml
 可能原因:
   1. App Service Plan 層級太低
@@ -606,17 +714,20 @@ az monitor metrics list \
 ## 🎓 學習和參考資源
 
 ### 內部文檔
+
 - `azure/environments/personal/README.md` - 個人環境配置說明
 - `SITUATION-6-AZURE-DEPLOY-PERSONAL.md` - 部署指引
 - `claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` - 目錄結構指引
 - `claudedocs/AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md` - Prisma 問題歷史案例
 
 ### Azure 官方文檔
+
 - [Azure App Service 診斷](https://docs.microsoft.com/azure/app-service/troubleshoot-diagnostic-logs)
 - [PostgreSQL 故障排查](https://docs.microsoft.com/azure/postgresql/flexible-server/how-to-troubleshoot-common-connection-issues)
 - [Blob Storage 故障排查](https://docs.microsoft.com/azure/storage/common/storage-troubleshoot)
 
 ### 常見錯誤代碼參考
+
 ```yaml
 HTTP_502_Bad_Gateway:
   原因: 容器啟動失敗或應用程式崩潰
@@ -640,6 +751,7 @@ ENOTFOUND:
 ## ✅ 問題排查檢查清單
 
 ### 快速診斷流程
+
 - [ ] 應用程式是否可訪問？
 - [ ] 日誌中有明顯錯誤嗎？
 - [ ] 環境變數是否完整？
@@ -647,12 +759,14 @@ ENOTFOUND:
 - [ ] 最近有部署或配置變更嗎？
 
 ### 診斷工具運行
+
 - [ ] `pnpm check:env` 通過
 - [ ] `bash azure/tests/test-azure-connectivity.sh dev` 通過
 - [ ] `bash azure/tests/test-environment-config.sh dev` 通過
 - [ ] `bash azure/scripts/helper/verify-deployment.sh` 通過
 
 ### 嘗試的修復方法
+
 - [ ] 重啟 App Service
 - [ ] 重新部署應用程式
 - [ ] 檢查防火牆規則
@@ -664,6 +778,7 @@ ENOTFOUND:
 ## 💡 問題解決技巧
 
 ### 1. 善用日誌串流
+
 ```bash
 # 開兩個終端視窗
 # 終端 1: 持續監控日誌
@@ -675,6 +790,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 ### 2. 使用 Web 搜索
+
 ```yaml
 搜索技巧:
   - 複製完整錯誤訊息
@@ -684,6 +800,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 ### 3. 實驗和試錯
+
 ```yaml
 個人環境優勢:
   - 可以自由嘗試不同解決方案
@@ -693,6 +810,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 ### 4. 記錄解決方案
+
 ```bash
 # 將成功的解決方案記錄下來
 echo "問題: 資料庫連接失敗" >> ~/azure-troubleshooting-notes.md
@@ -702,7 +820,9 @@ echo "日期: $(date)" >> ~/azure-troubleshooting-notes.md
 
 ---
 
-**版本**: 1.0.0
-**最後更新**: 2025-11-23
-**維護者**: 開發團隊
-**適用環境**: 個人 Azure 訂閱（開發、測試、學習）
+**版本**: 1.1.0 **最後更新**: 2025-11-26 **維護者**: 開發團隊
+**適用環境**: 個人 Azure 訂閱（開發、測試、學習） **更新記錄**:
+
+- v1.1.0
+  (2025-11-26): 添加「問題 0: 容器內 Migrations 缺失」高頻致命問題診斷（從公司環境學到的教訓）
+- v1.0.0 (2025-11-23): 初始版本

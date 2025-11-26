@@ -8,7 +8,9 @@ const nextConfig = {
   transpilePackages: ['@itpm/api', '@itpm/db'],
   // Enable standalone output for Docker deployment
   output: 'standalone',
+  // Enable instrumentation hook for database initialization
   experimental: {
+    instrumentationHook: true,
     typedRoutes: true,
     // Disable worker threads that may conflict with Prisma
     workerThreads: false,

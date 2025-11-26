@@ -5,6 +5,7 @@
 **目標環境**: 公司 Azure 訂閱（用於正式部署、生產環境、客戶訪問）
 
 **觸發情境**:
+
 - 首次部署到公司 Azure 環境
 - 正式環境版本更新
 - 執行生產部署
@@ -18,6 +19,7 @@
 ## 🎯 公司環境部署原則
 
 ### 1. 安全與合規優先
+
 ```yaml
 enterprise_requirements:
   - ✅ 所有部署需經授權確認
@@ -30,6 +32,7 @@ enterprise_requirements:
 ```
 
 ### 2. 部署前確認提示
+
 ```yaml
 security_confirmation:
   部署腳本包含強制確認步驟:
@@ -45,6 +48,7 @@ security_confirmation:
 ```
 
 ### 3. 企業架構標準
+
 ```yaml
 enterprise_architecture:
   資源命名: "rg-itpm-company-{env}" (公司環境前綴)
@@ -61,6 +65,7 @@ enterprise_architecture:
 ## 📁 目錄結構參考
 
 ### 執行層（最重要）⭐⭐⭐⭐⭐
+
 ```
 azure/
 ├── scripts/
@@ -73,6 +78,7 @@ azure/
 ```
 
 ### 文檔層（必讀）⭐⭐⭐⭐
+
 ```
 docs/deployment/
 ├── AZURE-DEPLOYMENT-GUIDE.md      # 完整部署流程
@@ -92,31 +98,31 @@ docs/deployment/
 ```yaml
 需要確認的信息:
   1. Azure 訂閱和租戶:
-     - 訂閱 ID
-     - 租戶 ID
-     - 訂閱名稱
+    - 訂閱 ID
+    - 租戶 ID
+    - 訂閱名稱
 
   2. 資源命名規範:
-     - 資源群組命名前綴
-     - 資源命名模式
-     - 標籤(Tags)要求
+    - 資源群組命名前綴
+    - 資源命名模式
+    - 標籤(Tags)要求
 
   3. 網路配置要求:
-     - 是否需要 VNet 配置
-     - NSG 規則要求
-     - Private Endpoint 需求
-     - 防火牆白名單
+    - 是否需要 VNet 配置
+    - NSG 規則要求
+    - Private Endpoint 需求
+    - 防火牆白名單
 
   4. Key Vault 配置:
-     - 使用共用 Key Vault 或獨立創建
-     - 訪問策略申請流程
-     - 密鑰命名規範
+    - 使用共用 Key Vault 或獨立創建
+    - 訪問策略申請流程
+    - 密鑰命名規範
 
   5. 合規性要求:
-     - 數據加密要求
-     - 訪問日誌記錄
-     - 備份策略
-     - 災難恢復 RTO/RPO
+    - 數據加密要求
+    - 訪問日誌記錄
+    - 備份策略
+    - 災難恢復 RTO/RPO
 ```
 
 ### 步驟 2: 配置環境文件
@@ -222,6 +228,7 @@ bash azure/scripts/deploy-to-company.sh dev
 ### 部署階段（與個人環境相同）
 
 腳本會自動執行 6 個階段：
+
 1. ✅ 設置資源群組
 2. ✅ 設置 PostgreSQL 資料庫
 3. ✅ 設置 Blob Storage
@@ -236,6 +243,7 @@ bash azure/scripts/deploy-to-company.sh dev
 ## 🔑 環境變數配置（公司環境）
 
 ### 配置文件位置
+
 ```
 azure/environments/company/dev.env
 azure/environments/company/staging.env
@@ -243,6 +251,7 @@ azure/environments/company/prod.env
 ```
 
 ### 必需環境變數
+
 ```bash
 # Azure 訂閱（公司）
 AZURE_SUBSCRIPTION_ID="公司訂閱 ID"
@@ -281,6 +290,7 @@ SENDGRID_FROM_NAME="IT Project Management"
 ### Key Vault 密鑰配置
 
 **如果使用獨立 Key Vault**:
+
 ```bash
 # 配置密鑰（需要 Key Vault Secrets Officer 權限）
 az keyvault secret set \
@@ -306,13 +316,11 @@ az keyvault set-policy \
 ```
 
 **如果使用公司共用 Key Vault**:
+
 ```yaml
 訪問流程:
-  1. 聯繫 Azure Administrator 申請訪問權限
-  2. 提供 App Service Managed Identity Principal ID
-  3. 等待 Admin 授予權限
-  4. 確認密鑰命名符合公司規範
-  5. 驗證 App Service 可訪問密鑰
+  1. 聯繫 Azure Administrator 申請訪問權限 2. 提供 App Service Managed Identity Principal ID 3. 等待
+  Admin 授予權限 4. 確認密鑰命名符合公司規範 5. 驗證 App Service 可訪問密鑰
 ```
 
 ---
@@ -320,6 +328,7 @@ az keyvault set-policy \
 ## 🔍 部署後驗證
 
 ### 自動化驗證（必須執行）
+
 ```bash
 # 1. 驗證部署成功
 bash azure/scripts/helper/verify-deployment.sh
@@ -344,34 +353,34 @@ bash azure/tests/smoke-test.sh company-dev
 ```
 
 ### 手動驗證（推薦）
+
 ```yaml
 critical_checks:
   1. 應用程式訪問:
-     URL: https://app-itpm-company-dev-001.azurewebsites.net
-     預期: 顯示登入頁面，無錯誤
+    URL: https://app-itpm-company-dev-001.azurewebsites.net
+    預期: 顯示登入頁面，無錯誤
 
-  2. 企業帳號登入:
-     使用公司 Azure AD B2C 帳號登入
-     驗證 SSO 流程正常
+  2. 企業帳號登入: 使用公司 Azure AD B2C 帳號登入 驗證 SSO 流程正常
 
   3. 核心功能測試:
-     - 創建測試項目
-     - 上傳文件（Blob Storage）
-     - 提交預算提案
-     - 驗證郵件通知
+    - 創建測試項目
+    - 上傳文件（Blob Storage）
+    - 提交預算提案
+    - 驗證郵件通知
 
   4. 安全性檢查:
-     - 確認 HTTPS 啟用
-     - 檢查環境變數無硬編碼密鑰
-     - 驗證 Key Vault 訪問權限最小化
+    - 確認 HTTPS 啟用
+    - 檢查環境變數無硬編碼密鑰
+    - 驗證 Key Vault 訪問權限最小化
 
   5. 監控和日誌:
-     - Application Insights 數據收集
-     - 日誌正常寫入 Log Analytics
-     - 告警規則已配置
+    - Application Insights 數據收集
+    - 日誌正常寫入 Log Analytics
+    - 告警規則已配置
 ```
 
 ### 查看應用程式日誌
+
 ```bash
 # 即時日誌串流
 az webapp log tail \
@@ -389,6 +398,7 @@ az webapp log tail \
 ## 🛡️ 企業安全最佳實踐
 
 ### 1. 網路安全
+
 ```yaml
 network_configuration:
   VNet_Integration:
@@ -402,15 +412,13 @@ network_configuration:
     - Key Vault: 啟用網路規則，限制訪問
 
   示例 - PostgreSQL VNet 訪問:
-    az postgres flexible-server vnet-rule create \
-      --resource-group rg-itpm-company-prod \
-      --server-name psql-itpm-company-prod-001 \
-      --name app-service-vnet-rule \
-      --vnet-name company-vnet \
-      --subnet app-service-subnet
+    az postgres flexible-server vnet-rule create \ --resource-group rg-itpm-company-prod \
+    --server-name psql-itpm-company-prod-001 \ --name app-service-vnet-rule \ --vnet-name
+    company-vnet \ --subnet app-service-subnet
 ```
 
 ### 2. 數據加密
+
 ```yaml
 encryption_requirements:
   傳輸加密:
@@ -438,6 +446,7 @@ encryption_requirements:
 ```
 
 ### 3. 訪問控制
+
 ```yaml
 access_control:
   RBAC:
@@ -457,6 +466,7 @@ access_control:
 ```
 
 ### 4. 備份和災難恢復
+
 ```yaml
 backup_strategy:
   資料庫備份:
@@ -475,11 +485,8 @@ backup_strategy:
     - 異地備份: 考慮 Geo-redundant Storage
 
   示例 - 配置 PostgreSQL 備份:
-    az postgres flexible-server update \
-      --resource-group rg-itpm-company-prod \
-      --name psql-itpm-company-prod-001 \
-      --backup-retention 35 \
-      --geo-redundant-backup Enabled
+    az postgres flexible-server update \ --resource-group rg-itpm-company-prod \ --name
+    psql-itpm-company-prod-001 \ --backup-retention 35 \ --geo-redundant-backup Enabled
 ```
 
 ---
@@ -487,6 +494,7 @@ backup_strategy:
 ## 📊 監控和告警（企業級）
 
 ### Application Insights 配置
+
 ```bash
 # 創建 Application Insights
 az monitor app-insights component create \
@@ -509,6 +517,7 @@ az webapp config appsettings set \
 ```
 
 ### 告警規則配置
+
 ```yaml
 alert_rules:
   high_priority:
@@ -536,6 +545,7 @@ alert_rules:
 ### Production 環境回滾流程
 
 **方案 1: Slot Swap 回滾（推薦，最快）**
+
 ```bash
 # 前提: 使用了 Deployment Slots（Staging + Production）
 
@@ -557,6 +567,7 @@ az webapp log tail \
 ```
 
 **方案 2: 部署舊版本鏡像**
+
 ```bash
 # 1. 確認要回滾的版本
 OLD_VERSION="v1.5.2"  # 穩定版本
@@ -577,6 +588,7 @@ bash azure/tests/smoke-test.sh company-prod
 ```
 
 **方案 3: Git 回滾 + 重新部署**
+
 ```bash
 # 1. 回滾代碼
 git revert <commit-hash>
@@ -592,6 +604,7 @@ bash azure/scripts/deploy-to-company.sh prod
 ## 📋 部署記錄和審計
 
 ### 自動記錄
+
 ```bash
 # 部署腳本會自動創建記錄
 azure/deployment-history/company/deploy-{env}-{timestamp}.log
@@ -607,6 +620,7 @@ azure/deployment-history/company/deploy-{env}-{timestamp}.log
 ```
 
 ### 變更管理流程
+
 ```yaml
 change_management:
   部署前:
@@ -632,6 +646,7 @@ change_management:
 ## 📞 支持和升級路徑
 
 ### Level 1: 自助診斷（0-30 分鐘）
+
 ```yaml
 actions:
   - 查看 SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md
@@ -641,6 +656,7 @@ actions:
 ```
 
 ### Level 2: 內部 DevOps Team（30-60 分鐘）
+
 ```yaml
 contacts:
   - Email: devops@company.com
@@ -649,6 +665,7 @@ contacts:
 ```
 
 ### Level 3: Azure Administrator（1-2 小時）
+
 ```yaml
 scenarios:
   - 權限問題
@@ -658,12 +675,11 @@ scenarios:
 ```
 
 ### Level 4: Microsoft Azure Support（嚴重故障）
+
 ```yaml
 process:
-  1. 在 Azure Portal 創建支持票證
-  2. 選擇適當的嚴重性級別（Severity A-C）
-  3. 提供完整診斷資訊
-  4. 跟進至問題解決
+  1. 在 Azure Portal 創建支持票證 2. 選擇適當的嚴重性級別（Severity A-C） 3. 提供完整診斷資訊 4.
+  跟進至問題解決
 ```
 
 ---
@@ -671,6 +687,7 @@ process:
 ## ✅ 公司環境部署檢查清單
 
 ### 部署前（必須完成）
+
 - [ ] 已與公司 Azure Administrator 確認配置
 - [ ] 已獲得必要的部署授權
 - [ ] 配置文件符合公司命名規範
@@ -681,6 +698,7 @@ process:
 - [ ] 變更請求已批准（Production）
 
 ### 部署中
+
 - [ ] 安全確認提示已仔細閱讀
 - [ ] 輸入 'yes' 前再次確認訂閱和資源群組
 - [ ] 部署過程無錯誤
@@ -688,6 +706,7 @@ process:
 - [ ] 應用程式容器啟動成功
 
 ### 部署後
+
 - [ ] 自動化驗證腳本全部通過
 - [ ] 手動功能測試完成
 - [ ] 企業帳號登入正常（Azure AD B2C）
@@ -706,7 +725,7 @@ process:
 ### 實際使用的資源
 
 ```yaml
-resource_group: RG-RCITest-RAPO-N8N  # 使用現有資源群組
+resource_group: RG-RCITest-RAPO-N8N # 使用現有資源群組
 location: eastasia
 
 resources_created:
@@ -725,9 +744,79 @@ service_principal:
 
 ### 關鍵問題與解決方案
 
+#### 🔴 問題 0: .dockerignore 排除 Prisma Migrations（2025-11-26 重大發現）
+
+> ⚠️ **Critical Issue**：這是導致用戶註冊 500 錯誤的根本原因！
+
+**症狀**:
+
+```
+❌ 用戶註冊返回 500 Internal Server Error
+❌ 容器日誌顯示 "No migration found in prisma/migrations"
+❌ 資料庫表不存在（Role、Currency 等）
+```
+
+**根本原因**:
+
+```yaml
+root_cause_chain:
+  1. .dockerignore 包含 "**/migrations" 規則 2. Docker 建置時 migrations 資料夾被排除 3. Container
+  中 /app/packages/db/prisma/migrations/ 為空 4. startup.sh 執行 "prisma migrate deploy" 報告 "No
+  migration found" 5. 資料庫 Schema 未建立 6. Seed 無法執行 7. 用戶註冊時 roleId 外鍵約束失敗
+```
+
+**解決方案**:
+
+**步驟 1: 修改 .dockerignore**
+
+```diff
+# Prisma - Keep migrations for migrate deploy
+- **/migrations
++ # **/migrations  <-- REMOVED: migrations are required for prisma migrate deploy
+```
+
+**步驟 2: 確認 .gitignore 允許 migration SQL**
+
+```diff
+# Database dumps
+*.sql
+*.dump
+!scripts/init-db.sql
++ !packages/db/prisma/migrations/**/*.sql  # Allow Prisma migration SQL files
+```
+
+**步驟 3: 驗證 Docker Image**
+
+```bash
+# 重建並驗證
+docker build -f docker/Dockerfile -t acritpmcompany.azurecr.io/itpm-web:latest .
+
+# 確認 migrations 存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls -la /app/packages/db/prisma/migrations/
+# 應該看到: 20251024082756_init/, 20251111065801_new/, 20251126100000_add_currency/
+```
+
+**步驟 4: 執行 Seed**
+
+```bash
+# 部署後執行 seed
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/admin/seed" \
+  -H "Authorization: Bearer <NEXTAUTH_SECRET>" \
+  -H "Content-Type: application/json"
+
+# 預期成功響應:
+# {"success":true,"results":{"roles":{"processed":3},"currencies":{"processed":6}}}
+```
+
+**參考文檔**: `azure/docs/DEPLOYMENT-TROUBLESHOOTING.md`
+
+---
+
 #### 問題 1: Key Vault 創建權限不足
 
 **症狀**:
+
 ```
 ERROR: The subscription is not registered to use namespace 'Microsoft.KeyVault'
 或
@@ -735,6 +824,7 @@ ERROR: Authorization failed for action 'Microsoft.KeyVault/vaults/write'
 ```
 
 **解決方案**: 直接使用 App Service App Settings 配置環境變數
+
 ```bash
 # 不使用 Key Vault，直接配置 App Settings
 az webapp config appsettings set \
@@ -749,6 +839,7 @@ az webapp config appsettings set \
 #### 問題 2: Docker 建置時 Prisma 初始化失敗
 
 **症狀**:
+
 ```
 PrismaClientInitializationError: Prisma Client could not locate the Query Engine
 或
@@ -761,7 +852,7 @@ Error: ENOENT: no such file or directory, open '.../libquery_engine-linux-musl-o
 
 ```typescript
 // packages/db/src/index.ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 let prismaInstance: PrismaClient | null = null;
 
@@ -781,6 +872,7 @@ export const prisma = new Proxy({} as PrismaClient, {
 ```
 
 同時需要在 `schema.prisma` 添加：
+
 ```prisma
 generator client {
   provider      = "prisma-client-js"
@@ -791,17 +883,20 @@ generator client {
 #### 問題 3: API Routes 在建置時預渲染
 
 **症狀**:
+
 ```
 Error during Next.js build: Cannot read properties of undefined
 （在建置 API routes 時發生）
 ```
 
 **解決方案**: 在所有使用資料庫的 API routes 添加：
+
 ```typescript
 export const dynamic = 'force-dynamic';
 ```
 
 需要修改的檔案：
+
 - `apps/web/src/app/api/auth/[...nextauth]/route.ts`
 - `apps/web/src/app/api/projects/route.ts`
 - `apps/web/src/app/api/projects/[id]/route.ts`
@@ -810,11 +905,13 @@ export const dynamic = 'force-dynamic';
 #### 問題 4: Database 網路連接
 
 **症狀**:
+
 ```
 Connection timeout 或 ECONNREFUSED
 ```
 
 **解決方案**: 配置 PostgreSQL 防火牆規則
+
 ```bash
 # 添加 Azure 服務訪問
 az postgres flexible-server firewall-rule create \
@@ -838,6 +935,7 @@ az postgres flexible-server firewall-rule create \
 ```yaml
 deployment_checklist:
   pre_deployment:
+    - [ ] .dockerignore 不排除 migrations（檢查 **/migrations 已註解）
     - [ ] Service Principal 登入成功
     - [ ] 資源群組存在且有權限
     - [ ] ACR 已建立且可登入
@@ -847,6 +945,7 @@ deployment_checklist:
     - [ ] binaryTargets 包含 linux-musl-openssl-3.0.x
     - [ ] API routes 已添加 dynamic export
     - [ ] Docker build 成功完成
+    - [ ] migrations 資料夾存在於 image 中
 
   deployment:
     - [ ] 映像已推送到 ACR
@@ -855,10 +954,69 @@ deployment_checklist:
     - [ ] 資料庫防火牆規則已配置
 
   post_deployment:
+    - [ ] 容器日誌顯示 "X migrations found"
+    - [ ] 容器日誌顯示 "All migrations have been successfully applied"
+    - [ ] 執行 POST /api/admin/seed 成功
     - [ ] 網站可訪問
-    - [ ] 資料庫連接正常
-    - [ ] 認證功能正常
+    - [ ] 用戶註冊功能正常
 ```
+
+### startup.sh 自動遷移機制
+
+**檔案位置**: `docker/startup.sh`
+
+```bash
+#!/bin/sh
+# 容器啟動時自動執行 Prisma migrate deploy
+echo "🚀 ITPM 應用程式啟動"
+echo "📦 執行 Prisma 資料庫遷移..."
+
+cd /app
+node node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js \
+  migrate deploy --schema=packages/db/prisma/schema.prisma
+
+echo "🌐 啟動 Next.js 應用..."
+exec node apps/web/server.js
+```
+
+**Dockerfile 配置**:
+
+```dockerfile
+# 複製 startup.sh 並設置權限
+COPY --chown=nextjs:nodejs docker/startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
+CMD ["/app/startup.sh"]
+```
+
+### Seed API 端點
+
+**端點**: `POST /api/admin/seed`
+
+**用途**: 在 migrations 執行完成後，植入基礎種子資料（Role、Currency）
+
+**認證**: 需要 `Authorization: Bearer <NEXTAUTH_SECRET>`
+
+**檔案位置**: `apps/web/src/app/api/admin/seed/route.ts`
+
+**響應範例**:
+
+```json
+{
+  "success": true,
+  "message": "Seed 成功完成",
+  "results": {
+    "roles": { "processed": 3, "total": 3, "errors": [] },
+    "currencies": { "processed": 6, "total": 6, "errors": [] }
+  },
+  "verification": {
+    "hasProjectManagerRole": true,
+    "roleCount": 3,
+    "currencyCount": 6
+  }
+}
+```
+
+---
 
 ### 有用的診斷命令
 
@@ -881,9 +1039,9 @@ az acr repository show-tags --name acritpmcompany --repository itpm-web
 
 ---
 
-**版本**: 1.1.0
-**最後更新**: 2025-11-25
-**維護者**: DevOps Team + Azure Administrator
-**適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境）
-**更新記錄**: 
+**版本**: 1.2.0 **最後更新**: 2025-11-26 **維護者**: DevOps Team + Azure Administrator
+**適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境） **更新記錄**:
+
+- v1.2.0 (2025-11-26): 添加 .dockerignore 關鍵問題、Migration 缺失問題、startup.sh 自動遷移、Seed
+  API 端點
 - v1.1.0 (2025-11-25): 添加首次部署實戰經驗章節

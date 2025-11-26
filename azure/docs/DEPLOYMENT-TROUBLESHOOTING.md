@@ -2,8 +2,7 @@
 
 本文檔記錄在部署到公司 Azure 環境過程中遇到的問題、根本原因分析和解決方案。
 
-> **最後更新**: 2025-11-26
-> **適用版本**: v10+ (公司環境部署)
+> **最後更新**: 2025-11-26 **適用版本**: v10+ (公司環境部署)
 
 ---
 
@@ -19,18 +18,19 @@
 
 ## 常見問題速查
 
-| 錯誤訊息 | 可能原因 | 快速解決 |
-|---------|----------|----------|
-| `Role table does not exist` | Migration 未執行 | 檢查 `.dockerignore` 是否排除 migrations |
-| `Currency table does not exist` | Migration SQL 缺失 | 確認 migrations 資料夾包含所有 model |
-| `No migration found in prisma/migrations` | Docker image 缺少 migrations | 從 `.dockerignore` 移除 `**/migrations` |
-| `Foreign key constraint failed` | Seed 未執行 | 執行 POST /api/admin/seed |
+| 錯誤訊息                                  | 可能原因                     | 快速解決                                 |
+| ----------------------------------------- | ---------------------------- | ---------------------------------------- |
+| `Role table does not exist`               | Migration 未執行             | 檢查 `.dockerignore` 是否排除 migrations |
+| `Currency table does not exist`           | Migration SQL 缺失           | 確認 migrations 資料夾包含所有 model     |
+| `No migration found in prisma/migrations` | Docker image 缺少 migrations | 從 `.dockerignore` 移除 `**/migrations`  |
+| `Foreign key constraint failed`           | Seed 未執行                  | 執行 POST /api/admin/seed                |
 
 ---
 
 ## 問題 #1: 用戶註冊 500 錯誤 - Role 表不存在
 
 ### 症狀
+
 - 訪問 `/zh-TW/register` 頁面正常顯示
 - 提交註冊表單後返回 500 Internal Server Error
 - API 錯誤訊息: `Foreign key constraint failed on the field: User_roleId_fkey`
@@ -42,7 +42,7 @@
 
 ```
 原因鏈:
-.dockerignore 包含 "**/migrations" 
+.dockerignore 包含 "**/migrations"
     ↓
 Docker build 時 migrations 資料夾被排除
     ↓
@@ -62,6 +62,7 @@ Seed 無法執行（依賴表結構）
 #### 步驟 1: 修改 `.dockerignore`
 
 **找到並註解/移除這行:**
+
 ```diff
 # Prisma
 - **/migrations
@@ -69,6 +70,7 @@ Seed 無法執行（依賴表結構）
 ```
 
 **完整修改後的 Prisma 區段:**
+
 ```ignore
 # Prisma - Keep migrations for migrate deploy
 # **/migrations  <-- Removed: migrations are needed for prisma migrate deploy
@@ -134,6 +136,7 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/auth/regist
 ## 問題 #2: Currency 表不存在
 
 ### 症狀
+
 - Migration 報告成功執行
 - 但 Seed 時報錯: `The table public.Currency does not exist`
 - 日誌顯示 "2 migrations found" 但實際上需要 3 個
@@ -143,6 +146,7 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/auth/regist
 Schema.prisma 中新增了 `Currency` model，但沒有對應的 migration SQL 檔案。
 
 **缺失的關係:**
+
 ```
 schema.prisma 定義了:
 - model Currency { ... }
@@ -168,6 +172,7 @@ mkdir -p packages/db/prisma/migrations/20251126100000_add_currency
 #### 步驟 2: 創建 Migration SQL
 
 `packages/db/prisma/migrations/20251126100000_add_currency/migration.sql`:
+
 ```sql
 -- CreateTable: Currency (FEAT-001: 專案欄位擴展 - 貨幣支援)
 CREATE TABLE "Currency" (
@@ -201,19 +206,20 @@ CREATE INDEX "PurchaseOrder_currencyId_idx" ON "PurchaseOrder"("currencyId");
 CREATE INDEX "Expense_currencyId_idx" ON "Expense"("currencyId");
 
 -- AddForeignKey
-ALTER TABLE "BudgetPool" ADD CONSTRAINT "BudgetPool_currencyId_fkey" 
+ALTER TABLE "BudgetPool" ADD CONSTRAINT "BudgetPool_currencyId_fkey"
   FOREIGN KEY ("currencyId") REFERENCES "Currency"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "Project" ADD CONSTRAINT "Project_currencyId_fkey" 
+ALTER TABLE "Project" ADD CONSTRAINT "Project_currencyId_fkey"
   FOREIGN KEY ("currencyId") REFERENCES "Currency"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "PurchaseOrder" ADD CONSTRAINT "PurchaseOrder_currencyId_fkey" 
+ALTER TABLE "PurchaseOrder" ADD CONSTRAINT "PurchaseOrder_currencyId_fkey"
   FOREIGN KEY ("currencyId") REFERENCES "Currency"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "Expense" ADD CONSTRAINT "Expense_currencyId_fkey" 
+ALTER TABLE "Expense" ADD CONSTRAINT "Expense_currencyId_fkey"
   FOREIGN KEY ("currencyId") REFERENCES "Currency"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ```
 
 #### 步驟 3: 確保 Schema 一致性
 
-如果 `BudgetPool.currencyId` 在 schema.prisma 中是必填 (`String`)，需要改為可選 (`String?`) 以相容現有資料：
+如果 `BudgetPool.currencyId`
+在 schema.prisma 中是必填 (`String`)，需要改為可選 (`String?`) 以相容現有資料：
 
 ```prisma
 model BudgetPool {
@@ -260,6 +266,7 @@ npx prisma migrate status
 ### ✅ 環境變數檢查
 
 確保 Azure App Service 設定了以下環境變數：
+
 - `DATABASE_URL` - PostgreSQL 連接字串
 - `NEXTAUTH_SECRET` - 用於 API 認證
 - `NEXTAUTH_URL` - 應用 URL
@@ -283,6 +290,7 @@ grep -E "ITPM|Prisma|migration|migrate" webapp-logs/LogFiles/*docker*.log
 ```
 
 **期望看到:**
+
 ```
 🚀 ITPM 應用程式啟動
 📦 執行 Prisma 資料庫遷移...
@@ -306,13 +314,14 @@ $response.Content
 ```
 
 **期望響應:**
+
 ```json
 {
   "success": true,
   "message": "Seed 成功完成",
   "results": {
-    "roles": {"processed": 3, "total": 3, "errors": []},
-    "currencies": {"processed": 6, "total": 6, "errors": []}
+    "roles": { "processed": 3, "total": 3, "errors": [] },
+    "currencies": { "processed": 6, "total": 6, "errors": [] }
   },
   "verification": {
     "hasProjectManagerRole": true,
@@ -347,11 +356,13 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/auth/regist
 ### 為什麼 `.dockerignore` 會排除 migrations？
 
 最初的設計考量是：
+
 1. migrations 檔案可能很大
 2. 希望減少 Docker image 大小
 3. 認為 migrations 在 build 時不需要
 
 **但這是錯誤的**，因為：
+
 - `prisma migrate deploy` 在 runtime 需要 migrations 檔案
 - 沒有 migrations，資料庫 schema 無法建立
 - 這導致所有依賴資料庫的功能失敗
@@ -359,6 +370,7 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/auth/regist
 ### 如何避免類似問題？
 
 1. **部署後立即驗證 migrations**:
+
    ```bash
    docker run --rm <image> ls /app/packages/db/prisma/migrations/
    ```
@@ -384,6 +396,4 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/auth/regist
 
 ---
 
-**文檔版本**: 1.0
-**建立日期**: 2025-11-26
-**維護者**: 開發團隊
+**文檔版本**: 1.0 **建立日期**: 2025-11-26 **維護者**: 開發團隊

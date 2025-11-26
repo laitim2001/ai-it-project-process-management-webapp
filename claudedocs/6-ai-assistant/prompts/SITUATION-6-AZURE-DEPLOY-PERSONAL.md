@@ -5,6 +5,7 @@
 **目標環境**: 個人 Azure 訂閱（用於開發、測試、快速驗證）
 
 **觸發情境**:
+
 - 首次部署到個人 Azure 環境
 - 更新個人環境的應用程式版本
 - 測試新功能或修復 Bug
@@ -17,7 +18,46 @@
 
 ## 🎯 個人環境部署原則
 
+### 0. ⚠️ 關鍵預防措施（從公司環境學到的教訓）
+
+> 🔴 **重要**: 以下問題在公司環境部署時曾導致嚴重問題，個人環境部署前請務必檢查！
+
+```yaml
+critical_checks_before_deployment:
+  1_dockerignore_migrations:
+    description: '.dockerignore 不可排除 Prisma migrations'
+    check_command: "grep -n 'migrations' .dockerignore"
+    expected: '**/migrations 應該被註解掉或不存在'
+    consequence_if_wrong: '容器內沒有 migrations → 資料庫無法初始化 → 500 錯誤'
+
+  2_migration_files_complete:
+    description: '所有 schema model 都有對應的 migration SQL'
+    check_command: 'ls packages/db/prisma/migrations/'
+    expected: '應有 3 個 migration 資料夾 (init, new, add_currency)'
+    consequence_if_wrong: '缺少表結構 → FK 約束失敗 → 功能異常'
+
+  3_gitignore_exception:
+    description: '.gitignore 應允許 migration SQL 被追蹤'
+    check_command: "grep 'migrations' .gitignore"
+    expected: '應有 !packages/db/prisma/migrations/**/*.sql 例外規則'
+    consequence_if_wrong: 'Git 不追蹤 migration SQL → 部署時丟失'
+
+quick_verification:
+  # 執行此命令確認 migrations 會被包含在 Docker image
+  command: |
+    docker build -f docker/Dockerfile -t test-build . && \
+    docker run --rm test-build ls /app/packages/db/prisma/migrations/
+  expected_output: |
+    20251024082756_init
+    20251111065801_new
+    20251126100000_add_currency
+```
+
+**詳細說明**: 參見 `azure/docs/DEPLOYMENT-TROUBLESHOOTING.md` 和
+`SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md`
+
 ### 1. 快速迭代優先
+
 ```yaml
 deployment_philosophy:
   - ✅ 快速部署，快速驗證
@@ -28,6 +68,7 @@ deployment_philosophy:
 ```
 
 ### 2. 環境隔離
+
 ```yaml
 isolation_strategy:
   資源命名: "rg-itpm-dev" (個人環境前綴)
@@ -38,6 +79,7 @@ isolation_strategy:
 ```
 
 ### 3. 安全原則（簡化版）
+
 ```yaml
 security_checklist:
   - ✅ 敏感資料存放在 Key Vault
@@ -52,6 +94,7 @@ security_checklist:
 ## 📁 目錄結構參考
 
 ### 執行層（最重要）⭐⭐⭐⭐⭐
+
 ```
 azure/
 ├── scripts/
@@ -66,6 +109,7 @@ azure/
 ```
 
 ### 文檔層（學習參考）⭐⭐⭐⭐
+
 ```
 docs/deployment/
 ├── AZURE-DEPLOYMENT-GUIDE.md
@@ -74,6 +118,7 @@ docs/deployment/
 ```
 
 ### 記錄層（歷史參考）⭐⭐⭐
+
 ```
 claudedocs/
 ├── AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md
@@ -87,6 +132,7 @@ claudedocs/
 ## 🚀 快速開始：首次部署
 
 ### 前置檢查
+
 ```bash
 # 1. 登入個人 Azure 訂閱
 az login
@@ -101,16 +147,18 @@ docker --version   # 確認 Docker daemon 運行中
 pnpm check:env
 ```
 
-> **注意**: 部署腳本已移除 `jq` 依賴，改用 Azure CLI 原生查詢語法 (`--query` + `-o tsv`)。
-> Windows Git Bash 環境無需額外安裝任何工具。
+> **注意**: 部署腳本已移除 `jq` 依賴，改用 Azure CLI 原生查詢語法 (`--query` + `-o tsv`)。Windows
+> Git Bash 環境無需額外安裝任何工具。
 
 ### 一鍵部署到 Dev 環境
+
 ```bash
 # 從項目根目錄執行
 bash azure/scripts/deploy-to-personal.sh dev
 ```
 
 **腳本會自動執行 6 個階段**:
+
 1. ✅ 設置資源群組
 2. ✅ 設置 PostgreSQL 資料庫
 3. ✅ 設置 Blob Storage
@@ -125,6 +173,7 @@ bash azure/scripts/deploy-to-personal.sh dev
 ## 📋 部署流程詳解
 
 ### 階段 1: 資源群組設置
+
 ```bash
 # 腳本會執行
 bash azure/scripts/01-setup-resources.sh
@@ -135,6 +184,7 @@ bash azure/scripts/01-setup-resources.sh
 ```
 
 ### 階段 2: PostgreSQL 資料庫
+
 ```bash
 # 腳本會執行
 bash azure/scripts/02-setup-database.sh
@@ -147,11 +197,13 @@ bash azure/scripts/02-setup-database.sh
 ```
 
 **資料庫連接字串格式**:
+
 ```
 postgresql://username:password@psql-itpm-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require
 ```
 
 ### 階段 3: Blob Storage
+
 ```bash
 # 腳本會執行
 bash azure/scripts/03-setup-storage.sh
@@ -163,6 +215,7 @@ bash azure/scripts/03-setup-storage.sh
 ```
 
 ### 階段 4: Container Registry
+
 ```bash
 # 腳本會執行
 bash azure/scripts/04-setup-acr.sh
@@ -174,6 +227,7 @@ bash azure/scripts/04-setup-acr.sh
 ```
 
 ### 階段 5: App Service
+
 ```bash
 # 腳本會執行
 bash azure/scripts/05-setup-appservice.sh
@@ -186,6 +240,7 @@ bash azure/scripts/05-setup-appservice.sh
 ```
 
 ### 階段 6: 應用程式部署
+
 ```bash
 # 腳本會執行
 bash azure/scripts/06-deploy-app.sh
@@ -203,11 +258,13 @@ bash azure/scripts/06-deploy-app.sh
 ## 🔑 環境變數配置
 
 ### 配置文件位置
+
 ```
 azure/environments/personal/dev.env.example
 ```
 
 ### 必需環境變數
+
 ```bash
 # Azure 資源
 RESOURCE_GROUP="rg-itpm-dev"
@@ -236,6 +293,7 @@ SMTP_PORT="1025"
 ```
 
 ### Key Vault 密鑰清單
+
 ```bash
 # 查看已配置的密鑰
 bash azure/scripts/helper/list-secrets.sh
@@ -252,6 +310,7 @@ bash azure/scripts/helper/list-secrets.sh
 ## 🔍 部署後驗證
 
 ### 自動化驗證
+
 ```bash
 # 1. 驗證部署成功
 bash azure/scripts/helper/verify-deployment.sh
@@ -273,23 +332,23 @@ bash azure/tests/smoke-test.sh dev
 ```
 
 ### 手動驗證
+
 ```yaml
 manual_checks:
   1. 訪問應用程式:
-     URL: https://app-itpm-dev-001.azurewebsites.net
-     預期: 顯示登入頁面
+    URL: https://app-itpm-dev-001.azurewebsites.net
+    預期: 顯示登入頁面
 
   2. 測試登入:
-     - 使用 Azure AD B2C（如已配置）
-     - 或使用本地帳號
+    - 使用 Azure AD B2C（如已配置）
+    - 或使用本地帳號
 
   3. 創建測試數據:
-     - 創建測試項目
-     - 上傳測試文件
-     - 驗證資料庫寫入
+    - 創建測試項目
+    - 上傳測試文件
+    - 驗證資料庫寫入
 
-  4. 查看應用程式日誌:
-     az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev
+  4. 查看應用程式日誌: az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 ---
@@ -297,6 +356,7 @@ manual_checks:
 ## 🔄 更新部署（後續部署）
 
 ### 情境 1: 代碼更新
+
 ```bash
 # 重新部署應用程式（跳過資源設置）
 bash azure/scripts/06-deploy-app.sh
@@ -306,6 +366,7 @@ bash azure/scripts/deploy-to-personal.sh dev
 ```
 
 ### 情境 2: 環境變數更新
+
 ```bash
 # 1. 在 Key Vault 更新密鑰
 az keyvault secret set \
@@ -324,6 +385,7 @@ az webapp restart --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ```
 
 ### 情境 3: 資料庫遷移
+
 ```bash
 # 在本地測試遷移
 pnpm db:migrate
@@ -341,6 +403,7 @@ az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev
 ## 📊 監控和日誌
 
 ### 查看即時日誌
+
 ```bash
 # 串流即時日誌
 az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev
@@ -350,6 +413,7 @@ az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev | grep -
 ```
 
 ### 下載日誌文件
+
 ```bash
 # 下載最近日誌
 az webapp log download \
@@ -362,6 +426,7 @@ unzip app-logs.zip
 ```
 
 ### 查看資源使用
+
 ```bash
 # CPU 和記憶體使用率
 az monitor metrics list \
@@ -375,6 +440,7 @@ az monitor metrics list \
 ## 🛡️ 安全最佳實踐（個人環境）
 
 ### Key Vault 使用
+
 ```yaml
 best_practices:
   - ✅ 所有密鑰存放在 Key Vault
@@ -383,11 +449,12 @@ best_practices:
   - ℹ️  開發環境可以使用較簡單的密鑰輪換策略
 
 key_vault_reference_format:
-  DATABASE_URL: "@Microsoft.KeyVault(VaultName=kv-itpm-dev;SecretName=ITPM-DEV-DATABASE-URL)"
-  NEXTAUTH_SECRET: "@Microsoft.KeyVault(VaultName=kv-itpm-dev;SecretName=ITPM-DEV-NEXTAUTH-SECRET)"
+  DATABASE_URL: '@Microsoft.KeyVault(VaultName=kv-itpm-dev;SecretName=ITPM-DEV-DATABASE-URL)'
+  NEXTAUTH_SECRET: '@Microsoft.KeyVault(VaultName=kv-itpm-dev;SecretName=ITPM-DEV-NEXTAUTH-SECRET)'
 ```
 
 ### 防火牆配置（開發導向）
+
 ```bash
 # PostgreSQL - 允許 Azure 服務訪問
 az postgres flexible-server firewall-rule create \
@@ -411,6 +478,7 @@ az postgres flexible-server firewall-rule create \
 ## 💰 成本優化建議
 
 ### 資源層級選擇
+
 ```yaml
 cost_optimization:
   App_Service_Plan:
@@ -433,6 +501,7 @@ cost_optimization:
 ```
 
 ### 省錢技巧
+
 ```bash
 # 1. 不使用時停止 App Service
 az webapp stop --name app-itpm-dev-001 --resource-group rg-itpm-dev
@@ -449,16 +518,19 @@ az resource list --resource-group rg-itpm-dev --query "[?tags.environment=='temp
 ## 🎓 學習資源
 
 ### 內部文檔
+
 - `azure/environments/personal/README.md` - 個人環境配置詳解
 - `docs/deployment/01-first-time-setup.md` - 首次部署完整指南
 - `claudedocs/AZURE-DEPLOYMENT-FILE-STRUCTURE-GUIDE.md` - 目錄結構指引
 
 ### Azure 官方文檔
+
 - [Azure App Service 文檔](https://docs.microsoft.com/azure/app-service/)
 - [Azure PostgreSQL Flexible Server](https://docs.microsoft.com/azure/postgresql/flexible-server/)
 - [Azure Key Vault 最佳實踐](https://docs.microsoft.com/azure/key-vault/general/best-practices)
 
 ### 歷史部署記錄（學習參考）
+
 - `claudedocs/AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md` - v8 Prisma 修復記錄
 - `claudedocs/AZURE-LOGIN-I18N-FIX-DEPLOYMENT.md` - v7 I18N 修復記錄
 
@@ -467,6 +539,7 @@ az resource list --resource-group rg-itpm-dev --query "[?tags.environment=='temp
 ## 🔄 回滾程序（個人環境）
 
 ### 快速回滾
+
 ```bash
 # 1. 部署舊版本鏡像
 OLD_VERSION="v1.0.0"  # 替換為之前的版本
@@ -483,6 +556,7 @@ bash azure/tests/smoke-test.sh dev
 ```
 
 ### Git 回滾
+
 ```bash
 # 1. 回滾代碼
 git revert <commit-hash>
@@ -497,6 +571,7 @@ bash azure/scripts/deploy-to-personal.sh dev
 ## 📞 問題排查
 
 ### 常見問題快速解決
+
 ```yaml
 問題1_應用無法訪問:
   症狀: 502/503 錯誤
@@ -521,6 +596,7 @@ bash azure/scripts/deploy-to-personal.sh dev
 ```
 
 ### 自助診斷工具
+
 ```bash
 # 完整連接性測試
 bash azure/tests/test-azure-connectivity.sh dev
@@ -537,6 +613,7 @@ bash azure/scripts/helper/verify-deployment.sh
 ## ✅ 部署檢查清單
 
 ### 首次部署前
+
 - [ ] 已登入正確的個人 Azure 訂閱
 - [ ] Node.js >= 20.0.0
 - [ ] Docker daemon 運行中
@@ -544,6 +621,7 @@ bash azure/scripts/helper/verify-deployment.sh
 - [ ] 已準備好環境配置（可選）
 
 ### 部署中
+
 - [ ] 資源群組創建成功
 - [ ] PostgreSQL 資料庫啟動
 - [ ] Storage Account 容器創建
@@ -552,6 +630,7 @@ bash azure/scripts/helper/verify-deployment.sh
 - [ ] Docker 映像推送成功
 
 ### 部署後
+
 - [ ] 應用程式可訪問
 - [ ] 登入功能正常
 - [ ] 資料庫連接正常
@@ -560,20 +639,26 @@ bash azure/scripts/helper/verify-deployment.sh
 
 ---
 
-**版本**: 1.1.0
-**最後更新**: 2025-11-25
-**維護者**: 開發團隊
+**版本**: 1.2.0 **最後更新**: 2025-11-26 **維護者**: 開發團隊
 **適用環境**: 個人 Azure 訂閱（開發、測試、學習）
 
 ---
 
 ## 📝 更新記錄
 
+### v1.2.0 (2025-11-26)
+
+- ✅ 添加「關鍵預防措施」章節（從公司環境學到的教訓）
+- ✅ 添加 .dockerignore、migration 完整性、.gitignore 預防檢查
+- ✅ 添加快速驗證命令確認 migrations 會被包含在 Docker image
+
 ### v1.1.0 (2025-11-25)
+
 - ✅ v9-fresh-build 部署驗證通過
 - ✅ 所有部署腳本已移除 `jq` 依賴（Windows Git Bash 相容）
 - ✅ 腳本改用 Azure CLI 原生查詢語法
 - 驗證記錄：`claudedocs/AZURE-SITUATION-6-VALIDATION-V9.md`
 
 ### v1.0.0 (2025-11-23)
+
 - 初始版本
