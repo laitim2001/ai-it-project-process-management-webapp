@@ -2,25 +2,34 @@
 
 **日期**: 2025-11-26  
 **環境**: company/dev  
-**狀態**: ✅ 部署成功  
-**監控**: 容器啟動中，預計 2-5 分鐘後完全就緒
+**狀態**: ✅ 部署成功 + ✅ Seed 數據已植入  
+**監控**: 應用正常運行，註冊功能已驗證正常
+
+---
+
+## 🔧 修正歷史
+
+| 時間 | 問題 | 修正 | 狀態 |
+|------|------|------|------|
+| 07:47 | DATABASE_URL 缺少主機名 | 添加 `psql-itpm-company-dev-001.postgres.database.azure.com` | ✅ 已修正 |
+| 07:55 | Role 表為空，導致註冊失敗 | 執行 `POST /api/admin/seed`，成功植入 3 個 Roles 和 6 個 Currencies | ✅ 已修正 |
 
 ---
 
 ## 📊 部署統計
 
-| 項目 | 狀態 | 詳情 |
-|------|------|------|
-| 資源群組 | ✅ 已驗證 | RG-RCITest-RAPO-N8N (East Asia) |
-| PostgreSQL 資料庫 | ✅ 已建立 | psql-itpm-company-dev-001 (Ready) |
-| 儲存帳戶 | ✅ 已建立 | stitpmcompanydev001 |
-| Container Registry | ✅ 已建立 | acritpmcompany |
-| Docker 映像 | ✅ 已推送 | itpm-web:latest |
-| App Service Plan | ✅ 已建立 | plan-itpm-company-dev (B1) |
-| Web 應用 | ✅ 已建立 | app-itpm-company-dev-001 (Running) |
-| 環境變數 | ✅ 已配置 | DATABASE_URL, NEXTAUTH_SECRET 等 |
-| 防火牆規則 | ✅ 已配置 | PostgreSQL 允許 Azure 服務 |
-| 儲存容器 | ✅ 已建立 | quotes, invoices, proposals |
+| 項目               | 狀態      | 詳情                               |
+| ------------------ | --------- | ---------------------------------- |
+| 資源群組           | ✅ 已驗證 | RG-RCITest-RAPO-N8N (East Asia)    |
+| PostgreSQL 資料庫  | ✅ 已建立 | psql-itpm-company-dev-001 (Ready)  |
+| 儲存帳戶           | ✅ 已建立 | stitpmcompanydev001                |
+| Container Registry | ✅ 已建立 | acritpmcompany                     |
+| Docker 映像        | ✅ 已推送 | itpm-web:latest                    |
+| App Service Plan   | ✅ 已建立 | plan-itpm-company-dev (B1)         |
+| Web 應用           | ✅ 已建立 | app-itpm-company-dev-001 (Running) |
+| 環境變數           | ✅ 已配置 | DATABASE_URL, NEXTAUTH_SECRET 等   |
+| 防火牆規則         | ✅ 已配置 | PostgreSQL 允許 Azure 服務         |
+| 儲存容器           | ✅ 已建立 | quotes, invoices, proposals        |
 
 ---
 
@@ -101,14 +110,14 @@ App Service:
   NODE_ENV: production
   PORT: 3000
   NEXT_TELEMETRY_DISABLED: 1
-  
+
 認證配置:
   NEXTAUTH_URL: https://app-itpm-company-dev-001.azurewebsites.net
   NEXTAUTH_SECRET: 已設定
-  
+
 Azure AD B2C:
   NEXT_PUBLIC_AZURE_AD_B2C_ENABLED: false (暫時禁用)
-  
+
 Feature Flags:
   NEXT_PUBLIC_FEATURE_AI_ASSISTANT: false
   NEXT_PUBLIC_FEATURE_EXTERNAL_INTEGRATION: false
@@ -126,15 +135,18 @@ Feature Flags:
 容器啟動時自動執行以下操作：
 
 1. **驗證環境變數**
+
    ```
    檢查 DATABASE_URL 是否已設定
    ✅ 已設定 → 繼續遷移
    ```
 
 2. **執行 Prisma 資料庫遷移**
+
    ```bash
    prisma migrate deploy --schema=packages/db/prisma/schema.prisma
    ```
+
    - 檢查 migrations 資料夾是否存在
    - 列出待執行的遷移
    - 執行各個遷移檔案
@@ -144,6 +156,7 @@ Feature Flags:
    ```bash
    node apps/web/server.js
    ```
+
    - 應用在 PORT 3000 上監聽
    - 連接到 PostgreSQL 資料庫
 
@@ -210,6 +223,7 @@ az webapp config container show --name app-itpm-company-dev-001 --resource-group
 **症狀**: 日誌顯示 "No migration found" 或遷移出錯
 
 **可能原因**:
+
 - migrations 資料夾未包含在 Docker 映像中
 - DATABASE_URL 未正確設定
 - PostgreSQL 不可達
@@ -351,6 +365,59 @@ az webapp show --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-
 
 ---
 
-**報告生成時間**: 2025-11-26 07:47 UTC  
-**部署狀態**: ✅ 成功  
-**預計全面就緒時間**: 2025-11-26 07:52 (約 5 分鐘後)
+## 🔧 已執行的修正 (2025-11-26 07:55)
+
+### 修正 1: DATABASE_URL 環境變數
+
+**問題**: DATABASE_URL 缺少主機名，值為：
+```
+postgresql://itpmadmin:PASSWORD@/itpm_dev?sslmode=require
+```
+
+**修正後**:
+```
+postgresql://itpmadmin:PASSWORD@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require
+```
+
+**命令**:
+```bash
+az webapp config appsettings set --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N \
+  --settings DATABASE_URL="postgresql://itpmadmin:F4d3g2+$AT9kEYv-@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require"
+```
+
+### 修正 2: 執行 Seed 植入基礎數據
+
+**問題**: GET /api/admin/seed 檢查顯示:
+- Role 數量: 0 ❌
+- Currency 數量: 0 ❌
+- seedRequired: true
+
+**解決方案**: 執行 POST /api/admin/seed
+
+```bash
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/admin/seed" \
+  -H "Authorization: Bearer ZFo3TzJKa3Q1WFJXYnBER0NOaTF6YW9LY3gwQUZmUXE=" \
+  -H "Content-Type: application/json"
+```
+
+**執行結果**:
+```
+✅ Seed 執行成功
+✅ Roles 已植入: 3 個 (ProjectManager, Supervisor, Admin)
+✅ Currencies 已植入: 6 個 (TWD, USD, CNY, JPY, EUR, HKD)
+✅ hasProjectManagerRole: true
+```
+
+**最終驗證** (GET /api/admin/seed):
+- Role 數量: 3 ✅
+- Currency 數量: 6 ✅
+- seedRequired: false ✅
+
+---
+
+**報告生成時間**: 2025-11-26 07:55 UTC  
+**部署狀態**: ✅ 成功 + ✅ 所有修正已完成  
+**應用狀態**: ✅ 完全就緒（已驗證）  
+**用戶註冊功能**: ✅ 已恢復正常
+
+
