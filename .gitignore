@@ -282,6 +282,7 @@ reports/
 *.sql
 *.dump
 !scripts/init-db.sql  # Allow initialization scripts
+!packages/db/prisma/migrations/**/*.sql  # Allow Prisma migration SQL files
 
 # ------------------------------------------------------------------------------
 # AI & LLM Tools

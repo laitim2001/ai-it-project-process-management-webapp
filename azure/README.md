@@ -247,6 +247,7 @@ bash azure/tests/test-azure-connectivity.sh
 - [Service Principal 設置](docs/service-principal-setup.md)
 - [完整部署指南](../docs/deployment/AZURE-DEPLOYMENT-GUIDE.md)
 - [Prisma Client 修復記錄](../claudedocs/AZURE-PRISMA-FIX-DEPLOYMENT-SUCCESS.md)
+- ⚠️ [**部署故障排除指南**](docs/DEPLOYMENT-TROUBLESHOOTING.md) - **必讀！包含 .dockerignore 重要修復**
 
 ### Infrastructure as Code
 - [Bicep 模板使用指引](templates/README.md)
@@ -299,6 +300,13 @@ bash azure/tests/test-azure-connectivity.sh
 ---
 
 ## 📝 更新記錄
+
+### v2.2 (2025-11-26)
+- 🔴 **重大修復**: `.dockerignore` 排除了 `**/migrations`，導致 Docker image 中缺少 Prisma migrations
+- ✅ 創建新的 migration `20251126100000_add_currency` 添加 Currency 表
+- ✅ 修改 `schema.prisma` 讓 `BudgetPool.currencyId` 為 nullable
+- ✅ 新增 [部署故障排除指南](docs/DEPLOYMENT-TROUBLESHOOTING.md)
+- ✅ 用戶註冊功能修復完成
 
 ### v2.1 (2025-11-25)
 - ✅ 個人環境 v9-fresh-build 部署驗證通過

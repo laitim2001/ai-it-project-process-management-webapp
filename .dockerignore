@@ -84,8 +84,8 @@ Dockerfile
 docker-compose.yml
 docker-compose.*.yml
 
-# Prisma
-**/migrations
+# Prisma - Keep migrations for migrate deploy
+# **/migrations  <-- Removed: migrations are needed for prisma migrate deploy
 
 # TypeScript
 *.tsbuildinfo

@@ -2,6 +2,31 @@
 
 本目錄用於公司 Azure 訂閱的環境配置。
 
+## 🔴 重要：部署前必讀
+
+**在執行部署前，請務必閱讀以下文檔：**
+
+- ⚠️ [**部署故障排除指南**](../../docs/DEPLOYMENT-TROUBLESHOOTING.md) - 包含已知問題和解決方案
+
+### 已知關鍵問題
+
+| 問題 | 根本原因 | 狀態 |
+|------|----------|------|
+| 用戶註冊 500 錯誤 | `.dockerignore` 排除了 migrations | ✅ 已修復 |
+| Currency 表不存在 | 缺少 migration SQL | ✅ 已修復 |
+
+### 部署前快速檢查
+
+```bash
+# 1. 確認 .dockerignore 不排除 migrations
+grep -n "migrations" .dockerignore
+# ❌ 如果看到 "**/migrations" 未被註解，請先修復！
+
+# 2. 確認 migrations 資料夾存在
+ls packages/db/prisma/migrations/
+# ✅ 應該看到多個 migration 資料夾
+```
+
 ## ⚠️ 重要提示
 
 **在配置公司環境前，請先完成以下準備工作：**
@@ -141,5 +166,5 @@ az ad sp create-for-rbac \
 
 ---
 
-**最後更新**: 2025-11-23
-**狀態**: 🚧 待配置（需先完成準備工作）
+**最後更新**: 2025-11-26
+**狀態**: ✅ 已部署並驗證通過

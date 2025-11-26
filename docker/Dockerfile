@@ -60,15 +60,22 @@ COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 # Copy source code
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma Client (skip SSL verification for corporate proxy)
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 RUN cd packages/db && pnpm prisma generate
+ENV NODE_TLS_REJECT_UNAUTHORIZED=1
 
 # Build the application
 # This will build @itpm/db, @itpm/api, @itpm/auth, and @itpm/web
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Skip SSL verification for Google Fonts during build (corporate proxy)
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 RUN pnpm build --filter=@itpm/web
+
+# Reset SSL verification after build
+ENV NODE_TLS_REJECT_UNAUTHORIZED=1
 
 # ----------------------------------------------------------------------------
 # Stage 4: Runner - Production runtime
@@ -135,6 +142,10 @@ RUN node -e "try { require('@prisma/client'); console.log('âœ… @prisma/client æ¨
 # Ensure nextjs user has permissions for generated Prisma files
 RUN chown -R nextjs:nodejs /app/node_modules 2>/dev/null || true
 
+# Copy startup script that runs migrations before starting the app
+COPY --chown=nextjs:nodejs docker/startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
+
 # Switch to non-root user
 USER nextjs
 
@@ -145,5 +156,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application
-CMD ["node", "apps/web/server.js"]
+# Start the application using the startup script
+# This script runs: 1) prisma migrate deploy, 2) starts Next.js
+CMD ["/app/startup.sh"]

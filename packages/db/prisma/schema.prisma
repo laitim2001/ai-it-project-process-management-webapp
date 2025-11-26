@@ -99,11 +99,11 @@ model BudgetPool {
   usedAmount    Float    @default(0) // DEPRECATED: 改由 categories 計算，保留以向後兼容
   financialYear Int
   description   String? // 新增：預算池描述
-  currencyId    String // FEAT-002: 貨幣 ID
+  currencyId    String? // FEAT-002: 貨幣 ID (nullable for migration compatibility)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  currency   Currency         @relation("BudgetPoolCurrency", fields: [currencyId], references: [id])
+  currency   Currency?        @relation("BudgetPoolCurrency", fields: [currencyId], references: [id])
   categories BudgetCategory[] // 新增：多個預算類別
   projects   Project[]
 
