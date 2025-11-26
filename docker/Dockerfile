@@ -60,22 +60,15 @@ COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 # Copy source code
 COPY . .
 
-# Generate Prisma Client (skip SSL verification for corporate proxy)
-ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+# Generate Prisma Client
 RUN cd packages/db && pnpm prisma generate
-ENV NODE_TLS_REJECT_UNAUTHORIZED=1
 
 # Build the application
 # This will build @itpm/db, @itpm/api, @itpm/auth, and @itpm/web
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Skip SSL verification for Google Fonts during build (corporate proxy)
-ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 RUN pnpm build --filter=@itpm/web
-
-# Reset SSL verification after build
-ENV NODE_TLS_REJECT_UNAUTHORIZED=1
 
 # ----------------------------------------------------------------------------
 # Stage 4: Runner - Production runtime
