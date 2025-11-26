@@ -1,9 +1,14 @@
 # Azure 部署檢查清單
 
-> **文檔版本**: 1.0.0
-> **最後更新**: 2025-11-22
+> **文檔版本**: 1.1.0
+> **最後更新**: 2025-11-26
 > **用途**: Azure 生產環境和 UAT 環境部署的完整檢查清單
 > **相關**: 解決 Registration API 500 錯誤問題 (缺少 seed data)
+>
+> **v1.1.0 更新** (2025-11-26):
+> - ✅ Seed 現在由 `startup.sh` 自動執行（v1.3.0+）
+> - 更新部署流程，移除手動 Seed 步驟
+> - 新增自動 Seed 驗證項目
 
 ---
 
@@ -145,38 +150,44 @@ npx prisma migrate deploy
 
 ---
 
-### Step 4: ⭐ 執行 Seed Data (關鍵步驟)
+### Step 4: ✅ Seed Data (現在自動執行)
 
-**這是防止 Registration API 500 錯誤的關鍵步驟!**
+> **v1.3.0+ 更新**: Seed 現在由 `startup.sh` 自動執行，**不再需要手動執行**！
+
+容器啟動時，`startup.sh` 會自動執行：
+1. Prisma migrate deploy
+2. Seed 基礎數據（Role + Currency）
+3. 啟動 Next.js 應用
+
+**驗證自動 Seed 成功:**
 
 ```bash
-# 方式一: 使用自動化 script (推薦)
-./scripts/azure-seed.sh
+# 查看容器日誌，確認 Seed 執行
+az webapp log tail --name <APP_NAME> --resource-group <RG_NAME> | grep -E "Seed|Role|Currency"
 
-# 方式二: 手動執行 minimal seed
-DATABASE_URL='<Azure-PostgreSQL-URL>' pnpm db:seed:minimal
+# 預期看到:
+# 🌱 Step 2/2: 執行基礎種子資料 (Seed)...
+#   ✅ Role: ProjectManager (ID: 1)
+#   ✅ Role: Supervisor (ID: 2)
+#   ✅ Role: Admin (ID: 3)
+#   ✅ Currency: TWD (新台幣)
+# 📊 Seed 完成: 3 Roles, 6 Currencies
+# ✅ Seed 執行成功
+```
 
-# 方式三: 在 App Service SSH 中執行
-cd /app/packages/db
-pnpm db:seed:minimal
+**備用方案（如自動 Seed 失敗）:**
+
+```bash
+# 使用 Seed API 手動執行
+curl -X POST "https://<APP_NAME>.azurewebsites.net/api/admin/seed" \
+  -H "Authorization: Bearer <NEXTAUTH_SECRET>" \
+  -H "Content-Type: application/json"
 ```
 
 **檢查點:**
-- [ ] Seed 執行成功顯示 "✅ 種子數據執行成功"
-- [ ] 驗證 Role 表包含 3 筆記錄 (ID: 1, 2, 3)
-  ```sql
-  SELECT * FROM "Role";
-  ```
-  預期結果:
-  - `id: 1, name: 'ProjectManager'`
-  - `id: 2, name: 'Supervisor'`
-  - `id: 3, name: 'Admin'`
-- [ ] 驗證 Currency 表包含 6 筆記錄 (TWD, USD, CNY, HKD, JPY, EUR)
-  ```sql
-  SELECT * FROM "Currency";
-  ```
-
-**⚠️ 重要**: 如果跳過此步驟,用戶註冊功能將會失敗 (500 錯誤)!
+- [ ] 容器日誌顯示 "Seed 執行成功"
+- [ ] Role 表包含 3 筆記錄 (ProjectManager, Supervisor, Admin)
+- [ ] Currency 表包含 6 筆記錄 (TWD, USD, CNY, HKD, JPY, EUR)
 
 ---
 
@@ -486,4 +497,16 @@ az webapp log tail --name app-itpm-dev-001 --resource-group rg-itpm-dev
 
 **文檔維護**: Development Team
 **審核週期**: 每次重大部署後更新
-**下次審核**: 2025-12-22
+**下次審核**: 2025-12-26
+
+---
+
+## 📝 更新記錄
+
+### v1.1.0 (2025-11-26)
+- ✅ 更新 Step 4: Seed 現在由 startup.sh 自動執行
+- 新增自動 Seed 驗證方式
+- 更新備用方案（使用 Seed API）
+
+### v1.0.0 (2025-11-22)
+- 初始版本

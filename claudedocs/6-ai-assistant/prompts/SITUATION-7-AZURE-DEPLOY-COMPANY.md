@@ -956,47 +956,60 @@ deployment_checklist:
   post_deployment:
     - [ ] 容器日誌顯示 "X migrations found"
     - [ ] 容器日誌顯示 "All migrations have been successfully applied"
-    - [ ] 執行 POST /api/admin/seed 成功
+    - [ ] 容器日誌顯示 "Seed 執行成功" (自動執行)
     - [ ] 網站可訪問
     - [ ] 用戶註冊功能正常
 ```
 
-### startup.sh 自動遷移機制
+### startup.sh 自動遷移和 Seed 機制
 
 **檔案位置**: `docker/startup.sh`
 
+**重要更新 (v1.3.0)**: startup.sh 現在會自動執行 Seed，不再需要手動執行 `/api/admin/seed`！
+
 ```bash
 #!/bin/sh
-# 容器啟動時自動執行 Prisma migrate deploy
-echo "🚀 ITPM 應用程式啟動"
-echo "📦 執行 Prisma 資料庫遷移..."
+# 容器啟動時自動執行：
+# 1. Prisma migrate deploy - 執行資料庫遷移
+# 2. Seed 基礎數據 - 植入 Role 和 Currency（使用 upsert 確保冪等）
+# 3. 啟動 Next.js 應用
 
-cd /app
-node node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js \
-  migrate deploy --schema=packages/db/prisma/schema.prisma
+echo "🚀 ITPM 應用程式啟動"
+echo "📦 Step 1/2: 執行 Prisma 資料庫遷移..."
+node ... prisma migrate deploy ...
+
+echo "🌱 Step 2/2: 執行基礎種子資料 (Seed)..."
+# 自動執行 Seed 腳本，植入：
+# - 3 個 Roles (ProjectManager, Supervisor, Admin)
+# - 6 個 Currencies (TWD, USD, CNY, JPY, EUR, HKD)
 
 echo "🌐 啟動 Next.js 應用..."
 exec node apps/web/server.js
 ```
 
-**Dockerfile 配置**:
+**Seed 使用 upsert 確保冪等性**：
 
-```dockerfile
-# 複製 startup.sh 並設置權限
-COPY --chown=nextjs:nodejs docker/startup.sh /app/startup.sh
-RUN chmod +x /app/startup.sh
-CMD ["/app/startup.sh"]
-```
+- 每次容器啟動都會執行 Seed
+- 使用 `upsert` 操作，已存在的數據不會重複創建
+- 保證 Role 和 Currency 表永不為空
 
-### Seed API 端點
+### Seed API 端點（備用方案）
 
 **端點**: `POST /api/admin/seed`
 
-**用途**: 在 migrations 執行完成後，植入基礎種子資料（Role、Currency）
+**用途**: 備用方案 - 如果 startup.sh 的自動 Seed 失敗，可以手動執行此 API
+
+**注意**: v1.3.0 之後，正常情況下**不再需要手動執行**此 API，因為 startup.sh 會自動執行 Seed。
 
 **認證**: 需要 `Authorization: Bearer <NEXTAUTH_SECRET>`
 
 **檔案位置**: `apps/web/src/app/api/admin/seed/route.ts`
+
+**使用場景**:
+
+- startup.sh 的 Seed 執行失敗時
+- 需要重新植入基礎數據時
+- 驗證數據完整性時（使用 GET 端點）
 
 **響應範例**:
 
@@ -1039,9 +1052,16 @@ az acr repository show-tags --name acritpmcompany --repository itpm-web
 
 ---
 
-**版本**: 1.2.0 **最後更新**: 2025-11-26 **維護者**: DevOps Team + Azure Administrator
-**適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境） **更新記錄**:
+**版本**: 1.3.0 **最後更新**: 2025-11-26 **維護者**: DevOps Team + Azure Administrator
+**適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境）
 
+**更新記錄**:
+
+- v1.3.0 (2025-11-26): **重大更新** - startup.sh 現在自動執行 Seed，解決每次部署後需手動 Seed 的問題
+  - 修改 `docker/startup.sh` 添加自動 Seed 邏輯
+  - Seed 使用 upsert 確保冪等性
+  - 更新部署檢查清單
+  - Seed API 改為備用方案
 - v1.2.0 (2025-11-26): 添加 .dockerignore 關鍵問題、Migration 缺失問題、startup.sh 自動遷移、Seed
   API 端點
 - v1.1.0 (2025-11-25): 添加首次部署實戰經驗章節

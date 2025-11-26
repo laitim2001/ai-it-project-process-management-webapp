@@ -632,19 +632,64 @@ bash azure/scripts/helper/verify-deployment.sh
 ### 部署後
 
 - [ ] 應用程式可訪問
+- [ ] 容器日誌顯示 "Seed 執行成功"（自動執行）
 - [ ] 登入功能正常
+- [ ] 用戶註冊功能正常（需要 Role 數據）
 - [ ] 資料庫連接正常
 - [ ] 文件上傳功能正常
 - [ ] 日誌無嚴重錯誤
 
 ---
 
-**版本**: 1.2.0 **最後更新**: 2025-11-26 **維護者**: 開發團隊
+## 🌱 自動 Seed 機制（v1.3.0 新增）
+
+### startup.sh 現在自動執行 Seed
+
+從 v1.3.0 開始，`docker/startup.sh` 會在容器啟動時自動執行：
+
+1. **Prisma migrate deploy** - 執行資料庫遷移
+2. **Seed 基礎數據** - 植入 Role 和 Currency（使用 upsert）
+3. **啟動 Next.js 應用**
+
+### 不再需要手動 Seed
+
+之前的問題：每次部署後需要手動執行 `POST /api/admin/seed`，否則用戶註冊會失敗。
+
+現在的解決方案：startup.sh 自動執行 Seed，確保 Role 和 Currency 表永不為空。
+
+### 驗證方法
+
+檢查容器日誌應該看到：
+
+```
+🚀 ITPM 應用程式啟動
+📦 Step 1/2: 執行 Prisma 資料庫遷移...
+✅ 資料庫遷移成功
+🌱 Step 2/2: 執行基礎種子資料 (Seed)...
+  ✅ Role: ProjectManager (ID: 1)
+  ✅ Role: Supervisor (ID: 2)
+  ✅ Role: Admin (ID: 3)
+  ✅ Currency: TWD (新台幣)
+  ...
+📊 Seed 完成: 3 Roles, 6 Currencies
+✅ Seed 執行成功
+🌐 啟動 Next.js 應用...
+```
+
+---
+
+**版本**: 1.3.0 **最後更新**: 2025-11-26 **維護者**: 開發團隊
 **適用環境**: 個人 Azure 訂閱（開發、測試、學習）
 
 ---
 
 ## 📝 更新記錄
+
+### v1.3.0 (2025-11-26)
+
+- ✅ **重大更新**: startup.sh 現在自動執行 Seed
+- ✅ 解決每次部署後需手動 Seed 的問題
+- ✅ 更新部署檢查清單
 
 ### v1.2.0 (2025-11-26)
 

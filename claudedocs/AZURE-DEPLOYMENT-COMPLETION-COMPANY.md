@@ -1,17 +1,15 @@
 # 🎉 公司 Azure 環境部署完成報告
 
-**日期**: 2025-11-26  
-**環境**: company/dev  
-**狀態**: ✅ 部署成功 + ✅ Seed 數據已植入  
+**日期**: 2025-11-26 **環境**: company/dev **狀態**: ✅ 部署成功 + ✅ Seed 數據已植入
 **監控**: 應用正常運行，註冊功能已驗證正常
 
 ---
 
 ## 🔧 修正歷史
 
-| 時間 | 問題 | 修正 | 狀態 |
-|------|------|------|------|
-| 07:47 | DATABASE_URL 缺少主機名 | 添加 `psql-itpm-company-dev-001.postgres.database.azure.com` | ✅ 已修正 |
+| 時間  | 問題                      | 修正                                                                | 狀態      |
+| ----- | ------------------------- | ------------------------------------------------------------------- | --------- |
+| 07:47 | DATABASE_URL 缺少主機名   | 添加 `psql-itpm-company-dev-001.postgres.database.azure.com`        | ✅ 已修正 |
 | 07:55 | Role 表為空，導致註冊失敗 | 執行 `POST /api/admin/seed`，成功植入 3 個 Roles 和 6 個 Currencies | ✅ 已修正 |
 
 ---
@@ -153,6 +151,7 @@ Feature Flags:
    - 建立資料庫表結構
 
 3. **啟動 Next.js 應用**
+
    ```bash
    node apps/web/server.js
    ```
@@ -370,16 +369,19 @@ az webapp show --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-
 ### 修正 1: DATABASE_URL 環境變數
 
 **問題**: DATABASE_URL 缺少主機名，值為：
+
 ```
 postgresql://itpmadmin:PASSWORD@/itpm_dev?sslmode=require
 ```
 
 **修正後**:
+
 ```
 postgresql://itpmadmin:PASSWORD@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require
 ```
 
 **命令**:
+
 ```bash
 az webapp config appsettings set --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N \
   --settings DATABASE_URL="postgresql://itpmadmin:F4d3g2+$AT9kEYv-@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require"
@@ -388,6 +390,7 @@ az webapp config appsettings set --name app-itpm-company-dev-001 --resource-grou
 ### 修正 2: 執行 Seed 植入基礎數據
 
 **問題**: GET /api/admin/seed 檢查顯示:
+
 - Role 數量: 0 ❌
 - Currency 數量: 0 ❌
 - seedRequired: true
@@ -401,6 +404,7 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/admin/seed"
 ```
 
 **執行結果**:
+
 ```
 ✅ Seed 執行成功
 ✅ Roles 已植入: 3 個 (ProjectManager, Supervisor, Admin)
@@ -409,15 +413,12 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/admin/seed"
 ```
 
 **最終驗證** (GET /api/admin/seed):
+
 - Role 數量: 3 ✅
 - Currency 數量: 6 ✅
 - seedRequired: false ✅
 
 ---
 
-**報告生成時間**: 2025-11-26 07:55 UTC  
-**部署狀態**: ✅ 成功 + ✅ 所有修正已完成  
-**應用狀態**: ✅ 完全就緒（已驗證）  
-**用戶註冊功能**: ✅ 已恢復正常
-
-
+**報告生成時間**: 2025-11-26 07:55 UTC **部署狀態**: ✅ 成功 + ✅ 所有修正已完成 **應用狀態**:
+✅ 完全就緒（已驗證） **用戶註冊功能**: ✅ 已恢復正常
