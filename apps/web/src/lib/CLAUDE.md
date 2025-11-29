@@ -9,7 +9,9 @@
 lib/
 ├── trpc.ts           # tRPC 客戶端配置（最重要）
 ├── utils.ts          # 通用工具函數
-└── exportUtils.ts    # CSV/Excel 導出功能
+├── exportUtils.ts    # CSV/Excel 導出功能
+├── azure-storage.ts  # Azure Blob Storage 工具
+└── db-init.ts        # 資料庫初始化工具
 ```
 
 ## 🎯 核心模式與約定

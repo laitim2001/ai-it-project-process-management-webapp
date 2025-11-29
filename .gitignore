@@ -188,6 +188,7 @@ local.settings.json
 .azure/credentials.json
 .azure/*.local
 .azure/**/sp-*.json
+.azure/output/
 !.azure/environments/
 !.azure/scripts/
 !.azure/docs/

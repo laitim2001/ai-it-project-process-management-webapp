@@ -14,35 +14,38 @@ prisma/
 
 ## 🎯 Schema 組織結構
 
-### 1. schema.prisma 分區
+### 1. schema.prisma 分區（共 24 個 Models）
 ```prisma
-// 1. 核心使用者與權限模型
+// 1. 核心使用者與權限模型 (5 個)
 model User { ... }
+model Account { ... }              // NextAuth OAuth
+model Session { ... }              // NextAuth Session
+model VerificationToken { ... }    // NextAuth Email 驗證
 model Role { ... }
-model Account { ... }     // NextAuth
-model Session { ... }     // NextAuth
-model VerificationToken { ... }
 
-// 2. 預算管理模型
+// 2. 預算管理模型 (4 個)
 model BudgetPool { ... }
 model BudgetCategory { ... }
 model Project { ... }
 model BudgetProposal { ... }
 
-// 3. 採購與供應商模型
+// 3. 採購與供應商模型 (4 個)
 model Vendor { ... }
 model Quote { ... }
 model PurchaseOrder { ... }
+model PurchaseOrderItem { ... }
 
-// 4. 費用管理模型
+// 4. 費用管理模型 (6 個)
 model Expense { ... }
+model ExpenseItem { ... }
 model ChargeOut { ... }
 model ChargeOutItem { ... }
 model OMExpense { ... }
-model OMExpenseMonthlyRecord { ... }
+model OMExpenseMonthly { ... }
 
-// 5. 系統與輔助模型
+// 5. 系統與輔助模型 (5 個)
 model OperatingCompany { ... }
+model Currency { ... }             // 幣別管理 (FEAT-001)
 model Comment { ... }
 model History { ... }
 model Notification { ... }

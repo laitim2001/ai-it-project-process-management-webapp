@@ -2,10 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-10-26
+> **Last Updated**: 2025-11-29
 > **Project Status**: Post-MVP Enhancement Phase (MVP 100% Complete)
-> **Total Code**: ~30,000+ lines of core code
+> **Total Code**: ~35,000+ lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
+> **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境 已部署
 > **Language Preference**: 繁體中文 (Traditional Chinese) - AI assistants should communicate in Traditional Chinese by default
 
 ---
@@ -51,9 +52,9 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 
 **✅ MVP Phase 1: 100% Complete** (Epic 1-8)
 - All 8 core Epics delivered and tested
-- 18 full-featured pages implemented
-- 46 UI components (26 design system + 20 business)
-- ~30,000+ lines of production code
+- 51 pages implemented (16 route modules)
+- 68 components (35 UI + 33 business)
+- ~35,000+ lines of production code
 
 **✅ Post-MVP Enhancements: Complete**
 - Design system migration (shadcn/ui + Radix UI)
@@ -900,13 +901,13 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ## Project Metrics
 
-**Code Statistics** (as of 2025-10-25):
-- Total Core Code: ~30,000+ lines
+**Code Statistics** (as of 2025-11-29):
+- Total Core Code: ~35,000+ lines
 - Indexed Files: 250+ important files
-- UI Components: 46 (26 design system + 20 business)
-- API Routers: 10 (budgetPool, project, user, budgetProposal, vendor, quote, purchaseOrder, expense, dashboard, notification)
-- Prisma Models: 10+ (User, Role, Account, Session, BudgetPool, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, Expense, Notification)
-- Pages: 18 full-featured pages
+- UI Components: 68 (35 design system + 33 business)
+- API Routers: 15 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, notification, omExpense, project, purchaseOrder, quote, seed, user, vendor, health)
+- Prisma Models: 24 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ChargeOut, ChargeOutItem, OMExpense, OMExpenseMonthly, OperatingCompany, Currency, Comment, History, Notification)
+- Pages: 51 full-featured pages (16 route modules)
 - Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements
 
 **Development Timeline:**
@@ -916,6 +917,6 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ---
 
-**Last Updated**: 2025-10-25
+**Last Updated**: 2025-11-29
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion
