@@ -83,6 +83,82 @@ const updateMonthlyRecordsSchema = z.object({
   monthlyData: z.array(monthlyRecordSchema).length(12, '必須提供 12 個月的數據'),
 });
 
+// ========== Summary API Schema ==========
+
+const getSummarySchema = z.object({
+  currentYear: z.number().int().min(2000).max(2100),
+  previousYear: z.number().int().min(2000).max(2100),
+  opCoIds: z.array(z.string()).optional(),
+  categories: z.array(z.string()).optional(),
+});
+
+// ========== TypeScript Types for Summary ==========
+
+export interface CategorySummaryItem {
+  category: string;
+  currentYearBudget: number;
+  previousYearActual: number;
+  changePercent: number | null;
+  itemCount: number;
+}
+
+export interface ItemDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  currentYearBudget: number;
+  previousYearActual: number | null;
+  changePercent: number | null;
+  endDate: Date;
+}
+
+export interface OpCoSubTotal {
+  currentYearBudget: number;
+  previousYearActual: number;
+  changePercent: number | null;
+}
+
+export interface OpCoGroup {
+  opCoId: string;
+  opCoCode: string;
+  opCoName: string;
+  items: ItemDetail[];
+  subTotal: OpCoSubTotal;
+}
+
+export interface CategoryTotal {
+  currentYearBudget: number;
+  previousYearActual: number;
+  changePercent: number | null;
+}
+
+export interface CategoryDetailGroup {
+  category: string;
+  opCoGroups: OpCoGroup[];
+  categoryTotal: CategoryTotal;
+}
+
+export interface GrandTotal {
+  currentYearBudget: number;
+  previousYearActual: number;
+  changePercent: number | null;
+  itemCount: number;
+}
+
+export interface SummaryMeta {
+  currentYear: number;
+  previousYear: number;
+  selectedOpCos: string[];
+  selectedCategories: string[];
+}
+
+export interface OMSummaryResponse {
+  categorySummary: CategorySummaryItem[];
+  detailData: CategoryDetailGroup[];
+  grandTotal: GrandTotal;
+  meta: SummaryMeta;
+}
+
 // ========== Router ==========
 
 export const omExpenseRouter = createTRPCRouter({
@@ -590,5 +666,260 @@ export const omExpenseRouter = createTRPCRouter({
       });
 
       return monthlyTotals;
+    }),
+
+  /**
+   * 獲取 O&M Summary 數據
+   * 支援跨年度比較和多層級分組（Category → OpCo → Items）
+   *
+   * @description
+   * 此 API 提供 O&M 費用的匯總視圖，用於 O&M Summary 頁面。
+   * - 類別匯總：按 O&M Category 分組，顯示預算、實際支出和變化百分比
+   * - 明細數據：按 Category → OpCo → Items 階層結構組織
+   * - 支援多選 OpCo 和 Category 過濾
+   *
+   * @param currentYear - 當前財務年度（用於 Budget 數據）
+   * @param previousYear - 上一財務年度（用於 Actual 數據）
+   * @param opCoIds - 可選的 OpCo ID 過濾陣列
+   * @param categories - 可選的 Category 過濾陣列
+   *
+   * @returns OMSummaryResponse - 包含類別匯總、明細數據和總計
+   */
+  getSummary: protectedProcedure
+    .input(getSummarySchema)
+    .query(async ({ ctx, input }): Promise<OMSummaryResponse> => {
+      const { currentYear, previousYear, opCoIds, categories } = input;
+
+      // 構建查詢條件
+      const currentYearWhere: Record<string, unknown> = {
+        financialYear: currentYear,
+      };
+
+      const previousYearWhere: Record<string, unknown> = {
+        financialYear: previousYear,
+      };
+
+      // OpCo 過濾
+      if (opCoIds && opCoIds.length > 0) {
+        currentYearWhere.opCoId = { in: opCoIds };
+        previousYearWhere.opCoId = { in: opCoIds };
+      }
+
+      // Category 過濾
+      if (categories && categories.length > 0) {
+        currentYearWhere.category = { in: categories };
+        previousYearWhere.category = { in: categories };
+      }
+
+      // 查詢當前年度數據（Budget）
+      const currentYearData = await ctx.prisma.oMExpense.findMany({
+        where: currentYearWhere,
+        include: {
+          opCo: true,
+          vendor: true,
+        },
+        orderBy: [{ category: 'asc' }, { name: 'asc' }],
+      });
+
+      // 查詢上年度數據（Actual）
+      const previousYearData = await ctx.prisma.oMExpense.findMany({
+        where: previousYearWhere,
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          opCoId: true,
+          actualSpent: true,
+        },
+      });
+
+      // 建立上年度數據的查找映射（按 name + category + opCoId）
+      const previousYearMap = new Map<string, number>();
+      for (const item of previousYearData) {
+        const key = `${item.name}|${item.category}|${item.opCoId}`;
+        previousYearMap.set(key, item.actualSpent);
+      }
+
+      // 計算變化百分比的輔助函數
+      const calculateChangePercent = (
+        currentBudget: number,
+        previousActual: number | null
+      ): number | null => {
+        if (previousActual === null || previousActual === 0) {
+          return null;
+        }
+        return ((currentBudget - previousActual) / previousActual) * 100;
+      };
+
+      // ========== 1. 計算類別匯總 ==========
+      const categoryMap = new Map<
+        string,
+        {
+          currentYearBudget: number;
+          previousYearActual: number;
+          itemCount: number;
+        }
+      >();
+
+      for (const item of currentYearData) {
+        const existing = categoryMap.get(item.category) || {
+          currentYearBudget: 0,
+          previousYearActual: 0,
+          itemCount: 0,
+        };
+
+        const prevKey = `${item.name}|${item.category}|${item.opCoId}`;
+        const prevActual = previousYearMap.get(prevKey) || 0;
+
+        categoryMap.set(item.category, {
+          currentYearBudget: existing.currentYearBudget + item.budgetAmount,
+          previousYearActual: existing.previousYearActual + prevActual,
+          itemCount: existing.itemCount + 1,
+        });
+      }
+
+      const categorySummary: CategorySummaryItem[] = Array.from(categoryMap.entries())
+        .map(([category, data]) => ({
+          category,
+          currentYearBudget: data.currentYearBudget,
+          previousYearActual: data.previousYearActual,
+          changePercent: calculateChangePercent(data.currentYearBudget, data.previousYearActual),
+          itemCount: data.itemCount,
+        }))
+        .sort((a, b) => a.category.localeCompare(b.category));
+
+      // ========== 2. 計算明細數據（Category → OpCo → Items） ==========
+      // 首先按 Category 分組
+      const categoryDetailMap = new Map<
+        string,
+        Map<
+          string,
+          {
+            opCoId: string;
+            opCoCode: string;
+            opCoName: string;
+            items: ItemDetail[];
+          }
+        >
+      >();
+
+      for (const item of currentYearData) {
+        // 確保 Category 存在
+        if (!categoryDetailMap.has(item.category)) {
+          categoryDetailMap.set(item.category, new Map());
+        }
+
+        const opCoMap = categoryDetailMap.get(item.category)!;
+
+        // 確保 OpCo 存在
+        if (!opCoMap.has(item.opCoId)) {
+          opCoMap.set(item.opCoId, {
+            opCoId: item.opCoId,
+            opCoCode: item.opCo.code,
+            opCoName: item.opCo.name,
+            items: [],
+          });
+        }
+
+        // 獲取上年度實際支出
+        const prevKey = `${item.name}|${item.category}|${item.opCoId}`;
+        const previousYearActual = previousYearMap.get(prevKey) ?? null;
+
+        // 添加項目
+        const opCoGroup = opCoMap.get(item.opCoId)!;
+        opCoGroup.items.push({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          currentYearBudget: item.budgetAmount,
+          previousYearActual,
+          changePercent: calculateChangePercent(item.budgetAmount, previousYearActual),
+          endDate: item.endDate,
+        });
+      }
+
+      // 轉換為最終結構並計算小計
+      const detailData: CategoryDetailGroup[] = [];
+
+      const sortedCategories = Array.from(categoryDetailMap.keys()).sort();
+
+      for (const category of sortedCategories) {
+        const opCoMap = categoryDetailMap.get(category)!;
+        const opCoGroups: OpCoGroup[] = [];
+
+        let categoryBudgetTotal = 0;
+        let categoryActualTotal = 0;
+
+        // 按 OpCo Code 排序
+        const sortedOpCos = Array.from(opCoMap.values()).sort((a, b) =>
+          a.opCoCode.localeCompare(b.opCoCode)
+        );
+
+        for (const opCoData of sortedOpCos) {
+          // 按項目名稱排序
+          opCoData.items.sort((a, b) => a.name.localeCompare(b.name));
+
+          // 計算 OpCo 小計
+          const opCoBudgetTotal = opCoData.items.reduce(
+            (sum, item) => sum + item.currentYearBudget,
+            0
+          );
+          const opCoActualTotal = opCoData.items.reduce(
+            (sum, item) => sum + (item.previousYearActual || 0),
+            0
+          );
+
+          categoryBudgetTotal += opCoBudgetTotal;
+          categoryActualTotal += opCoActualTotal;
+
+          opCoGroups.push({
+            opCoId: opCoData.opCoId,
+            opCoCode: opCoData.opCoCode,
+            opCoName: opCoData.opCoName,
+            items: opCoData.items,
+            subTotal: {
+              currentYearBudget: opCoBudgetTotal,
+              previousYearActual: opCoActualTotal,
+              changePercent: calculateChangePercent(opCoBudgetTotal, opCoActualTotal),
+            },
+          });
+        }
+
+        detailData.push({
+          category,
+          opCoGroups,
+          categoryTotal: {
+            currentYearBudget: categoryBudgetTotal,
+            previousYearActual: categoryActualTotal,
+            changePercent: calculateChangePercent(categoryBudgetTotal, categoryActualTotal),
+          },
+        });
+      }
+
+      // ========== 3. 計算總計 ==========
+      const grandTotal: GrandTotal = {
+        currentYearBudget: categorySummary.reduce((sum, c) => sum + c.currentYearBudget, 0),
+        previousYearActual: categorySummary.reduce((sum, c) => sum + c.previousYearActual, 0),
+        changePercent: null,
+        itemCount: categorySummary.reduce((sum, c) => sum + c.itemCount, 0),
+      };
+
+      grandTotal.changePercent = calculateChangePercent(
+        grandTotal.currentYearBudget,
+        grandTotal.previousYearActual
+      );
+
+      // ========== 4. 返回結果 ==========
+      return {
+        categorySummary,
+        detailData,
+        grandTotal,
+        meta: {
+          currentYear,
+          previousYear,
+          selectedOpCos: opCoIds || [],
+          selectedCategories: categories || [],
+        },
+      };
     }),
 });

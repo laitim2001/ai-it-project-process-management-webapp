@@ -15,24 +15,31 @@
 
 請幫我:
 
-1. 確認規劃文檔
+1. 建立功能規劃目錄
+   - 在 claudedocs/1-planning/features/ 建立 FEAT-XXX-[功能名稱] 目錄
+   - 建立 01-requirements.md (需求規格)
+   - 建立 02-technical-design.md (技術設計)
+   - 建立 03-implementation-plan.md (實施計劃)
+   - 建立 04-progress.md (進度追蹤)
+
+2. 確認規劃文檔
    - 閱讀 claudedocs/1-planning/epics/epic-X/[相關文檔]
    - 閱讀 claudedocs/2-sprints/epic-X/sprint-X/[相關文檔]
    - 確認驗收標準
 
-2. 系統化開發
+3. 系統化開發
    - 後端: 數據模型 → API → 測試
    - 前端: 組件 → 頁面 → 整合
    - 使用 TodoWrite 追蹤進度
 
-3. 遵循最佳實踐
+4. 遵循最佳實踐
    - 參考現有實現模式
    - 使用 shadcn/ui 組件
    - I18N 從一開始實施
    - 撰寫單元測試
 
-4. 記錄開發過程
-   - 更新每日/每週進度
+5. 記錄開發過程
+   - 更新 04-progress.md
    - 記錄技術決策
    - 更新 Sprint checklist
 
@@ -43,9 +50,50 @@
 
 ## 🤖 AI 執行流程
 
+### Phase 0: 規劃準備 (必須先執行)
+
+```bash
+# 1. 確認功能編號（查看現有 FEAT 編號）
+Bash: ls claudedocs/1-planning/features/
+
+# 2. 建立功能目錄結構
+Bash: mkdir -p claudedocs/1-planning/features/FEAT-XXX-功能名稱
+
+# 3. 建立規劃文檔
+Write: claudedocs/1-planning/features/FEAT-XXX-功能名稱/01-requirements.md
+Write: claudedocs/1-planning/features/FEAT-XXX-功能名稱/02-technical-design.md
+Write: claudedocs/1-planning/features/FEAT-XXX-功能名稱/03-implementation-plan.md
+Write: claudedocs/1-planning/features/FEAT-XXX-功能名稱/04-progress.md
+```
+
+**功能目錄結構範例：**
+```
+claudedocs/1-planning/features/
+├── FEAT-001-project-fields-enhancement/
+│   ├── 01-requirements.md      # 需求規格
+│   ├── 02-technical-design.md  # 技術設計
+│   ├── 03-implementation-plan.md # 實施計劃
+│   └── 04-progress.md          # 進度追蹤
+├── FEAT-002-currency-system-expansion/
+│   └── ...
+└── FEAT-003-om-summary-page/   # 新功能
+    └── ...
+```
+
+**文檔內容指引：**
+
+| 文檔 | 內容 |
+|------|------|
+| `01-requirements.md` | 功能概述、用戶需求、功能需求、驗收標準 |
+| `02-technical-design.md` | 數據模型、API 設計、組件設計、技術架構 |
+| `03-implementation-plan.md` | 開發階段、任務分解、時間估算、依賴關係 |
+| `04-progress.md` | 開發日誌、完成狀態、問題記錄、測試結果 |
+
+---
+
 ### Phase 1: 後端開發
 ```bash
-# 1. 數據模型
+# 1. 數據模型（如需新增或修改）
 Edit: packages/db/prisma/schema.prisma
 Bash: pnpm db:generate
 Bash: pnpm db:migrate
@@ -59,6 +107,7 @@ Write: packages/api/src/routers/新功能.test.ts
 Bash: pnpm test --filter=api
 
 # 4. 更新進度
+Edit: claudedocs/1-planning/features/FEAT-XXX/04-progress.md
 TodoWrite: 標記後端任務完成
 ```
 
@@ -78,6 +127,7 @@ Edit: apps/web/src/messages/en.json
 Bash: pnpm dev (手動測試)
 
 # 5. 更新進度
+Edit: claudedocs/1-planning/features/FEAT-XXX/04-progress.md
 TodoWrite: 標記前端任務完成
 ```
 
@@ -90,12 +140,20 @@ Write: tests/e2e/新功能.spec.ts
 Bash: pnpm test:e2e
 
 # 3. 記錄測試結果
+Edit: claudedocs/1-planning/features/FEAT-XXX/04-progress.md
 Write: claudedocs/5-status/testing/e2e/E2E-新功能-REPORT.md
 ```
 
 ---
 
 ## 📐 開發標準 Checklist
+
+### 規劃階段
+- [ ] 功能目錄已建立 (FEAT-XXX-功能名稱/)
+- [ ] 01-requirements.md 已完成
+- [ ] 02-technical-design.md 已完成
+- [ ] 03-implementation-plan.md 已完成
+- [ ] 04-progress.md 已初始化
 
 ### 後端標準
 - [ ] Prisma 模型遵循命名規範
@@ -126,6 +184,58 @@ Write: claudedocs/5-status/testing/e2e/E2E-新功能-REPORT.md
 
 ---
 
+## 📁 功能文檔模板
+
+### 01-requirements.md 模板
+```markdown
+# FEAT-XXX: [功能名稱]
+
+> **建立日期**: YYYY-MM-DD
+> **狀態**: 📋 設計中 / 🚧 開發中 / ✅ 完成
+> **優先級**: High / Medium / Low
+
+## 1. 功能概述
+### 1.1 背景
+### 1.2 目標
+
+## 2. 功能需求
+### 2.1 用戶故事
+### 2.2 功能列表
+
+## 3. 驗收標準
+### 3.1 功能驗收
+### 3.2 技術驗收
+### 3.3 用戶體驗
+
+## 4. 相關文檔
+```
+
+### 04-progress.md 模板
+```markdown
+# FEAT-XXX: [功能名稱] - 開發進度
+
+## 📊 整體進度
+- [ ] Phase 0: 規劃準備
+- [ ] Phase 1: 後端開發
+- [ ] Phase 2: 前端開發
+- [ ] Phase 3: 整合測試
+
+## 📝 開發日誌
+
+### YYYY-MM-DD
+- 完成項目:
+- 遇到問題:
+- 下一步:
+
+## 🐛 問題追蹤
+| 問題 | 狀態 | 解決方案 |
+|------|------|----------|
+
+## ✅ 測試結果
+```
+
+---
+
 ## 🔗 相關文檔
 
 ### 開發流程指引
@@ -140,5 +250,9 @@ Write: claudedocs/5-status/testing/e2e/E2E-新功能-REPORT.md
 - [情況8: Azure 個人環境問題排查](./SITUATION-8-AZURE-TROUBLESHOOT-PERSONAL.md)
 - [情況9: Azure 公司環境問題排查](./SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md)
 
-**最後更新**: 2025-11-25
-**版本**: 1.1
+### 現有功能範例
+- [FEAT-001: Project Fields Enhancement](../../1-planning/features/FEAT-001-project-fields-enhancement/)
+- [FEAT-002: Currency System Expansion](../../1-planning/features/FEAT-002-currency-system-expansion/)
+
+**最後更新**: 2025-11-29
+**版本**: 1.2

@@ -20,6 +20,58 @@
 
 ## 🚀 開發記錄
 
+### 2025-11-29 | ✨ FEAT-003: O&M Summary Page | 完整功能開發與 Bug 修復 ✅
+
+**類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+開發 O&M 費用總覽頁面，提供類似 Excel 的表格視圖，支援按年度、OpCo、Category 過濾，顯示類別匯總和明細列表。
+
+**主要功能**:
+1. **後端 API** (`packages/api/src/routers/omExpense.ts`)
+   - `getSummary`: 獲取 O&M 費用匯總數據
+   - `getCategories`: 獲取所有 O&M 類別列表
+
+2. **前端組件** (`apps/web/src/components/om-summary/`)
+   - `OMSummaryFilters`: 過濾器組件（年度單選、OpCo/Category 多選）
+   - `OMSummaryCategoryGrid`: 類別匯總表格
+   - `OMSummaryDetailGrid`: 明細列表表格（階層結構）
+
+3. **頁面** (`apps/web/src/app/[locale]/om-summary/page.tsx`)
+   - 完整的 O&M Summary 頁面實現
+
+**修復的問題**:
+
+1. **I18N MISSING_MESSAGE 錯誤**
+   - 問題: 多個翻譯鍵缺失
+   - 解決: 添加所有缺失的翻譯鍵到 en.json 和 zh-TW.json
+
+2. **next-intl FORMATTING_ERROR**
+   - 問題: 使用 String.replace() 替換年度變數
+   - 解決: 改用 `t('key', { year: value })` ICU 參數傳遞
+
+3. **OpCo 選擇器無限 loading**
+   - 問題: query enabled 條件包含 opCoIds.length > 0
+   - 解決: 移除該條件，只依賴 isInitialized，添加 keepPreviousData
+
+4. **表格 header 對齊問題**
+   - 問題: 類別匯總 (5欄) 和明細列表 (6欄) 數字欄位無法對齊
+   - 解決: 使用百分比寬度 + table-fixed + colgroup
+
+**技術決策**:
+- 使用百分比寬度對齊不同欄位數量的表格
+- 右側 4 欄使用相同百分比 (13%+13%+10%+10%=46%)
+- 左側欄位使用剩餘空間 (54%)
+
+**相關文件**:
+- `apps/web/src/app/[locale]/om-summary/page.tsx`
+- `apps/web/src/components/om-summary/*.tsx`
+- `apps/web/src/messages/en.json`, `zh-TW.json`
+- `packages/api/src/routers/omExpense.ts`
+- `claudedocs/1-planning/features/FEAT-003-om-summary-page/`
+
+---
+
 ### 2025-11-22 | 🚨 Azure 部署問題診斷 | 註冊 API 500 錯誤根因分析與修復 ✅
 
 **類型**: Bug 修復 + 部署優化 | **負責人**: AI 助手 | **狀態**: ✅ 完成

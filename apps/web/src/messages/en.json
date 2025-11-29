@@ -148,6 +148,7 @@
       "purchaseOrders": "Purchase Orders",
       "expenses": "Expenses",
       "omExpenses": "OM Expenses",
+      "omSummary": "OM Summary",
       "chargeOuts": "Charge Outs",
       "users": "Users",
       "currencies": "Currencies",
@@ -165,6 +166,7 @@
       "purchaseOrders": "Purchase order tracking",
       "expenses": "Expense invoices and reimbursement",
       "omExpenses": "Operation and maintenance expense management",
+      "omSummary": "O&M expense summary and analysis",
       "chargeOuts": "ChargeOut expense transfer management",
       "users": "User accounts and permissions",
       "currencies": "Manage system currency options",
@@ -2680,6 +2682,76 @@
       "Approved": "Approved",
       "Rejected": "Rejected",
       "MoreInfoRequired": "More Info Required"
+    }
+  },
+  "omSummary": {
+    "title": "O&M Summary",
+    "description": "View O&M expense summary by OpCo and category",
+    "filters": {
+      "fiscalYear": "Fiscal Year",
+      "financialYear": "Fiscal Year",
+      "currentYear": "Current Year (Budget)",
+      "previousYear": "Previous Year (Actual)",
+      "opCo": "Operating Company",
+      "opCos": "Operating Companies",
+      "opCoPlaceholder": "Select operating company...",
+      "selectOpCos": "Select operating companies...",
+      "searchOpCos": "Search operating companies...",
+      "noOpCoFound": "No operating company found",
+      "category": "O&M Category",
+      "categories": "O&M Categories",
+      "categoryPlaceholder": "Select category...",
+      "selectCategories": "Select categories...",
+      "searchCategories": "Search categories...",
+      "noCategoryFound": "No category found",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "selected": "{count} selected",
+      "search": "Search...",
+      "reset": "Reset Filters"
+    },
+    "summaryGrid": {
+      "title": "Category Summary",
+      "category": "Category",
+      "budget": "FY{year} Budget",
+      "actual": "FY{year} Actual",
+      "currentBudget": "FY{year} Budget",
+      "previousActual": "FY{year} Actual",
+      "changePercent": "Change %",
+      "itemCount": "Item Count",
+      "noData": "No data matching the criteria"
+    },
+    "detailGrid": {
+      "title": "Detail List",
+      "item": "Item",
+      "itemName": "Item Name",
+      "description": "Description",
+      "category": "Category",
+      "opCo": "Operating Company",
+      "budget": "Budget Amount",
+      "actual": "Actual Amount",
+      "endDate": "Maintenance End Date",
+      "subTotal": "Subtotal",
+      "categoryTotal": "Category Total",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "noData": "No data matching the criteria",
+      "loading": "Loading..."
+    },
+    "totals": {
+      "grandTotal": "Grand Total",
+      "allCategories": "All Categories",
+      "totalBudget": "Total Budget",
+      "totalActual": "Total Actual",
+      "totalItems": "Total Items"
+    },
+    "empty": {
+      "noData": "No O&M expense data",
+      "noFiltered": "No data matches the current filters",
+      "tryAdjust": "Try adjusting your filter criteria"
+    },
+    "table": {
+      "noResults": "No results found"
     }
   },
   "errors": {

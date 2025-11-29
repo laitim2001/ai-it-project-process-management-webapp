@@ -68,6 +68,7 @@ import {
   Target,
   ArrowRightLeft,
   Coins,
+  BarChart3,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -156,6 +157,12 @@ export function Sidebar() {
           href: "/om-expenses",
           icon: Target,
           description: t('descriptions.omExpenses')
+        },
+        {
+          name: t('menu.omSummary'),
+          href: "/om-summary",
+          icon: BarChart3,
+          description: t('descriptions.omSummary')
         },
         {
           name: t('menu.chargeOuts'),
