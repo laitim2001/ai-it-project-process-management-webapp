@@ -118,9 +118,12 @@ async function main() {
     update: {},
     create: {
       id: 'proj-erp-upgrade',
+      projectCode: 'PRJ-2024-ERP-001', // FEAT-001: 必填專案編號
       name: 'ERP 系統升級專案',
       description: '將現有 ERP 系統升級至最新版本，包含模組更新和數據遷移',
       status: 'InProgress',
+      globalFlag: 'Region', // FEAT-001: 全域標誌
+      priority: 'High', // FEAT-001: 優先權
       managerId: pmUser.id,
       supervisorId: supervisorUser.id,
       budgetPoolId: budgetPool2024.id,
@@ -134,9 +137,12 @@ async function main() {
     update: {},
     create: {
       id: 'proj-cloud-migration',
+      projectCode: 'PRJ-2025-CLD-001', // FEAT-001: 必填專案編號
       name: '雲端遷移專案',
       description: '將核心業務系統遷移至 Azure 雲平台',
       status: 'Draft',
+      globalFlag: 'RCL', // FEAT-001: 全域標誌
+      priority: 'Medium', // FEAT-001: 優先權
       managerId: pmUser.id,
       supervisorId: supervisorUser.id,
       budgetPoolId: budgetPool2025.id,
@@ -465,14 +471,13 @@ async function main() {
   // Epic 5: 供應商與採購管理種子數據
   // ========================================
 
-  console.log('🏢 創建供應商...');
+  console.log('🏢 創建更多供應商...');
 
-  // 供應商 1: Microsoft 台灣
+  // 供應商: Microsoft 台灣分公司
   const vendorMS = await prisma.vendor.upsert({
-    where: { id: 'vendor-microsoft-001' },
+    where: { name: 'Microsoft 台灣分公司' },
     update: {},
     create: {
-      id: 'vendor-microsoft-001',
       name: 'Microsoft 台灣分公司',
       contactPerson: '王大明',
       contactEmail: 'david.wang@microsoft.com',
@@ -480,12 +485,11 @@ async function main() {
     },
   });
 
-  // 供應商 2: IBM 台灣
+  // 供應商: IBM 台灣
   const vendorIBM = await prisma.vendor.upsert({
-    where: { id: 'vendor-ibm-001' },
+    where: { name: 'IBM 台灣國際商業機器股份有限公司' },
     update: {},
     create: {
-      id: 'vendor-ibm-001',
       name: 'IBM 台灣國際商業機器股份有限公司',
       contactPerson: '李小華',
       contactEmail: 'lisa.lee@ibm.com',
@@ -493,12 +497,11 @@ async function main() {
     },
   });
 
-  // 供應商 3: Oracle 台灣
+  // 供應商: Oracle 台灣
   const vendorOracle = await prisma.vendor.upsert({
-    where: { id: 'vendor-oracle-001' },
+    where: { name: 'Oracle 甲骨文台灣分公司' },
     update: {},
     create: {
-      id: 'vendor-oracle-001',
       name: 'Oracle 甲骨文台灣分公司',
       contactPerson: '張志明',
       contactEmail: 'james.chang@oracle.com',
@@ -506,12 +509,11 @@ async function main() {
     },
   });
 
-  // 供應商 4: 本地系統整合商
+  // 供應商: 本地系統整合商
   const vendorLocal = await prisma.vendor.upsert({
-    where: { id: 'vendor-local-001' },
+    where: { name: '台灣資訊系統整合股份有限公司' },
     update: {},
     create: {
-      id: 'vendor-local-001',
       name: '台灣資訊系統整合股份有限公司',
       contactPerson: '陳美玲',
       contactEmail: 'mary.chen@twsi.com.tw',
@@ -519,12 +521,11 @@ async function main() {
     },
   });
 
-  // 供應商 5: 雲端服務商
+  // 供應商: 雲端服務商
   const vendorAWS = await prisma.vendor.upsert({
-    where: { id: 'vendor-cloud-001' },
+    where: { name: 'Amazon Web Services 台灣' },
     update: {},
     create: {
-      id: 'vendor-cloud-001',
       name: 'Amazon Web Services 台灣',
       contactPerson: '林志偉',
       contactEmail: 'william.lin@aws.com',
@@ -532,7 +533,7 @@ async function main() {
     },
   });
 
-  console.log('✅ 供應商創建完成');
+  console.log('✅ 更多供應商創建完成');
 
   console.log('📄 創建報價單...');
 

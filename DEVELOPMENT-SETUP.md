@@ -308,66 +308,100 @@ pnpm install
 # 這個命令會:
 # 1. 安裝 root package.json 的依賴
 # 2. 安裝 apps/* 和 packages/* 的依賴
-# 3. 自動執行 postinstall 腳本 (生成 Prisma Client)
+# 3. 嘗試自動執行 postinstall 腳本
 ```
 
 **預期輸出**:
 ```
  WARN  deprecated packages...
-Packages: +1234
+Packages: +647
 +++++++++++++++++++++++++++++++++++++++
-Progress: resolved 1234, reused 0, downloaded 1234, added 1234
-Done in 45s
-
-> it-project-management-platform@0.1.0 postinstall
-> pnpm db:generate
-
-Environment variables loaded from .env
-Prisma schema loaded from packages/db/prisma/schema.prisma
-
-✔ Generated Prisma Client (v5.x.x) to .../@prisma/client in 234ms
+Progress: resolved 647, reused 0, downloaded 647, added 647
+Done in 5m
 ```
 
-### 步驟 5: 生成 Prisma Client（如未自動執行）
+### 步驟 5: 配置 Prisma 環境變數並生成 Client
+
+⚠️ **重要**: Prisma 需要在 `packages/db/` 目錄下有 `.env` 文件才能正常運作。
 
 ```bash
-# 手動生成 Prisma Client
-pnpm db:generate
+# 方法 1: 手動創建 packages/db/.env 文件
+# 內容：DATABASE_URL="postgresql://postgres:localdev123@localhost:5434/itpm_dev"
+
+# 方法 2: 複製根目錄的 .env
+cp .env packages/db/.env
+# 或 (Windows)
+copy .env packages\db\.env
 ```
 
-### 步驟 6: 執行資料庫遷移
+然後生成 Prisma Client:
 
 ```bash
-# 創建資料庫表結構
-pnpm db:migrate
+# 進入 packages/db 目錄執行
+cd packages/db
+npx prisma generate
 
-# 或使用 db:push (開發環境快速同步)
-pnpm db:push
+# 預期輸出:
+# Environment variables loaded from .env
+# ✔ Generated Prisma Client (v5.22.0) to .../@prisma/client
 ```
 
-**預期輸出**:
+### 步驟 5.5: 配置 Next.js 環境變數
+
+⚠️ **重要**: Next.js 應用需要在 `apps/web/` 目錄下有 `.env` 文件才能正確讀取認證相關的環境變數。
+
+```bash
+# 複製根目錄的 .env 到 apps/web/
+cp .env apps/web/.env
+# 或 (Windows)
+copy .env apps\web\.env
 ```
-Environment variables loaded from .env
-Prisma schema loaded from packages/db/prisma/schema.prisma
-Datasource "db": PostgreSQL database "itpm_dev", schema "public" at "localhost:5434"
 
-Applying migration `20240101000000_init`
-... (migration logs)
+**說明**:
+- NextAuth (Auth.js) 需要 `NEXTAUTH_SECRET` 和 `NEXTAUTH_URL` 環境變數
+- 如果缺少此步驟，登入頁面會出現 `MissingSecret` 錯誤
 
-✔ Database synchronized with schema
+### 步驟 6: 執行資料庫結構同步
+
+```bash
+# 仍在 packages/db 目錄
+npx prisma db push
+
+# 預期輸出:
+# Your database is now in sync with your Prisma schema. Done in 3.62s
+```
+
+**注意**: 由於 Turborepo 的 filter 腳本配置問題，根目錄的 `pnpm db:generate` 和 `pnpm db:push` 可能無法正常工作。建議直接在 `packages/db/` 目錄執行 Prisma 命令。
+
+```bash
+# 返回項目根目錄
+cd ../..
 ```
 
 ### 步驟 7: 種子資料庫（可選）
 
 ```bash
-# 填充測試數據
-pnpm db:seed
+# 在 packages/db 目錄執行
+cd packages/db
+npx prisma db seed
+
+# 或從根目錄執行（如果腳本正常工作）
+# pnpm db:seed
 ```
 
 這會創建:
-- 👤 測試用戶 (各種角色)
-- 💰 預算池
-- 📊 測試項目
+- 👤 測試用戶 (3 種角色: Admin, ProjectManager, Supervisor)
+- 💰 預算池 (2024, 2025 IT 部門預算)
+- 📊 測試項目 (ERP 升級、雲端遷移)
+- 🏢 供應商 (Microsoft, IBM, Oracle, AWS 等)
+- 📄 報價單、採購單、費用記錄
+
+**測試帳號**:
+| 角色 | Email | 密碼 |
+|------|-------|------|
+| 管理員 | `admin@itpm.local` | `admin123` |
+| 專案經理 | `pm@itpm.local` | `pm123` |
+| 主管 | `supervisor@itpm.local` | `supervisor123` |
 
 ### 步驟 8: 驗證環境配置
 
@@ -444,25 +478,40 @@ cd ai-it-project-process-management-webapp
 
 # 2. 配置環境變數
 cp .env.example .env
-# 編輯 .env 填入必要變數
+# 編輯 .env 填入必要變數（特別是 NEXTAUTH_SECRET）
 
 # 3. 啟動 Docker 服務
 docker-compose up -d
+# 首次運行需要下載映像，約 5-10 分鐘
 
-# 4. 一鍵安裝與檢查
-pnpm setup
+# 4. 安裝依賴
+pnpm install
 
-# 5. 執行資料庫遷移
-pnpm db:migrate
+# 5. 配置 Prisma 並同步資料庫
+cp .env packages/db/.env
+cd packages/db
+npx prisma generate
+npx prisma db push
+cd ../..
 
-# 6. (可選) 填充測試數據
-pnpm db:seed
+# 6. 配置 Next.js 環境變數 (重要！)
+cp .env apps/web/.env
 
-# 7. 啟動開發服務器
+# 7. (可選) 填充測試數據
+cd packages/db
+npx prisma db seed
+cd ../..
+
+# 8. 啟動開發服務器
 pnpm dev
 ```
 
-**預計總時間**: 15-30 分鐘（取決於網速和硬件性能）
+**預計總時間**: 15-30 分鐘（首次 Docker 映像下載約 5-10 分鐘）
+
+**快速驗證**:
+1. 訪問 http://localhost:3000 確認應用啟動
+2. 使用測試帳號登入: `pm@itpm.local` / `pm123`
+3. 訪問 http://localhost:8025 查看 Mailhog 郵件介面
 
 ---
 
@@ -567,7 +616,70 @@ docker-compose up -d azurite
 
 ---
 
-### 問題 3: pnpm install 失敗
+### 問題 3: Prisma 腳本無法從根目錄執行
+
+**症狀**: 執行 `pnpm db:generate` 或 `pnpm db:push` 時顯示：
+```
+None of the selected packages has a "prisma" script
+```
+
+**原因**: Turborepo 的 `--filter` 參數與 Prisma 腳本命名不匹配。
+
+**解決方案**:
+```bash
+# 直接在 packages/db 目錄執行 Prisma 命令
+cd packages/db
+
+# 確保有 .env 文件
+# 如果沒有，從根目錄複製
+cp ../../.env .env
+
+# 執行 Prisma 命令
+npx prisma generate
+npx prisma db push
+npx prisma db seed
+
+# 返回根目錄
+cd ../..
+```
+
+---
+
+### 問題 4: NextAuth MissingSecret 錯誤 (登入頁面 500 錯誤)
+
+**症狀**: 訪問登入頁面時，瀏覽器控制台顯示：
+```
+GET http://localhost:3000/api/auth/session 500 (Internal Server Error)
+```
+
+伺服器日誌顯示：
+```
+[auth][error] MissingSecret: Please define a `secret`. Read more at https://errors.authjs.dev#missingsecret
+```
+
+**原因**: NextAuth v5 (Auth.js) 需要在 Next.js 應用目錄 (`apps/web/`) 下有 `.env` 文件才能讀取 `NEXTAUTH_SECRET` 和 `AUTH_SECRET` 環境變數。
+
+**解決方案**:
+```bash
+# 將根目錄的 .env 複製到 apps/web/
+cp .env apps/web/.env
+# 或 (Windows)
+copy .env apps\web\.env
+
+# 重啟開發伺服器
+# 先停止 (Ctrl+C)，然後重新啟動
+pnpm dev
+```
+
+**預防措施**:
+此專案需要在三個位置有 `.env` 文件：
+1. 根目錄 `.env` - 主要配置
+2. `packages/db/.env` - Prisma 資料庫連接
+3. `apps/web/.env` - Next.js 應用（NextAuth 認證）
+
+---
+
+### 問題 5: pnpm install 失敗
 
 **症狀**: 依賴安裝時報錯
 
@@ -592,7 +704,7 @@ pnpm config set registry https://registry.npmmirror.com/
 pnpm install
 ```
 
-### 問題 3: Prisma Client 生成失敗
+### 問題 6: Prisma Client 生成失敗
 
 **症狀**: `pnpm db:generate` 錯誤
 
@@ -614,7 +726,7 @@ cd packages/db
 pnpm prisma generate
 ```
 
-### 問題 4: 資料庫連接失敗
+### 問題 7: 資料庫連接失敗
 
 **症狀**: 應用無法連接資料庫
 
@@ -641,7 +753,7 @@ docker-compose restart postgres
 docker-compose logs postgres
 ```
 
-### 問題 5: Next.js 端口被佔用
+### 問題 8: Next.js 端口被佔用
 
 **症狀**: `Port 3000 is already in use`
 
@@ -660,7 +772,7 @@ NEXTAUTH_URL="http://localhost:3001"
 APP_URL="http://localhost:3001"
 ```
 
-### 問題 6: Windows 換行符問題
+### 問題 9: Windows 換行符問題
 
 **症狀**: Git 提示 `LF will be replaced by CRLF`
 
@@ -673,7 +785,7 @@ git config --global core.autocrlf input
 # 或在項目中使用 .gitattributes (已包含在項目中)
 ```
 
-### 問題 7: TypeScript 類型錯誤
+### 問題 10: TypeScript 類型錯誤
 
 **症狀**: VSCode 顯示大量類型錯誤
 
@@ -710,6 +822,7 @@ pnpm check:env
 - [ ] **Azurite 容器健康**: `docker-compose ps azurite`
 - [ ] **Azurite 連接測試**: `curl http://127.0.0.1:10000/devstoreaccount1?comp=list`
 - [ ] .env 檔案存在且配置正確: `cat .env`
+- [ ] **apps/web/.env 存在**: `ls apps/web/.env` (NextAuth 認證必須)
 - [ ] **Azurite 環境變數**: `.env` 包含 `AZURE_STORAGE_USE_DEVELOPMENT=true`
 - [ ] 依賴已安裝: `ls node_modules`
 - [ ] Prisma Client 已生成: `ls node_modules/.prisma/client`
@@ -803,5 +916,10 @@ pnpm db:studio
 
 ---
 
-**Last Updated**: 2025-10-22
-**Document Version**: 1.0.0
+**Last Updated**: 2025-12-01
+**Document Version**: 1.2.0
+
+**更新記錄**:
+- v1.2.0 (2025-12-01): 新增 Next.js 環境變數配置步驟 (apps/web/.env)，新增問題 4: NextAuth MissingSecret 錯誤
+- v1.1.0 (2025-12-01): 修正 Prisma 環境配置說明，更新 seed 測試帳號資訊
+- v1.0.0 (2025-10-22): 初始版本
