@@ -377,9 +377,10 @@ model OperatingCompany {
   updatedAt   DateTime @updatedAt
 
   // 關聯
-  chargeOuts       ChargeOut[]
-  omExpenses       OMExpense[]
-  omExpenseMonthly OMExpenseMonthly[]
+  chargeOuts            ChargeOut[]
+  omExpenses            OMExpense[]
+  omExpenseMonthly      OMExpenseMonthly[]
+  chargeOutExpenseItems ExpenseItem[]      @relation("ChargeOutExpenseItems") // CHANGE-002: 費用明細轉嫁目標
 
   @@index([isActive])
 }
@@ -453,15 +454,21 @@ model ExpenseItem {
   amount      Float // 金額
   category    String? // 費用類別（如: Hardware, Software, Consulting）
 
+  // CHANGE-002: 費用轉嫁目標 (每個明細項目可能向不同 OpCo 收費)
+  chargeOutOpCoId String? // 要向哪個 OpCo 轉嫁 (null = 不需轉嫁或未指定)
+
   // 元數據
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // 關聯
-  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expense        Expense           @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  chargeOutOpCo  OperatingCompany? @relation("ChargeOutExpenseItems", fields: [chargeOutOpCoId], references: [id]) // CHANGE-002
+  chargeOutItems ChargeOutItem[] // CHANGE-002: 反向關聯
 
   @@index([expenseId])
+  @@index([chargeOutOpCoId]) // CHANGE-002
 }
 
 // ==================================================================
@@ -619,8 +626,11 @@ model ChargeOutItem {
   id          String @id @default(uuid())
   chargeOutId String
 
-  // 關聯的費用
-  expenseId String // 關聯到哪筆費用
+  // CHANGE-002: 關聯的費用明細 (優先使用)
+  expenseItemId String? // 關聯到具體的費用明細項目
+
+  // 關聯的費用 (保留向後兼容)
+  expenseId String? // 關聯到費用表頭（舊版本資料用）
 
   // 分攤金額
   amount      Float // 向此 OpCo 分攤的金額（可能與費用總額不同）
@@ -632,10 +642,12 @@ model ChargeOutItem {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  chargeOut ChargeOut @relation(fields: [chargeOutId], references: [id], onDelete: Cascade)
-  expense   Expense   @relation(fields: [expenseId], references: [id])
+  chargeOut   ChargeOut    @relation(fields: [chargeOutId], references: [id], onDelete: Cascade)
+  expenseItem ExpenseItem? @relation(fields: [expenseItemId], references: [id]) // CHANGE-002: 新增
+  expense     Expense?     @relation(fields: [expenseId], references: [id]) // 改為可選
 
   @@index([chargeOutId])
+  @@index([expenseItemId]) // CHANGE-002: 新增索引
   @@index([expenseId])
 }
 

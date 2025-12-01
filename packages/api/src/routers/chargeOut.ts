@@ -70,10 +70,12 @@ export const ChargeOutStatusEnum = z.enum([
 
 /**
  * ChargeOutItem Schema（明細）
+ * CHANGE-002: 新增 expenseItemId 支援明細級別轉嫁
  */
 const chargeOutItemSchema = z.object({
   id: z.string().optional(), // 更新時需要
-  expenseId: z.string().min(1, 'Expense ID 不能為空'),
+  expenseId: z.string().nullable().optional(), // CHANGE-002: 改為可選（向後兼容）
+  expenseItemId: z.string().nullable().optional(), // CHANGE-002: 新增 - 關聯到具體費用明細
   amount: z.number().positive('金額必須大於 0'),
   description: z.string().optional(),
   sortOrder: z.number().int().default(0),
@@ -150,27 +152,33 @@ export const chargeOutRouter = createTRPCRouter({
       }
 
       // 3. 驗證所有 Expense 存在且符合條件
-      const expenseIds = items.map((item) => item.expenseId);
-      const expenses = await ctx.prisma.expense.findMany({
-        where: {
-          id: { in: expenseIds },
-        },
-      });
+      // CHANGE-002: 過濾掉 null/undefined 的 expenseId（支援 expenseItemId 時 expenseId 可選）
+      const expenseIds = items
+        .map((item) => item.expenseId)
+        .filter((id): id is string => id !== null && id !== undefined);
 
-      if (expenses.length !== expenseIds.length) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: '部分費用記錄不存在',
+      if (expenseIds.length > 0) {
+        const expenses = await ctx.prisma.expense.findMany({
+          where: {
+            id: { in: expenseIds },
+          },
         });
-      }
 
-      // 驗證所有 Expense 都標記為 requiresChargeOut = true
-      const invalidExpenses = expenses.filter((exp) => !exp.requiresChargeOut);
-      if (invalidExpenses.length > 0) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `以下費用未標記為需要轉嫁：${invalidExpenses.map((e) => e.name).join(', ')}`,
-        });
+        if (expenses.length !== expenseIds.length) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '部分費用記錄不存在',
+          });
+        }
+
+        // 驗證所有 Expense 都標記為 requiresChargeOut = true
+        const invalidExpenses = expenses.filter((exp) => !exp.requiresChargeOut);
+        if (invalidExpenses.length > 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `以下費用未標記為需要轉嫁：${invalidExpenses.map((e) => e.name).join(', ')}`,
+          });
+        }
       }
 
       // 4. 計算總金額
@@ -191,10 +199,12 @@ export const chargeOutRouter = createTRPCRouter({
         });
 
         // 創建 ChargeOutItems
+        // CHANGE-002: 支援 expenseItemId 和 expenseId
         await prisma.chargeOutItem.createMany({
           data: items.map((item, index) => ({
             chargeOutId: newChargeOut.id,
-            expenseId: item.expenseId,
+            expenseId: item.expenseId || null, // CHANGE-002: 可選
+            expenseItemId: item.expenseItemId || null, // CHANGE-002: 新增
             amount: item.amount,
             description: item.description,
             sortOrder: item.sortOrder ?? index,
@@ -321,29 +331,33 @@ export const chargeOutRouter = createTRPCRouter({
       }
 
       // 3. 驗證所有 Expense 存在且符合條件
+      // CHANGE-002: 過濾掉 null/undefined 的 expenseId（支援 expenseItemId 時 expenseId 可選）
       const expenseIds = items
         .filter((item) => !item._delete)
-        .map((item) => item.expenseId);
+        .map((item) => item.expenseId)
+        .filter((id): id is string => id !== null && id !== undefined);
 
-      const expenses = await ctx.prisma.expense.findMany({
-        where: {
-          id: { in: expenseIds },
-        },
-      });
-
-      if (expenses.length !== expenseIds.length) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: '部分費用記錄不存在',
+      if (expenseIds.length > 0) {
+        const expenses = await ctx.prisma.expense.findMany({
+          where: {
+            id: { in: expenseIds },
+          },
         });
-      }
 
-      const invalidExpenses = expenses.filter((exp) => !exp.requiresChargeOut);
-      if (invalidExpenses.length > 0) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `以下費用未標記為需要轉嫁：${invalidExpenses.map((e) => e.name).join(', ')}`,
-        });
+        if (expenses.length !== expenseIds.length) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '部分費用記錄不存在',
+          });
+        }
+
+        const invalidExpenses = expenses.filter((exp) => !exp.requiresChargeOut);
+        if (invalidExpenses.length > 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `以下費用未標記為需要轉嫁：${invalidExpenses.map((e) => e.name).join(', ')}`,
+          });
+        }
       }
 
       // 4. 使用 transaction 批量更新
@@ -360,6 +374,7 @@ export const chargeOutRouter = createTRPCRouter({
         }
 
         // b. 處理新增和更新
+        // CHANGE-002: 支援 expenseItemId 和 expenseId
         const itemsToUpsert = items.filter((item) => !item._delete);
         for (const [index, item] of itemsToUpsert.entries()) {
           if (item.id) {
@@ -367,7 +382,8 @@ export const chargeOutRouter = createTRPCRouter({
             await prisma.chargeOutItem.update({
               where: { id: item.id },
               data: {
-                expenseId: item.expenseId,
+                expenseId: item.expenseId || null, // CHANGE-002: 可選
+                expenseItemId: item.expenseItemId || null, // CHANGE-002: 新增
                 amount: item.amount,
                 description: item.description,
                 sortOrder: item.sortOrder ?? index,
@@ -378,7 +394,8 @@ export const chargeOutRouter = createTRPCRouter({
             await prisma.chargeOutItem.create({
               data: {
                 chargeOutId,
-                expenseId: item.expenseId,
+                expenseId: item.expenseId || null, // CHANGE-002: 可選
+                expenseItemId: item.expenseItemId || null, // CHANGE-002: 新增
                 amount: item.amount,
                 description: item.description,
                 sortOrder: item.sortOrder ?? index,
@@ -670,6 +687,7 @@ export const chargeOutRouter = createTRPCRouter({
 
   /**
    * 8. getById - 獲取 ChargeOut 詳情
+   * CHANGE-002: 新增 expenseItem 關聯
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().min(1) }))
@@ -695,6 +713,12 @@ export const chargeOutRouter = createTRPCRouter({
                     },
                   },
                   budgetCategory: true,
+                },
+              },
+              // CHANGE-002: 新增 expenseItem 關聯
+              expenseItem: {
+                include: {
+                  chargeOutOpCo: true, // 包含轉嫁目標 OpCo
                 },
               },
             },
@@ -896,11 +920,20 @@ export const chargeOutRouter = createTRPCRouter({
               categoryName: true,
             },
           },
+          // CHANGE-002: 完整的 ExpenseItem 資訊包含轉嫁目標
           items: {
             select: {
               id: true,
               itemName: true,
               amount: true,
+              chargeOutOpCoId: true, // CHANGE-002
+              chargeOutOpCo: { // CHANGE-002: 包含 OpCo 詳情
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
             },
           },
         },

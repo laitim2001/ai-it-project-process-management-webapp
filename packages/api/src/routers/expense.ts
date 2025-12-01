@@ -70,6 +70,7 @@ const ExpenseStatusEnum = z.enum(['Draft', 'Submitted', 'Approved', 'Paid']);
 /**
  * 費用明細項目 Schema
  * Module 5: 支持表頭-明細結構
+ * CHANGE-002: 新增 chargeOutOpCoId 費用轉嫁目標
  */
 const expenseItemSchema = z.object({
   id: z.string().optional(), // 有 id = 更新，無 id = 新增
@@ -77,6 +78,7 @@ const expenseItemSchema = z.object({
   description: z.string().optional(),
   amount: z.number().min(0, '金額必須大於等於 0'),
   category: z.string().optional(), // 費用類別（如: Hardware, Software, Consulting）
+  chargeOutOpCoId: z.string().nullable().optional(), // CHANGE-002: 費用轉嫁目標 OpCo
   sortOrder: z.number().int().default(0),
   _delete: z.boolean().optional(), // true = 刪除此項目
 });
@@ -212,6 +214,9 @@ export const expenseRouter = createTRPCRouter({
         include: {
           items: {
             orderBy: { sortOrder: 'asc' },
+            include: {
+              chargeOutOpCo: true, // CHANGE-002: 包含轉嫁目標 OpCo
+            },
           },
           purchaseOrder: {
             include: {
@@ -364,6 +369,7 @@ export const expenseRouter = createTRPCRouter({
         });
 
         // 創建費用明細
+        // CHANGE-002: 包含 chargeOutOpCoId 欄位
         await tx.expenseItem.createMany({
           data: input.items.map((item, index) => ({
             expenseId: expense.id,
@@ -371,6 +377,7 @@ export const expenseRouter = createTRPCRouter({
             description: item.description,
             amount: item.amount,
             category: item.category,
+            chargeOutOpCoId: item.chargeOutOpCoId || null, // CHANGE-002
             sortOrder: item.sortOrder ?? index,
           })),
         });
@@ -462,6 +469,7 @@ export const expenseRouter = createTRPCRouter({
           }
 
           // 2. 處理更新和新增
+          // CHANGE-002: 包含 chargeOutOpCoId 欄位
           const itemsToProcess = items.filter(item => !item._delete);
           for (const item of itemsToProcess) {
             if (item.id) {
@@ -473,6 +481,7 @@ export const expenseRouter = createTRPCRouter({
                   description: item.description,
                   amount: item.amount,
                   category: item.category,
+                  chargeOutOpCoId: item.chargeOutOpCoId || null, // CHANGE-002
                   sortOrder: item.sortOrder,
                 },
               });
@@ -485,6 +494,7 @@ export const expenseRouter = createTRPCRouter({
                   description: item.description,
                   amount: item.amount,
                   category: item.category,
+                  chargeOutOpCoId: item.chargeOutOpCoId || null, // CHANGE-002
                   sortOrder: item.sortOrder,
                 },
               });
