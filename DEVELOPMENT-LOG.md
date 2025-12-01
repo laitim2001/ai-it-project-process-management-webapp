@@ -20,6 +20,59 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-01 | ✨ FEAT-005: OM Expense Category Management | 完整功能開發 ✅
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+用戶需要管理 OM 費用類別，目前 OMExpense 使用硬編碼的 String category，需要轉換為可管理的資料表關聯。
+
+**主要功能**:
+1. **Prisma Schema 變更** (`packages/db/prisma/schema.prisma`)
+   - 新增 `OMExpenseCategory` Model（代碼、名稱、描述、排序、啟用狀態）
+   - 修改 `OMExpense` 新增 `categoryId` 欄位和 `expenseCategory` 關聯
+
+2. **後端 API** (`packages/api/src/routers/omExpenseCategory.ts`)
+   - 完整 CRUD 操作：getAll, getById, getActive, create, update, delete
+   - toggleStatus: 切換啟用/停用狀態
+   - 權限控制：protectedProcedure（查詢）+ supervisorProcedure（修改）
+   - 級聯刪除保護：檢查關聯 OMExpense 數量
+
+3. **前端組件** (`apps/web/src/components/om-expense-category/`)
+   - `OMExpenseCategoryForm`: 建立/編輯表單
+   - `OMExpenseCategoryActions`: 下拉操作選單
+
+4. **前端頁面** (`apps/web/src/app/[locale]/om-expense-categories/`)
+   - `page.tsx`: 列表頁（搜尋、過濾、分頁）
+   - `new/page.tsx`: 新增頁
+   - `[id]/edit/page.tsx`: 編輯頁
+
+5. **I18N 支援**
+   - 新增 48 個翻譯鍵（zh-TW + en）
+   - 更新 Sidebar 導航選單
+
+**修復的問題**:
+1. **use-toast import 路徑錯誤** - 修正為 `@/components/ui/use-toast`
+2. **Select 組件 API 不相容** - 改用原生 HTML select
+3. **DropdownMenuItem 缺少屬性** - 擴展支援 onClick, asChild, disabled
+
+**技術決策**:
+- 選擇方案 A：建立獨立的 OMExpenseCategory Model（vs 繼續使用 String）
+- 遷移策略：分階段遷移，先允許 categoryId 為 null
+
+**相關文件**:
+- `packages/db/prisma/schema.prisma`
+- `packages/api/src/routers/omExpenseCategory.ts`
+- `apps/web/src/components/om-expense-category/*.tsx`
+- `apps/web/src/app/[locale]/om-expense-categories/*.tsx`
+- `claudedocs/1-planning/features/FEAT-005-om-expense-category-management/`
+
+**Git Commits**:
+- `b16f16c` feat(om-expense-categories): 完成 FEAT-005 OM 費用類別管理功能
+- `1c90e1a` fix(om-expense-categories): 修復 TypeScript 類型錯誤
+
+---
+
 ### 2025-11-29 | ✨ FEAT-003: O&M Summary Page | 完整功能開發與 Bug 修復 ✅
 
 **類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
