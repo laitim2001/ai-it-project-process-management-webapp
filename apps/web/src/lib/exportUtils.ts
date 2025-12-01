@@ -155,7 +155,8 @@ export function downloadCSV(csvContent: string, filename: string): void {
  */
 export function generateExportFilename(prefix: string = 'budget-pools'): string {
   const date = new Date();
-  const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
-  const timeString = date.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+  const dateString = date.toISOString().split('T')[0] ?? ''; // YYYY-MM-DD
+  const timeParts = date.toTimeString().split(' ');
+  const timeString = (timeParts[0] ?? '00-00-00').replace(/:/g, '-'); // HH-MM-SS
   return `${prefix}_${dateString}_${timeString}.csv`;
 }

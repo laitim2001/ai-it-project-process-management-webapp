@@ -85,13 +85,24 @@
 
 console.log('🚀 NextAuth 配置文件正在載入...');
 
-import type { User as NextAuthUser } from 'next-auth';
+import type { User as NextAuthUser, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import AzureADProvider from 'next-auth/providers/azure-ad';
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
+
+// Azure AD Profile 類型定義
+interface AzureADProfile {
+  sub?: string;
+  oid?: string;
+  email?: string;
+  preferred_username?: string;
+  upn?: string;
+  name?: string;
+  picture?: string;
+  email_verified?: boolean;
+}
 
 /**
  * 擴展 NextAuth 類型定義
@@ -159,6 +170,7 @@ declare module 'next-auth/jwt' {
  * @property {boolean} debug - 除錯模式
  * @property {string} secret - JWT 加密金鑰
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authOptions: any = {
   // 注意：JWT strategy 不應該使用 adapter
   // adapter: PrismaAdapter(prisma),
@@ -185,12 +197,12 @@ export const authOptions: any = {
               },
             },
             // 自定義 profile 映射
-            profile(profile: any) {
+            profile(profile: AzureADProfile) {
               return {
-                id: profile.sub || profile.oid,
-                email: profile.email || profile.preferred_username || profile.upn,
-                name: profile.name,
-                image: profile.picture,
+                id: profile.sub ?? profile.oid ?? '',
+                email: profile.email ?? profile.preferred_username ?? profile.upn ?? '',
+                name: profile.name ?? null,
+                image: profile.picture ?? null,
                 emailVerified: profile.email_verified ? new Date() : null,
                 roleId: 1, // 預設為 ProjectManager
                 role: {
@@ -211,7 +223,7 @@ export const authOptions: any = {
         email: { label: 'Email', type: 'email', placeholder: 'user@example.com' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials, _req) {
         console.log('🔐 Authorize 函數執行', { email: credentials?.email });
 
         if (!credentials?.email || !credentials?.password) {
@@ -256,7 +268,7 @@ export const authOptions: any = {
           email: dbUser.email,
           name: dbUser.name,
           roleId: dbUser.roleId,
-          role: (dbUser as any).role || { id: dbUser.roleId, name: 'ProjectManager' },
+          role: dbUser.role ?? { id: dbUser.roleId, name: 'ProjectManager' },
         };
       },
     }),
@@ -264,7 +276,7 @@ export const authOptions: any = {
 
   // JWT 回調：將用戶信息添加到 JWT
   callbacks: {
-    async jwt({ token, user, account }: { token: JWT; user: NextAuthUser; account: any }) {
+    async jwt({ token, user, account }: { token: JWT; user?: NextAuthUser; account?: Account | null }) {
       console.log('🔐 JWT callback 執行', { hasUser: !!user, hasAccount: !!account, provider: account?.provider });
 
       if (user) {
@@ -280,18 +292,20 @@ export const authOptions: any = {
 
       // Azure AD 登入時，確保用戶在資料庫中存在
       if (account?.provider === 'azure-ad' && user) {
+        // 從擴展的 user 對象獲取 emailVerified
+        const userWithEmailVerified = user as NextAuthUser & { emailVerified?: Date | null };
         const dbUser = await prisma.user.upsert({
           where: { email: user.email },
           update: {
             name: user.name,
             image: user.image,
-            emailVerified: (user as any).emailVerified,
+            emailVerified: userWithEmailVerified.emailVerified ?? null,
           },
           create: {
             email: user.email,
             name: user.name,
             image: user.image,
-            emailVerified: (user as any).emailVerified,
+            emailVerified: userWithEmailVerified.emailVerified ?? null,
             roleId: 1, // 預設為 ProjectManager (roleId = 1)
             password: null, // Azure AD B2C 用戶無本地密碼
           },
@@ -310,7 +324,7 @@ export const authOptions: any = {
     },
 
     // Session 回調：將 JWT 信息添加到 Session
-    async session({ session, token }: { session: any; token: JWT }) {
+    session({ session, token }: { session: { user?: { id?: string; email?: string; name?: string | null; role?: { id: number; name: string } } }; token: JWT }) {
       console.log('🔐 Session callback 執行', { hasToken: !!token, tokenId: token?.id });
 
       if (token) {
@@ -320,7 +334,7 @@ export const authOptions: any = {
           name: token.name,
           role: token.role,
         };
-        console.log('✅ Session callback: 設置 session.user', { userId: session.user.id });
+        console.log('✅ Session callback: 設置 session.user', { userId: session.user?.id });
       } else {
         console.log('⚠️ Session callback: token 不存在');
       }

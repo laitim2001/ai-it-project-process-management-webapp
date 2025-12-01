@@ -189,10 +189,11 @@ export async function uploadToBlob(
       size = file.length;
       mimeType = contentType || "application/octet-stream";
     } else {
-      // File 對象
-      buffer = await file.arrayBuffer();
-      size = file.size;
-      mimeType = file.type || contentType || "application/octet-stream";
+      // File 對象 - 使用類型斷言確保 TypeScript 正確識別
+      const fileObj = file as File;
+      buffer = await fileObj.arrayBuffer();
+      size = fileObj.size;
+      mimeType = fileObj.type || contentType || "application/octet-stream";
     }
 
     // 上傳 blob
@@ -253,7 +254,14 @@ export async function downloadFromBlob(
     // 將流轉換為 Buffer
     const chunks: Uint8Array[] = [];
     for await (const chunk of downloadResponse.readableStreamBody) {
-      chunks.push(chunk);
+      // 確保 chunk 是 Uint8Array 類型
+      if (chunk instanceof Uint8Array) {
+        chunks.push(chunk);
+      } else if (typeof chunk === 'string') {
+        chunks.push(new TextEncoder().encode(chunk));
+      } else {
+        chunks.push(new Uint8Array(chunk as ArrayBuffer));
+      }
     }
 
     console.log(`[Azure Storage] 文件下載成功: ${containerName}/${blobName}`);
