@@ -160,6 +160,7 @@
       "omSummary": "OM Summary",
       "chargeOuts": "Charge Outs",
       "operatingCompanies": "Operating Companies",
+      "omExpenseCategories": "Expense Categories",
       "users": "Users",
       "currencies": "Currencies",
       "notifications": "Notifications",
@@ -179,6 +180,7 @@
       "omSummary": "O&M expense summary and analysis",
       "chargeOuts": "ChargeOut expense transfer management",
       "operatingCompanies": "Operating company management",
+      "omExpenseCategories": "OM expense category management",
       "users": "User accounts and permissions",
       "currencies": "Manage system currency options",
       "settings": "System parameter configuration",
@@ -2854,5 +2856,79 @@
       "noResults": "No operating companies found matching the criteria"
     },
     "empty": "No operating companies yet"
+  },
+  "omExpenseCategories": {
+    "title": "OM Expense Categories",
+    "description": "Manage O&M expense categories",
+    "table": {
+      "title": "Category List",
+      "code": "Category Code",
+      "name": "Category Name",
+      "description": "Description",
+      "status": "Status",
+      "omExpenses": "Related Expenses",
+      "sortOrder": "Sort Order",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "createTitle": "Create Expense Category",
+      "createDescription": "Create a new OM expense category",
+      "editTitle": "Edit Expense Category",
+      "editDescription": "Edit {name} information",
+      "code": {
+        "label": "Category Code",
+        "placeholder": "e.g., MAINT, LICENSE",
+        "hint": "Only uppercase letters, numbers, and underscores",
+        "required": "Category code is required",
+        "invalid": "Invalid category code format (only uppercase letters, numbers, and underscores)"
+      },
+      "name": {
+        "label": "Category Name",
+        "placeholder": "e.g., Maintenance, Software License",
+        "required": "Category name is required"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Optional, describe the purpose of this category"
+      },
+      "sortOrder": {
+        "label": "Sort Order",
+        "hint": "Lower numbers appear first"
+      }
+    },
+    "actions": {
+      "create": "Create Category",
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "backToList": "Back to List"
+    },
+    "messages": {
+      "createSuccess": "Expense category created successfully",
+      "updateSuccess": "Expense category updated successfully",
+      "deleteSuccess": "Expense category deleted successfully",
+      "toggleSuccess": "Status updated",
+      "categoryNotFound": "Category not found",
+      "cannotDeleteWithRelations": "Cannot delete: This category has related OM expenses"
+    },
+    "delete": {
+      "title": "Delete Expense Category",
+      "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
+    },
+    "filter": {
+      "status": "Status Filter"
+    },
+    "search": {
+      "placeholder": "Search by code or name..."
+    },
+    "empty": {
+      "title": "No expense categories",
+      "description": "Get started by creating your first OM expense category"
+    }
   }
 }

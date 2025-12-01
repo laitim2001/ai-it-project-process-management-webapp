@@ -70,6 +70,7 @@ import {
   ArrowRightLeft,
   Coins,
   BarChart3,
+  Tags,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -187,6 +188,12 @@ export function Sidebar() {
           href: "/operating-companies",
           icon: Building2,
           description: t('descriptions.operatingCompanies')
+        },
+        {
+          name: t('menu.omExpenseCategories'),
+          href: "/om-expense-categories",
+          icon: Tags,
+          description: t('descriptions.omExpenseCategories')
         },
         {
           name: t('menu.currencies'),

@@ -468,6 +468,24 @@ model ExpenseItem {
 // Post-MVP Enhancement - Module 6
 // ==================================================================
 
+// OM 費用類別
+model OMExpenseCategory {
+  id          String   @id @default(uuid())
+  code        String   @unique // 類別代碼（如 MAINT, LICENSE）
+  name        String // 類別名稱
+  description String? // 描述（選填）
+  sortOrder   Int      @default(0) // 排序順序
+  isActive    Boolean  @default(true) // 是否啟用
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  omExpenses OMExpense[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
 // 操作與維護費用（表頭）
 model OMExpense {
   id String @id @default(uuid())
@@ -478,7 +496,8 @@ model OMExpense {
 
   // 年度和類別
   financialYear Int // 財務年度
-  category      String // OM類別（如: Server Maintenance, License Renewal, Support Contract）
+  category      String // OM類別（舊欄位，保留向後兼容）
+  categoryId    String? // 新增：關聯到 OMExpenseCategory
 
   // OpCo 歸屬
   opCoId String // 持有此費用的 OpCo
@@ -502,14 +521,16 @@ model OMExpense {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  opCo           OperatingCompany   @relation(fields: [opCoId], references: [id])
-  vendor         Vendor?            @relation(fields: [vendorId], references: [id])
-  monthlyRecords OMExpenseMonthly[] // 月度支出記錄（1-12月）
+  opCo            OperatingCompany    @relation(fields: [opCoId], references: [id])
+  vendor          Vendor?             @relation(fields: [vendorId], references: [id])
+  expenseCategory OMExpenseCategory?  @relation(fields: [categoryId], references: [id])
+  monthlyRecords  OMExpenseMonthly[]  // 月度支出記錄（1-12月）
 
   @@index([opCoId])
   @@index([vendorId])
   @@index([financialYear])
   @@index([category])
+  @@index([categoryId])
 }
 
 // OM費用月度記錄

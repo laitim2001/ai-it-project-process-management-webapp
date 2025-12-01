@@ -68,6 +68,7 @@ import { notificationRouter } from './routers/notification';
 import { currencyRouter } from './routers/currency'; // FEAT-001
 import { operatingCompanyRouter } from './routers/operatingCompany';
 import { omExpenseRouter } from './routers/omExpense';
+import { omExpenseCategoryRouter } from './routers/omExpenseCategory'; // FEAT-005
 import { chargeOutRouter } from './routers/chargeOut';
 
 /**
@@ -91,6 +92,7 @@ export const appRouter = createTRPCRouter({
   currency: currencyRouter, // FEAT-001: Currency Management
   operatingCompany: operatingCompanyRouter,
   omExpense: omExpenseRouter,
+  omExpenseCategory: omExpenseCategoryRouter, // FEAT-005: OM Expense Category Management
   chargeOut: chargeOutRouter,
 });
 
