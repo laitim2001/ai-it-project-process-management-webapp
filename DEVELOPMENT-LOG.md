@@ -20,6 +20,92 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-01 | 🔄 CHANGE-002: ExpenseItem 費用轉嫁目標功能 | Backend 完成 ✅
+
+**類型**: 功能增強 | **負責人**: AI 助手 | **狀態**: ✅ Backend 完成 (Phase 1+2)
+
+**背景**:
+費用轉嫁（ChargeOut）的粒度應該是費用明細（ExpenseItem）層級，而非表頭層級：
+- 每個 ExpenseItem 可能需要向不同的營運公司（OpCo）收費
+- 目前 ChargeOutItem 關聯到 Expense（表頭），應改為關聯到 ExpenseItem（明細）
+
+**主要變更**:
+
+1. **Schema 變更 (Phase 1)** (`packages/db/prisma/schema.prisma`)
+   - `ExpenseItem` 新增 `chargeOutOpCoId` 欄位（費用轉嫁目標）
+   - `ExpenseItem` 新增 `chargeOutOpCo` 關聯到 OperatingCompany
+   - `ChargeOutItem` 新增 `expenseItemId` 欄位（關聯到明細）
+   - `ChargeOutItem.expenseId` 改為可選（向後兼容）
+   - `OperatingCompany` 新增 `chargeOutExpenseItems` 反向關聯
+
+2. **API 更新 (Phase 2)** (`packages/api/src/routers/`)
+   - `expense.ts`: expenseItemSchema 新增 chargeOutOpCoId
+   - `expense.ts`: create/update mutation 處理 chargeOutOpCoId
+   - `expense.ts`: getById 包含 chargeOutOpCo 關聯
+   - `chargeOut.ts`: chargeOutItemSchema 新增 expenseItemId
+   - `chargeOut.ts`: expenseId 改為可選
+   - `chargeOut.ts`: getById 包含 expenseItem 關聯
+   - `chargeOut.ts`: getEligibleExpenses 包含完整 ExpenseItem 資訊
+
+**修復的問題**:
+- **TypeScript 類型錯誤**: `(string | null | undefined)[]` 過濾問題
+- **解決方案**: 使用類型守衛 `.filter((id): id is string => id !== null && id !== undefined)`
+
+**待完成**:
+- Phase 3: 前端更新（ExpenseForm OpCo 選擇器、ChargeOutForm 修改）
+
+**相關文件**:
+- `packages/db/prisma/schema.prisma`
+- `packages/api/src/routers/expense.ts`
+- `packages/api/src/routers/chargeOut.ts`
+- `claudedocs/4-changes/feature-changes/CHANGE-002-expenseitem-chargeout-target.md`
+
+**Git Commits**:
+- `5028861` feat(expense,chargeout): 實施 CHANGE-002 費用明細轉嫁目標功能 (Backend)
+
+---
+
+### 2025-12-01 | 🔄 CHANGE-001: OMExpense 來源追蹤功能 | 完整實現 ✅
+
+**類型**: 功能增強 | **負責人**: AI 助手 | **狀態**: ✅ 完成 (Phase 1+2+3)
+
+**背景**:
+OMExpense（營運費用）可能來自 Expense（專案費用）的轉嫁，需要追蹤這個關聯以便審計和報告。
+
+**主要變更**:
+
+1. **Schema 變更 (Phase 1)** (`packages/db/prisma/schema.prisma`)
+   - `OMExpense` 新增 `sourceExpenseId` 欄位
+   - `OMExpense` 新增 `sourceExpense` 關聯到 Expense
+   - `Expense` 新增 `derivedOMExpenses` 反向關聯
+
+2. **API 更新 (Phase 2)** (`packages/api/src/routers/omExpense.ts`)
+   - create/update mutation 支援 sourceExpenseId
+   - 新增 `getBySourceExpenseId` 查詢
+   - 所有 include 加入 sourceExpense 關聯
+
+3. **前端更新 (Phase 3)** (`apps/web/src/components/om-expense/`)
+   - `OMExpenseForm.tsx` 新增來源費用選擇器
+   - 顯示關聯專案和採購單資訊
+   - 新增 sourceExpense 相關翻譯鍵
+
+**修復的問題**:
+- **i18n FORMATTING_ERROR**: ExpenseForm 中使用錯誤的 `.replace()` 方法
+- **解決方案**: 改用正確的 next-intl 參數語法 `t('key', { name: value })`
+
+**相關文件**:
+- `packages/db/prisma/schema.prisma`
+- `packages/api/src/routers/omExpense.ts`
+- `apps/web/src/components/om-expense/OMExpenseForm.tsx`
+- `apps/web/src/components/expense/ExpenseForm.tsx` (i18n 修復)
+- `apps/web/src/messages/zh-TW.json`, `en.json`
+- `claudedocs/4-changes/feature-changes/CHANGE-001-omexpense-source-tracking.md`
+
+**Git Commits**:
+- `a97f39f` feat(om-expense): 實施 CHANGE-001 來源費用追蹤功能
+
+---
+
 ### 2025-12-01 | ✨ FEAT-005: OM Expense Category Management | 完整功能開發 ✅
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成
