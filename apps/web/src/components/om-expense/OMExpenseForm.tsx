@@ -118,6 +118,18 @@ interface OMExpenseFormProps {
     vendorId: string | undefined;
     startDate: string;
     endDate: string;
+    // CHANGE-001: 來源費用追蹤
+    sourceExpenseId: string | undefined;
+    sourceExpense?: {
+      id: string;
+      name: string;
+      purchaseOrder?: {
+        poNumber: string;
+        project?: {
+          name: string;
+        };
+      };
+    };
   }>;
 }
 
@@ -141,6 +153,8 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
       vendorId: z.string().optional(),
       startDate: z.string().min(1, tValidation('required')),
       endDate: z.string().min(1, tValidation('required')),
+      // CHANGE-001: 來源費用追蹤
+      sourceExpenseId: z.string().optional(),
     })
     .refine(
       (data) => {
@@ -168,6 +182,12 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
 
   // Get OM Categories list (for autocomplete)
   const { data: categories } = api.omExpense.getCategories.useQuery();
+
+  // CHANGE-001: Get Expenses list for source expense selector
+  const { data: expenses } = api.expense.getAll.useQuery({
+    page: 1,
+    limit: 100,
+  });
 
   // tRPC Mutations
   const createMutation = api.omExpense.create.useMutation({
@@ -217,6 +237,8 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
       vendorId: initialData?.vendorId || '',
       startDate: initialData?.startDate || '',
       endDate: initialData?.endDate || '',
+      // CHANGE-001: 來源費用追蹤
+      sourceExpenseId: initialData?.sourceExpenseId || '',
     },
   });
 
@@ -233,6 +255,8 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
         vendorId: initialData.vendorId || '',
         startDate: initialData.startDate || '',
         endDate: initialData.endDate || '',
+        // CHANGE-001: 來源費用追蹤
+        sourceExpenseId: initialData.sourceExpenseId || '',
       });
     }
   }, [initialData, mode, form]);
@@ -240,9 +264,11 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
   // Form submit
   const onSubmit = (data: OMExpenseFormData) => {
     // Fix Bug #9: Convert empty string vendorId to undefined to avoid Foreign Key error
+    // CHANGE-001: Also handle sourceExpenseId
     const formattedData = {
       ...data,
       vendorId: data.vendorId || undefined,
+      sourceExpenseId: data.sourceExpenseId || undefined,
     };
 
     if (mode === 'create') {
@@ -496,6 +522,64 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 )}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* CHANGE-001: Source Expense Tracking */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('sourceExpense.title')}</CardTitle>
+            <CardDescription>
+              {t('sourceExpense.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="sourceExpenseId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('sourceExpense.label')}</FormLabel>
+                  <FormControl>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    >
+                      <option value="">{t('sourceExpense.noSelection')}</option>
+                      {expenses?.items.map((expense) => (
+                        <option key={expense.id} value={expense.id}>
+                          {expense.name} - {expense.purchaseOrder?.poNumber || 'N/A'} ({expense.purchaseOrder?.project?.name || 'N/A'})
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormDescription>
+                    {t('sourceExpense.hint')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Show linked project/PO info if source expense is selected */}
+            {initialData?.sourceExpense && (
+              <div className="rounded-md bg-muted p-4 text-sm">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-muted-foreground">{t('sourceExpense.linkedProject')}:</span>{' '}
+                    <span className="font-medium">
+                      {initialData.sourceExpense.purchaseOrder?.project?.name || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">{t('sourceExpense.linkedPO')}:</span>{' '}
+                    <span className="font-medium">
+                      {initialData.sourceExpense.purchaseOrder?.poNumber || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

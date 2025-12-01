@@ -248,10 +248,13 @@ export default function OperatingCompaniesPage() {
                 {filteredData.map((opCo) => (
                   <TableRow key={opCo.id}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-primary" />
+                      <Link
+                        href={`/operating-companies/${opCo.id}/edit`}
+                        className="flex items-center gap-2 text-primary hover:underline"
+                      >
+                        <Building2 className="h-4 w-4" />
                         {opCo.code}
-                      </div>
+                      </Link>
                     </TableCell>
                     <TableCell>{opCo.name}</TableCell>
                     <TableCell className="max-w-[200px] truncate text-muted-foreground">

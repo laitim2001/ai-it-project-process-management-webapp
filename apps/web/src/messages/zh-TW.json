@@ -1942,6 +1942,16 @@
         "title": "預算和日期範圍",
         "description": "預算金額和費用期間"
       },
+      "sourceExpense": {
+        "title": "來源費用追蹤",
+        "description": "如果此 OM 費用是從專案費用轉換而來，可選擇關聯的原始費用記錄",
+        "label": "來源費用（選填）",
+        "placeholder": "選擇來源費用...",
+        "noSelection": "無（獨立 OM 費用）",
+        "hint": "選擇後可追溯到原始專案和採購單",
+        "linkedProject": "關聯專案",
+        "linkedPO": "關聯採購單"
+      },
       "categoryDescription": "選擇此 OM 費用的類別",
       "vendorDescription": "如適用,請選擇供應商(選填)",
       "budgetDescription": "為此 OM 費用分配的總預算金額",
@@ -2920,7 +2930,9 @@
       "title": "刪除費用類別",
       "description": "確定要刪除「{name}」嗎？此操作無法復原。"
     },
-    "filter": {
+    "filters": {
+      "title": "過濾條件",
+      "all": "全部",
       "status": "狀態過濾"
     },
     "search": {

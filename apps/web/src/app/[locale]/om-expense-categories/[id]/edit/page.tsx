@@ -37,6 +37,7 @@ export default function EditOMExpenseCategoryPage() {
 
   const t = useTranslations('omExpenseCategories');
   const tCommon = useTranslations('common');
+  const tNav = useTranslations('navigation');
 
   // 獲取類別資料
   const { data: category, isLoading, error } = api.omExpenseCategory.getById.useQuery({ id });
@@ -82,7 +83,7 @@ export default function EditOMExpenseCategoryPage() {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/dashboard">{tCommon('navigation.dashboard')}</Link>
+                <Link href="/dashboard">{tNav('dashboard')}</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

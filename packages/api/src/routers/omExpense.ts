@@ -22,8 +22,9 @@
  * - update: 更新 OM 費用基本資訊
  * - updateMonthlyRecords: 批量更新月度記錄並重算總額
  * - calculateYoYGrowth: 計算年度增長率
- * - getById: 查詢單一 OM 費用詳情（含月度記錄）
+ * - getById: 查詢單一 OM 費用詳情（含月度記錄和來源費用）
  * - getAll: 查詢 OM 費用列表（支援分頁和過濾）
+ * - getBySourceExpenseId: 查詢由指定費用衍生的 OM 費用列表 (CHANGE-001)
  * - delete: 刪除 OM 費用（級聯刪除月度記錄）
  * - getCategories: 獲取所有 OM 類別列表
  * - getMonthlyTotals: 獲取指定年度的月度支出匯總
@@ -63,6 +64,7 @@ const createOMExpenseSchema = z.object({
   opCoId: z.string().min(1, 'OpCo 不能為空'),
   budgetAmount: z.number().positive('預算金額必須大於 0'),
   vendorId: z.string().optional(),
+  sourceExpenseId: z.string().optional(), // CHANGE-001: 來源費用追蹤
   startDate: z.string().min(1, '開始日期不能為空'),
   endDate: z.string().min(1, '結束日期不能為空'),
 });
@@ -74,6 +76,7 @@ const updateOMExpenseSchema = z.object({
   category: z.string().min(1).max(100).optional(),
   budgetAmount: z.number().positive().optional(),
   vendorId: z.string().optional().nullable(),
+  sourceExpenseId: z.string().optional().nullable(), // CHANGE-001: 來源費用追蹤
   startDate: z.string().optional(),
   endDate: z.string().optional(),
 });
@@ -195,6 +198,20 @@ export const omExpenseRouter = createTRPCRouter({
         }
       }
 
+      // CHANGE-001: 如果提供了 sourceExpenseId，驗證 expense 是否存在
+      if (input.sourceExpenseId) {
+        const sourceExpense = await ctx.prisma.expense.findUnique({
+          where: { id: input.sourceExpenseId },
+        });
+
+        if (!sourceExpense) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '來源費用記錄不存在',
+          });
+        }
+      }
+
       // 驗證日期邏輯
       const startDate = new Date(input.startDate);
       const endDate = new Date(input.endDate);
@@ -219,6 +236,7 @@ export const omExpenseRouter = createTRPCRouter({
             budgetAmount: input.budgetAmount,
             actualSpent: 0, // 初始為 0
             vendorId: input.vendorId,
+            sourceExpenseId: input.sourceExpenseId, // CHANGE-001: 來源費用追蹤
             startDate,
             endDate,
           },
@@ -242,6 +260,16 @@ export const omExpenseRouter = createTRPCRouter({
           include: {
             opCo: true,
             vendor: true,
+            sourceExpense: {
+              // CHANGE-001: 包含來源費用詳情
+              include: {
+                purchaseOrder: {
+                  include: {
+                    project: true,
+                  },
+                },
+              },
+            },
             monthlyRecords: {
               orderBy: { month: 'asc' },
             },
@@ -287,6 +315,20 @@ export const omExpenseRouter = createTRPCRouter({
         }
       }
 
+      // CHANGE-001: 如果提供了 sourceExpenseId，驗證 expense 是否存在
+      if (updateData.sourceExpenseId) {
+        const sourceExpense = await ctx.prisma.expense.findUnique({
+          where: { id: updateData.sourceExpenseId },
+        });
+
+        if (!sourceExpense) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '來源費用記錄不存在',
+          });
+        }
+      }
+
       // 驗證日期邏輯（如果有更新日期）
       if (updateData.startDate || updateData.endDate) {
         const startDate = updateData.startDate
@@ -318,6 +360,16 @@ export const omExpenseRouter = createTRPCRouter({
         include: {
           opCo: true,
           vendor: true,
+          sourceExpense: {
+            // CHANGE-001: 包含來源費用詳情
+            include: {
+              purchaseOrder: {
+                include: {
+                  project: true,
+                },
+              },
+            },
+          },
           monthlyRecords: {
             orderBy: { month: 'asc' },
           },
@@ -358,7 +410,7 @@ export const omExpenseRouter = createTRPCRouter({
       }
 
       // 使用 transaction 更新月度記錄和 actualSpent
-      const result = await ctx.prisma.$transaction(async (tx) => {
+      const _result = await ctx.prisma.$transaction(async (tx) => {
         // 1. 批量更新月度記錄
         for (const monthData of input.monthlyData) {
           await tx.oMExpenseMonthly.upsert({
@@ -487,6 +539,16 @@ export const omExpenseRouter = createTRPCRouter({
         include: {
           opCo: true,
           vendor: true,
+          sourceExpense: {
+            // CHANGE-001: 包含來源費用詳情
+            include: {
+              purchaseOrder: {
+                include: {
+                  project: true,
+                },
+              },
+            },
+          },
           monthlyRecords: {
             orderBy: { month: 'asc' },
           },
@@ -921,5 +983,27 @@ export const omExpenseRouter = createTRPCRouter({
           selectedCategories: categories || [],
         },
       };
+    }),
+
+  /**
+   * CHANGE-001: 查詢由指定費用衍生的 OM 費用列表
+   * 用於追蹤 Expense 轉換為 OM 費用的歷史
+   */
+  getBySourceExpenseId: protectedProcedure
+    .input(z.object({ sourceExpenseId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const omExpenses = await ctx.prisma.oMExpense.findMany({
+        where: { sourceExpenseId: input.sourceExpenseId },
+        include: {
+          opCo: true,
+          vendor: true,
+          monthlyRecords: {
+            orderBy: { month: 'asc' },
+          },
+        },
+        orderBy: { financialYear: 'desc' },
+      });
+
+      return omExpenses;
     }),
 });

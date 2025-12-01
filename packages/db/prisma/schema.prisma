@@ -284,12 +284,13 @@ model Expense {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  purchaseOrder  PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
-  budgetCategory BudgetCategory? @relation(fields: [budgetCategoryId], references: [id]) // 新增
-  vendor         Vendor?         @relation(fields: [vendorId], references: [id]) // 新增
-  currency       Currency?       @relation("ExpenseCurrency", fields: [currencyId], references: [id]) // FEAT-002
-  items          ExpenseItem[] // 新增：明細項目
-  chargeOutItems ChargeOutItem[] // 新增：關聯的費用轉嫁明細
+  purchaseOrder     PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
+  budgetCategory    BudgetCategory? @relation(fields: [budgetCategoryId], references: [id]) // 新增
+  vendor            Vendor?         @relation(fields: [vendorId], references: [id]) // 新增
+  currency          Currency?       @relation("ExpenseCurrency", fields: [currencyId], references: [id]) // FEAT-002
+  items             ExpenseItem[] // 新增：明細項目
+  chargeOutItems    ChargeOutItem[] // 新增：關聯的費用轉嫁明細
+  derivedOMExpenses OMExpense[]     @relation("DerivedOMExpenses") // CHANGE-001: 從此費用衍生的 OM 費用
 
   @@index([purchaseOrderId])
   @@index([budgetCategoryId]) // 新增索引
@@ -512,6 +513,9 @@ model OMExpense {
   // 供應商
   vendorId String?
 
+  // CHANGE-001: 來源費用追蹤
+  sourceExpenseId String? // 若由 Expense 轉換而來，記錄原始費用 ID
+
   // 日期範圍
   startDate DateTime
   endDate   DateTime
@@ -521,16 +525,18 @@ model OMExpense {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  opCo            OperatingCompany    @relation(fields: [opCoId], references: [id])
-  vendor          Vendor?             @relation(fields: [vendorId], references: [id])
-  expenseCategory OMExpenseCategory?  @relation(fields: [categoryId], references: [id])
-  monthlyRecords  OMExpenseMonthly[]  // 月度支出記錄（1-12月）
+  opCo            OperatingCompany   @relation(fields: [opCoId], references: [id])
+  vendor          Vendor?            @relation(fields: [vendorId], references: [id])
+  expenseCategory OMExpenseCategory? @relation(fields: [categoryId], references: [id])
+  sourceExpense   Expense?           @relation("DerivedOMExpenses", fields: [sourceExpenseId], references: [id]) // CHANGE-001
+  monthlyRecords  OMExpenseMonthly[] // 月度支出記錄（1-12月）
 
   @@index([opCoId])
   @@index([vendorId])
   @@index([financialYear])
   @@index([category])
   @@index([categoryId])
+  @@index([sourceExpenseId]) // CHANGE-001: 來源費用索引
 }
 
 // OM費用月度記錄

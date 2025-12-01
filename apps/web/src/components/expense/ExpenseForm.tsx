@@ -213,8 +213,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const createMutation = api.expense.create.useMutation({
     onSuccess: (data) => {
       toast({
-        title: t('messages.createSuccess'),
-        description: t('messages.createSuccess').replace('{name}', data.name),
+        title: commonT('success'),
+        description: t('messages.createSuccess', { name: data.name }),
       });
       router.push(`/expenses/${data.id}`);
     },
@@ -230,8 +230,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const updateMutation = api.expense.update.useMutation({
     onSuccess: (data) => {
       toast({
-        title: t('messages.updateSuccess'),
-        description: t('messages.updateSuccess').replace('{name}', data.name),
+        title: commonT('success'),
+        description: t('messages.updateSuccess', { name: data.name }),
       });
       router.push(`/expenses/${data.id}`);
     },

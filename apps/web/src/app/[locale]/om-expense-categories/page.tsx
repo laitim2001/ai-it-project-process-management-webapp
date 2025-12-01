@@ -111,7 +111,7 @@ export default function OMExpenseCategoriesPage() {
         {/* 過濾器 */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{tCommon('filters.title')}</CardTitle>
+            <CardTitle className="text-base">{t('filters.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4 sm:flex-row">
@@ -132,7 +132,7 @@ export default function OMExpenseCategoriesPage() {
                 onChange={handleStatusFilterChange}
                 className="w-full sm:w-[180px]"
               >
-                <option value="all">{tCommon('filters.all')}</option>
+                <option value="all">{t('filters.all')}</option>
                 <option value="active">{t('status.active')}</option>
                 <option value="inactive">{t('status.inactive')}</option>
               </Select>

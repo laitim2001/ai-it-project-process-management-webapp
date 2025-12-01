@@ -1942,6 +1942,16 @@
         "title": "Budget and Date Range",
         "description": "Budget amount and expense period"
       },
+      "sourceExpense": {
+        "title": "Source Expense Tracking",
+        "description": "If this OM expense is converted from a project expense, you can link to the original expense record",
+        "label": "Source Expense (Optional)",
+        "placeholder": "Select source expense...",
+        "noSelection": "None (Independent OM Expense)",
+        "hint": "Linking allows tracing back to the original project and purchase order",
+        "linkedProject": "Linked Project",
+        "linkedPO": "Linked PO"
+      },
       "categoryDescription": "Select the expense category for this OM expense",
       "vendorDescription": "Select a vendor if applicable (optional)",
       "budgetDescription": "Total budget amount allocated for this OM expense",
@@ -2920,7 +2930,9 @@
       "title": "Delete Expense Category",
       "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
     },
-    "filter": {
+    "filters": {
+      "title": "Filters",
+      "all": "All",
       "status": "Status Filter"
     },
     "search": {
