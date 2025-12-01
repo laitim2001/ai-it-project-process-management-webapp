@@ -452,7 +452,10 @@ model ExpenseItem {
   itemName    String // 費用項目名稱
   description String? @db.Text
   amount      Float // 金額
-  category    String? // 費用類別（如: Hardware, Software, Consulting）
+  category    String? // 費用類別（舊欄位，保留向後兼容）
+
+  // CHANGE-003: 統一費用類別 (新增 FK 到 ExpenseCategory)
+  categoryId String? // 關聯到 ExpenseCategory
 
   // CHANGE-002: 費用轉嫁目標 (每個明細項目可能向不同 OpCo 收費)
   chargeOutOpCoId String? // 要向哪個 OpCo 轉嫁 (null = 不需轉嫁或未指定)
@@ -463,11 +466,13 @@ model ExpenseItem {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  expense        Expense           @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  chargeOutOpCo  OperatingCompany? @relation("ChargeOutExpenseItems", fields: [chargeOutOpCoId], references: [id]) // CHANGE-002
-  chargeOutItems ChargeOutItem[] // CHANGE-002: 反向關聯
+  expense         Expense           @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseCategory ExpenseCategory?  @relation(fields: [categoryId], references: [id]) // CHANGE-003
+  chargeOutOpCo   OperatingCompany? @relation("ChargeOutExpenseItems", fields: [chargeOutOpCoId], references: [id]) // CHANGE-002
+  chargeOutItems  ChargeOutItem[] // CHANGE-002: 反向關聯
 
   @@index([expenseId])
+  @@index([categoryId]) // CHANGE-003
   @@index([chargeOutOpCoId]) // CHANGE-002
 }
 
@@ -476,10 +481,11 @@ model ExpenseItem {
 // Post-MVP Enhancement - Module 6
 // ==================================================================
 
-// OM 費用類別
-model OMExpenseCategory {
+// 統一費用類別 (CHANGE-003: 重命名自 OMExpenseCategory)
+// 同時供 ExpenseItem 和 OMExpense 使用
+model ExpenseCategory {
   id          String   @id @default(uuid())
-  code        String   @unique // 類別代碼（如 MAINT, LICENSE）
+  code        String   @unique // 類別代碼（如 HW, SW, MAINT, LICENSE）
   name        String // 類別名稱
   description String? // 描述（選填）
   sortOrder   Int      @default(0) // 排序順序
@@ -488,7 +494,8 @@ model OMExpenseCategory {
   updatedAt   DateTime @updatedAt
 
   // 關聯
-  omExpenses OMExpense[]
+  expenseItems ExpenseItem[] // CHANGE-003: 費用明細項目
+  omExpenses   OMExpense[] // OM 費用
 
   @@index([code])
   @@index([isActive])
@@ -534,7 +541,7 @@ model OMExpense {
   // 關聯
   opCo            OperatingCompany   @relation(fields: [opCoId], references: [id])
   vendor          Vendor?            @relation(fields: [vendorId], references: [id])
-  expenseCategory OMExpenseCategory? @relation(fields: [categoryId], references: [id])
+  expenseCategory ExpenseCategory?   @relation(fields: [categoryId], references: [id])
   sourceExpense   Expense?           @relation("DerivedOMExpenses", fields: [sourceExpenseId], references: [id]) // CHANGE-001
   monthlyRecords  OMExpenseMonthly[] // 月度支出記錄（1-12月）
 

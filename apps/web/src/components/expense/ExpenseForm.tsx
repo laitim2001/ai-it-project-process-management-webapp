@@ -225,6 +225,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
     isActive: true,
   });
 
+  // CHANGE-003: 獲取統一費用類別列表（用於費用明細的類別選擇）
+  const { data: expenseCategories } = api.expenseCategory.getActive.useQuery();
+
   // ===== Mutations =====
   const createMutation = api.expense.create.useMutation({
     onSuccess: (data) => {
@@ -630,6 +633,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                   onUpdate={handleUpdateItem}
                   onRemove={handleRemoveItem}
                   operatingCompanies={operatingCompanies || []}
+                  expenseCategories={expenseCategories || []}
                   requiresChargeOut={form.watch('requiresChargeOut')}
                   t={t}
                 />
@@ -699,11 +703,12 @@ interface ExpenseItemFormRowProps {
   onUpdate: (index: number, field: keyof ExpenseItemFormData, value: any) => void;
   onRemove: (index: number) => void;
   operatingCompanies: Array<{ id: string; code: string; name: string }>;
+  expenseCategories: Array<{ id: string; code: string; name: string }>; // CHANGE-003: 統一費用類別
   requiresChargeOut: boolean;
   t: (key: string) => string;
 }
 
-function ExpenseItemFormRow({ item, index, onUpdate, onRemove, operatingCompanies, requiresChargeOut, t }: ExpenseItemFormRowProps) {
+function ExpenseItemFormRow({ item, index, onUpdate, onRemove, operatingCompanies, expenseCategories, requiresChargeOut, t }: ExpenseItemFormRowProps) {
   return (
     <div className="grid grid-cols-12 gap-4 p-4 border rounded-lg bg-card">
       {/* 費用項目名稱 */}
@@ -730,7 +735,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove, operatingCompanie
         />
       </div>
 
-      {/* 類別 */}
+      {/* 類別 - CHANGE-003: 使用統一費用類別 */}
       <div className="col-span-3">
         <Label>{t('form.itemFields.category.label')}</Label>
         <select
@@ -740,11 +745,11 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove, operatingCompanie
           onChange={(e) => onUpdate(index, 'category', e.target.value)}
         >
           <option value="">{t('form.itemFields.category.placeholder')}</option>
-          <option value="Hardware">{t('form.itemFields.category.options.hardware')}</option>
-          <option value="Software">{t('form.itemFields.category.options.software')}</option>
-          <option value="Consulting">{t('form.itemFields.category.options.consulting')}</option>
-          <option value="Maintenance">{t('form.itemFields.category.options.maintenance')}</option>
-          <option value="Other">{t('form.itemFields.category.options.other')}</option>
+          {expenseCategories.map((category) => (
+            <option key={category.id} value={category.name}>
+              {category.code} - {category.name}
+            </option>
+          ))}
         </select>
       </div>
 

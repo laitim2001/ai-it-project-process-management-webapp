@@ -1,12 +1,12 @@
 /**
- * @fileoverview OM Expense Category Router - OM 費用類別管理 API
+ * @fileoverview Expense Category Router - 統一費用類別管理 API
  *
  * @description
- * 提供 OM 費用類別的完整 CRUD 操作和查詢功能。
- * OM 費用類別用於標準化分類 O&M 費用（如：維護費、軟體授權費、通訊費等）。
+ * 提供費用類別的完整 CRUD 操作和查詢功能。
+ * 費用類別同時供 ExpenseItem 和 OMExpense 使用，實現統一的類別管理。
  * 包含啟用/停用狀態管理，以及級聯刪除保護機制防止誤刪有關聯資料的類別。
  *
- * @module api/routers/omExpenseCategory
+ * @module api/routers/expenseCategory
  *
  * @features
  * - 建立費用類別（驗證類別代碼唯一性）
@@ -32,12 +32,14 @@
  * - tRPC: API 框架和類型安全
  *
  * @related
- * - packages/db/prisma/schema.prisma - OMExpenseCategory 資料模型
- * - packages/api/src/routers/omExpense.ts - OM 費用 Router
- * - apps/web/src/app/[locale]/om-expense-categories/page.tsx - 費用類別列表頁面
+ * - packages/db/prisma/schema.prisma - ExpenseCategory 資料模型
+ * - packages/api/src/routers/expense.ts - Expense Router
+ * - packages/api/src/routers/omExpense.ts - OM Expense Router
+ * - apps/web/src/app/[locale]/expense-categories/page.tsx - 費用類別列表頁面
  *
  * @author IT Department
  * @since FEAT-005 - OM Expense Category Management
+ * @modified CHANGE-003 - 統一費用類別系統
  * @lastModified 2025-12-01
  */
 
@@ -84,14 +86,14 @@ const getAllCategoriesSchema = z
 
 // ========== Router ==========
 
-export const omExpenseCategoryRouter = createTRPCRouter({
+export const expenseCategoryRouter = createTRPCRouter({
   /**
    * 創建費用類別
    * 權限：Supervisor only
    */
   create: supervisorProcedure.input(createCategorySchema).mutation(async ({ ctx, input }) => {
     // 檢查 code 是否已存在
-    const existingCategory = await ctx.prisma.oMExpenseCategory.findUnique({
+    const existingCategory = await ctx.prisma.expenseCategory.findUnique({
       where: { code: input.code },
     });
 
@@ -102,7 +104,7 @@ export const omExpenseCategoryRouter = createTRPCRouter({
       });
     }
 
-    const category = await ctx.prisma.oMExpenseCategory.create({
+    const category = await ctx.prisma.expenseCategory.create({
       data: {
         code: input.code,
         name: input.name,
@@ -122,7 +124,7 @@ export const omExpenseCategoryRouter = createTRPCRouter({
     const { id, ...updateData } = input;
 
     // 驗證類別是否存在
-    const existingCategory = await ctx.prisma.oMExpenseCategory.findUnique({
+    const existingCategory = await ctx.prisma.expenseCategory.findUnique({
       where: { id },
     });
 
@@ -135,7 +137,7 @@ export const omExpenseCategoryRouter = createTRPCRouter({
 
     // 如果要更新 code，檢查新 code 是否衝突
     if (updateData.code && updateData.code !== existingCategory.code) {
-      const codeConflict = await ctx.prisma.oMExpenseCategory.findUnique({
+      const codeConflict = await ctx.prisma.expenseCategory.findUnique({
         where: { code: updateData.code },
       });
 
@@ -147,7 +149,7 @@ export const omExpenseCategoryRouter = createTRPCRouter({
       }
     }
 
-    const updatedCategory = await ctx.prisma.oMExpenseCategory.update({
+    const updatedCategory = await ctx.prisma.expenseCategory.update({
       where: { id },
       data: updateData,
     });
@@ -161,12 +163,13 @@ export const omExpenseCategoryRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const category = await ctx.prisma.oMExpenseCategory.findUnique({
+      const category = await ctx.prisma.expenseCategory.findUnique({
         where: { id: input.id },
         include: {
           _count: {
             select: {
-              omExpenses: true,
+              expenseItems: true, // CHANGE-003: 費用明細項目計數
+              omExpenses: true, // OM 費用計數
             },
           },
         },
@@ -211,20 +214,21 @@ export const omExpenseCategoryRouter = createTRPCRouter({
     }
 
     const [categories, total] = await Promise.all([
-      ctx.prisma.oMExpenseCategory.findMany({
+      ctx.prisma.expenseCategory.findMany({
         where,
         skip,
         take: limit,
         include: {
           _count: {
             select: {
-              omExpenses: true,
+              expenseItems: true, // CHANGE-003: 費用明細項目計數
+              omExpenses: true, // OM 費用計數
             },
           },
         },
         orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
       }),
-      ctx.prisma.oMExpenseCategory.count({ where }),
+      ctx.prisma.expenseCategory.count({ where }),
     ]);
 
     return {
@@ -238,9 +242,10 @@ export const omExpenseCategoryRouter = createTRPCRouter({
 
   /**
    * 獲取啟用的類別列表（用於下拉選單）
+   * ExpenseForm 和 OMExpenseForm 共用此 API
    */
   getActive: protectedProcedure.query(async ({ ctx }) => {
-    const categories = await ctx.prisma.oMExpenseCategory.findMany({
+    const categories = await ctx.prisma.expenseCategory.findMany({
       where: { isActive: true },
       orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
       select: {
@@ -256,18 +261,19 @@ export const omExpenseCategoryRouter = createTRPCRouter({
   /**
    * 刪除費用類別
    * 權限：Supervisor only
-   * 注意：如果有關聯的 OM 費用，禁止刪除
+   * 注意：如果有關聯的費用記錄，禁止刪除
    */
   delete: supervisorProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       // 檢查是否有關聯資料
-      const category = await ctx.prisma.oMExpenseCategory.findUnique({
+      const category = await ctx.prisma.expenseCategory.findUnique({
         where: { id: input.id },
         include: {
           _count: {
             select: {
-              omExpenses: true,
+              expenseItems: true, // CHANGE-003: 費用明細項目計數
+              omExpenses: true, // OM 費用計數
             },
           },
         },
@@ -280,16 +286,23 @@ export const omExpenseCategoryRouter = createTRPCRouter({
         });
       }
 
-      const hasRelations = (category._count.omExpenses ?? 0) > 0;
+      const totalRelations = (category._count.expenseItems ?? 0) + (category._count.omExpenses ?? 0);
 
-      if (hasRelations) {
+      if (totalRelations > 0) {
+        const details: string[] = [];
+        if (category._count.expenseItems > 0) {
+          details.push(`${category._count.expenseItems} 筆費用明細`);
+        }
+        if (category._count.omExpenses > 0) {
+          details.push(`${category._count.omExpenses} 筆 OM 費用`);
+        }
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: `無法刪除類別 "${category.name}"，因為有 ${category._count.omExpenses} 筆關聯的 OM 費用。請先刪除相關費用記錄或將其改用其他類別。`,
+          message: `無法刪除類別 "${category.name}"，因為有 ${details.join(' 和 ')} 正在使用此類別。請先修改相關記錄後再刪除。`,
         });
       }
 
-      await ctx.prisma.oMExpenseCategory.delete({
+      await ctx.prisma.expenseCategory.delete({
         where: { id: input.id },
       });
 
@@ -303,7 +316,7 @@ export const omExpenseCategoryRouter = createTRPCRouter({
   toggleStatus: supervisorProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      const category = await ctx.prisma.oMExpenseCategory.findUnique({
+      const category = await ctx.prisma.expenseCategory.findUnique({
         where: { id: input.id },
       });
 
@@ -314,7 +327,7 @@ export const omExpenseCategoryRouter = createTRPCRouter({
         });
       }
 
-      const updated = await ctx.prisma.oMExpenseCategory.update({
+      const updated = await ctx.prisma.expenseCategory.update({
         where: { id: input.id },
         data: { isActive: !category.isActive },
       });

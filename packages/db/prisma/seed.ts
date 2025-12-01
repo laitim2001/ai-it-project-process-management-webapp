@@ -41,6 +41,36 @@ async function main() {
 
   console.log('✅ 角色創建完成');
 
+  // 1.5 CHANGE-003: 創建統一費用類別 (Expense Categories)
+  console.log('📂 創建費用類別...');
+
+  const expenseCategories = [
+    { code: 'HW', name: '硬體', description: '硬體設備、伺服器、工作站等', sortOrder: 1 },
+    { code: 'SW', name: '軟體', description: '軟體授權、應用程式購買', sortOrder: 2 },
+    { code: 'SV', name: '服務', description: '顧問服務、技術支援、實施服務', sortOrder: 3 },
+    { code: 'MAINT', name: '維護', description: '設備維護、系統維護、保固延長', sortOrder: 4 },
+    { code: 'LICENSE', name: '授權', description: '軟體授權續約、訂閱費用', sortOrder: 5 },
+    { code: 'CLOUD', name: '雲端', description: '雲端服務、IaaS/PaaS/SaaS 費用', sortOrder: 6 },
+    { code: 'TELECOM', name: '電信', description: '網路費用、電話費、通訊服務', sortOrder: 7 },
+    { code: 'OTHER', name: '其他', description: '其他未分類費用', sortOrder: 99 },
+  ];
+
+  for (const category of expenseCategories) {
+    await prisma.expenseCategory.upsert({
+      where: { code: category.code },
+      update: {},
+      create: {
+        code: category.code,
+        name: category.name,
+        description: category.description,
+        sortOrder: category.sortOrder,
+        isActive: true,
+      },
+    });
+  }
+
+  console.log('✅ 費用類別創建完成 (8 個類別)');
+
   // 2. 創建測試用戶 (Users)
   console.log('👤 創建測試用戶...');
 
@@ -703,6 +733,16 @@ async function main() {
 
   console.log('');
   console.log('🎉 資料庫種子數據完成！');
+  console.log('');
+  console.log('📂 費用類別 (CHANGE-003):');
+  console.log('  - HW: 硬體');
+  console.log('  - SW: 軟體');
+  console.log('  - SV: 服務');
+  console.log('  - MAINT: 維護');
+  console.log('  - LICENSE: 授權');
+  console.log('  - CLOUD: 雲端');
+  console.log('  - TELECOM: 電信');
+  console.log('  - OTHER: 其他');
   console.log('');
   console.log('📋 測試帳號:');
   console.log('  管理員: admin@itpm.local / admin123');

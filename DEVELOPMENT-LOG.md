@@ -20,6 +20,57 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-02 | 🔄 CHANGE-003: 統一費用類別系統 | 完成 ✅
+
+**類型**: 功能增強 + 重構 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+ExpenseForm 使用硬編碼的費用類別選項，而 OMExpenseForm 使用獨立的 OMExpenseCategory。
+統一兩者使用相同的 ExpenseCategory 資料表，提供一致的類別管理。
+
+**主要變更**:
+
+1. **Schema 變更 (Phase 1)** (`packages/db/prisma/schema.prisma`)
+   - 重命名 `OMExpenseCategory` → `ExpenseCategory`
+   - `ExpenseItem` 新增 `categoryId` 欄位（FK 到 ExpenseCategory）
+   - 更新所有相關模型的反向關聯
+
+2. **API 更新 (Phase 2)** (`packages/api/src/routers/`)
+   - 重命名 `omExpenseCategory.ts` → `expenseCategory.ts`
+   - 更新 `root.ts` Router 導入
+   - 新增 `getActive` 查詢供下拉選單使用
+
+3. **前端更新 (Phase 3)**
+   - `ExpenseForm.tsx`: 改用 `api.expenseCategory.getActive` 動態類別
+   - `OMExpenseForm.tsx`: 改用統一 `expenseCategory` API
+   - 更新 om-expense-categories 頁面和組件使用新 API
+
+4. **Seed Data (Phase 4)**
+   - 新增 8 個預設費用類別：HW, SW, SV, MAINT, LICENSE, CLOUD, TELECOM, OTHER
+   - 同步更新 `seed.ts` 和 `seed-minimal.ts`
+
+5. **i18n 修復**
+   - 新增 `common.actions.openMenu` 翻譯鍵
+
+**修改的文件** (15 個):
+- `packages/db/prisma/schema.prisma`
+- `packages/api/src/root.ts`
+- `packages/api/src/routers/expenseCategory.ts` (renamed)
+- `packages/api/src/routers/omExpense.ts`
+- `packages/db/prisma/seed.ts`
+- `packages/db/prisma/seed-minimal.ts`
+- `apps/web/src/components/expense/ExpenseForm.tsx`
+- `apps/web/src/components/om-expense/OMExpenseForm.tsx`
+- `apps/web/src/components/om-expense-category/OMExpenseCategoryForm.tsx`
+- `apps/web/src/components/om-expense-category/OMExpenseCategoryActions.tsx`
+- `apps/web/src/app/[locale]/om-expense-categories/page.tsx`
+- `apps/web/src/app/[locale]/om-expense-categories/[id]/edit/page.tsx`
+- `apps/web/src/messages/zh-TW.json`
+- `apps/web/src/messages/en.json`
+- `claudedocs/4-changes/feature-changes/CHANGE-003-unified-expense-category.md`
+
+---
+
 ### 2025-12-01 | 🔄 CHANGE-002: ExpenseItem 費用轉嫁目標功能 | Backend 完成 ✅
 
 **類型**: 功能增強 | **負責人**: AI 助手 | **狀態**: ✅ Backend 完成 (Phase 1+2)

@@ -71,8 +71,8 @@ export default function OMExpenseCategoriesPage() {
     includeInactive: statusFilter === 'all',
   };
 
-  // API 查詢
-  const { data, isLoading, refetch } = api.omExpenseCategory.getAll.useQuery(queryParams);
+  // CHANGE-003: API 查詢（使用統一費用類別 API）
+  const { data, isLoading, refetch } = api.expenseCategory.getAll.useQuery(queryParams);
 
   // 處理狀態過濾變更
   const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

@@ -655,17 +655,18 @@ export const omExpenseRouter = createTRPCRouter({
     }),
 
   /**
-   * 獲取所有 OM 類別列表（用於下拉選單）
-   * 從現有資料中提取唯一的類別名稱
+   * 獲取所有費用類別列表（用於下拉選單）
+   * CHANGE-003: 改為從統一的 ExpenseCategory 表讀取
+   * @deprecated 建議改用 expenseCategory.getActive
    */
   getCategories: protectedProcedure.query(async ({ ctx }) => {
-    const categories = await ctx.prisma.oMExpense.findMany({
-      select: { category: true },
-      distinct: ['category'],
-      orderBy: { category: 'asc' },
+    const categories = await ctx.prisma.expenseCategory.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
+      select: { name: true },
     });
 
-    return categories.map((c) => c.category);
+    return categories.map((c) => c.name);
   }),
 
   /**

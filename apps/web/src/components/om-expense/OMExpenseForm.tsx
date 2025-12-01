@@ -180,8 +180,8 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
     limit: 100,
   });
 
-  // Get OM Categories list (for autocomplete)
-  const { data: categories } = api.omExpense.getCategories.useQuery();
+  // CHANGE-003: 使用統一費用類別 API
+  const { data: expenseCategories } = api.expenseCategory.getActive.useQuery();
 
   // CHANGE-001: Get Expenses list for source expense selector
   const { data: expenses } = api.expense.getAll.useQuery({
@@ -357,6 +357,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 )}
               />
 
+              {/* CHANGE-003: 使用統一費用類別 */}
               <FormField
                 control={form.control}
                 name="category"
@@ -371,9 +372,9 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                         {...field}
                       >
                         <option value="">{t('fields.category.placeholder')}</option>
-                        {categories?.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
+                        {expenseCategories?.map((category) => (
+                          <option key={category.id} value={category.name}>
+                            {category.code} - {category.name}
                           </option>
                         ))}
                       </select>

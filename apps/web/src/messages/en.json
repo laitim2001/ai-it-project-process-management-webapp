@@ -15,7 +15,8 @@
       "delete": "Delete",
       "deleting": "Deleting...",
       "exportCSV": "Export CSV",
-      "search": "Search"
+      "search": "Search",
+      "openMenu": "Open menu"
     },
     "sort": {
       "createdAtDesc": "Newest First",

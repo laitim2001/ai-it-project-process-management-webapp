@@ -82,8 +82,8 @@ export function OMExpenseCategoryForm({ mode, initialData }: OMExpenseCategoryFo
     }
   }, [initialData]);
 
-  // tRPC Mutations
-  const createMutation = api.omExpenseCategory.create.useMutation({
+  // CHANGE-003: tRPC Mutations（使用統一費用類別 API）
+  const createMutation = api.expenseCategory.create.useMutation({
     onSuccess: () => {
       toast({
         title: tCommon('messages.success'),
@@ -100,7 +100,7 @@ export function OMExpenseCategoryForm({ mode, initialData }: OMExpenseCategoryFo
     },
   });
 
-  const updateMutation = api.omExpenseCategory.update.useMutation({
+  const updateMutation = api.expenseCategory.update.useMutation({
     onSuccess: () => {
       toast({
         title: tCommon('messages.success'),

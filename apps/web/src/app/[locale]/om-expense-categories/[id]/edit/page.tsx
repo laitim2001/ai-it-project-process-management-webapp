@@ -39,8 +39,8 @@ export default function EditOMExpenseCategoryPage() {
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
 
-  // 獲取類別資料
-  const { data: category, isLoading, error } = api.omExpenseCategory.getById.useQuery({ id });
+  // CHANGE-003: 獲取類別資料（使用統一費用類別 API）
+  const { data: category, isLoading, error } = api.expenseCategory.getById.useQuery({ id });
 
   // 載入中狀態
   if (isLoading) {

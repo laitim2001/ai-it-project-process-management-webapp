@@ -15,7 +15,8 @@
       "delete": "刪除",
       "deleting": "刪除中...",
       "exportCSV": "匯出 CSV",
-      "search": "搜尋"
+      "search": "搜尋",
+      "openMenu": "開啟選單"
     },
     "sort": {
       "createdAtDesc": "最新優先",

@@ -71,14 +71,14 @@ export function OMExpenseCategoryActions({
 
   const utils = api.useUtils();
 
-  // 刪除 Mutation
-  const deleteMutation = api.omExpenseCategory.delete.useMutation({
+  // CHANGE-003: 刪除 Mutation（使用統一費用類別 API）
+  const deleteMutation = api.expenseCategory.delete.useMutation({
     onSuccess: () => {
       toast({
         title: tCommon('messages.success'),
         description: t('messages.deleteSuccess'),
       });
-      void utils.omExpenseCategory.getAll.invalidate();
+      void utils.expenseCategory.getAll.invalidate();
       onActionComplete?.();
     },
     onError: (error) => {
@@ -90,14 +90,14 @@ export function OMExpenseCategoryActions({
     },
   });
 
-  // 切換狀態 Mutation
-  const toggleStatusMutation = api.omExpenseCategory.toggleStatus.useMutation({
+  // CHANGE-003: 切換狀態 Mutation（使用統一費用類別 API）
+  const toggleStatusMutation = api.expenseCategory.toggleStatus.useMutation({
     onSuccess: () => {
       toast({
         title: tCommon('messages.success'),
         description: t('messages.toggleSuccess'),
       });
-      void utils.omExpenseCategory.getAll.invalidate();
+      void utils.expenseCategory.getAll.invalidate();
       onActionComplete?.();
     },
     onError: (error) => {
