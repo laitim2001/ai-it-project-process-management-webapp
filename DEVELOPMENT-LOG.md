@@ -20,6 +20,40 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-02 | 🔧 修復 TypeScript 和 ESLint 錯誤 + 資料遷移 | 完成 ✅
+
+**類型**: 修復 + 資料遷移 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+CHANGE-003 完成後，需要修復預存的 TypeScript 和 ESLint 錯誤，並執行資料遷移。
+
+**主要變更**:
+
+1. **TypeScript 錯誤修復**
+   - `azure-storage.ts`: 修復 File/Buffer 類型收窄問題（使用明確類型斷言）
+   - `azure-storage.ts`: 修復 chunk 類型處理（添加運行時類型檢查）
+   - `exportUtils.ts`: 修復 possibly undefined 數組存取（使用 nullish coalescing）
+
+2. **ESLint 錯誤修復** (`@itpm/auth`)
+   - 28 errors → 0 errors (20 warnings 為 debug console.log)
+   - 添加 `AzureADProfile` 介面定義
+   - 修正 JWT callback 和 session callback 類型
+   - 移除未使用的 PrismaAdapter import
+
+3. **資料遷移** (categoryId)
+   - 完成 ExpenseItem 遷移：80 筆記錄
+   - 完成 OMExpense 遷移：4 筆記錄
+   - 未知類別值（如 "test"）自動映射到 "其他" 類別
+
+**修改的文件** (3 個):
+- `apps/web/src/lib/azure-storage.ts`
+- `apps/web/src/lib/exportUtils.ts`
+- `packages/auth/src/index.ts`
+
+**Git Commit**: `eadfdf4 fix: 修復 TypeScript 和 ESLint 錯誤`
+
+---
+
 ### 2025-12-02 | 🔄 CHANGE-003: 統一費用類別系統 | 完成 ✅
 
 **類型**: 功能增強 + 重構 | **負責人**: AI 助手 | **狀態**: ✅ 完成
