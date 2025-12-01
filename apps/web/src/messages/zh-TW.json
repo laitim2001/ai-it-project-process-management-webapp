@@ -1792,6 +1792,11 @@
         "description": {
           "label": "描述（可選）",
           "placeholder": "費用項目描述..."
+        },
+        "chargeOutOpCo": {
+          "label": "轉嫁目標 OpCo",
+          "placeholder": "選擇轉嫁目標",
+          "disabledHint": "需勾選「需要轉嫁費用」才能選擇"
         }
       },
       "validation": {
@@ -2114,6 +2119,10 @@
         "itemDescription": {
           "placeholder": "可選說明"
         },
+        "expenseItem": {
+          "placeholder": "選擇費用明細（可選）",
+          "targetOpCo": "目標 OpCo"
+        },
         "fromProject": {
           "label": "來源專案",
           "placeholder": "選擇專案"
@@ -2133,6 +2142,7 @@
       },
       "table": {
         "expense": "費用",
+        "expenseItem": "費用明細",
         "amount": "金額 (HKD)",
         "description": "描述",
         "totalAmount": "總金額"

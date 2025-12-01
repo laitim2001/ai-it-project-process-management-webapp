@@ -92,10 +92,12 @@ import { Plus, Loader2, DollarSign, Trash2 } from 'lucide-react';
 
 /**
  * 費用明細表單數據
+ * CHANGE-002: 新增 expenseItemId 支援明細級別轉嫁
  */
 interface ChargeOutItemFormData {
   id?: string; // 編輯時有 id
-  expenseId: string;
+  expenseId: string; // 保留向後兼容
+  expenseItemId?: string | null; // CHANGE-002: 關聯到具體費用明細
   amount: number;
   description?: string;
   sortOrder: number;
@@ -259,16 +261,35 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
 
   /**
    * 更新費用項目
+   * CHANGE-002: 支援 expenseItemId 選擇
    */
   const handleUpdateItem = (index: number, field: keyof ChargeOutItemFormData, value: any) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    const currentItem = newItems[index];
 
-    // 當選擇費用時，自動填充金額
+    // 確保項目存在
+    if (!currentItem) return;
+
+    // 更新指定欄位
+    newItems[index] = { ...currentItem, [field]: value };
+
+    // 當選擇費用時，自動填充金額並清空 expenseItemId
     if (field === 'expenseId' && eligibleExpenses) {
       const selectedExpense = eligibleExpenses.find((e) => e.id === value);
-      if (selectedExpense) {
+      if (selectedExpense && newItems[index]) {
         newItems[index].amount = selectedExpense.totalAmount;
+        newItems[index].expenseItemId = null; // 清空明細選擇
+      }
+    }
+
+    // CHANGE-002: 當選擇費用明細時，自動填充該明細的金額
+    if (field === 'expenseItemId' && eligibleExpenses && value && newItems[index]) {
+      const selectedExpense = eligibleExpenses.find((e) => e.id === newItems[index]?.expenseId);
+      if (selectedExpense?.items) {
+        const selectedItem = selectedExpense.items.find((item: any) => item.id === value);
+        if (selectedItem) {
+          newItems[index].amount = selectedItem.amount;
+        }
       }
     }
 
@@ -317,11 +338,13 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
     }
 
     // 組裝提交數據
+    // CHANGE-002: 包含 expenseItemId 支援明細級別轉嫁
     const submitData = {
       ...values,
       items: items.map((item, index) => ({
         ...(item.id && { id: item.id }), // 編輯時包含 id
         expenseId: item.expenseId,
+        expenseItemId: item.expenseItemId || null, // CHANGE-002: 費用明細 ID
         amount: item.amount,
         description: item.description,
         sortOrder: index,
@@ -476,12 +499,14 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
             ) : (
               <div className="space-y-4">
                 {/* 明細表格 */}
+                {/* CHANGE-002: 新增 ExpenseItem 選擇欄位 */}
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
                         <th className="p-2 text-left text-sm font-medium">#</th>
                         <th className="p-2 text-left text-sm font-medium">{t('table.expense')} *</th>
+                        <th className="p-2 text-left text-sm font-medium">{t('table.expenseItem')}</th>
                         <th className="p-2 text-left text-sm font-medium">{t('table.amount')} *</th>
                         <th className="p-2 text-left text-sm font-medium">{t('table.description')}</th>
                         <th className="p-2 text-center text-sm font-medium">{tCommon('actions.actions')}</th>
@@ -491,6 +516,10 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                       {items.map((item, index) => {
                         const selectedExpense = eligibleExpenses?.find(
                           (e) => e.id === item.expenseId
+                        );
+                        const expenseItems = selectedExpense?.items || [];
+                        const selectedExpenseItem = expenseItems.find(
+                          (ei: any) => ei.id === item.expenseItemId
                         );
                         return (
                           <tr key={index} className="border-b hover:bg-muted/50">
@@ -514,6 +543,31 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
                               {selectedExpense && (
                                 <div className="mt-1 text-xs text-muted-foreground">
                                   {t('fields.expense.invoiceNumber')}: {selectedExpense.invoiceNumber || 'N/A'}
+                                </div>
+                              )}
+                            </td>
+                            {/* CHANGE-002: ExpenseItem 選擇器 */}
+                            <td className="p-2">
+                              <select
+                                name={`items[${index}].expenseItemId`}
+                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm disabled:opacity-50"
+                                value={item.expenseItemId || ''}
+                                onChange={(e) =>
+                                  handleUpdateItem(index, 'expenseItemId', e.target.value || null)
+                                }
+                                disabled={!selectedExpense || expenseItems.length === 0}
+                              >
+                                <option value="">{t('fields.expenseItem.placeholder')}</option>
+                                {expenseItems.map((ei: any) => (
+                                  <option key={ei.id} value={ei.id}>
+                                    {ei.itemName} - {formatCurrency(ei.amount)}
+                                    {ei.chargeOutOpCo ? ` (${ei.chargeOutOpCo.code})` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                              {selectedExpenseItem?.chargeOutOpCo && (
+                                <div className="mt-1 text-xs text-blue-600">
+                                  {t('fields.expenseItem.targetOpCo')}: {selectedExpenseItem.chargeOutOpCo.code}
                                 </div>
                               )}
                             </td>

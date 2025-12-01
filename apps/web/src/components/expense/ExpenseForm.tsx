@@ -104,6 +104,7 @@ interface ExpenseItemFormData {
   description?: string;
   amount: number;
   category?: string;
+  chargeOutOpCoId?: string | null; // CHANGE-002: 費用轉嫁目標 OpCo
   sortOrder: number;
 }
 
@@ -209,6 +210,11 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
     limit: 100,
   });
 
+  // CHANGE-002: 獲取營運公司列表（用於費用明細的 ChargeOut 目標選擇）
+  const { data: operatingCompanies } = api.operatingCompany.getAll.useQuery({
+    isActive: true,
+  });
+
   // ===== Mutations =====
   const createMutation = api.expense.create.useMutation({
     onSuccess: (data) => {
@@ -280,7 +286,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const handleRemoveItem = (index: number) => {
     if (items.length === 1) {
       toast({
-        title: tCommon('messages.error'),
+        title: commonT('messages.error'),
         description: t('form.validation.atLeastOneItem'),
         variant: 'destructive',
       });
@@ -294,7 +300,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
     // 驗證費用項目
     if (items.length === 0) {
       toast({
-        title: tCommon('messages.validationError'),
+        title: commonT('messages.validationError'),
         description: t('form.validation.atLeastOneItem'),
         variant: 'destructive',
       });
@@ -308,7 +314,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
 
     if (invalidItems.length > 0) {
       toast({
-        title: tCommon('messages.validationError'),
+        title: commonT('messages.validationError'),
         description: t('form.validation.itemNameRequired'),
         variant: 'destructive',
       });
@@ -333,6 +339,7 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
         description: item.description,
         amount: item.amount,
         category: item.category,
+        chargeOutOpCoId: item.chargeOutOpCoId || null, // CHANGE-002: 費用轉嫁目標
         sortOrder: index,
       })),
     };
@@ -603,6 +610,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                   index={index}
                   onUpdate={handleUpdateItem}
                   onRemove={handleRemoveItem}
+                  operatingCompanies={operatingCompanies || []}
+                  requiresChargeOut={form.watch('requiresChargeOut')}
                   t={t}
                 />
               ))}
@@ -670,14 +679,16 @@ interface ExpenseItemFormRowProps {
   index: number;
   onUpdate: (index: number, field: keyof ExpenseItemFormData, value: any) => void;
   onRemove: (index: number) => void;
+  operatingCompanies: Array<{ id: string; code: string; name: string }>;
+  requiresChargeOut: boolean;
   t: (key: string) => string;
 }
 
-function ExpenseItemFormRow({ item, index, onUpdate, onRemove, t }: ExpenseItemFormRowProps) {
+function ExpenseItemFormRow({ item, index, onUpdate, onRemove, operatingCompanies, requiresChargeOut, t }: ExpenseItemFormRowProps) {
   return (
     <div className="grid grid-cols-12 gap-4 p-4 border rounded-lg bg-card">
       {/* 費用項目名稱 */}
-      <div className="col-span-4">
+      <div className="col-span-3">
         <Label>{t('form.itemFields.itemName.label')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].itemName`}
@@ -688,7 +699,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove, t }: ExpenseItemF
       </div>
 
       {/* 金額 */}
-      <div className="col-span-3">
+      <div className="col-span-2">
         <Label>{t('form.itemFields.amount.label')} <span className="text-destructive">*</span></Label>
         <Input
           name={`items[${index}].amount`}
@@ -701,7 +712,7 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove, t }: ExpenseItemF
       </div>
 
       {/* 類別 */}
-      <div className="col-span-4">
+      <div className="col-span-3">
         <Label>{t('form.itemFields.category.label')}</Label>
         <select
           name={`items[${index}].category`}
@@ -716,6 +727,30 @@ function ExpenseItemFormRow({ item, index, onUpdate, onRemove, t }: ExpenseItemF
           <option value="Maintenance">{t('form.itemFields.category.options.maintenance')}</option>
           <option value="Other">{t('form.itemFields.category.options.other')}</option>
         </select>
+      </div>
+
+      {/* CHANGE-002: 費用轉嫁目標 OpCo */}
+      <div className="col-span-3">
+        <Label>{t('form.itemFields.chargeOutOpCo.label')}</Label>
+        <select
+          name={`items[${index}].chargeOutOpCoId`}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          value={item.chargeOutOpCoId || ''}
+          onChange={(e) => onUpdate(index, 'chargeOutOpCoId', e.target.value || null)}
+          disabled={!requiresChargeOut}
+        >
+          <option value="">{t('form.itemFields.chargeOutOpCo.placeholder')}</option>
+          {operatingCompanies.map((opCo) => (
+            <option key={opCo.id} value={opCo.id}>
+              {opCo.code} - {opCo.name}
+            </option>
+          ))}
+        </select>
+        {!requiresChargeOut && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {t('form.itemFields.chargeOutOpCo.disabledHint')}
+          </p>
+        )}
       </div>
 
       {/* 刪除按鈕 */}

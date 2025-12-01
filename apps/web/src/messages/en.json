@@ -1792,6 +1792,11 @@
         "description": {
           "label": "Description (Optional)",
           "placeholder": "Item description..."
+        },
+        "chargeOutOpCo": {
+          "label": "Charge-Out Target OpCo",
+          "placeholder": "Select target OpCo",
+          "disabledHint": "Enable 'Requires Charge-Out' to select"
         }
       },
       "validation": {
@@ -2114,6 +2119,10 @@
         "itemDescription": {
           "placeholder": "Optional description"
         },
+        "expenseItem": {
+          "placeholder": "Select expense item (optional)",
+          "targetOpCo": "Target OpCo"
+        },
         "fromProject": {
           "label": "Source Project",
           "placeholder": "Select project"
@@ -2133,6 +2142,7 @@
       },
       "table": {
         "expense": "Expense",
+        "expenseItem": "Expense Item",
         "amount": "Amount (HKD)",
         "description": "Description",
         "totalAmount": "Total Amount"

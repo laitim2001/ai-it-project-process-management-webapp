@@ -2,7 +2,7 @@
 
 > **建立日期**: 2025-12-01
 > **完成日期**: 2025-12-01
-> **狀態**: ✅ 已完成 (Phase 1+2 Backend)
+> **狀態**: ✅ 已完成 (Phase 1+2+3 Backend & Frontend)
 > **類型**: 資料模型增強
 > **優先級**: High
 
@@ -98,9 +98,10 @@ model ChargeOutItem {
 | `packages/db/prisma/schema.prisma` | 修改 ExpenseItem, ChargeOutItem, OperatingCompany | ✅ 完成 |
 | `packages/api/src/routers/expense.ts` | 更新 ExpenseItem 相關操作，新增 chargeOutOpCoId | ✅ 完成 |
 | `packages/api/src/routers/chargeOut.ts` | 更新 ChargeOutItem 關聯邏輯，新增 expenseItemId | ✅ 完成 |
-| `apps/web/src/components/expense/ExpenseForm.tsx` | 新增 OpCo 選擇器 | 📋 待開發 |
-| `apps/web/src/components/charge-out/ChargeOutForm.tsx` | 修改明細關聯 | 📋 待開發 |
-| `apps/web/src/messages/*.json` | 新增翻譯 key | 📋 待開發 |
+| `apps/web/src/components/expense/ExpenseForm.tsx` | 新增 OpCo 選擇器 (chargeOutOpCoId 欄位) | ✅ 完成 |
+| `apps/web/src/components/charge-out/ChargeOutForm.tsx` | 新增 ExpenseItem 選擇器 (expenseItemId 欄位) | ✅ 完成 |
+| `apps/web/src/messages/zh-TW.json` | 新增 chargeOutOpCo 和 expenseItem 翻譯 key | ✅ 完成 |
+| `apps/web/src/messages/en.json` | 新增 chargeOutOpCo 和 expenseItem 翻譯 key | ✅ 完成 |
 
 ### 資料庫遷移
 - **ExpenseItem**: 新增可選欄位 `chargeOutOpCoId`，無需遷移 ✅
@@ -115,8 +116,9 @@ model ChargeOutItem {
 - [x] ExpenseItem 可以不選擇 OpCo（不需轉嫁）- API 支援
 - [x] ChargeOutItem 支援 expenseItemId 關聯 - API 支援
 - [x] ChargeOutItem 保持 expenseId 向後兼容 - API 支援
-- [ ] ChargeOut 可以正確彙總按 OpCo 分組的明細 - 前端待實現
-- [ ] ChargeOutItem 正確關聯到 ExpenseItem - 前端待實現
+- [x] ExpenseForm 新增 chargeOutOpCoId 選擇器 - 前端完成
+- [x] ChargeOutForm 新增 expenseItemId 選擇器 - 前端完成
+- [x] ChargeOutItem 正確關聯到 ExpenseItem - 前端完成
 
 ### 回歸測試
 - [x] 現有 Expense CRUD 功能正常 - 向後兼容
@@ -146,11 +148,22 @@ model ChargeOutItem {
 6. ✅ 更新 getById 包含 expenseItem 關聯
 7. ✅ 更新 getEligibleExpenses 包含完整 ExpenseItem 資訊
 
-### Phase 3: 前端更新 📋 待開發
-1. 更新 ExpenseForm 組件 - 新增 OpCo 選擇器
-2. 更新 ChargeOutForm 組件 - 支援 ExpenseItem 選擇
-3. 新增 i18n 翻譯
-4. 測試前端功能
+### Phase 3: 前端更新 ✅ 已完成
+1. ✅ 更新 ExpenseForm 組件 - 新增 OpCo 選擇器 (chargeOutOpCoId)
+   - 新增 operatingCompanies tRPC 查詢
+   - 新增 ExpenseItemFormData.chargeOutOpCoId 欄位
+   - 新增 OpCo 下拉選擇器 (當 requiresChargeOut=true 時啟用)
+   - 顯示已選 OpCo 代碼和名稱
+2. ✅ 更新 ChargeOutForm 組件 - 支援 ExpenseItem 選擇
+   - 新增 ChargeOutItemFormData.expenseItemId 欄位
+   - 新增 ExpenseItem 下拉選擇器 (顯示明細項目和金額)
+   - 自動填充金額功能 (選擇 ExpenseItem 後)
+   - 顯示目標 OpCo 資訊
+3. ✅ 新增 i18n 翻譯
+   - zh-TW.json: chargeOutOpCo (label, placeholder, disabledHint)
+   - zh-TW.json: expenseItem (placeholder, targetOpCo), table.expenseItem
+   - en.json: 對應英文翻譯
+4. ✅ TypeScript 檢查通過
 
 ### Phase 4: 清理（未來）
 1. 評估是否移除 ChargeOutItem.expenseId（完全遷移後）
@@ -182,4 +195,4 @@ model ChargeOutItem {
 
 ---
 
-**最後更新**: 2025-12-01
+**最後更新**: 2025-12-01 (Phase 3 Frontend 完成)
