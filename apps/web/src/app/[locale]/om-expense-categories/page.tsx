@@ -37,13 +37,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -81,8 +75,8 @@ export default function OMExpenseCategoriesPage() {
   const { data, isLoading, refetch } = api.omExpenseCategory.getAll.useQuery(queryParams);
 
   // 處理狀態過濾變更
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
+  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatusFilter(e.target.value);
     setPage(1);
   };
 
@@ -133,15 +127,14 @@ export default function OMExpenseCategoriesPage() {
               </div>
 
               {/* 狀態過濾 */}
-              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder={t('filter.status')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{tCommon('filters.all')}</SelectItem>
-                  <SelectItem value="active">{t('status.active')}</SelectItem>
-                  <SelectItem value="inactive">{t('status.inactive')}</SelectItem>
-                </SelectContent>
+              <Select
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+                className="w-full sm:w-[180px]"
+              >
+                <option value="all">{tCommon('filters.all')}</option>
+                <option value="active">{t('status.active')}</option>
+                <option value="inactive">{t('status.inactive')}</option>
               </Select>
             </div>
           </CardContent>
