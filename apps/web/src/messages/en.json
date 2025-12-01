@@ -86,7 +86,8 @@
       "rowsPerPage": "Rows per page",
       "showing": "Showing",
       "to": "to",
-      "entries": "entries"
+      "entries": "entries",
+      "total": "{count} items total"
     },
     "date": {
       "today": "Today",
@@ -121,7 +122,15 @@
       "success": "Success",
       "error": "Error",
       "warning": "Warning",
-      "info": "Information"
+      "info": "Information",
+      "loadError": "Failed to load",
+      "notFound": "Resource not found",
+      "createFailed": "Failed to create",
+      "updateFailed": "Failed to update"
+    },
+    "validation": {
+      "required": "{field} is required",
+      "invalidEmail": "Invalid email format"
     }
   },
   "navigation": {
@@ -150,6 +159,7 @@
       "omExpenses": "OM Expenses",
       "omSummary": "OM Summary",
       "chargeOuts": "Charge Outs",
+      "operatingCompanies": "Operating Companies",
       "users": "Users",
       "currencies": "Currencies",
       "notifications": "Notifications",
@@ -168,6 +178,7 @@
       "omExpenses": "Operation and maintenance expense management",
       "omSummary": "O&M expense summary and analysis",
       "chargeOuts": "ChargeOut expense transfer management",
+      "operatingCompanies": "Operating company management",
       "users": "User accounts and permissions",
       "currencies": "Manage system currency options",
       "settings": "System parameter configuration",
@@ -2770,5 +2781,78 @@
       "message": "You don't have permission to access this page",
       "login": "Login"
     }
+  },
+  "operatingCompanies": {
+    "title": "Operating Companies",
+    "description": "Manage operating companies in the system",
+    "table": {
+      "code": "Company Code",
+      "name": "Company Name",
+      "description": "Description",
+      "status": "Status",
+      "chargeOuts": "Charge Outs",
+      "omExpenses": "OM Expenses",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "createTitle": "Create Operating Company",
+      "createDescription": "Create a new operating company",
+      "editTitle": "Edit Operating Company",
+      "editDescription": "Edit {name} information",
+      "code": {
+        "label": "Company Code",
+        "placeholder": "e.g., OpCo-HK"
+      },
+      "name": {
+        "label": "Company Name",
+        "placeholder": "e.g., Hong Kong Operations"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Optional"
+      }
+    },
+    "actions": {
+      "create": "Create Operating Company",
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "messages": {
+      "createSuccess": "Operating company created successfully",
+      "updateSuccess": "Operating company updated successfully",
+      "deleteSuccess": "Operating company deleted successfully",
+      "toggleSuccess": "Status updated",
+      "cannotDeleteWithRelations": "Cannot delete: This operating company has related charge outs or OM expenses"
+    },
+    "dialogs": {
+      "activate": {
+        "title": "Activate Operating Company",
+        "description": "Are you sure you want to activate \"{name}\"?"
+      },
+      "deactivate": {
+        "title": "Deactivate Operating Company",
+        "description": "Are you sure you want to deactivate \"{name}\"? It will not be available for new charge outs and OM expenses."
+      },
+      "delete": {
+        "title": "Delete Operating Company",
+        "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
+      }
+    },
+    "filters": {
+      "all": "All",
+      "activeOnly": "Active Only",
+      "inactiveOnly": "Inactive Only",
+      "search": "Search by code or name"
+    },
+    "list": {
+      "noResults": "No operating companies found matching the criteria"
+    },
+    "empty": "No operating companies yet"
   }
 }

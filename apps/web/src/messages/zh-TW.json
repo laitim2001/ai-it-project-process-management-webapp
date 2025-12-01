@@ -86,7 +86,8 @@
       "rowsPerPage": "每頁顯示",
       "showing": "顯示",
       "to": "至",
-      "entries": "筆資料"
+      "entries": "筆資料",
+      "total": "共 {count} 項"
     },
     "date": {
       "today": "今天",
@@ -121,7 +122,15 @@
       "success": "成功",
       "error": "錯誤",
       "warning": "警告",
-      "info": "資訊"
+      "info": "資訊",
+      "loadError": "載入失敗",
+      "notFound": "找不到資源",
+      "createFailed": "建立失敗",
+      "updateFailed": "更新失敗"
+    },
+    "validation": {
+      "required": "{field} 為必填項目",
+      "invalidEmail": "電子郵件格式不正確"
     }
   },
   "navigation": {
@@ -150,6 +159,7 @@
       "omExpenses": "OM 費用",
       "omSummary": "OM 總覽",
       "chargeOuts": "費用轉嫁",
+      "operatingCompanies": "營運公司",
       "users": "用戶管理",
       "currencies": "貨幣管理",
       "notifications": "通知",
@@ -168,6 +178,7 @@
       "omExpenses": "操作與維護費用管理",
       "omSummary": "O&M 費用總覽和分析",
       "chargeOuts": "ChargeOut 費用轉嫁管理",
+      "operatingCompanies": "營運公司管理",
       "users": "用戶帳號和權限",
       "currencies": "管理系統貨幣選項",
       "settings": "系統參數設定",
@@ -2770,5 +2781,78 @@
       "message": "您沒有權限訪問此頁面",
       "login": "登入"
     }
+  },
+  "operatingCompanies": {
+    "title": "營運公司",
+    "description": "管理系統中的營運公司",
+    "table": {
+      "code": "公司代碼",
+      "name": "公司名稱",
+      "description": "描述",
+      "status": "狀態",
+      "chargeOuts": "費用轉嫁數",
+      "omExpenses": "OM費用數",
+      "actions": "操作"
+    },
+    "status": {
+      "active": "啟用",
+      "inactive": "停用"
+    },
+    "form": {
+      "createTitle": "新增營運公司",
+      "createDescription": "建立新的營運公司",
+      "editTitle": "編輯營運公司",
+      "editDescription": "編輯 {name} 的資訊",
+      "code": {
+        "label": "公司代碼",
+        "placeholder": "如: OpCo-HK"
+      },
+      "name": {
+        "label": "公司名稱",
+        "placeholder": "如: Hong Kong Operations"
+      },
+      "description": {
+        "label": "描述",
+        "placeholder": "選填"
+      }
+    },
+    "actions": {
+      "create": "新增營運公司",
+      "edit": "編輯",
+      "delete": "刪除",
+      "activate": "啟用",
+      "deactivate": "停用"
+    },
+    "messages": {
+      "createSuccess": "營運公司建立成功",
+      "updateSuccess": "營運公司更新成功",
+      "deleteSuccess": "營運公司刪除成功",
+      "toggleSuccess": "狀態已更新",
+      "cannotDeleteWithRelations": "無法刪除：此營運公司已有關聯的費用轉嫁或 O&M 費用"
+    },
+    "dialogs": {
+      "activate": {
+        "title": "啟用營運公司",
+        "description": "確定要啟用「{name}」嗎？"
+      },
+      "deactivate": {
+        "title": "停用營運公司",
+        "description": "確定要停用「{name}」嗎？停用後將無法在新的費用轉嫁和 OM 費用中使用。"
+      },
+      "delete": {
+        "title": "刪除營運公司",
+        "description": "確定要刪除「{name}」嗎？此操作無法復原。"
+      }
+    },
+    "filters": {
+      "all": "全部",
+      "activeOnly": "僅啟用",
+      "inactiveOnly": "僅停用",
+      "search": "搜尋公司代碼或名稱"
+    },
+    "list": {
+      "noResults": "沒有找到符合條件的營運公司"
+    },
+    "empty": "尚無營運公司"
   }
 }

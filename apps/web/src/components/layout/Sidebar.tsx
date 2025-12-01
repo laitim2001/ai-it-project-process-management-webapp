@@ -59,6 +59,7 @@ import {
   FileText,
   Wallet,
   Building,
+  Building2,
   FileCheck,
   ShoppingCart,
   Receipt,
@@ -180,6 +181,12 @@ export function Sidebar() {
           href: "/users",
           icon: Users,
           description: t('descriptions.users')
+        },
+        {
+          name: t('menu.operatingCompanies'),
+          href: "/operating-companies",
+          icon: Building2,
+          description: t('descriptions.operatingCompanies')
         },
         {
           name: t('menu.currencies'),

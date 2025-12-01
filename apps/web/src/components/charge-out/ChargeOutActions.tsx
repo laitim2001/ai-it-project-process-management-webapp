@@ -28,7 +28,8 @@
  *
  * @example
  * ```tsx
- * // Draft 狀態顯示編輯、提交、刪除按鈕
+ * // Draft 狀態顯示編輯、提交
+ *、刪除按鈕
  * <ChargeOutActions
  *   chargeOut={{ id: '1', name: 'Q1 費用轉嫁', status: 'Draft' }}
  *   currentUserRole="ProjectManager"

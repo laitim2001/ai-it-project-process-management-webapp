@@ -259,17 +259,30 @@ export function OMSummaryDetailGrid({
                   ))
                 )}
 
-                {/* Category 總計 - 使用與表格相同的百分比寬度 */}
-                <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                  <div className="grid text-sm" style={{ gridTemplateColumns: '54% 13% 13% 10% 10%' }}>
-                    <span className="font-bold">{t('detailGrid.categoryTotal')}</span>
-                    <span className="text-right font-bold">{formatCurrency(categoryGroup.categoryTotal.currentYearBudget)}</span>
-                    <span className="text-right font-bold">{formatCurrency(categoryGroup.categoryTotal.previousYearActual)}</span>
-                    <span className={cn('text-right font-bold', getPercentColorClass(categoryGroup.categoryTotal.changePercent))}>
-                      {formatPercent(categoryGroup.categoryTotal.changePercent)}
-                    </span>
-                    <span className="text-right">-</span>
-                  </div>
+                {/* Category 總計 - 使用 Table 結構確保與 ItemTable 完全對齊 */}
+                <div className="mt-4">
+                  <Table className="table-fixed w-full">
+                    <colgroup>
+                      <col style={{ width: '5%' }} />
+                      <col style={{ width: '49%' }} />
+                      <col style={{ width: '13%' }} />
+                      <col style={{ width: '13%' }} />
+                      <col style={{ width: '10%' }} />
+                      <col style={{ width: '10%' }} />
+                    </colgroup>
+                    <TableBody>
+                      <TableRow className="bg-primary/10 hover:bg-primary/15">
+                        <TableCell></TableCell>
+                        <TableCell className="font-bold">{t('detailGrid.categoryTotal')}</TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(categoryGroup.categoryTotal.currentYearBudget)}</TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(categoryGroup.categoryTotal.previousYearActual)}</TableCell>
+                        <TableCell className={cn('text-right font-bold', getPercentColorClass(categoryGroup.categoryTotal.changePercent))}>
+                          {formatPercent(categoryGroup.categoryTotal.changePercent)}
+                        </TableCell>
+                        <TableCell className="text-right">-</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </AccordionContent>
