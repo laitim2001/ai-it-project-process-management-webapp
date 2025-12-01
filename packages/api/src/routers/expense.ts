@@ -105,16 +105,22 @@ const createExpenseSchema = z.object({
 
 /**
  * 更新費用 Schema (Module 5 - 支持明細)
+ * FIX: 新增 requiresChargeOut, isOperationMaint, purchaseOrderId 欄位支援
+ * 注意：projectId 不在 Expense model 中，是通過 purchaseOrder.projectId 間接關聯
  */
 const updateExpenseSchema = z.object({
   id: z.string().min(1, '無效的費用ID'),
   name: z.string().min(1).optional(),
   description: z.string().optional(),
+  purchaseOrderId: z.string().optional(), // FIX: 新增支援更新採購單
+  budgetCategoryId: z.string().optional(), // FIX: 新增支援更新預算類別
   vendorId: z.string().optional(),
   invoiceNumber: z.string().optional(),
   invoiceDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
   invoiceFilePath: z.string().optional(),
   expenseDate: z.date().or(z.string().transform((str) => new Date(str))).optional(),
+  requiresChargeOut: z.boolean().optional(), // FIX: 新增支援更新
+  isOperationMaint: z.boolean().optional(),  // FIX: 新增支援更新
   items: z.array(expenseItemSchema).optional(),
 });
 
@@ -445,16 +451,43 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
+      // FIX: 驗證新的採購單是否存在（如果要更新）
+      if (headerUpdate.purchaseOrderId && headerUpdate.purchaseOrderId !== existingExpense.purchaseOrderId) {
+        const newPurchaseOrder = await ctx.prisma.purchaseOrder.findUnique({
+          where: { id: headerUpdate.purchaseOrderId },
+        });
+        if (!newPurchaseOrder) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '找不到指定的採購單',
+          });
+        }
+      }
+
       return await ctx.prisma.$transaction(async (tx) => {
         // 準備表頭更新數據
         const updateData: any = {};
         if (headerUpdate.name) updateData.name = headerUpdate.name;
         if (headerUpdate.description !== undefined) updateData.description = headerUpdate.description;
+        // FIX: 支援更新採購單和預算類別
+        if (headerUpdate.purchaseOrderId) updateData.purchaseOrderId = headerUpdate.purchaseOrderId;
+        if (headerUpdate.budgetCategoryId !== undefined) updateData.budgetCategoryId = headerUpdate.budgetCategoryId || null;
         if (headerUpdate.vendorId) updateData.vendorId = headerUpdate.vendorId;
         if (headerUpdate.invoiceNumber) updateData.invoiceNumber = headerUpdate.invoiceNumber;
         if (headerUpdate.invoiceDate) updateData.invoiceDate = headerUpdate.invoiceDate;
         if (headerUpdate.invoiceFilePath !== undefined) updateData.invoiceFilePath = headerUpdate.invoiceFilePath;
         if (headerUpdate.expenseDate) updateData.expenseDate = headerUpdate.expenseDate;
+        // FIX: 支援更新 requiresChargeOut 和 isOperationMaint
+        if (headerUpdate.requiresChargeOut !== undefined) updateData.requiresChargeOut = headerUpdate.requiresChargeOut;
+        if (headerUpdate.isOperationMaint !== undefined) updateData.isOperationMaint = headerUpdate.isOperationMaint;
+
+        // FIX: 當 requiresChargeOut 從 true 變為 false 時，清除所有 ExpenseItem 的 chargeOutOpCoId
+        if (headerUpdate.requiresChargeOut === false && existingExpense.requiresChargeOut === true) {
+          await tx.expenseItem.updateMany({
+            where: { expenseId: id },
+            data: { chargeOutOpCoId: null },
+          });
+        }
 
         // 處理明細更新
         if (items) {

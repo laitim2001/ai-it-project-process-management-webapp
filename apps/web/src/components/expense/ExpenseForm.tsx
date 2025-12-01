@@ -163,20 +163,30 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   const { toast } = useToast();
 
   // ===== State Management =====
+  // 初始化費用明細項目，確保包含 chargeOutOpCoId
   const [items, setItems] = useState<ExpenseItemFormData[]>(
-    initialData?.items || [{ itemName: '', amount: 0, sortOrder: 0 }]
+    initialData?.items?.map((item: any) => ({
+      id: item.id,
+      itemName: item.itemName || '',
+      description: item.description || '',
+      amount: item.amount || 0,
+      category: item.category || '',
+      chargeOutOpCoId: item.chargeOutOpCoId || null, // CHANGE-002: 確保載入轉嫁目標
+      sortOrder: item.sortOrder || 0,
+    })) || [{ itemName: '', amount: 0, sortOrder: 0 }]
   );
 
   // ===== React Hook Form =====
+  // 注意：Expense model 沒有直接的 projectId，需要從 purchaseOrder.project.id 取得
   const form = useForm<FormValues>({
     resolver: zodResolver(getFormSchema(t)),
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
       purchaseOrderId: initialData?.purchaseOrderId || '',
-      projectId: initialData?.projectId || '',
+      projectId: initialData?.purchaseOrder?.project?.id || initialData?.projectId || '',
       budgetCategoryId: initialData?.budgetCategoryId || '',
-      vendorId: initialData?.vendorId || '',
+      vendorId: initialData?.vendor?.id || initialData?.vendorId || '',
       invoiceNumber: initialData?.invoiceNumber || '',
       invoiceDate: initialData?.invoiceDate
         ? new Date(initialData.invoiceDate).toISOString().split('T')[0]
@@ -184,8 +194,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
       expenseDate: initialData?.expenseDate
         ? new Date(initialData.expenseDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0],
-      requiresChargeOut: initialData?.requiresChargeOut || false,
-      isOperationMaint: initialData?.isOperationMaint || false,
+      requiresChargeOut: initialData?.requiresChargeOut ?? false,
+      isOperationMaint: initialData?.isOperationMaint ?? false,
     },
   });
 
@@ -536,7 +546,16 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          // FIX: 當取消選取 requiresChargeOut 時，清除所有項目的 chargeOutOpCoId
+                          if (!checked) {
+                            setItems(items.map(item => ({
+                              ...item,
+                              chargeOutOpCoId: null,
+                            })));
+                          }
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">

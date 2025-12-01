@@ -1759,8 +1759,8 @@
           "label": "費用日期"
         },
         "requiresChargeOut": {
-          "label": "需要從預算池扣款",
-          "description": "勾選此項表示此費用需要從專案預算池中扣除金額"
+          "label": "需要轉嫁費用 (ChargeOut)",
+          "description": "勾選此項後，可以在費用明細中選擇要轉嫁給哪個營運公司 (OpCo)"
         },
         "isOperationMaint": {
           "label": "維運費用",

@@ -1759,8 +1759,8 @@
           "label": "Expense Date"
         },
         "requiresChargeOut": {
-          "label": "Deduct from Budget Pool",
-          "description": "Check this if this expense needs to be deducted from the project budget pool"
+          "label": "Requires ChargeOut",
+          "description": "Check this to enable selecting which Operating Company (OpCo) to charge for each expense item"
         },
         "isOperationMaint": {
           "label": "Operation & Maintenance Expense",
