@@ -710,6 +710,13 @@ process:
 - [ ] 自動化驗證腳本全部通過
 - [ ] 手動功能測試完成
 - [ ] 企業帳號登入正常（Azure AD B2C）
+- [ ] **測試所有主要頁面**（不只是登入頁面）：
+  - [ ] /zh-TW/projects - 返回 200
+  - [ ] /zh-TW/users - 返回 200
+  - [ ] /zh-TW/budget-pools - 返回 200
+  - [ ] /zh-TW/om-expenses - 返回 200 ⚠️ Post-MVP 功能
+  - [ ] /zh-TW/om-summary - 返回 200 ⚠️ Post-MVP 功能
+  - [ ] /zh-TW/charge-outs - 返回 200 ⚠️ Post-MVP 功能
 - [ ] 監控數據開始收集
 - [ ] 日誌正常寫入
 - [ ] 告警規則已測試
@@ -810,6 +817,372 @@ curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/admin/seed"
 ```
 
 **參考文檔**: `azure/docs/DEPLOYMENT-TROUBLESHOOTING.md`
+
+---
+
+#### 🔴 問題 0.6: FEAT-001 Schema 不匹配（2025-12-02 重大發現）
+
+> ⚠️ **Critical Issue**：這是導致 `/projects` 頁面 500 錯誤的根本原因！
+
+**症狀**:
+
+```
+❌ /zh-TW/projects 頁面返回 500 Internal Server Error
+❌ API project.getAll 返回 500 錯誤
+❌ 容器日誌顯示 "column does not exist" 或 Prisma 查詢錯誤
+❌ 其他頁面（如 /users）可以正常訪問
+```
+
+**根本原因**:
+
+```yaml
+root_cause_chain:
+  1. schema.prisma 定義了 FEAT-001 新欄位（projectCode, globalFlag, priority）
+  2. 但 migration SQL 只添加了 currencyId 欄位
+  3. 資料庫中 Project 表缺少 3 個必填欄位
+  4. Prisma Client 查詢時嘗試 SELECT 不存在的欄位
+  5. PostgreSQL 返回 "column does not exist" 錯誤
+  6. tRPC 將錯誤轉換為 500 Internal Server Error
+
+schema_vs_migration:
+  schema.prisma 定義:
+    - projectCode String @unique  # 必填
+    - globalFlag String @default("Region")  # 必填
+    - priority String @default("Medium")  # 必填
+    - currencyId String?  # 可選
+
+  migration 20251126100000_add_currency 只添加:
+    - currencyId TEXT  # ✅ 已添加
+    # ❌ projectCode 未添加
+    # ❌ globalFlag 未添加
+    # ❌ priority 未添加
+```
+
+**快速診斷**:
+
+```bash
+# 1. 檢查 migrations 目錄中的 SQL 是否包含所有 FEAT-001 欄位
+cat packages/db/prisma/migrations/*/migration.sql | grep -E "projectCode|globalFlag|priority"
+# 如果沒有結果，說明 migration 缺少這些欄位！
+
+# 2. 直接測試 API（需要先登入獲取 session）
+curl -s "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/project.getAll" \
+  -H "Cookie: <your-session-cookie>"
+# 如果返回 500，而 user.getAll 返回 200，說明是 Project 表問題
+
+# 3. 比較 schema.prisma 和 migration SQL
+# schema.prisma 中 Project model 的欄位 vs migration SQL 中 ALTER TABLE "Project" 的欄位
+```
+
+**解決方案**:
+
+**步驟 1: 創建補充 migration SQL**
+
+```bash
+# 創建新的 migration 目錄
+mkdir -p packages/db/prisma/migrations/20251202100000_add_feat001_project_fields
+
+# 創建 migration.sql 文件
+```
+
+**步驟 2: 添加 migration SQL 內容**
+
+```sql
+-- 20251202100000_add_feat001_project_fields/migration.sql
+-- FEAT-001: 添加缺失的 Project 欄位
+
+-- 添加欄位（先設為 nullable 以支援現有資料）
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCode" TEXT;
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "globalFlag" TEXT DEFAULT 'Region';
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "priority" TEXT DEFAULT 'Medium';
+
+-- 為現有記錄生成臨時 projectCode（使用 UUID 前 8 位）
+UPDATE "Project" SET "projectCode" = 'PRJ-' || SUBSTRING(id::text, 1, 8) WHERE "projectCode" IS NULL;
+
+-- 設置 NOT NULL 約束
+ALTER TABLE "Project" ALTER COLUMN "projectCode" SET NOT NULL;
+ALTER TABLE "Project" ALTER COLUMN "globalFlag" SET NOT NULL;
+ALTER TABLE "Project" ALTER COLUMN "priority" SET NOT NULL;
+
+-- 添加唯一約束
+CREATE UNIQUE INDEX IF NOT EXISTS "Project_projectCode_key" ON "Project"("projectCode");
+
+-- 添加索引
+CREATE INDEX IF NOT EXISTS "Project_projectCode_idx" ON "Project"("projectCode");
+CREATE INDEX IF NOT EXISTS "Project_globalFlag_idx" ON "Project"("globalFlag");
+CREATE INDEX IF NOT EXISTS "Project_priority_idx" ON "Project"("priority");
+```
+
+**步驟 3: 重建並部署 Docker image**
+
+```bash
+# 重建 Docker image
+docker build -f docker/Dockerfile -t acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001 .
+
+# 驗證 migrations 存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001 \
+  ls -la /app/packages/db/prisma/migrations/
+# 應該看到新的 20251202100000_add_feat001_project_fields/ 目錄
+
+# 推送到 ACR
+docker push acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001
+
+# 更新 App Service 配置
+az webapp config container set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --docker-custom-image-name acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001
+
+# 重啟 App Service
+az webapp restart --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+```
+
+**步驟 4: 驗證修復**
+
+```bash
+# 等待 2-3 分鐘讓容器啟動和 migration 執行
+# 查看日誌確認 migration 成功
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N | grep -i "migration"
+# 應該看到 "Applying migration 20251202100000_add_feat001_project_fields"
+
+# 測試 /projects 頁面
+curl -s -o /dev/null -w "%{http_code}" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/projects"
+# 應該返回 200 或 302（重定向到登入）
+```
+
+**預防措施**:
+
+```yaml
+prevention_checklist:
+  開發階段:
+    - [ ] 每次修改 schema.prisma 後，必須創建對應的 migration
+    - [ ] 使用 `pnpm db:migrate` 而非手動修改 migration SQL
+    - [ ] 確保 migration SQL 包含所有 schema 變更
+
+  部署前:
+    - [ ] 比較 schema.prisma 和所有 migration SQL 的欄位一致性
+    - [ ] 在本地開發環境先測試 migration
+    - [ ] 驗證 Docker image 中的 migrations 完整性
+
+  CI/CD:
+    - [ ] 添加 schema-migration 一致性檢查步驟
+    - [ ] 在部署前驗證資料庫 schema 狀態
+```
+
+**詳細參考**: 本文件「問題 0.5」章節（Currency 表缺失問題）類似案例
+
+---
+
+#### 🔴 問題 0.7: Post-MVP 表格缺失（2025-12-02 重大發現）
+
+> ⚠️ **Critical Issue**：這是導致 `/om-expenses` 和 `/om-summary` 頁面 500 錯誤的根本原因！
+
+**症狀**:
+
+```
+❌ /zh-TW/om-expenses 頁面返回 500 Internal Server Error
+❌ /zh-TW/om-summary 頁面返回 500 Internal Server Error
+❌ API omExpense.getCategories 返回 500 錯誤
+❌ API omExpense.getAll 返回 500 錯誤
+❌ 其他頁面（如 /projects、/users、/login）可以正常訪問
+```
+
+**根本原因**:
+
+```yaml
+root_cause_chain:
+  1. schema.prisma 定義了 Post-MVP 新表格（ExpenseCategory, OperatingCompany, OMExpense 等）
+  2. 但 Azure 資料庫中這些表格不存在（僅有 MVP 階段的表格）
+  3. omExpense.getCategories API 查詢 ExpenseCategory 表
+  4. PostgreSQL 返回 "relation ExpenseCategory does not exist" 錯誤
+  5. tRPC 將錯誤轉換為 500 Internal Server Error
+
+missing_tables:
+  Post-MVP 表格（8個）:
+    - ExpenseCategory  # ❌ 缺失 - 導致 om-expenses 500
+    - OperatingCompany  # ❌ 缺失
+    - OMExpense  # ❌ 缺失
+    - OMExpenseMonthly  # ❌ 缺失
+    - ChargeOut  # ❌ 缺失
+    - ChargeOutItem  # ❌ 缺失
+    - PurchaseOrderItem  # ❌ 缺失
+    - ExpenseItem  # ❌ 缺失
+
+why_only_om_pages_affected:
+  - ExpenseCategory 是 om-expenses 頁面的核心依賴
+  - 其他頁面使用的是 MVP 階段已存在的表格
+  - /projects、/users 等頁面不依賴 Post-MVP 表格
+```
+
+**快速診斷**:
+
+```bash
+# 1. 確認問題範圍 - 測試不同頁面
+curl -s -o /dev/null -w "%{http_code}" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/projects"
+# 應該返回 200
+
+curl -s -o /dev/null -w "%{http_code}" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-expenses"
+# 如果返回 500，說明是 Post-MVP 表格問題
+
+# 2. 檢查 migrations 是否包含 Post-MVP 表格
+cat packages/db/prisma/migrations/*/migration.sql | grep -E "ExpenseCategory|OperatingCompany|OMExpense"
+# 如果沒有輸出，說明 migration 缺少這些表格
+
+# 3. 檢查 schema.prisma 中的 Post-MVP models
+grep -E "^model (ExpenseCategory|OperatingCompany|OMExpense)" packages/db/prisma/schema.prisma
+# 應該看到這些 model 定義
+
+# 4. 查看容器日誌中的錯誤詳情
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N 2>&1 | grep -i "error\|relation\|does not exist"
+```
+
+**解決方案**:
+
+**步驟 1: 創建 Post-MVP 表格 migration**
+
+```bash
+# 創建新的 migration 目錄
+mkdir -p packages/db/prisma/migrations/20251202110000_add_postmvp_tables
+```
+
+**步驟 2: 創建 idempotent migration SQL**
+
+```sql
+-- 20251202110000_add_postmvp_tables/migration.sql
+-- Post-MVP: 添加缺失的表格（使用 IF NOT EXISTS 確保冪等性）
+
+-- 1. ExpenseCategory 表（費用類別）
+CREATE TABLE IF NOT EXISTS "ExpenseCategory" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ExpenseCategory_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ExpenseCategory_code_key" ON "ExpenseCategory"("code");
+
+-- 2. OperatingCompany 表（營運公司）
+CREATE TABLE IF NOT EXISTS "OperatingCompany" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "OperatingCompany_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "OperatingCompany_code_key" ON "OperatingCompany"("code");
+
+-- 3-8. 其他 Post-MVP 表格...
+-- （完整 SQL 參見 packages/db/prisma/migrations/20251202110000_add_postmvp_tables/migration.sql）
+
+-- Seed 基礎數據
+INSERT INTO "ExpenseCategory" ("id", "code", "name", "description", "sortOrder")
+VALUES
+  (gen_random_uuid()::text, 'HW', '硬體', '硬體設備、伺服器、工作站等', 1),
+  (gen_random_uuid()::text, 'SW', '軟體', '軟體授權、應用程式購買', 2),
+  -- ... 其他類別
+ON CONFLICT ("code") DO NOTHING;
+```
+
+**步驟 3: 重建並部署 Docker image**
+
+```bash
+# 重建 Docker image
+docker build -f docker/Dockerfile -t acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables .
+
+# 驗證 migrations 存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables \
+  ls -la /app/packages/db/prisma/migrations/
+# 應該看到新的 20251202110000_add_postmvp_tables/ 目錄
+
+# 推送到 ACR
+az acr login --name acritpmcompany
+docker push acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables
+
+# 更新 App Service 配置
+az webapp config container set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --container-image-name acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables
+
+# 重啟 App Service
+az webapp restart --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+```
+
+**步驟 4: 驗證修復**
+
+```bash
+# 等待容器重啟（2-3 分鐘）
+sleep 180
+
+# 查看日誌確認 migration 執行
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N 2>&1 | grep -i "migration"
+# 應該看到 "Applying migration 20251202110000_add_postmvp_tables"
+
+# 測試 /om-expenses 頁面
+curl -s -o /dev/null -w "%{http_code}" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-expenses"
+# 應該返回 200
+
+# 測試 /om-summary 頁面
+curl -s -o /dev/null -w "%{http_code}" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-summary"
+# 應該返回 200
+```
+
+**預防措施**:
+
+```yaml
+prevention_checklist:
+  開發階段:
+    - [ ] 每次添加新功能（Epic/Feature）時，確保創建完整的 migration
+    - [ ] 使用 `pnpm db:migrate` 自動生成 migration，不要手動創建
+    - [ ] 在 PR 中確認 schema.prisma 變更有對應的 migration SQL
+
+  部署前驗證:
+    - [ ] 比較 schema.prisma 中的 model 數量和 migration 中的 CREATE TABLE 數量
+    - [ ] 驗證所有 Post-MVP 表格都有對應的 migration
+    - [ ] 在本地 Docker 環境先測試完整部署流程
+    - [ ] 測試所有核心頁面（不只是登入頁面）
+
+  CI/CD 強化:
+    - name: Validate all models have migrations
+      run: |
+        # 檢查 schema.prisma 中的所有 model 是否都有對應的 CREATE TABLE
+        SCHEMA_MODELS=$(grep "^model " packages/db/prisma/schema.prisma | wc -l)
+        MIGRATION_TABLES=$(grep "CREATE TABLE" packages/db/prisma/migrations/*/migration.sql | wc -l)
+        echo "Schema models: $SCHEMA_MODELS, Migration tables: $MIGRATION_TABLES"
+        # 如果數量不匹配，發出警告
+
+  部署後驗證:
+    - [ ] 測試所有主要頁面（projects, users, om-expenses, om-summary 等）
+    - [ ] 不能只測試登入頁面就認為部署成功
+    - [ ] 使用自動化腳本測試所有 API 端點
+```
+
+**關鍵學習**:
+
+```yaml
+key_insights:
+  1. 部分頁面正常不代表部署完全成功:
+    - 只有訪問使用缺失表格的頁面才會出錯
+    - 登入、用戶管理等基礎功能可能正常
+    - 必須測試所有功能模組
+
+  2. Migration 必須覆蓋所有 schema 變更:
+    - 每個 schema.prisma 中的 model 都需要對應的 CREATE TABLE
+    - 每個新增欄位都需要對應的 ALTER TABLE
+    - 使用 IF NOT EXISTS 確保 migration 冪等性
+
+  3. Idempotent migration 很重要:
+    - 使用 CREATE TABLE IF NOT EXISTS
+    - 使用 CREATE INDEX IF NOT EXISTS
+    - 使用 ON CONFLICT DO NOTHING 處理 seed 數據
+    - 允許 migration 重複執行而不出錯
+```
 
 ---
 
@@ -1052,11 +1425,22 @@ az acr repository show-tags --name acritpmcompany --repository itpm-web
 
 ---
 
-**版本**: 1.3.0 **最後更新**: 2025-11-26 **維護者**: DevOps Team + Azure Administrator
+**版本**: 1.5.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
 **適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境）
 
 **更新記錄**:
 
+- v1.5.0 (2025-12-03): **重大更新** - 添加 Post-MVP 表格缺失問題
+  - 添加「問題 0.7: Post-MVP 表格缺失」- Azure 資料庫缺少 ExpenseCategory 等 8 個 Post-MVP 表格
+  - 記錄 /om-expenses 和 /om-summary 頁面 500 錯誤的案例
+  - 強調「部分頁面正常不代表部署完全成功」的關鍵學習
+  - 添加 idempotent migration SQL 範例和最佳實踐
+  - 更新部署後驗證清單，要求測試所有主要頁面
+- v1.4.0 (2025-12-02): **重大更新** - 添加 FEAT-001 Schema 不匹配問題
+  - 添加「問題 0.6: FEAT-001 Schema 不匹配」- schema.prisma 與 migration SQL 欄位不一致問題
+  - 記錄 projectCode, globalFlag, priority 欄位缺失導致 /projects 500 錯誤的案例
+  - 提供完整的診斷步驟和 migration SQL 修復方案
+  - 更新預防措施檢查清單
 - v1.3.0 (2025-11-26): **重大更新** - startup.sh 現在自動執行 Seed，解決每次部署後需手動 Seed 的問題
   - 修改 `docker/startup.sh` 添加自動 Seed 邏輯
   - Seed 使用 upsert 確保冪等性

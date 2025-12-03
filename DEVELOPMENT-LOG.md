@@ -20,6 +20,57 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-03 | 🔧 修復 Azure 公司環境 Post-MVP 表格缺失問題 | 完成 ✅
+
+**類型**: 修復 + 部署 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+Azure 公司環境上的 `/zh-TW/om-expenses` 和 `/zh-TW/om-summary` 頁面返回 HTTP 500 錯誤。
+診斷後發現是 Azure 資料庫缺少 Post-MVP 階段的表格（ExpenseCategory, OperatingCompany 等 8 個表格）。
+
+**根本原因**:
+1. schema.prisma 定義了 Post-MVP 新表格，但 Azure 資料庫中這些表格不存在
+2. `omExpense.getCategories` API 查詢 `ExpenseCategory` 表時失敗
+3. PostgreSQL 返回 "relation ExpenseCategory does not exist" 錯誤
+
+**主要變更**:
+
+1. **創建 Idempotent Migration SQL**
+   - 新增 `packages/db/prisma/migrations/20251202110000_add_postmvp_tables/migration.sql`
+   - 使用 `CREATE TABLE IF NOT EXISTS` 確保冪等性
+   - 包含 8 個 Post-MVP 表格和 seed 數據
+
+2. **重建並部署 Docker Image**
+   - 新 Image Tag: `v8-postmvp-tables`
+   - 推送到 ACR: `acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables`
+   - 更新 Azure App Service 容器配置
+   - 重啟 App Service
+
+3. **更新文檔** (預防措施)
+   - `SITUATION-7-AZURE-DEPLOY-COMPANY.md` (v1.5.0): 添加「問題 0.7: Post-MVP 表格缺失」章節
+   - `SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md` (v1.4.0): 添加「問題 0.2: Post-MVP 表格缺失」診斷章節
+   - 更新部署檢查清單，要求測試所有主要頁面
+   - 添加 idempotent migration 最佳實踐
+
+**驗證結果**:
+| 頁面 | 修復前 | 修復後 |
+|------|--------|--------|
+| `/zh-TW/om-expenses` | ❌ HTTP 500 | ✅ HTTP 200 |
+| `/zh-TW/om-summary` | ❌ HTTP 500 | ✅ HTTP 200 |
+| `/zh-TW/projects` | ✅ HTTP 200 | ✅ HTTP 200 |
+| `/zh-TW/login` | ✅ HTTP 200 | ✅ HTTP 200 |
+
+**關鍵學習**:
+- 部分頁面正常不代表部署完全成功（必須測試所有主要頁面）
+- Migration 必須覆蓋所有 schema.prisma 變更
+- 使用 `IF NOT EXISTS` 確保 migration 可重複執行
+
+**修改的文件** (2 個):
+- `claudedocs/6-ai-assistant/prompts/SITUATION-7-AZURE-DEPLOY-COMPANY.md`
+- `claudedocs/6-ai-assistant/prompts/SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md`
+
+---
+
 ### 2025-12-02 | 🔧 修復 TypeScript 和 ESLint 錯誤 + 資料遷移 | 完成 ✅
 
 **類型**: 修復 + 資料遷移 | **負責人**: AI 助手 | **狀態**: ✅ 完成

@@ -136,8 +136,9 @@ RUN node -e "try { require('@prisma/client'); console.log('âœ… @prisma/client æ¨
 RUN chown -R nextjs:nodejs /app/node_modules 2>/dev/null || true
 
 # Copy startup script that runs migrations before starting the app
+# Note: Use sed to convert Windows CRLF to Unix LF (prevents "not found" error on Alpine)
 COPY --chown=nextjs:nodejs docker/startup.sh /app/startup.sh
-RUN chmod +x /app/startup.sh
+RUN sed -i 's/\r$//' /app/startup.sh && chmod +x /app/startup.sh
 
 # Switch to non-root user
 USER nextjs

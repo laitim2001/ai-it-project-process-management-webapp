@@ -224,6 +224,335 @@ recommended_ci_check:
 
 ---
 
+### 🔴 問題 0.1: FEAT-001 Schema 不匹配 - Project 欄位缺失（2025-12-02 發現）
+
+> ⚠️ **高頻致命問題**：schema.prisma 定義了新欄位但 migration 未包含，導致特定頁面 500 錯誤！
+
+#### 症狀
+
+```
+❌ /zh-TW/projects 頁面返回 500 Internal Server Error
+❌ API project.getAll 返回 500 錯誤
+❌ 其他頁面（如 /users、/dashboard）可以正常訪問
+❌ 登入功能正常，僅特定 API 出錯
+❌ 容器日誌可能顯示 Prisma 查詢錯誤或 "column does not exist"
+```
+
+#### 根本原因分析
+
+```yaml
+root_cause_chain:
+  level_1: schema.prisma 中 Project model 定義了 FEAT-001 新欄位
+  level_2: 現有的 migration SQL 只添加了 currencyId，缺少其他 3 個欄位
+  level_3: 資料庫 Project 表缺少 projectCode, globalFlag, priority 欄位
+  level_4: Prisma Client 生成的 SQL 嘗試 SELECT 不存在的欄位
+  level_5: PostgreSQL 返回 "column projectCode does not exist" 錯誤
+  level_6: tRPC 將錯誤包裝為 500 Internal Server Error
+
+schema_mismatch_details:
+  schema.prisma_Project_model:
+    - projectCode String @unique  # 必填，缺失 ❌
+    - globalFlag String @default("Region")  # 必填，缺失 ❌
+    - priority String @default("Medium")  # 必填，缺失 ❌
+    - currencyId String?  # 可選，已存在 ✅
+
+  migration_20251126100000_add_currency:
+    - ALTER TABLE "Project" ADD COLUMN "currencyId" TEXT  # ✅ 已添加
+    # projectCode, globalFlag, priority 都未添加！
+
+why_only_projects_affected:
+  - User 表沒有新增欄位，所以 /users 正常
+  - Dashboard 可能只用聚合查詢，不涉及缺失欄位
+  - Project 相關 API 都會觸發完整 SELECT，包含缺失欄位
+```
+
+#### 快速診斷
+
+```bash
+# 1. 確認問題範圍 - 比較不同 API 的響應
+# 測試 user.getAll（應該成功）
+curl -s "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/user.getAll" \
+  -H "Cookie: <your-session-cookie>" | head -c 200
+
+# 測試 project.getAll（應該失敗）
+curl -s "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/project.getAll" \
+  -H "Cookie: <your-session-cookie>" | head -c 200
+
+# 2. 檢查 migrations 是否包含 FEAT-001 欄位
+cat packages/db/prisma/migrations/*/migration.sql | grep -E "projectCode|globalFlag|priority"
+# 如果沒有輸出，說明 migration 缺少這些欄位
+
+# 3. 檢查 schema.prisma 中 Project model 的 FEAT-001 欄位
+grep -A 5 "FEAT-001" packages/db/prisma/schema.prisma
+# 應該看到 projectCode, globalFlag, priority, currencyId
+
+# 4. 查看容器日誌中的錯誤詳情
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N 2>&1 | grep -i "error\|column\|prisma"
+```
+
+#### 解決方案
+
+**方案 A: 創建補充 migration（推薦）**
+
+```bash
+# 1. 創建新的 migration 目錄
+mkdir -p packages/db/prisma/migrations/20251202100000_add_feat001_project_fields
+
+# 2. 創建 migration.sql
+cat > packages/db/prisma/migrations/20251202100000_add_feat001_project_fields/migration.sql << 'EOF'
+-- FEAT-001: 添加缺失的 Project 欄位 (projectCode, globalFlag, priority)
+
+-- 添加欄位（先設為 nullable 以支援現有資料）
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCode" TEXT;
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "globalFlag" TEXT DEFAULT 'Region';
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "priority" TEXT DEFAULT 'Medium';
+
+-- 為現有記錄生成臨時 projectCode（使用 UUID 前 8 位）
+UPDATE "Project" SET "projectCode" = 'PRJ-' || SUBSTRING(id::text, 1, 8) WHERE "projectCode" IS NULL;
+
+-- 設置 NOT NULL 約束
+ALTER TABLE "Project" ALTER COLUMN "projectCode" SET NOT NULL;
+ALTER TABLE "Project" ALTER COLUMN "globalFlag" SET NOT NULL;
+ALTER TABLE "Project" ALTER COLUMN "priority" SET NOT NULL;
+
+-- 添加唯一約束
+CREATE UNIQUE INDEX IF NOT EXISTS "Project_projectCode_key" ON "Project"("projectCode");
+
+-- 添加索引
+CREATE INDEX IF NOT EXISTS "Project_projectCode_idx" ON "Project"("projectCode");
+CREATE INDEX IF NOT EXISTS "Project_globalFlag_idx" ON "Project"("globalFlag");
+CREATE INDEX IF NOT EXISTS "Project_priority_idx" ON "Project"("priority");
+EOF
+
+# 3. 重建 Docker image
+docker build -f docker/Dockerfile -t acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001 .
+
+# 4. 驗證 migration 存在於 image 中
+docker run --rm acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001 \
+  ls -la /app/packages/db/prisma/migrations/
+
+# 5. 推送並部署
+docker push acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001
+az webapp config container set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --docker-custom-image-name acritpmcompany.azurecr.io/itpm-web:v7-fix-feat001
+az webapp restart --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+```
+
+**方案 B: 直接執行 SQL（緊急修復）**
+
+```bash
+# 如果需要緊急修復且無法重新部署，可以直接連接資料庫執行 SQL
+# 需要 Azure PostgreSQL 訪問權限
+
+# 使用 psql 或 Azure Data Studio 連接
+psql "postgresql://itpmadmin:password@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require"
+
+# 執行 SQL（同上面的 migration.sql 內容）
+```
+
+#### 驗證修復
+
+```bash
+# 1. 等待容器重啟（2-3 分鐘）
+sleep 180
+
+# 2. 查看日誌確認 migration 執行
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N 2>&1 | grep -i "migration"
+# 應該看到 "Applying migration 20251202100000_add_feat001_project_fields"
+
+# 3. 測試 /projects 頁面
+curl -s -o /dev/null -w "%{http_code}" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/projects"
+# 應該返回 200 或 302（未登入時重定向）
+
+# 4. 測試 API
+curl -s "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/project.getAll" \
+  -H "Cookie: <your-session-cookie>"
+# 應該返回 JSON 數據，而非 500 錯誤
+```
+
+#### 預防措施
+
+```yaml
+prevention_checklist:
+  開發流程:
+    - [ ] 每次修改 schema.prisma 後，執行 `pnpm db:migrate` 創建 migration
+    - [ ] 不要手動修改 schema.prisma 而跳過 migration
+    - [ ] 在 PR 中確認 schema 變更有對應的 migration
+
+  部署前驗證:
+    - [ ] 比較 schema.prisma 欄位和 migration SQL 的一致性
+    - [ ] 在本地 Docker 環境測試完整部署流程
+    - [ ] 驗證所有核心 API 端點（project, user, budget 等）
+
+  CI/CD 強化:
+    - name: Validate schema-migration consistency
+      run: |
+        # 檢查 schema.prisma 中的 model 欄位是否都有對應的 migration
+        # 這個腳本需要自行實現
+        pnpm prisma migrate diff --from-empty --to-schema-datamodel=./packages/db/prisma/schema.prisma
+```
+
+---
+
+### 🔴 問題 0.2: Post-MVP 表格缺失（2025-12-03 發現）
+
+> ⚠️ **高頻致命問題**：Azure 資料庫缺少 Post-MVP 階段的表格，導致特定功能頁面 500 錯誤！
+
+#### 症狀
+
+```
+❌ /zh-TW/om-expenses 頁面返回 500 Internal Server Error
+❌ /zh-TW/om-summary 頁面返回 500 Internal Server Error
+❌ /zh-TW/charge-outs 頁面返回 500 Internal Server Error
+❌ API omExpense.getCategories、omExpense.getAll 返回 500 錯誤
+❌ 其他頁面（如 /projects、/users、/login）可以正常訪問
+❌ 登入功能正常，僅特定 Post-MVP 功能出錯
+```
+
+#### 根本原因分析
+
+```yaml
+root_cause_chain:
+  level_1: schema.prisma 定義了 Post-MVP 新表格（共 8 個）
+  level_2: 但這些 migration 可能未被執行或資料庫中缺少這些表格
+  level_3: Azure 資料庫只有 MVP 階段的表格
+  level_4: omExpense.getCategories API 查詢 ExpenseCategory 表
+  level_5: PostgreSQL 返回 "relation ExpenseCategory does not exist" 錯誤
+  level_6: tRPC 將錯誤包裝為 500 Internal Server Error
+
+missing_postmvp_tables:
+  - ExpenseCategory  # 費用類別 - om-expenses 核心依賴
+  - OperatingCompany  # 營運公司
+  - OMExpense  # 營運費用
+  - OMExpenseMonthly  # 月度營運費用
+  - ChargeOut  # 費用分攤
+  - ChargeOutItem  # 分攤明細
+  - PurchaseOrderItem  # 採購單明細
+  - ExpenseItem  # 費用明細
+
+why_specific_pages_fail:
+  - /om-expenses 依賴 ExpenseCategory 表 → 表不存在 → 500
+  - /om-summary 依賴 OMExpense 和 ExpenseCategory 表 → 500
+  - /projects 使用 MVP 階段的 Project 表 → 正常
+  - /users 使用 MVP 階段的 User 表 → 正常
+```
+
+#### 快速診斷
+
+```bash
+# 1. 確認問題範圍 - 測試 MVP vs Post-MVP 頁面
+echo "=== MVP 頁面（應該正常）==="
+curl -s -o /dev/null -w "projects: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/projects"
+curl -s -o /dev/null -w "users: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/users"
+
+echo "=== Post-MVP 頁面（可能 500）==="
+curl -s -o /dev/null -w "om-expenses: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-expenses"
+curl -s -o /dev/null -w "om-summary: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-summary"
+curl -s -o /dev/null -w "charge-outs: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/charge-outs"
+
+# 2. 檢查 migrations 是否包含 Post-MVP 表格
+echo "=== 檢查 migration SQL ==="
+cat packages/db/prisma/migrations/*/migration.sql | grep -E "CREATE TABLE.*ExpenseCategory|CREATE TABLE.*OperatingCompany|CREATE TABLE.*OMExpense"
+# 如果沒有輸出，說明 migration 缺少這些表格
+
+# 3. 統計 schema.prisma 中的 model 數量 vs migration 中的 CREATE TABLE 數量
+echo "=== Schema vs Migration 表格數量 ==="
+SCHEMA_MODELS=$(grep "^model " packages/db/prisma/schema.prisma | wc -l)
+MIGRATION_TABLES=$(grep -E "CREATE TABLE" packages/db/prisma/migrations/*/migration.sql | wc -l)
+echo "Schema models: $SCHEMA_MODELS"
+echo "Migration CREATE TABLE: $MIGRATION_TABLES"
+# 如果 SCHEMA_MODELS > MIGRATION_TABLES，說明有表格缺失
+
+# 4. 查看容器日誌中的錯誤
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N 2>&1 | grep -i "relation.*does not exist\|error"
+```
+
+#### 解決方案
+
+**方案 A: 創建 Post-MVP 表格 migration（推薦）**
+
+```bash
+# 1. 創建新的 migration 目錄
+mkdir -p packages/db/prisma/migrations/20251202110000_add_postmvp_tables
+
+# 2. 創建 idempotent migration SQL
+# 參見 SITUATION-7-AZURE-DEPLOY-COMPANY.md「問題 0.7」章節的完整 SQL
+
+# 3. 重建並部署 Docker image
+docker build -f docker/Dockerfile -t acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables .
+
+# 4. 驗證 migration 存在於 image 中
+docker run --rm acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables \
+  ls -la /app/packages/db/prisma/migrations/
+
+# 5. 推送並部署
+az acr login --name acritpmcompany
+docker push acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables
+
+az webapp config container set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --container-image-name acritpmcompany.azurecr.io/itpm-web:v8-postmvp-tables
+
+az webapp restart --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N
+```
+
+**方案 B: 直接執行 SQL（緊急修復）**
+
+```bash
+# 如果需要緊急修復，可以直接連接資料庫執行 SQL
+# 使用 psql 或 Azure Data Studio 連接
+psql "postgresql://itpmadmin:password@psql-itpm-company-dev-001.postgres.database.azure.com:5432/itpm_dev?sslmode=require"
+
+# 執行 CREATE TABLE IF NOT EXISTS 語句（參見完整 migration SQL）
+```
+
+#### 驗證修復
+
+```bash
+# 1. 等待容器重啟（2-3 分鐘）
+sleep 180
+
+# 2. 查看日誌確認 migration 執行
+az webapp log tail --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N 2>&1 | grep -i "migration"
+
+# 3. 測試所有 Post-MVP 頁面
+echo "=== 驗證 Post-MVP 頁面修復 ==="
+curl -s -o /dev/null -w "om-expenses: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-expenses"
+curl -s -o /dev/null -w "om-summary: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/om-summary"
+curl -s -o /dev/null -w "charge-outs: %{http_code}\n" "https://app-itpm-company-dev-001.azurewebsites.net/zh-TW/charge-outs"
+# 所有頁面應該返回 200
+```
+
+#### 預防措施
+
+```yaml
+prevention_checklist:
+  部署前必檢:
+    - [ ] 比較 schema.prisma model 數量和 migration CREATE TABLE 數量
+    - [ ] 確保所有 Post-MVP 表格都有對應的 migration SQL
+    - [ ] 在本地 Docker 環境先測試完整部署流程
+
+  部署後必檢:
+    - [ ] 不能只測試登入頁面就認為部署成功
+    - [ ] 必須測試所有主要功能頁面：
+        - /projects、/users（MVP）
+        - /om-expenses、/om-summary、/charge-outs（Post-MVP）
+    - [ ] 使用自動化腳本測試所有頁面 HTTP 狀態碼
+
+  Idempotent migration 最佳實踐:
+    - 使用 CREATE TABLE IF NOT EXISTS
+    - 使用 CREATE INDEX IF NOT EXISTS
+    - 使用 ON CONFLICT DO NOTHING 處理 seed 數據
+    - 允許 migration 重複執行而不出錯
+```
+
+**詳細參考**: SITUATION-7-AZURE-DEPLOY-COMPANY.md「問題 0.7」章節
+
+---
+
 ### 問題 0.5: Migration SQL 檔案缺失（Currency 表不存在）
 
 > ⚠️ **次要問題**：當 schema.prisma 有新 model 但沒有對應 migration 時發生
@@ -1122,6 +1451,8 @@ post_mortem_meeting:
 | 問題                              | 嚴重性   | 解決時間 | 解決方案                  |
 | --------------------------------- | -------- | -------- | ------------------------- |
 | **.dockerignore 排除 migrations** | **致命** | ~3 小時  | 註解 `**/migrations` 規則 |
+| **FEAT-001 Schema 不匹配**        | **致命** | ~2 小時  | 創建補充 migration SQL    |
+| **Post-MVP 表格缺失**             | **致命** | ~1 小時  | 創建 idempotent migration |
 | **Currency migration 缺失**       | **高**   | ~1 小時  | 創建新 migration SQL      |
 | Prisma 建置初始化                 | 高       | ~2 小時  | Proxy lazy loading        |
 | Key Vault 權限不足                | 中       | ~30 分鐘 | 改用 App Settings         |
@@ -1137,6 +1468,20 @@ lessons_learned:
     - '**/migrations 規則會導致所有 migration 被排除'
     - '容器中沒有 migrations = 資料庫無法初始化'
     - "日誌顯示 'No migration found' 是明顯指標"
+
+  0.1_schema_migration_mismatch:
+    - 'schema.prisma 和 migration SQL 必須保持一致'
+    - '特定頁面 500 錯誤而其他頁面正常 = 可能是該 model 的欄位缺失'
+    - '檢查方法: grep migration SQL 是否包含 schema.prisma 中的所有欄位'
+    - 'FEAT-001 等功能開發時，必須同時創建完整的 migration'
+    - '部署前應驗證所有核心 API 端點，不只是登入頁面'
+
+  0.2_postmvp_tables_missing:
+    - '部分頁面正常不代表部署完全成功'
+    - 'Post-MVP 功能（om-expenses、om-summary、charge-outs）有獨立的表格依賴'
+    - '必須測試所有主要頁面，不能只測試登入頁面'
+    - '使用 idempotent migration（IF NOT EXISTS）確保可重複執行'
+    - '比較 schema.prisma model 數量和 migration CREATE TABLE 數量'
 
   0.5_migration_completeness:
     - 'schema.prisma 新增 model 必須有對應 migration'
@@ -1184,6 +1529,20 @@ troubleshooting_order:
     - 查看日誌確認 "X migrations found"
     - 詳見「問題 0」章節
 
+  0.1. Schema-Migration 不匹配（特定頁面 500 錯誤）:
+    - 症狀: 某些頁面 500，其他頁面正常
+    - 檢查: schema.prisma 欄位 vs migration SQL 欄位
+    - 命令: grep "projectCode\|globalFlag\|priority" migrations/*/migration.sql
+    - 詳見「問題 0.1」章節
+
+  0.2. Post-MVP 表格缺失（Post-MVP 功能 500 錯誤）:
+    - 症狀: /om-expenses、/om-summary、/charge-outs 返回 500
+    - 其他頁面（/projects、/users）正常
+    - 檢查: schema.prisma model 數量 vs migration CREATE TABLE 數量
+    - 命令: grep "CREATE TABLE.*ExpenseCategory" migrations/*/migration.sql
+    - 解決: 創建 Post-MVP 表格的 idempotent migration
+    - 詳見「問題 0.2」章節
+
   1. Docker 建置失敗:
     - 檢查 Prisma lazy loading
     - 檢查 binaryTargets
@@ -1225,10 +1584,22 @@ key_files:
 
 ---
 
-**版本**: 1.2.0 **最後更新**: 2025-11-26 **維護者**: DevOps Team + Azure Administrator
+**版本**: 1.4.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
 **適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境） **審批**: 需要 DevOps Team
 Lead 和 Azure Administrator 批准 **更新記錄**:
 
+- v1.4.0 (2025-12-03):
+  - **[關鍵]** 添加「問題 0.2: Post-MVP 表格缺失」- Azure 資料庫缺少 ExpenseCategory 等 8 個 Post-MVP 表格導致 500 錯誤
+  - 記錄 /om-expenses、/om-summary 頁面 500 錯誤的案例和解決方案
+  - 強調「部分頁面正常不代表部署完全成功」的關鍵學習
+  - 添加 idempotent migration（IF NOT EXISTS）最佳實踐
+  - 更新診斷順序，添加 Post-MVP 表格缺失檢查
+  - 更新問題表格，添加 Post-MVP 表格缺失問題
+- v1.3.0 (2025-12-02):
+  - **[關鍵]** 添加「問題 0.1: FEAT-001 Schema 不匹配」- schema.prisma 欄位與 migration SQL 不一致導致特定頁面 500 錯誤
+  - 更新診斷順序，添加 Schema-Migration 一致性檢查
+  - 更新關鍵學習，添加 schema-migration 一致性檢查要點
+  - 更新問題表格，添加 FEAT-001 Schema 不匹配問題
 - v1.2.0 (2025-11-26):
   - **[關鍵]** 添加「問題 0: .dockerignore 排除 Migrations」- 這是最常見的致命問題
   - 添加「問題 0.5: Migration SQL 檔案缺失」（Currency 表問題）
