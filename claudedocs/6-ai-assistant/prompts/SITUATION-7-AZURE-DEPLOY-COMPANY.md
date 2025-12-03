@@ -684,10 +684,231 @@ process:
 
 ---
 
+## 🔐 Schema 完整性驗證（部署前必做）
+
+> ⚠️ **重要**: 這是防止「部分頁面 500 錯誤」的關鍵步驟！每次部署前必須執行。
+
+### 為什麼需要這個檢查？
+
+```yaml
+歷史教訓:
+  問題 0.6 (2025-12-02): FEAT-001 欄位缺失 → /projects 500
+  問題 0.7 (2025-12-03): Post-MVP 表格缺失 → /om-expenses, /om-summary 500
+
+根本原因:
+  - schema.prisma 定義了新的 model/欄位
+  - 但 migration SQL 沒有包含這些變更
+  - Azure 資料庫缺少表格或欄位
+  - API 查詢時失敗，返回 500
+
+預防原則:
+  - 每次部署前驗證 schema 和 migration 完全一致
+  - 不是只測試「重要頁面」，而是確保「整個項目」的 schema 完整
+```
+
+### 自動化驗證腳本
+
+**在部署前執行以下驗證命令**：
+
+```bash
+# ============================================================
+# Schema 完整性驗證腳本
+# 在每次部署前執行，確保 schema.prisma 和 migrations 一致
+# ============================================================
+
+echo "🔍 開始 Schema 完整性驗證..."
+
+# 1. 統計 schema.prisma 中的 model 數量
+SCHEMA_MODELS=$(grep -c "^model " packages/db/prisma/schema.prisma)
+echo "📊 Schema models 數量: $SCHEMA_MODELS"
+
+# 2. 統計 migration SQL 中的 CREATE TABLE 數量
+MIGRATION_TABLES=$(grep -rh "CREATE TABLE" packages/db/prisma/migrations/*/migration.sql 2>/dev/null | wc -l)
+echo "📊 Migration CREATE TABLE 數量: $MIGRATION_TABLES"
+
+# 3. 列出 schema.prisma 中的所有 model
+echo ""
+echo "📋 Schema.prisma 中的 Models:"
+grep "^model " packages/db/prisma/schema.prisma | sed 's/model /  - /' | sed 's/ {//'
+
+# 4. 列出 migration SQL 中的所有表格
+echo ""
+echo "📋 Migration SQL 中的表格:"
+grep -rh "CREATE TABLE" packages/db/prisma/migrations/*/migration.sql 2>/dev/null | \
+  sed 's/.*CREATE TABLE[^"]*"\([^"]*\)".*/  - \1/' | sort | uniq
+
+# 5. 檢查關鍵表格是否存在於 migration 中
+echo ""
+echo "🔍 檢查關鍵表格..."
+
+CRITICAL_TABLES=(
+  "User" "Role" "Project" "BudgetPool" "BudgetProposal"
+  "Vendor" "Quote" "PurchaseOrder" "Expense"
+  "ExpenseCategory" "OperatingCompany" "OMExpense"
+  "ChargeOut" "Currency" "Notification"
+)
+
+MISSING_TABLES=()
+for table in "${CRITICAL_TABLES[@]}"; do
+  if ! grep -rq "CREATE TABLE.*\"$table\"" packages/db/prisma/migrations/*/migration.sql 2>/dev/null; then
+    MISSING_TABLES+=("$table")
+    echo "  ❌ $table - 缺失！"
+  else
+    echo "  ✅ $table"
+  fi
+done
+
+# 6. 檢查 FEAT-001 欄位（Project 表）
+echo ""
+echo "🔍 檢查 Project 表欄位..."
+FEAT001_FIELDS=("projectCode" "globalFlag" "priority" "currencyId")
+for field in "${FEAT001_FIELDS[@]}"; do
+  if grep -rq "\"$field\"" packages/db/prisma/migrations/*/migration.sql 2>/dev/null; then
+    echo "  ✅ $field"
+  else
+    echo "  ⚠️ $field - 可能缺失，請確認"
+  fi
+done
+
+# 7. 總結
+echo ""
+echo "============================================================"
+if [ ${#MISSING_TABLES[@]} -eq 0 ]; then
+  echo "✅ Schema 完整性驗證通過！"
+  echo "   可以安全進行部署。"
+else
+  echo "❌ Schema 完整性驗證失敗！"
+  echo "   缺失的表格: ${MISSING_TABLES[*]}"
+  echo "   請先創建缺失表格的 migration SQL 再進行部署。"
+  echo ""
+  echo "   解決方案參考:"
+  echo "   - 問題 0.6: FEAT-001 欄位缺失"
+  echo "   - 問題 0.7: Post-MVP 表格缺失"
+fi
+echo "============================================================"
+```
+
+### 快速驗證命令（簡化版）
+
+```bash
+# 一行命令快速檢查
+echo "Models: $(grep -c '^model ' packages/db/prisma/schema.prisma) | Tables: $(grep -rh 'CREATE TABLE' packages/db/prisma/migrations/*/migration.sql 2>/dev/null | wc -l)"
+
+# 檢查特定表格是否存在
+grep -r "CREATE TABLE.*ExpenseCategory" packages/db/prisma/migrations/*/migration.sql
+grep -r "CREATE TABLE.*OperatingCompany" packages/db/prisma/migrations/*/migration.sql
+grep -r "CREATE TABLE.*OMExpense" packages/db/prisma/migrations/*/migration.sql
+```
+
+### 當發現缺失時的處理流程
+
+```yaml
+發現缺失時:
+  1. 停止部署:
+    - 不要繼續部署，先修復問題
+
+  2. 創建補充 migration:
+    - mkdir -p packages/db/prisma/migrations/YYYYMMDDHHMMSS_add_missing_xxx
+    - 創建 idempotent migration SQL (使用 IF NOT EXISTS)
+
+  3. 驗證 Docker image:
+    - docker build -f docker/Dockerfile -t test-image .
+    - docker run --rm test-image ls -la /app/packages/db/prisma/migrations/
+    - 確認新 migration 存在於 image 中
+
+  4. 重新驗證:
+    - 再次執行 Schema 完整性驗證腳本
+    - 確認所有檢查通過
+
+  5. 繼續部署:
+    - 所有驗證通過後才能部署
+
+idempotent_migration_template: |
+  -- 使用 IF NOT EXISTS 確保可重複執行
+  CREATE TABLE IF NOT EXISTS "TableName" (
+    "id" TEXT NOT NULL,
+    ...
+    CONSTRAINT "TableName_pkey" PRIMARY KEY ("id")
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS "TableName_field_key" ON "TableName"("field");
+
+  -- 添加欄位時使用 DO $$ BEGIN ... END $$
+  DO $$ BEGIN
+    ALTER TABLE "TableName" ADD COLUMN "newField" TEXT;
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END $$;
+```
+
+### 完整的 Model 清單（供參考）
+
+```yaml
+# 截至 2025-12-03，schema.prisma 應包含以下 24 個 models:
+
+MVP_階段_models:
+  認證相關:
+    - User
+    - Role
+    - Account
+    - Session
+    - VerificationToken
+
+  預算管理:
+    - BudgetPool
+    - BudgetCategory
+    - Project
+    - BudgetProposal
+
+  採購管理:
+    - Vendor
+    - Quote
+    - PurchaseOrder
+    - Expense
+
+  通知系統:
+    - Notification
+    - Comment
+    - History
+
+Post_MVP_階段_models:
+  費用類別:
+    - ExpenseCategory      # ⚠️ 常見遺漏
+    - ExpenseItem
+
+  營運費用:
+    - OperatingCompany     # ⚠️ 常見遺漏
+    - OMExpense            # ⚠️ 常見遺漏
+    - OMExpenseMonthly
+
+  費用分攤:
+    - ChargeOut
+    - ChargeOutItem
+
+  採購明細:
+    - PurchaseOrderItem
+
+  幣別:
+    - Currency
+
+驗證命令:
+  grep "^model " packages/db/prisma/schema.prisma | wc -l
+  # 應該返回 24（或更多，如果有新增）
+```
+
+---
+
 ## ✅ 公司環境部署檢查清單
 
 ### 部署前（必須完成）
 
+**Schema 完整性驗證（最重要！）**
+- [ ] ⭐ 執行 Schema 完整性驗證腳本
+- [ ] ⭐ 確認所有 24 個 models 都有對應的 CREATE TABLE
+- [ ] ⭐ 確認 FEAT-001 欄位（projectCode, globalFlag, priority）存在
+- [ ] ⭐ 確認 Post-MVP 表格（ExpenseCategory, OperatingCompany, OMExpense）存在
+- [ ] ⭐ 驗證 Docker image 中的 migrations 完整
+
+**企業環境確認**
 - [ ] 已與公司 Azure Administrator 確認配置
 - [ ] 已獲得必要的部署授權
 - [ ] 配置文件符合公司命名規範
@@ -707,16 +928,91 @@ process:
 
 ### 部署後
 
+**⭐ 完整頁面測試（必須全部通過！）**
+
+執行以下自動化測試腳本：
+
+```bash
+# 部署後完整頁面測試腳本
+BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+
+echo "🔍 開始部署後完整頁面測試..."
+echo "============================================================"
+
+# 所有頁面列表（按功能模組分類）
+declare -A PAGES=(
+  # MVP 核心頁面
+  ["登入頁面"]="/zh-TW/login"
+  ["首頁"]="/zh-TW"
+  ["Dashboard"]="/zh-TW/dashboard"
+
+  # 用戶管理
+  ["用戶列表"]="/zh-TW/users"
+
+  # 預算管理
+  ["預算池列表"]="/zh-TW/budget-pools"
+  ["項目列表"]="/zh-TW/projects"
+  ["提案列表"]="/zh-TW/proposals"
+
+  # 採購管理
+  ["供應商列表"]="/zh-TW/vendors"
+  ["報價單列表"]="/zh-TW/quotes"
+  ["採購單列表"]="/zh-TW/purchase-orders"
+  ["費用列表"]="/zh-TW/expenses"
+
+  # Post-MVP 功能（常見遺漏！）
+  ["營運費用"]="/zh-TW/om-expenses"
+  ["營運摘要"]="/zh-TW/om-summary"
+  ["費用分攤"]="/zh-TW/charge-outs"
+  ["費用類別"]="/zh-TW/om-expense-categories"
+  ["營運公司"]="/zh-TW/operating-companies"
+
+  # 系統設置
+  ["通知中心"]="/zh-TW/notifications"
+  ["設置頁面"]="/zh-TW/settings"
+  ["幣別設置"]="/zh-TW/settings/currencies"
+)
+
+FAILED=()
+PASSED=0
+
+for name in "${!PAGES[@]}"; do
+  path="${PAGES[$name]}"
+  status=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$path")
+
+  # 200 或 302（重定向到登入）都算正常
+  if [ "$status" = "200" ] || [ "$status" = "302" ]; then
+    echo "  ✅ $name ($path) - HTTP $status"
+    ((PASSED++))
+  else
+    echo "  ❌ $name ($path) - HTTP $status"
+    FAILED+=("$name")
+  fi
+done
+
+echo "============================================================"
+echo "📊 測試結果: $PASSED/${#PAGES[@]} 通過"
+
+if [ ${#FAILED[@]} -gt 0 ]; then
+  echo "❌ 失敗的頁面: ${FAILED[*]}"
+  echo ""
+  echo "⚠️ 部署驗證失敗！請檢查:"
+  echo "   1. 查看容器日誌: az webapp log tail ..."
+  echo "   2. 檢查是否有表格/欄位缺失"
+  echo "   3. 參考 SITUATION-9 進行問題排查"
+else
+  echo "✅ 所有頁面測試通過！部署成功完成。"
+fi
+```
+
+**檢查清單**
+
+- [ ] ⭐ 執行完整頁面測試腳本（上方）
+- [ ] ⭐ 所有 19+ 個頁面返回 200 或 302
 - [ ] 自動化驗證腳本全部通過
 - [ ] 手動功能測試完成
 - [ ] 企業帳號登入正常（Azure AD B2C）
-- [ ] **測試所有主要頁面**（不只是登入頁面）：
-  - [ ] /zh-TW/projects - 返回 200
-  - [ ] /zh-TW/users - 返回 200
-  - [ ] /zh-TW/budget-pools - 返回 200
-  - [ ] /zh-TW/om-expenses - 返回 200 ⚠️ Post-MVP 功能
-  - [ ] /zh-TW/om-summary - 返回 200 ⚠️ Post-MVP 功能
-  - [ ] /zh-TW/charge-outs - 返回 200 ⚠️ Post-MVP 功能
+- [ ] 容器日誌無 "column does not exist" 或 "relation does not exist" 錯誤
 - [ ] 監控數據開始收集
 - [ ] 日誌正常寫入
 - [ ] 告警規則已測試
