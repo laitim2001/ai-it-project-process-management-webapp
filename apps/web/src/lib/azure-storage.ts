@@ -115,7 +115,23 @@ function createBlobServiceClient(): BlobServiceClient {
     return BlobServiceClient.fromConnectionString(config.connectionString);
   }
 
-  // 生產環境：使用 Managed Identity (DefaultAzureCredential)
+  // 生產環境：優先使用 Storage Account Key（更可靠）
+  const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+
+  if (accountKey) {
+    // 使用 Storage Account Key 認證
+    console.log(`[Azure Storage] 使用 Storage Account Key 連接到 ${config.accountName}`);
+    const sharedKeyCredential = new StorageSharedKeyCredential(
+      config.accountName,
+      accountKey
+    );
+    return new BlobServiceClient(
+      `https://${config.accountName}.blob.core.windows.net`,
+      sharedKeyCredential
+    );
+  }
+
+  // 備用方案：使用 Managed Identity (DefaultAzureCredential)
   console.log(`[Azure Storage] 使用 Managed Identity 連接到 ${config.accountName}`);
   const credential = new DefaultAzureCredential();
   return new BlobServiceClient(

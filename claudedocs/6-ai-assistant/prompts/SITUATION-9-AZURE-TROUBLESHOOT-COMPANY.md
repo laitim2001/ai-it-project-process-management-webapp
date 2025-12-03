@@ -754,6 +754,343 @@ az webapp config appsettings set \
 
 ---
 
+### 🔴 問題 0.8: Prisma Client Docker 生成失敗（2025-12-03 發現）
+
+> ⚠️ **致命問題**：Docker 建置時 `pnpm --filter db run db:generate` 失敗導致 Prisma Client 不完整！
+
+#### 症狀
+
+```
+❌ Docker build 失敗或成功但運行時錯誤
+❌ PrismaClientInitializationError: Prisma Client could not locate the Query Engine
+❌ Error: ENOENT: no such file or directory, open '.../libquery_engine-linux-musl-openssl-3.0.x.so.node'
+❌ pnpm filter 命令在 Docker 中執行失敗
+```
+
+#### 根本原因
+
+```yaml
+root_cause_chain:
+  level_1: Dockerfile 使用 pnpm --filter db run db:generate
+  level_2: pnpm filter 在多階段 Docker build 中工作不穩定
+  level_3: Prisma Client 生成不完整或完全失敗
+  level_4: 運行時找不到 Query Engine binary
+  level_5: 所有資料庫操作失敗
+```
+
+#### 解決方案
+
+**修改 Dockerfile，使用 npx 直接執行**：
+
+```dockerfile
+# 舊的方式（不穩定）
+# RUN pnpm --filter db run db:generate
+
+# 新的方式（推薦）
+RUN cd packages/db && npx prisma generate --schema=./prisma/schema.prisma
+```
+
+**驗證步驟**：
+
+```bash
+# 建置後驗證 Prisma Client 存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls -la /app/node_modules/.prisma/client/
+
+# 應該看到:
+# - libquery_engine-linux-musl-openssl-3.0.x.so.node
+# - schema.prisma
+# - index.js
+```
+
+---
+
+### 🔴 問題 0.9: OpenSSL 3.0 相容性問題（2025-12-03 發現）
+
+> ⚠️ **致命問題**：Alpine Linux 3.22 移除了 OpenSSL 1.1，導致 Prisma Query Engine 無法載入！
+
+#### 症狀
+
+```
+❌ Error loading shared library libssl.so.1.1
+❌ Prisma Client 初始化失敗
+❌ 資料庫連接全部失敗
+❌ health.dbCheck 返回 unhealthy
+```
+
+#### 根本原因
+
+```yaml
+root_cause:
+  issue: Prisma 預設嘗試載入 OpenSSL 1.1 版本的 Query Engine
+  alpine_change: Alpine Linux 3.22+ 只提供 OpenSSL 3.0
+  mismatch: libquery_engine-linux-musl.so.node 嘗試載入 libssl.so.1.1
+  result: 動態連結失敗，Prisma 無法初始化
+```
+
+#### 解決方案
+
+**步驟 1: 確保 schema.prisma 有正確的 binaryTargets**
+
+```prisma
+// packages/db/prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]  // 關鍵！
+}
+```
+
+**步驟 2: 在 Dockerfile 設置環境變數指向正確的 Engine**
+
+```dockerfile
+# 在 runner stage 添加
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
+```
+
+**步驟 3: 複製正確的 Engine 文件**
+
+```dockerfile
+# 確保複製 OpenSSL 3.0 版本的 engine
+COPY --from=builder --chown=nextjs:nodejs \
+  /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma \
+  ./node_modules/.prisma
+```
+
+**驗證步驟**：
+
+```bash
+# 檢查 engine 文件是否存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls /app/node_modules/.prisma/client/ | grep libquery_engine
+
+# 應該看到: libquery_engine-linux-musl-openssl-3.0.x.so.node
+```
+
+---
+
+### 🔴 問題 0.10: Migration 卡住（finishedAt 為 null）（2025-12-03 發現）
+
+> ⚠️ **致命問題**：Migration 記錄顯示已執行但 finishedAt 為 null，導致表格缺失！
+
+#### 症狀
+
+```
+❌ health.schemaCheck 顯示部分表格缺失
+❌ _prisma_migrations 表有記錄但 finished_at 為 NULL
+❌ 應用程式部分功能 500 錯誤
+❌ Prisma 認為 migration 仍在進行中，不會重新執行
+```
+
+#### 根本原因
+
+```yaml
+root_cause_chain:
+  level_1: Migration 執行中斷（容器重啟、超時、錯誤）
+  level_2: _prisma_migrations 記錄的 finished_at 為 NULL
+  level_3: Prisma migrate deploy 認為 migration 仍在進行
+  level_4: 不會重新執行未完成的 migration
+  level_5: 表格沒有被創建
+```
+
+#### 快速診斷
+
+```bash
+# 使用 Health API 檢查
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.schemaCheck"
+
+# 返回示例（問題狀態）：
+# {
+#   "ExpenseCategory": { "exists": false },
+#   "OMExpense": { "exists": false },
+#   "_prisma_migrations": { "hasPendingMigration": true }
+# }
+```
+
+#### 解決方案
+
+**方案 A: 使用 Health API 修復（推薦）**
+
+```bash
+# 1. 修復卡住的 migration 並創建缺失表格
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixMigration"
+
+# 2. 創建所有缺失的 Post-MVP 表格
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixAllTables"
+
+# 3. 驗證修復
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.schemaCheck"
+```
+
+**方案 B: 直接資料庫修復（需要資料庫訪問權限）**
+
+```sql
+-- 標記卡住的 migration 為完成
+UPDATE _prisma_migrations
+SET finished_at = NOW()
+WHERE finished_at IS NULL;
+
+-- 然後重新部署或重啟容器讓 migration 重新執行
+```
+
+---
+
+### 🔴 問題 0.11: Azure Storage 環境變數未配置（2025-12-03 發現）
+
+> ⚠️ **致命問題**：Quote 上傳功能返回 500 錯誤，缺少 Azure Blob Storage 配置！
+
+#### 症狀
+
+```
+❌ /zh-TW/quotes/new 頁面上傳報價單時返回 500 錯誤
+❌ POST /api/upload/quote 返回 "缺少 AZURE_STORAGE_ACCOUNT_NAME 環境變數"
+❌ 所有文件上傳功能無法使用
+```
+
+#### 根本原因
+
+```yaml
+root_cause:
+  - Azure App Service 未配置 Azure Storage 相關環境變數
+  - AZURE_STORAGE_ACCOUNT_NAME 未設置
+  - AZURE_STORAGE_ACCOUNT_KEY 未設置
+  - 應用程式無法連接到 Azure Blob Storage
+```
+
+#### 解決方案
+
+```bash
+# 1. 首先確認或創建 Storage Account
+az storage account show --name stitpmcompanydev001 --resource-group RG-RCITest-RAPO-N8N
+
+# 2. 獲取 Storage Account Key
+az storage account keys list --account-name stitpmcompanydev001 --resource-group RG-RCITest-RAPO-N8N --query "[0].value" -o tsv
+
+# 3. 配置 App Service 環境變數
+az webapp config appsettings set \
+  --name app-itpm-company-dev-001 \
+  --resource-group RG-RCITest-RAPO-N8N \
+  --settings \
+    AZURE_STORAGE_ACCOUNT_NAME="stitpmcompanydev001" \
+    AZURE_STORAGE_ACCOUNT_KEY="<your-storage-account-key>" \
+    AZURE_STORAGE_CONTAINER_QUOTES="quotes" \
+    AZURE_STORAGE_CONTAINER_INVOICES="invoices"
+
+# 4. 創建 Blob 容器（如果不存在）
+az storage container create --name quotes --account-name stitpmcompanydev001
+az storage container create --name invoices --account-name stitpmcompanydev001
+```
+
+#### 驗證步驟
+
+```bash
+# 訪問 /zh-TW/quotes/new 並嘗試上傳文件
+# 應該不再返回 500 錯誤
+```
+
+---
+
+### ✅ 問題 0.12: omExpense API 返回 500（2025-12-03 發現並解決）
+
+> ✅ **已解決**：OMExpense 表缺少 `categoryId` 和 `sourceExpenseId` 欄位
+
+#### 症狀
+
+```
+❌ /zh-TW/om-expenses 頁面返回 500 Internal Server Error
+❌ /zh-TW/om-summary 頁面返回 500 Internal Server Error
+❌ health.schemaCheck 顯示所有表格都存在
+❌ 但 omExpense.getAll 和 omExpense.getSummary 仍然失敗
+```
+
+#### 根本原因
+
+```yaml
+root_cause:
+  issue: OMExpense 表缺少 categoryId 和 sourceExpenseId 欄位
+  database_columns: 14 個（缺少 2 個）
+  prisma_expects: 16 個（包含 categoryId, sourceExpenseId）
+  error: "column 'OMExpense.categoryId' does not exist"
+```
+
+#### 解決方案
+
+**使用 Health API 修復**：
+
+```bash
+# 調用修復端點添加缺失欄位
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixOmExpenseSchema"
+
+# 返回：
+# {
+#   "success": true,
+#   "results": [
+#     "Added categoryId column",
+#     "Added sourceExpenseId column",
+#     "Created indexes"
+#   ]
+# }
+```
+
+#### 驗證結果
+
+```bash
+# 測試 API（需要登入）
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/omExpense.getAll"
+# 應該返回 401 UNAUTHORIZED（正確行為，需要認證）而非 500
+
+# 使用診斷端點確認
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.diagOmExpense"
+# 應該顯示 "success": true
+```
+
+---
+
+### 🔧 Health API 診斷工具完整指南
+
+> 這些端點用於遠程診斷和修復，無需直接訪問資料庫
+
+#### 端點列表
+
+| 端點 | 方法 | 用途 |
+|------|------|------|
+| `health.ping` | GET | 基礎健康檢查 |
+| `health.dbCheck` | GET | 資料庫連線檢查 |
+| `health.schemaCheck` | GET | 驗證所有表格是否存在 |
+| `health.fixMigration` | POST | 修復卡住的 migration |
+| `health.fixAllTables` | POST | 創建所有缺失的 Post-MVP 表格 |
+| `health.diagOmExpense` | GET | 診斷 OMExpense 查詢問題 |
+| `health.diagOpCo` | GET | 診斷 OperatingCompany 數據 |
+| `health.fixOmExpenseSchema` | POST | 修復 OMExpense 缺失欄位 |
+
+#### 使用範例
+
+```bash
+BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+
+# 1. 基礎健康檢查
+curl "$BASE_URL/api/trpc/health.ping"
+
+# 2. 資料庫連線檢查
+curl "$BASE_URL/api/trpc/health.dbCheck"
+
+# 3. Schema 完整性檢查
+curl "$BASE_URL/api/trpc/health.schemaCheck"
+
+# 4. 診斷 OMExpense 問題
+curl "$BASE_URL/api/trpc/health.diagOmExpense"
+
+# 5. 修復 Migration
+curl -X POST "$BASE_URL/api/trpc/health.fixMigration"
+
+# 6. 創建所有缺失表格
+curl -X POST "$BASE_URL/api/trpc/health.fixAllTables"
+
+# 7. 修復 OMExpense Schema
+curl -X POST "$BASE_URL/api/trpc/health.fixOmExpenseSchema"
+```
+
+---
+
 ### 問題 1: 生產環境無法訪問 - 嚴重故障
 
 #### 症狀
@@ -1584,10 +1921,18 @@ key_files:
 
 ---
 
-**版本**: 1.4.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
+**版本**: 2.0.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
 **適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境） **審批**: 需要 DevOps Team
 Lead 和 Azure Administrator 批准 **更新記錄**:
 
+- v2.0.0 (2025-12-03): **重大更新** - 文檔重組和新增問題
+  - **[重組]** 本文檔現為完整的「故障排查指南」，與 SITUATION-7「部署流程指南」分離
+  - **[新增]** 問題 0.8: Prisma Client Docker 生成失敗（pnpm filter 不穩定）
+  - **[新增]** 問題 0.9: OpenSSL 3.0 相容性問題（Alpine 3.22 移除 1.1）
+  - **[新增]** 問題 0.10: Migration 卡住（finishedAt 為 null）
+  - **[新增]** 問題 0.11: Azure Storage 環境變數未配置
+  - **[新增]** 問題 0.12: omExpense API 返回 500（已解決）
+  - **[新增]** Health API 診斷工具完整指南
 - v1.4.0 (2025-12-03):
   - **[關鍵]** 添加「問題 0.2: Post-MVP 表格缺失」- Azure 資料庫缺少 ExpenseCategory 等 8 個 Post-MVP 表格導致 500 錯誤
   - 記錄 /om-expenses、/om-summary 頁面 500 錯誤的案例和解決方案
