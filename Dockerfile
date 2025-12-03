@@ -39,7 +39,8 @@ COPY . .
 COPY packages/db/prisma ./packages/db/prisma
 
 # Generate Prisma Client - must be done before build
-RUN pnpm db:generate
+# Use npx directly since pnpm filter with command doesn't work correctly in Docker
+RUN cd packages/db && npx prisma generate --schema=./prisma/schema.prisma
 
 # Build the application
 # Next.js collects anonymous telemetry data, disable it
@@ -58,6 +59,8 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Tell Prisma to use the OpenSSL 3.0 compatible engine
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -76,15 +79,35 @@ COPY --from=builder /app/apps/web/public* ./apps/web/
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-# Copy Prisma schema
+# Copy Prisma schema and migrations
 COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
 
-# Copy Prisma client and engine from pnpm store (required for runtime)
-RUN mkdir -p node_modules/.prisma
+# Copy Prisma generated client from pnpm store (where prisma generate outputs)
+# The generated client is at: node_modules/.pnpm/@prisma+client@*/node_modules/.prisma
+RUN mkdir -p node_modules/.prisma node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma ./node_modules/@prisma
+# Copy @prisma/client package (the client runtime)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client ./node_modules/@prisma/client
 # Copy engine files
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma/engines ./node_modules/@prisma/engines
+
+# Copy Prisma CLI and all dependencies for migration (required for `prisma migrate deploy`)
+# Create node_modules structure for Prisma CLI
+RUN mkdir -p packages/db/node_modules/@prisma
+
+# Copy Prisma CLI
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/prisma@5.22.0/node_modules/prisma ./packages/db/node_modules/prisma
+
+# Copy Prisma CLI dependencies (all required @prisma/* packages)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+engines@5.22.0/node_modules/@prisma/engines ./packages/db/node_modules/@prisma/engines
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+debug@5.22.0/node_modules/@prisma/debug ./packages/db/node_modules/@prisma/debug
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+get-platform@5.22.0/node_modules/@prisma/get-platform ./packages/db/node_modules/@prisma/get-platform
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+fetch-engine@5.22.0/node_modules/@prisma/fetch-engine ./packages/db/node_modules/@prisma/fetch-engine
+COPY --from=builder --chown=nextjs:nodejs "/app/node_modules/.pnpm/@prisma+engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2/node_modules/@prisma/engines-version" ./packages/db/node_modules/@prisma/engines-version
+
+# Copy startup script
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 USER nextjs
 
@@ -93,5 +116,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Start the Next.js application
-CMD ["node", "apps/web/server.js"]
+# Start with entrypoint script (runs migrations then starts app)
+ENTRYPOINT ["./docker-entrypoint.sh"]

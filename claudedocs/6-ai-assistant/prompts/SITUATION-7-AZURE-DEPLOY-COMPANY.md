@@ -1482,6 +1482,290 @@ key_insights:
 
 ---
 
+#### 🔴 問題 0.8: Prisma Client Docker 生成失敗（2025-12-03 重大發現）
+
+> ⚠️ **Critical Issue**：這是導致容器啟動後 API 返回 500 錯誤的根本原因之一！
+
+**症狀**:
+
+```
+❌ 所有 API 調用返回 500 Internal Server Error
+❌ 容器日誌顯示 Prisma Client 相關錯誤
+❌ health.dbCheck 返回 "unhealthy"
+❌ 但容器本身可以啟動，首頁可以載入
+```
+
+**根本原因**:
+
+```yaml
+root_cause_chain:
+  1. Dockerfile 使用 `pnpm --filter @itpm/db run db:generate` 生成 Prisma Client
+  2. pnpm 在 Docker 環境中報告 "None of the selected packages has a 'prisma' script"
+  3. Prisma Client 未正確生成，變成 stub 文件
+  4. 運行時 Prisma 無法執行任何資料庫操作
+  5. 所有使用資料庫的 API 返回 500 錯誤
+
+verification:
+  # 檢查 Prisma Client 是否正確生成
+  docker run --rm <image> cat /app/node_modules/.prisma/client/index.js | head -20
+  # 如果看到 "stub" 或文件很小，說明 Client 未正確生成
+```
+
+**快速診斷**:
+
+```bash
+# 1. 測試 health API
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.ping"
+# 如果返回 pong，說明應用本身正常
+
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.dbCheck"
+# 如果返回 unhealthy，可能是 Prisma Client 問題
+
+# 2. 檢查 Docker image 中的 Prisma Client
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls -la /app/node_modules/.prisma/client/
+# 應該看到 libquery_engine-*.so.node 文件
+```
+
+**解決方案**:
+
+**步驟 1: 修改 Dockerfile，使用 npx 直接執行 prisma generate**
+
+```dockerfile
+# ❌ 錯誤方式（在 Docker 中可能失敗）
+# RUN pnpm --filter @itpm/db run db:generate
+
+# ✅ 正確方式（直接使用 npx）
+RUN cd packages/db && npx prisma generate --schema=./prisma/schema.prisma
+```
+
+**步驟 2: 確保正確複製 Prisma Client 到 runner stage**
+
+```dockerfile
+# Copy Prisma generated client from pnpm store
+# 注意：pnpm 將 Prisma Client 放在 node_modules/.pnpm/ 下
+COPY --from=builder --chown=nextjs:nodejs \
+  /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma \
+  ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs \
+  /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client \
+  ./node_modules/@prisma/client
+```
+
+**驗證修復**:
+
+```bash
+# 重建 Docker image
+docker build -t acritpmcompany.azurecr.io/itpm-web:vX-prisma-fix .
+
+# 驗證 Prisma Client 存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:vX-prisma-fix \
+  ls -la /app/node_modules/.prisma/client/
+# 應該看到 libquery_engine-linux-musl-openssl-3.0.x.so.node
+
+# 推送並部署後測試
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.dbCheck"
+# 應該返回 {"status": "healthy", "database": "connected"}
+```
+
+---
+
+#### 🔴 問題 0.9: OpenSSL 3.0 相容性問題（2025-12-03 重大發現）
+
+> ⚠️ **Critical Issue**：Alpine Linux 3.22+ 移除了 OpenSSL 1.1，導致 Prisma 無法啟動！
+
+**症狀**:
+
+```
+❌ 容器日誌顯示 "Error loading shared library libssl.so.1.1"
+❌ Prisma Client 無法初始化
+❌ 所有資料庫操作失敗
+```
+
+**根本原因**:
+
+```yaml
+root_cause:
+  - Node.js 20-alpine 基於 Alpine Linux 3.22
+  - Alpine 3.22 移除了 OpenSSL 1.1 (libssl.so.1.1)
+  - 只提供 OpenSSL 3.0 (libssl.so.3)
+  - Prisma 預設嘗試載入 OpenSSL 1.1 版本的 Query Engine
+  - 找不到 libssl.so.1.1，導致啟動失敗
+
+attempted_fix_that_failed:
+  # 這個方法在 Alpine 3.22 中不再有效
+  RUN apk add --no-cache openssl1.1-compat
+  # 返回 "ERROR: unable to select packages: openssl1.1-compat (no such package)"
+```
+
+**解決方案**:
+
+**方法 1: 設置環境變數指向 OpenSSL 3.0 Engine（推薦）**
+
+```dockerfile
+# 在 Dockerfile 的 runner stage 添加
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
+```
+
+**方法 2: 確保 schema.prisma 包含正確的 binaryTargets**
+
+```prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+```
+
+**驗證修復**:
+
+```bash
+# 檢查 Prisma engine 文件存在
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls -la /app/node_modules/.prisma/client/ | grep libquery_engine
+# 應該看到: libquery_engine-linux-musl-openssl-3.0.x.so.node
+
+# 測試 API
+curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.dbCheck"
+# 應該返回 healthy
+```
+
+---
+
+#### 🔴 問題 0.10: Migration 卡住（finishedAt 為 null）（2025-12-03 重大發現）
+
+> ⚠️ **Critical Issue**：Migration 執行但未完成，導致表格缺失！
+
+**症狀**:
+
+```
+❌ 容器日誌顯示 migration 正在執行
+❌ 但某些表格仍然不存在
+❌ schemaCheck API 顯示表格 exists: false
+❌ _prisma_migrations 表中 finishedAt 為 null
+```
+
+**根本原因**:
+
+```yaml
+root_cause_chain:
+  1. Prisma migrate deploy 開始執行 migration
+  2. 在 _prisma_migrations 表中創建記錄（finishedAt = null）
+  3. Migration SQL 執行過程中發生錯誤（可能是網路、超時等）
+  4. Migration 未完成，finishedAt 保持 null
+  5. 下次啟動時，Prisma 認為 migration 正在進行中，跳過執行
+  6. 表格永遠不會被創建
+
+diagnosis:
+  # 使用 schemaCheck API 檢查
+  curl "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.schemaCheck"
+  # 查看 migrations 數組中是否有 finishedAt: null 的記錄
+```
+
+**解決方案**:
+
+**使用 fixMigration API 端點修復**
+
+我們在 `packages/api/src/routers/health.ts` 中添加了專用修復端點：
+
+```bash
+# 調用 fixMigration API（POST 請求，因為是 mutation）
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixMigration"
+
+# 預期響應
+{
+  "result": {
+    "data": {
+      "json": {
+        "success": true,
+        "results": [
+          "Created ExpenseCategory table (if not existed)",
+          "Added unique constraint on code",
+          "Created indexes",
+          "Inserted default expense categories",
+          "Marked migration 20251202110000_add_postmvp_tables as complete"
+        ],
+        "timestamp": "2025-12-03T09:14:50.819Z"
+      }
+    }
+  }
+}
+```
+
+**fixMigration 端點功能**:
+
+```typescript
+// packages/api/src/routers/health.ts
+fixMigration: publicProcedure.mutation(async ({ ctx }) => {
+  // 1. 創建缺失的表格（使用 IF NOT EXISTS）
+  // 2. 添加約束和索引
+  // 3. 插入預設數據
+  // 4. 將卡住的 migration 標記為完成（更新 finishedAt）
+});
+```
+
+**驗證修復**:
+
+```bash
+# 1. 調用修復端點
+curl -X POST "https://...azurewebsites.net/api/trpc/health.fixMigration"
+
+# 2. 驗證所有表格存在
+curl "https://...azurewebsites.net/api/trpc/health.schemaCheck"
+# 應該顯示 "status": "complete" 且所有表格 exists: true
+
+# 3. 測試之前失敗的頁面
+curl -s -o /dev/null -w "%{http_code}" "https://...azurewebsites.net/zh-TW/om-expenses"
+# 應該返回 200 或 302（需登入）
+```
+
+---
+
+### 🔧 Health API 診斷工具
+
+> 新增於 v1.6.0 - 提供遠程診斷和修復能力
+
+**端點位置**: `packages/api/src/routers/health.ts`
+
+**可用端點**:
+
+| 端點 | 方法 | 用途 |
+|------|------|------|
+| `health.ping` | GET | 基礎健康檢查，驗證 API 運行 |
+| `health.dbCheck` | GET | 資料庫連線檢查 |
+| `health.schemaCheck` | GET | 驗證 Post-MVP 表格是否存在 |
+| `health.fixMigration` | POST | 修復卡住的 migration |
+| `health.echo` | GET | 回顯測試 |
+
+**使用範例**:
+
+```bash
+BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+
+# 1. 基礎健康檢查
+curl "$BASE_URL/api/trpc/health.ping"
+# 返回: {"result":{"data":{"json":{"message":"pong","timestamp":"..."}}}}
+
+# 2. 資料庫連線檢查
+curl "$BASE_URL/api/trpc/health.dbCheck"
+# 返回: {"status":"healthy","database":"connected"} 或 {"status":"unhealthy",...}
+
+# 3. Schema 完整性檢查
+curl "$BASE_URL/api/trpc/health.schemaCheck"
+# 返回所有 Post-MVP 表格的存在狀態和記錄數
+
+# 4. 修復卡住的 migration（慎用！）
+curl -X POST "$BASE_URL/api/trpc/health.fixMigration"
+# 創建缺失表格並標記 migration 為完成
+```
+
+**⚠️ 安全注意事項**:
+
+- `fixMigration` 是 `publicProcedure`，無需認證即可調用
+- 在生產環境中，考慮添加認證或 IP 白名單保護
+- 此端點使用 `IF NOT EXISTS`，重複調用是安全的
+
+---
+
 #### 問題 1: Key Vault 創建權限不足
 
 **症狀**:
@@ -1608,6 +1892,8 @@ deployment_checklist:
     - [ ] Service Principal 登入成功
     - [ ] 資源群組存在且有權限
     - [ ] ACR 已建立且可登入
+    - [ ] ⭐ Dockerfile 使用 npx prisma generate（不是 pnpm filter）
+    - [ ] ⭐ Dockerfile 設置 PRISMA_QUERY_ENGINE_LIBRARY 環境變數
 
   docker_build:
     - [ ] Prisma Proxy lazy loading 已實作
@@ -1615,6 +1901,7 @@ deployment_checklist:
     - [ ] API routes 已添加 dynamic export
     - [ ] Docker build 成功完成
     - [ ] migrations 資料夾存在於 image 中
+    - [ ] ⭐ Prisma Client 正確生成（檢查 libquery_engine-*.so.node 存在）
 
   deployment:
     - [ ] 映像已推送到 ACR
@@ -1628,6 +1915,14 @@ deployment_checklist:
     - [ ] 容器日誌顯示 "Seed 執行成功" (自動執行)
     - [ ] 網站可訪問
     - [ ] 用戶註冊功能正常
+    - [ ] ⭐ health.ping 返回 pong
+    - [ ] ⭐ health.dbCheck 返回 healthy
+    - [ ] ⭐ health.schemaCheck 返回 status: complete
+
+  migration_issues:  # 如果遇到 migration 問題
+    - [ ] 調用 health.schemaCheck 檢查表格狀態
+    - [ ] 如有 finishedAt: null，調用 health.fixMigration
+    - [ ] 再次驗證 schemaCheck 返回 complete
 ```
 
 ### startup.sh 自動遷移和 Seed 機制
@@ -1703,6 +1998,10 @@ exec node apps/web/server.js
 ### 有用的診斷命令
 
 ```bash
+# ============================================================
+# Azure CLI 診斷命令
+# ============================================================
+
 # 檢查 App Service 狀態
 az webapp show --name app-itpm-company-dev-001 --resource-group RG-RCITest-RAPO-N8N --query state
 
@@ -1717,15 +2016,56 @@ az webapp restart --name app-itpm-company-dev-001 --resource-group RG-RCITest-RA
 
 # 檢查 ACR 映像
 az acr repository show-tags --name acritpmcompany --repository itpm-web
+
+# ============================================================
+# ⭐ Health API 診斷命令（推薦使用！）
+# ============================================================
+
+BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+
+# 基礎健康檢查
+curl "$BASE_URL/api/trpc/health.ping"
+
+# 資料庫連線檢查
+curl "$BASE_URL/api/trpc/health.dbCheck"
+
+# Schema 完整性檢查（檢查所有 Post-MVP 表格）
+curl "$BASE_URL/api/trpc/health.schemaCheck"
+
+# 修復卡住的 migration（創建缺失表格 + 標記 migration 完成）
+curl -X POST "$BASE_URL/api/trpc/health.fixMigration"
+
+# ============================================================
+# Docker Image 驗證命令
+# ============================================================
+
+# 檢查 Prisma Client 是否正確生成
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls -la /app/node_modules/.prisma/client/
+
+# 檢查 migrations 是否存在於 image 中
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls -la /app/packages/db/prisma/migrations/
+
+# 檢查 OpenSSL 3.0 engine 文件
+docker run --rm acritpmcompany.azurecr.io/itpm-web:latest \
+  ls /app/node_modules/.prisma/client/ | grep libquery_engine
 ```
 
 ---
 
-**版本**: 1.5.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
+**版本**: 1.6.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
 **適用環境**: 公司 Azure 訂閱（Staging、Production、正式環境）
 
 **更新記錄**:
 
+- v1.6.0 (2025-12-03): **重大更新** - Docker 建置和 Migration 診斷工具
+  - 添加「問題 0.8: Prisma Client Docker 生成失敗」- pnpm db:generate 在 Docker 中失敗
+  - 添加「問題 0.9: OpenSSL 3.0 相容性問題」- Alpine 3.22 移除 OpenSSL 1.1
+  - 添加「問題 0.10: Migration 卡住」- finishedAt 為 null 導致表格缺失
+  - 添加「Health API 診斷工具」章節 - schemaCheck、fixMigration 端點使用指南
+  - 記錄 Dockerfile 修復：使用 npx prisma generate 代替 pnpm filter
+  - 記錄 PRISMA_QUERY_ENGINE_LIBRARY 環境變數解決方案
 - v1.5.0 (2025-12-03): **重大更新** - 添加 Post-MVP 表格缺失問題
   - 添加「問題 0.7: Post-MVP 表格缺失」- Azure 資料庫缺少 ExpenseCategory 等 8 個 Post-MVP 表格
   - 記錄 /om-expenses 和 /om-summary 頁面 500 錯誤的案例

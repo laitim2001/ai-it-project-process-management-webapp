@@ -212,12 +212,13 @@ export function Sidebar() {
       icon: Settings,
       description: t('descriptions.settings')
     },
-    {
-      name: t('menu.help'),
-      href: "/help",
-      icon: HelpCircle,
-      description: t('descriptions.help')
-    },
+    // TODO: 待實現 Help 頁面後恢復
+    // {
+    //   name: t('menu.help'),
+    //   href: "/help",
+    //   icon: HelpCircle,
+    //   description: t('descriptions.help')
+    // },
   ]
 
   // 獲取用戶名稱首字母
