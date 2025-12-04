@@ -638,4 +638,271 @@ export const healthRouter = createTRPCRouter({
       };
     }
   }),
+
+  /**
+   * FIX-007: 完整的 Schema 欄位比較診斷
+   * 比較 schema.prisma 期望的欄位 vs Azure 資料庫實際的欄位
+   */
+  schemaCompare: publicProcedure.query(async ({ ctx }) => {
+    // 定義 schema.prisma 中所有表格的期望欄位
+    const expectedSchema: Record<string, string[]> = {
+      ExpenseItem: [
+        'id', 'expenseId', 'itemName', 'description', 'amount',
+        'category', 'categoryId', 'chargeOutOpCoId', 'sortOrder',
+        'createdAt', 'updatedAt'
+      ],
+      Expense: [
+        'id', 'purchaseOrderId', 'name', 'description', 'totalAmount',
+        'status', 'expenseDate', 'invoiceNumber', 'invoiceDate',
+        'invoiceFilePath', 'budgetCategoryId', 'vendorId', 'currencyId',
+        'requiresChargeOut', 'isOperationMaint', 'createdAt', 'updatedAt'
+      ],
+      OMExpense: [
+        'id', 'name', 'description', 'financialYear', 'category',
+        'categoryId', 'opCoId', 'budgetAmount', 'actualSpent',
+        'yoyGrowthRate', 'vendorId', 'sourceExpenseId', 'startDate',
+        'endDate', 'createdAt', 'updatedAt'
+      ],
+      Project: [
+        'id', 'budgetPoolId', 'managerId', 'supervisorId', 'name',
+        'description', 'status', 'startDate', 'endDate', 'requestedBudget',
+        'approvedBudget', 'budgetCategoryId', 'globalFlag', 'priority',
+        'currencyId', 'createdAt', 'updatedAt'
+      ],
+      PurchaseOrder: [
+        'id', 'projectId', 'vendorId', 'quoteId', 'poNumber', 'name',
+        'description', 'totalAmount', 'poDate', 'status', 'currencyId',
+        'approvedDate', 'createdAt', 'updatedAt'
+      ],
+      BudgetPool: [
+        'id', 'name', 'description', 'totalAmount', 'usedAmount',
+        'financialYear', 'currencyId', 'isActive', 'createdAt', 'updatedAt'
+      ],
+    };
+
+    const comparison: Record<string, {
+      expected: string[];
+      actual: string[];
+      missing: string[];
+      extra: string[];
+    }> = {};
+
+    try {
+      for (const [tableName, expectedColumns] of Object.entries(expectedSchema)) {
+        const actualColumns = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_name = ${tableName}
+          ORDER BY ordinal_position
+        `;
+
+        const actual = actualColumns.map(c => c.column_name);
+        const missing = expectedColumns.filter(col => !actual.includes(col));
+        const extra = actual.filter(col => !expectedColumns.includes(col));
+
+        comparison[tableName] = {
+          expected: expectedColumns,
+          actual,
+          missing,
+          extra,
+        };
+      }
+
+      // 計算總結
+      const summary = {
+        totalTables: Object.keys(expectedSchema).length,
+        tablesWithMissingColumns: Object.entries(comparison)
+          .filter(([, v]) => v.missing.length > 0)
+          .map(([k, v]) => ({ table: k, missing: v.missing })),
+        allMissingColumns: Object.entries(comparison)
+          .flatMap(([table, v]) => v.missing.map(col => `${table}.${col}`)),
+      };
+
+      return {
+        status: summary.allMissingColumns.length === 0 ? 'synced' : 'out_of_sync',
+        summary,
+        comparison,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
+
+  /**
+   * FIX-007: 修復 ExpenseItem 表缺失的 chargeOutOpCoId 欄位
+   */
+  fixExpenseItemSchema: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      // Step 1: Check current columns
+      results.push('Step 1: Checking current ExpenseItem columns...');
+      const columns = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'ExpenseItem'
+      `;
+      const columnNames = columns.map((c) => c.column_name);
+      results.push(`Current columns: ${columnNames.join(', ')}`);
+
+      // Step 2: Add chargeOutOpCoId if not exists
+      if (!columnNames.includes('chargeOutOpCoId')) {
+        results.push('Step 2: Adding chargeOutOpCoId column...');
+        await ctx.prisma.$executeRaw`
+          ALTER TABLE "ExpenseItem" ADD COLUMN IF NOT EXISTS "chargeOutOpCoId" TEXT
+        `;
+        results.push('Added chargeOutOpCoId column');
+      } else {
+        results.push('Step 2: chargeOutOpCoId column already exists');
+      }
+
+      // Step 3: Add categoryId if not exists
+      if (!columnNames.includes('categoryId')) {
+        results.push('Step 3: Adding categoryId column...');
+        await ctx.prisma.$executeRaw`
+          ALTER TABLE "ExpenseItem" ADD COLUMN IF NOT EXISTS "categoryId" TEXT
+        `;
+        results.push('Added categoryId column');
+      } else {
+        results.push('Step 3: categoryId column already exists');
+      }
+
+      // Step 4: Create indexes
+      results.push('Step 4: Creating indexes...');
+      await ctx.prisma.$executeRaw`
+        CREATE INDEX IF NOT EXISTS "ExpenseItem_chargeOutOpCoId_idx" ON "ExpenseItem"("chargeOutOpCoId")
+      `;
+      await ctx.prisma.$executeRaw`
+        CREATE INDEX IF NOT EXISTS "ExpenseItem_categoryId_idx" ON "ExpenseItem"("categoryId")
+      `;
+      results.push('Created indexes');
+
+      // Step 5: Add foreign key constraints
+      results.push('Step 5: Adding foreign key constraints...');
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ExpenseItem_chargeOutOpCoId_fkey') THEN
+            ALTER TABLE "ExpenseItem" ADD CONSTRAINT "ExpenseItem_chargeOutOpCoId_fkey"
+            FOREIGN KEY ("chargeOutOpCoId") REFERENCES "OperatingCompany"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ExpenseItem_categoryId_fkey') THEN
+            ALTER TABLE "ExpenseItem" ADD CONSTRAINT "ExpenseItem_categoryId_fkey"
+            FOREIGN KEY ("categoryId") REFERENCES "ExpenseCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('Added foreign key constraints');
+
+      // Step 6: Verify
+      results.push('Step 6: Verifying fix...');
+      const verifyColumns = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'ExpenseItem'
+        ORDER BY ordinal_position
+      `;
+      results.push(`Final columns: ${verifyColumns.map((c) => c.column_name).join(', ')}`);
+
+      return {
+        success: true,
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
+
+  /**
+   * FIX-007: 一鍵修復所有 Schema 不同步問題
+   * 添加所有缺失的欄位到對應的表格
+   */
+  fixAllSchemaIssues: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      results.push('=== 開始修復所有 Schema 不同步問題 ===');
+
+      // 1. ExpenseItem 缺失欄位
+      results.push('\n[1/4] 修復 ExpenseItem 表...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "ExpenseItem" ADD COLUMN IF NOT EXISTS "chargeOutOpCoId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "ExpenseItem" ADD COLUMN IF NOT EXISTS "categoryId" TEXT`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ExpenseItem_chargeOutOpCoId_idx" ON "ExpenseItem"("chargeOutOpCoId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ExpenseItem_categoryId_idx" ON "ExpenseItem"("categoryId")`;
+      results.push('ExpenseItem: 已添加 chargeOutOpCoId, categoryId');
+
+      // 2. OMExpense 缺失欄位
+      results.push('\n[2/4] 修復 OMExpense 表...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "categoryId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "sourceExpenseId" TEXT`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpense_categoryId_idx" ON "OMExpense"("categoryId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpense_sourceExpenseId_idx" ON "OMExpense"("sourceExpenseId")`;
+      results.push('OMExpense: 已添加 categoryId, sourceExpenseId');
+
+      // 3. Expense 缺失欄位
+      results.push('\n[3/4] 修復 Expense 表...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "budgetCategoryId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "vendorId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "currencyId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "requiresChargeOut" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "isOperationMaint" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Expense_budgetCategoryId_idx" ON "Expense"("budgetCategoryId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Expense_vendorId_idx" ON "Expense"("vendorId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Expense_currencyId_idx" ON "Expense"("currencyId")`;
+      results.push('Expense: 已添加 budgetCategoryId, vendorId, currencyId, requiresChargeOut, isOperationMaint');
+
+      // 4. 添加外鍵約束（使用 DO $$ 來避免重複錯誤）
+      results.push('\n[4/4] 添加外鍵約束...');
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ExpenseItem_chargeOutOpCoId_fkey') THEN
+            ALTER TABLE "ExpenseItem" ADD CONSTRAINT "ExpenseItem_chargeOutOpCoId_fkey"
+            FOREIGN KEY ("chargeOutOpCoId") REFERENCES "OperatingCompany"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ExpenseItem_categoryId_fkey') THEN
+            ALTER TABLE "ExpenseItem" ADD CONSTRAINT "ExpenseItem_categoryId_fkey"
+            FOREIGN KEY ("categoryId") REFERENCES "ExpenseCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('外鍵約束: 已添加');
+
+      results.push('\n=== Schema 修復完成 ===');
+
+      return {
+        success: true,
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
 });

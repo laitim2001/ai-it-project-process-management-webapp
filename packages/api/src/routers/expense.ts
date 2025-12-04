@@ -349,6 +349,26 @@ export const expenseRouter = createTRPCRouter({
         return sum + item.amount;
       }, 0);
 
+      // FIX-006: 驗證 budgetCategoryId 是否有效
+      // 優先使用用戶輸入的 budgetCategoryId，否則從 project 繼承
+      // 但必須確認 BudgetCategory 實際存在（通過 include 載入的關聯驗證）
+      let validBudgetCategoryId: string | undefined = undefined;
+
+      if (input.budgetCategoryId && input.budgetCategoryId.trim() !== '') {
+        // 用戶明確提供了 budgetCategoryId，需要驗證它是否存在
+        const categoryExists = await ctx.prisma.budgetCategory.findUnique({
+          where: { id: input.budgetCategoryId },
+          select: { id: true },
+        });
+        if (categoryExists) {
+          validBudgetCategoryId = input.budgetCategoryId;
+        }
+        // 如果不存在，不設置（避免外鍵約束錯誤）
+      } else if (purchaseOrder.project.budgetCategory) {
+        // 從 project 繼承（只有當 budgetCategory 關聯實際存在時才使用）
+        validBudgetCategoryId = purchaseOrder.project.budgetCategoryId ?? undefined;
+      }
+
       return await ctx.prisma.$transaction(async (tx) => {
         // 創建費用表頭
         // 注意：projectId 僅用於驗證，不儲存在 Expense model 中
@@ -359,9 +379,7 @@ export const expenseRouter = createTRPCRouter({
             description: input.description,
             // projectId 不存在於 Expense model，已移除
             purchaseOrderId: input.purchaseOrderId,
-            budgetCategoryId: (input.budgetCategoryId && input.budgetCategoryId.trim() !== '')
-              ? input.budgetCategoryId
-              : purchaseOrder.project.budgetCategoryId || undefined,
+            budgetCategoryId: validBudgetCategoryId,
             vendorId: input.vendorId,
             invoiceNumber: input.invoiceNumber,
             invoiceDate: input.invoiceDate,

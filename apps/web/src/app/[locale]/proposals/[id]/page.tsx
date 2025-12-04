@@ -223,7 +223,7 @@ export default function ProposalDetailPage() {
             <p className="text-muted-foreground">
               {t('fields.project')}：
               <Link
-                href="/projects/${proposal.project.id}"
+                href={`/projects/${proposal.project.id}`}
                 className="ml-1 text-primary hover:text-primary font-medium"
               >
                 {proposal.project.name}
@@ -330,7 +330,7 @@ export default function ProposalDetailPage() {
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">{t('fields.projectName')}：</span>
                       <Link
-                        href="/projects/${proposal.project.id}"
+                        href={`/projects/${proposal.project.id}`}
                         className="ml-2 text-primary hover:text-primary font-medium"
                       >
                         {proposal.project.name}

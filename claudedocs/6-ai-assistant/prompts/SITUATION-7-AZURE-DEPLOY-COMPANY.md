@@ -255,25 +255,45 @@ az webapp config appsettings set \
 
 部署後可使用以下端點進行診斷和修復：
 
+### 診斷端點
+
 | 端點 | 方法 | 用途 |
 |------|------|------|
 | `health.ping` | GET | 基礎健康檢查 |
 | `health.dbCheck` | GET | 資料庫連線檢查 |
 | `health.schemaCheck` | GET | 驗證所有表格是否存在 |
+| `health.schemaCompare` | GET | **比較 schema.prisma vs 實際資料庫欄位** |
+
+### 修復端點
+
+| 端點 | 方法 | 用途 |
+|------|------|------|
 | `health.fixMigration` | POST | 修復卡住的 migration |
 | `health.fixAllTables` | POST | 創建所有缺失表格 |
 | `health.fixOmExpenseSchema` | POST | 修復 OMExpense 欄位 |
+| `health.fixExpenseItemSchema` | POST | 修復 ExpenseItem 欄位 |
+| `health.fixAllSchemaIssues` | POST | **一鍵修復所有 Schema 不同步問題** |
 
 **使用範例：**
 
 ```bash
 BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
 
+# 🔍 診斷：比較 schema.prisma 定義 vs 資料庫實際欄位
+curl "$BASE_URL/api/trpc/health.schemaCompare"
+# 返回：缺失欄位列表（如 ExpenseItem.chargeOutOpCoId）
+
+# 🔧 一鍵修復所有 Schema 不同步問題（推薦）
+curl -X POST "$BASE_URL/api/trpc/health.fixAllSchemaIssues"
+
 # 如果 schema 檢查顯示表格缺失
 curl -X POST "$BASE_URL/api/trpc/health.fixAllTables"
 
 # 如果 omExpense API 返回 500
 curl -X POST "$BASE_URL/api/trpc/health.fixOmExpenseSchema"
+
+# 如果 expense.create 返回 chargeOutOpCoId 欄位錯誤
+curl -X POST "$BASE_URL/api/trpc/health.fixExpenseItemSchema"
 ```
 
 **詳細診斷指南：** 請參閱 SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md
