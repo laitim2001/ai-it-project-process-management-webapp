@@ -1928,7 +1928,11 @@
         "actualSpent": "實際支出",
         "utilizationRate": "使用率",
         "monthlyRecords": "月度記錄",
-        "yoyGrowth": "年增長率"
+        "yoyGrowth": "年增長率",
+        "items": "個項目",
+        "defaultOpCo": "預設 OpCo",
+        "totalBudget": "總預算",
+        "totalActualSpent": "總實際支出"
       },
       "pagination": {
         "previous": "上一頁",

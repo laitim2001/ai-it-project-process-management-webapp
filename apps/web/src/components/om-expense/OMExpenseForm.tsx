@@ -508,14 +508,17 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                     <FormLabel>
                       {t('fields.defaultOpCo.label', { defaultValue: '預設 OpCo' })}
                     </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)}
+                      value={field.value || '__none__'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('fields.opCo.placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">
+                        <SelectItem value="__none__">
                           {t('fields.defaultOpCo.noSelection', { defaultValue: '不指定' })}
                         </SelectItem>
                         {opCos?.map((opCo) => (
@@ -542,14 +545,17 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('fields.vendor.label')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)}
+                      value={field.value || '__none__'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('fields.vendor.placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">
+                        <SelectItem value="__none__">
                           {t('fields.vendor.noSelection', { defaultValue: '不指定' })}
                         </SelectItem>
                         {vendors?.items.map((vendor) => (
@@ -580,14 +586,17 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('sourceExpense.label')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ''}>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)}
+                    value={field.value || '__none__'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('sourceExpense.noSelection')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="__none__">
                         {t('sourceExpense.noSelection')}
                       </SelectItem>
                       {expenses?.items.map((expense) => (

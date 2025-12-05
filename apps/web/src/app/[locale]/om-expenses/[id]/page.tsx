@@ -273,37 +273,11 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     refetch();
   }, [refetch]);
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-8">{t('detail.loading')}</div>
-      </DashboardLayout>
-    );
-  }
-
-  if (!omExpense) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">{t('list.empty.notFound')}</p>
-          <Button className="mt-4" onClick={() => router.push('/om-expenses')}>
-            {t('breadcrumb.backToList')}
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // FEAT-007: Use totalBudgetAmount and totalActualSpent from items aggregation
-  const totalBudget = omExpense.totalBudgetAmount ?? omExpense.budgetAmount ?? 0;
-  const totalActual = omExpense.totalActualSpent ?? omExpense.actualSpent ?? 0;
-  const utilizationRate = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
-
-  // Get items array (FEAT-007)
-  // Transform API items to OMExpenseItemData format (Date to string conversion)
+  // FEAT-007: Transform API items to OMExpenseItemData format (Date to string conversion)
+  // NOTE: This useMemo MUST be before any conditional returns to follow React hooks rules
   const transformedItems: OMExpenseItemData[] = useMemo(() => {
-    const apiItems = omExpense.items || [];
-    return apiItems.map((item) => ({
+    if (!omExpense?.items) return [];
+    return omExpense.items.map((item) => ({
       id: item.id,
       name: item.name,
       description: item.description,
@@ -330,12 +304,39 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
         actualAmount: record.actualAmount,
       })),
     }));
-  }, [omExpense.items]);
+  }, [omExpense?.items]);
 
-  // Get selected item for monthly grid
-  const selectedItem = selectedItemId
-    ? transformedItems.find((item) => item.id === selectedItemId)
-    : null;
+  // Get selected item for monthly grid (also before conditional returns)
+  const selectedItem = useMemo(() => {
+    if (!selectedItemId) return null;
+    return transformedItems.find((item) => item.id === selectedItemId) || null;
+  }, [selectedItemId, transformedItems]);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-8">{t('detail.loading')}</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!omExpense) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">{t('list.empty.notFound')}</p>
+          <Button className="mt-4" onClick={() => router.push('/om-expenses')}>
+            {t('breadcrumb.backToList')}
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // FEAT-007: Use totalBudgetAmount and totalActualSpent from items aggregation
+  const totalBudget = omExpense.totalBudgetAmount ?? omExpense.budgetAmount ?? 0;
+  const totalActual = omExpense.totalActualSpent ?? omExpense.actualSpent ?? 0;
+  const utilizationRate = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
 
   return (
     <DashboardLayout>

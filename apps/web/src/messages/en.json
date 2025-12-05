@@ -1928,7 +1928,11 @@
         "actualSpent": "Actual Spent",
         "utilizationRate": "Utilization Rate",
         "monthlyRecords": "Monthly Records",
-        "yoyGrowth": "YoY Growth"
+        "yoyGrowth": "YoY Growth",
+        "items": "items",
+        "defaultOpCo": "Default OpCo",
+        "totalBudget": "Total Budget",
+        "totalActualSpent": "Total Actual Spent"
       },
       "pagination": {
         "previous": "Previous",
