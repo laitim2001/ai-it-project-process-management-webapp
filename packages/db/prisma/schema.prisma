@@ -396,10 +396,14 @@ model OperatingCompany {
 
   // 關聯
   chargeOuts            ChargeOut[]
-  omExpenses            OMExpense[]
   omExpenseMonthly      OMExpenseMonthly[]
-  chargeOutExpenseItems ExpenseItem[]            @relation("ChargeOutExpenseItems") // CHANGE-002: 費用明細轉嫁目標
-  projectChargeOuts     ProjectChargeOutOpCo[]   // FEAT-006: 專案費用轉嫁目標
+  chargeOutExpenseItems ExpenseItem[]          @relation("ChargeOutExpenseItems") // CHANGE-002: 費用明細轉嫁目標
+  projectChargeOuts     ProjectChargeOutOpCo[] // FEAT-006: 專案費用轉嫁目標
+
+  // FEAT-007: OM Expense 表頭-明細架構
+  omExpenseItems    OMExpenseItem[] @relation("OMExpenseItemOpCo") // 新增：明細項目關聯
+  omExpenseDefaults OMExpense[]     @relation("OMExpenseDefaultOpCo") // 新增：預設 OpCo 關聯
+  omExpensesLegacy  OMExpense[]     @relation("OMExpenseLegacyOpCo") // 舊版關聯（向後兼容）
 
   @@index([isActive])
 }
@@ -517,6 +521,7 @@ model ExpenseItem {
 // ==================================================================
 // 7. 操作與維護費用模型 (OM Expense Models)
 // Post-MVP Enhancement - Module 6
+// FEAT-007: 表頭-明細架構重構 (2025-12-05)
 // ==================================================================
 
 // 統一費用類別 (CHANGE-003: 重命名自 OMExpenseCategory)
@@ -540,6 +545,7 @@ model ExpenseCategory {
 }
 
 // 操作與維護費用（表頭）
+// FEAT-007: 重構為表頭-明細架構
 model OMExpense {
   id String @id @default(uuid())
 
@@ -550,14 +556,27 @@ model OMExpense {
   // 年度和類別
   financialYear Int // 財務年度
   category      String // OM類別（舊欄位，保留向後兼容）
-  categoryId    String? // 新增：關聯到 OMExpenseCategory
+  categoryId    String? // 關聯到 ExpenseCategory
 
-  // OpCo 歸屬
-  opCoId String // 持有此費用的 OpCo
+  // ========== FEAT-007: 新增匯總欄位 ==========
+  // 匯總數據（由 items 自動計算）
+  totalBudgetAmount Float @default(0) // = SUM(items.budgetAmount)
+  totalActualSpent  Float @default(0) // = SUM(items.actualSpent)
 
-  // 預算和實際
-  budgetAmount Float // 預算金額
-  actualSpent  Float @default(0) // 不手動輸入，由月度記錄自動計算
+  // 預設 OpCo（用於建立 item 時的預設值）
+  defaultOpCoId String?
+
+  // ========== FEAT-007: 舊欄位 (DEPRECATED - 將於下個版本移除) ==========
+  // @deprecated 改用 items.opCoId
+  opCoId String?
+  // @deprecated 改用 totalBudgetAmount（由 items 計算）
+  budgetAmount Float?
+  // @deprecated 改用 totalActualSpent（由 items 計算）
+  actualSpent Float @default(0)
+  // @deprecated 改用 items.startDate
+  startDate DateTime?
+  // @deprecated 改用 items.endDate
+  endDate DateTime?
 
   // 增長率（對比上年度）
   yoyGrowthRate Float? // Year-over-Year Growth Rate (%)
@@ -568,8 +587,60 @@ model OMExpense {
   // CHANGE-001: 來源費用追蹤
   sourceExpenseId String? // 若由 Expense 轉換而來，記錄原始費用 ID
 
+  // 元數據
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ========== 關聯 ==========
+  // FEAT-007: 新增明細項目關聯
+  items OMExpenseItem[] // 明細項目
+
+  // FEAT-007: 新增預設 OpCo 關聯
+  defaultOpCo OperatingCompany? @relation("OMExpenseDefaultOpCo", fields: [defaultOpCoId], references: [id])
+
+  // 舊版 OpCo 關聯（DEPRECATED - 保留向後兼容）
+  opCo OperatingCompany? @relation("OMExpenseLegacyOpCo", fields: [opCoId], references: [id])
+
+  vendor          Vendor?          @relation(fields: [vendorId], references: [id])
+  expenseCategory ExpenseCategory? @relation(fields: [categoryId], references: [id])
+  sourceExpense   Expense?         @relation("DerivedOMExpenses", fields: [sourceExpenseId], references: [id])
+
+  // FEAT-007: 舊版 monthlyRecords 關聯已移至 OMExpenseItem
+  // @deprecated 月度記錄現在關聯到 OMExpenseItem
+  monthlyRecords OMExpenseMonthly[] @relation("LegacyOMExpenseMonthly")
+
+  @@index([defaultOpCoId])
+  @@index([opCoId])
+  @@index([vendorId])
+  @@index([financialYear])
+  @@index([category])
+  @@index([categoryId])
+  @@index([sourceExpenseId])
+}
+
+// ========== FEAT-007: 新增模型 ==========
+// OM費用明細項目
+model OMExpenseItem {
+  id          String @id @default(uuid())
+  omExpenseId String
+
+  // 項目基本資訊
+  name        String // 項目名稱（如 "TGT-DC", "RDC2"）
+  description String? @db.Text
+  sortOrder   Int     @default(0) // 排序順序（用於拖曳排序）
+
+  // 預算和實際
+  budgetAmount Float // 此項目預算
+  actualSpent  Float @default(0) // 由月度記錄自動計算
+
+  // 幣別（支援多幣別）
+  currencyId String?
+
+  // OpCo 歸屬（每個項目可能有不同 OpCo）
+  opCoId String
+
   // 日期範圍
-  startDate DateTime
+  startDate DateTime?
   endDate   DateTime
 
   // 元數據
@@ -577,24 +648,28 @@ model OMExpense {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  opCo            OperatingCompany   @relation(fields: [opCoId], references: [id])
-  vendor          Vendor?            @relation(fields: [vendorId], references: [id])
-  expenseCategory ExpenseCategory?   @relation(fields: [categoryId], references: [id])
-  sourceExpense   Expense?           @relation("DerivedOMExpenses", fields: [sourceExpenseId], references: [id]) // CHANGE-001
-  monthlyRecords  OMExpenseMonthly[] // 月度支出記錄（1-12月）
+  omExpense      OMExpense          @relation(fields: [omExpenseId], references: [id], onDelete: Cascade)
+  opCo           OperatingCompany   @relation("OMExpenseItemOpCo", fields: [opCoId], references: [id])
+  currency       Currency?          @relation("OMExpenseItemCurrency", fields: [currencyId], references: [id])
+  monthlyRecords OMExpenseMonthly[] // 月度支出記錄（1-12月）
 
+  @@index([omExpenseId])
   @@index([opCoId])
-  @@index([vendorId])
-  @@index([financialYear])
-  @@index([category])
-  @@index([categoryId])
-  @@index([sourceExpenseId]) // CHANGE-001: 來源費用索引
+  @@index([currencyId])
+  @@index([sortOrder])
 }
 
 // OM費用月度記錄
+// FEAT-007: 修改關聯從 OMExpense 到 OMExpenseItem
 model OMExpenseMonthly {
-  id          String @id @default(uuid())
-  omExpenseId String
+  id String @id @default(uuid())
+
+  // FEAT-007: 新增 - 關聯到 OMExpenseItem
+  omExpenseItemId String?
+
+  // FEAT-007: 舊版欄位 (DEPRECATED - 將於下個版本移除)
+  // @deprecated 改用 omExpenseItemId
+  omExpenseId String?
 
   // 月份 (1-12)
   month Int // 1 = January, 12 = December
@@ -610,10 +685,21 @@ model OMExpenseMonthly {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  omExpense OMExpense        @relation(fields: [omExpenseId], references: [id], onDelete: Cascade)
-  opCo      OperatingCompany @relation(fields: [opCoId], references: [id])
+  // FEAT-007: 新增 - 關聯到 OMExpenseItem
+  omExpenseItem OMExpenseItem? @relation(fields: [omExpenseItemId], references: [id], onDelete: Cascade)
 
-  @@unique([omExpenseId, month]) // 每個 OM 費用每月只能有一條記錄
+  // FEAT-007: 舊版關聯 (DEPRECATED - 保留向後兼容)
+  omExpense OMExpense? @relation("LegacyOMExpenseMonthly", fields: [omExpenseId], references: [id], onDelete: Cascade)
+
+  opCo OperatingCompany @relation(fields: [opCoId], references: [id])
+
+  // FEAT-007: 唯一約束更新
+  // 新版：每個 Item 每月只能有一條記錄
+  @@unique([omExpenseItemId, month])
+  // 舊版：保留向後兼容
+  @@unique([omExpenseId, month])
+
+  @@index([omExpenseItemId])
   @@index([omExpenseId])
   @@index([opCoId])
   @@index([month])
@@ -716,6 +802,7 @@ model Currency {
   budgetPools    BudgetPool[]    @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
   purchaseOrders PurchaseOrder[] @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
   expenses       Expense[]       @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
+  omExpenseItems OMExpenseItem[] @relation("OMExpenseItemCurrency") // FEAT-007: OM 費用明細項目
 
   @@index([code])
   @@index([active])
