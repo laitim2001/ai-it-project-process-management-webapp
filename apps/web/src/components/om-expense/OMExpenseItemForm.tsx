@@ -370,8 +370,8 @@ export default function OMExpenseItemForm({
             <FormItem>
               <FormLabel>{t('itemFields.currency.label', { defaultValue: '幣別' })}</FormLabel>
               <Select
-                onValueChange={field.onChange}
-                value={field.value || ''}
+                onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)}
+                value={field.value || '__none__'}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -381,7 +381,7 @@ export default function OMExpenseItemForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="__none__">
                     {t('itemFields.currency.noSelection', { defaultValue: '不指定' })}
                   </SelectItem>
                   {currencies?.map((currency) => (

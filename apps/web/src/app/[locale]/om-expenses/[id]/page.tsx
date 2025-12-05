@@ -90,6 +90,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
 
   // Selected item for monthly grid display
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  // Active tab state for items section (controlled tabs)
+  const [activeTab, setActiveTab] = useState<string>('items');
   // Item form state (for add/edit dialog)
   const [itemFormMode, setItemFormMode] = useState<'add' | 'edit' | null>(null);
   const [editingItem, setEditingItem] = useState<OMExpenseItemData | null>(null);
@@ -259,6 +261,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
 
   const handleEditMonthly = useCallback((item: OMExpenseItemData) => {
     setSelectedItemId(item.id);
+    setActiveTab('monthly'); // 自動切換到月度記錄 tab
   }, []);
 
   const handleItemFormClose = useCallback(() => {
@@ -598,7 +601,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
             </CardHeader>
             <CardContent>
               {transformedItems.length > 0 ? (
-                <Tabs defaultValue="items" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="items">
                       {tItems('listTab', { defaultValue: '項目列表' })} ({transformedItems.length})
