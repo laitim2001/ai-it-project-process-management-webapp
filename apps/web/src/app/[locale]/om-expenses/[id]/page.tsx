@@ -65,6 +65,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -606,7 +613,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                     <TabsTrigger value="items">
                       {tItems('listTab', { defaultValue: '項目列表' })} ({transformedItems.length})
                     </TabsTrigger>
-                    <TabsTrigger value="monthly" disabled={!selectedItemId}>
+                    <TabsTrigger value="monthly">
                       {tItems('monthlyTab', { defaultValue: '月度記錄' })}
                       {selectedItem && ` - ${selectedItem.name}`}
                     </TabsTrigger>
@@ -627,6 +634,32 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                   </TabsContent>
 
                   <TabsContent value="monthly" className="mt-4">
+                    {/* 項目選擇器 */}
+                    <div className="mb-4">
+                      <label className="text-sm font-medium mb-2 block">
+                        {tItems('selectItem', { defaultValue: '選擇項目' })}
+                      </label>
+                      <Select
+                        value={selectedItemId || '__none__'}
+                        onValueChange={(value) => setSelectedItemId(value === '__none__' ? null : value)}
+                      >
+                        <SelectTrigger className="w-full md:w-[300px]">
+                          <SelectValue placeholder={tItems('selectItemPlaceholder', { defaultValue: '請選擇一個明細項目' })} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">
+                            {tItems('selectItemPlaceholder', { defaultValue: '請選擇一個明細項目' })}
+                          </SelectItem>
+                          {transformedItems.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name} - {tCommon('currency.twd', { defaultValue: 'TWD' })} {item.budgetAmount?.toLocaleString() ?? '0'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 月度記錄表格 */}
                     {selectedItem ? (
                       <OMExpenseItemMonthlyGrid
                         item={selectedItem}
@@ -634,8 +667,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                         onClose={() => setSelectedItemId(null)}
                       />
                     ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        {tItems('selectItemForMonthly', { defaultValue: '請從項目列表中選擇一個項目以查看月度記錄' })}
+                      <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                        {tItems('selectItemForMonthly', { defaultValue: '請選擇一個項目以查看月度記錄' })}
                       </div>
                     )}
                   </TabsContent>

@@ -2133,7 +2133,10 @@
       "totalFromItems": "Total from Items",
       "listTab": "Item List",
       "monthlyTab": "Monthly Records",
-      "selectItemForMonthly": "Select an item to view monthly records",
+      "selectItemForMonthly": "Please select an item to view monthly records",
+      "selectItem": "Select Item",
+      "selectItemPlaceholder": "Please select a detail item",
+      "addItemDescription": "Add a new detail item for this OM expense",
       "editItemDescription": "Edit item details and monthly expense records"
     },
     "itemFields": {

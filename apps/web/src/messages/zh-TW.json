@@ -2133,7 +2133,10 @@
       "totalFromItems": "明細項目匯總",
       "listTab": "項目列表",
       "monthlyTab": "月度記錄",
-      "selectItemForMonthly": "選擇一個項目以查看月度記錄",
+      "selectItemForMonthly": "請選擇一個項目以查看月度記錄",
+      "selectItem": "選擇項目",
+      "selectItemPlaceholder": "請選擇一個明細項目",
+      "addItemDescription": "為此 OM 費用新增一個明細項目",
       "editItemDescription": "編輯項目詳情和月度支出記錄"
     },
     "itemFields": {
