@@ -652,7 +652,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                           </SelectItem>
                           {transformedItems.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
-                              {item.name} - {tCommon('currency.twd', { defaultValue: 'TWD' })} {item.budgetAmount?.toLocaleString() ?? '0'}
+                              {item.name} - TWD {item.budgetAmount?.toLocaleString() ?? '0'}
                             </SelectItem>
                           ))}
                         </SelectContent>
