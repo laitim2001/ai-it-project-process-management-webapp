@@ -2,25 +2,26 @@
  * @fileoverview O&M Expenses List Page - 維運費用列表頁面
  *
  * @description
- * 顯示所有維運（O&M）費用的列表，支援即時搜尋、狀態過濾和分頁功能。
- * 維運費用用於記錄非專案的日常營運費用，支援獨立的審批流程。
- * 整合預算類別和審批工作流，提供完整的維運費用管理功能。
+ * 顯示所有維運（O&M）費用的列表，支援 FEAT-007 表頭-明細架構。
+ * 每個 OMExpense 可以有多個 OMExpenseItem（明細項目），
+ * 每個明細項目有獨立的 OpCo、預算金額和結束日期。
  *
  * @page /[locale]/om-expenses
  *
  * @features
+ * - FEAT-007 表頭-明細架構支援
  * - 維運費用列表展示（卡片視圖）
- * - 即時搜尋（費用描述、發票號）
- * - 狀態過濾（Draft, Submitted, Approved, Paid）
- * - 排序功能（金額、日期、狀態）
- * - 分頁導航（每頁 10/20/50 項）
- * - 快速操作（查看詳情、編輯、提交、審批）
- * - 狀態徽章顯示（不同顏色標示不同狀態）
- * - 角色權限控制（RBAC）
+ * - 顯示總預算、總實際支出（所有明細項目加總）
+ * - 顯示明細項目數量
+ * - 即時搜尋和過濾（財年、OpCo、類別）
+ * - 分頁導航
+ * - 快速操作（查看詳情、編輯）
+ * - 狀態徽章顯示（增長率、使用率）
+ * - 向後相容舊資料格式
  *
  * @permissions
  * - ProjectManager: 查看和建立維運費用
- * - Supervisor: 查看所有維運費用，審批 Submitted 費用
+ * - Supervisor: 查看所有維運費用
  * - Admin: 完整權限
  *
  * @routing
@@ -35,19 +36,17 @@
  * - shadcn/ui: UI 組件庫
  *
  * @related
- * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router（getAll、getCategories）
- * - `packages/api/src/routers/operatingCompany.ts` - OperatingCompany API Router（OpCo 過濾器）
- * - `packages/db/prisma/schema.prisma` - OMExpense 和 OperatingCompany 資料模型定義
+ * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router
+ * - `packages/db/prisma/schema.prisma` - OMExpense, OMExpenseItem 資料模型
  * - `apps/web/src/app/[locale]/om-expenses/new/page.tsx` - OMExpense 建立頁
- * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁（卡片點擊導向）
- * - `apps/web/src/app/[locale]/om-expenses/[id]/edit/page.tsx` - OMExpense 編輯頁
+ * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁（明細管理）
+ * - `apps/web/src/components/om-expense/OMExpenseItemList.tsx` - 明細項目列表組件
  * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
- * - `apps/web/src/components/ui/card.tsx` - Card UI 組件（列表卡片展示）
- * - `apps/web/src/components/ui/badge.tsx` - Badge UI 組件（狀態徽章和增長率）
  *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
- * @lastModified 2025-11-14
+ * @modified FEAT-007 - Header-Detail Architecture (2025-12-05)
+ * @lastModified 2025-12-05
  */
 
 'use client';
@@ -240,9 +239,15 @@ export default function OMExpensesPage() {
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {omExpenses.items.map((om) => {
-              const utilizationRate = om.budgetAmount > 0
-                ? (om.actualSpent / om.budgetAmount) * 100
+              // FEAT-007: Use totalBudgetAmount/totalActualSpent with fallback to legacy fields
+              const totalBudget = om.totalBudgetAmount ?? om.budgetAmount ?? 0;
+              const totalActual = om.totalActualSpent ?? om.actualSpent ?? 0;
+              const itemsCount = om._count?.items ?? 0;
+              const utilizationRate = totalBudget > 0
+                ? (totalActual / totalBudget) * 100
                 : 0;
+              // FEAT-007: Use defaultOpCo, fallback to legacy opCo
+              const displayOpCo = om.defaultOpCo ?? om.opCo;
 
               return (
                 <Card
@@ -267,11 +272,26 @@ export default function OMExpensesPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {/* OpCo 和供應商 */}
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">{t('list.card.opCo')}: </span>
-                        <span className="font-medium">{om.opCo.code}</span>
-                      </div>
+                      {/* FEAT-007: 明細項目數量 */}
+                      {itemsCount > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {itemsCount} {t('list.card.items', { defaultValue: '個項目' })}
+                          </Badge>
+                        </div>
+                      )}
+
+                      {/* OpCo（預設或舊版）和供應商 */}
+                      {displayOpCo && (
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">
+                            {itemsCount > 0
+                              ? t('list.card.defaultOpCo', { defaultValue: '預設 OpCo' })
+                              : t('list.card.opCo')}:{' '}
+                          </span>
+                          <span className="font-medium">{displayOpCo.code}</span>
+                        </div>
+                      )}
                       {om.vendor && (
                         <div className="text-sm">
                           <span className="text-muted-foreground">{t('list.card.vendor')}: </span>
@@ -279,17 +299,25 @@ export default function OMExpensesPage() {
                         </div>
                       )}
 
-                      {/* 預算金額 */}
+                      {/* 預算金額（總計） */}
                       <div className="flex items-center justify-between border-t pt-3">
-                        <span className="text-sm text-muted-foreground">{t('list.card.budget')}</span>
-                        <span className="font-semibold">{formatCurrency(om.budgetAmount)}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {itemsCount > 0
+                            ? t('list.card.totalBudget', { defaultValue: '總預算' })
+                            : t('list.card.budget')}
+                        </span>
+                        <span className="font-semibold">{formatCurrency(totalBudget)}</span>
                       </div>
 
-                      {/* 實際支出 */}
+                      {/* 實際支出（總計） */}
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{t('list.card.actualSpent')}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {itemsCount > 0
+                            ? t('list.card.totalActualSpent', { defaultValue: '總實際支出' })
+                            : t('list.card.actualSpent')}
+                        </span>
                         <span className={`font-semibold ${getUtilizationColor(utilizationRate)}`}>
-                          {formatCurrency(om.actualSpent)}
+                          {formatCurrency(totalActual)}
                         </span>
                       </div>
 
@@ -301,10 +329,10 @@ export default function OMExpensesPage() {
                         </span>
                       </div>
 
-                      {/* 月度記錄數 */}
+                      {/* 月度記錄數（顯示所有項目的月度記錄總數） */}
                       <div className="border-t pt-3">
                         <span className="text-xs text-muted-foreground">
-                          {t('list.card.monthlyRecords')}: {om._count.monthlyRecords} / 12
+                          {t('list.card.monthlyRecords')}: {om._count?.monthlyRecords ?? 0} / {itemsCount > 0 ? itemsCount * 12 : 12}
                         </span>
                       </div>
                     </div>

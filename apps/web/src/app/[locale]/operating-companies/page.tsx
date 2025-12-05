@@ -63,7 +63,7 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { Plus, Building2, AlertCircle, Search } from 'lucide-react';
 import { OperatingCompanyActions } from '@/components/operating-company';
 
@@ -206,15 +206,14 @@ export default function OperatingCompaniesPage() {
             />
           </div>
 
-          <Select
-            value={statusFilter}
+          <NativeSelect value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as FilterStatus)}
             className="w-[180px]"
           >
             <option value="all">{t('filters.all')}</option>
             <option value="active">{t('filters.activeOnly')}</option>
             <option value="inactive">{t('filters.inactiveOnly')}</option>
-          </Select>
+          </NativeSelect>
         </div>
 
         {/* 結果計數 */}

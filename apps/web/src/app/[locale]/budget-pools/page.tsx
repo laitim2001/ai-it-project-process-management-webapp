@@ -61,7 +61,7 @@ import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { PaginationControls, BudgetPoolListSkeleton } from '@/components/ui';
 import { useToast } from '@/components/ui/use-toast';
@@ -279,8 +279,7 @@ export default function BudgetPoolsPage() {
             />
           </div>
 
-          <Select
-            value={yearFilter?.toString() ?? ''}
+          <NativeSelect value={yearFilter?.toString() ?? ''}
             onChange={(e) => {
               const value = e.target.value;
               setYearFilter(value ? parseInt(value) : undefined);
@@ -293,10 +292,9 @@ export default function BudgetPoolsPage() {
                 FY {year}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
 
-          <Select
-            value={`${sortBy}-${sortOrder}`}
+          <NativeSelect value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [newSortBy, newSortOrder] = e.target.value.split('-') as [
                 'name' | 'year' | 'amount',
@@ -312,7 +310,7 @@ export default function BudgetPoolsPage() {
             <option value="name-desc">{t('sort.nameDesc')}</option>
             <option value="amount-desc">{t('sort.amountDesc')}</option>
             <option value="amount-asc">{t('sort.amountAsc')}</option>
-          </Select>
+          </NativeSelect>
         </div>
 
         {/* Results Count */}

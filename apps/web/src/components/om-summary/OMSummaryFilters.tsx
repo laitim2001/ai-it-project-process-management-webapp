@@ -5,6 +5,12 @@
  * 提供 O&M Summary 頁面的過濾功能，包含財務年度選擇、OpCo 多選和 Category 多選。
  * 使用 Combobox 組件實現可搜尋的下拉選單，支援多選功能。
  *
+ * FEAT-007 說明：此組件的過濾邏輯不受新架構影響，因為：
+ * - 年度過濾：基於 OMExpense.financialYear
+ * - OpCo 過濾：新架構中 OpCo 在 OMExpenseItem 層級，API 會處理聚合
+ * - Category 過濾：基於 OMExpense.category
+ * 過濾參數傳遞給 API，由 API 層處理資料聚合邏輯。
+ *
  * @component OMSummaryFilters
  *
  * @features
@@ -22,12 +28,12 @@
  *
  * @related
  * - apps/web/src/app/[locale]/om-summary/page.tsx - 主頁面
- * - packages/api/src/routers/omExpense.ts - API
+ * - packages/api/src/routers/omExpense.ts - API (getSummary)
  * - packages/api/src/routers/operatingCompany.ts - OpCo API
  *
  * @author IT Department
  * @since FEAT-003 - O&M Summary Page
- * @lastModified 2025-11-29
+ * @lastModified 2025-12-05
  */
 
 'use client';
@@ -37,7 +43,7 @@ import { useTranslations } from 'next-intl';
 import { RotateCcw, Check, ChevronsUpDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import {
   Popover,
@@ -276,7 +282,7 @@ export function OMSummaryFilters({
         {/* 財務年度 */}
         <div className="space-y-2">
           <Label htmlFor="financialYear">{t('filters.financialYear')}</Label>
-          <Select
+          <NativeSelect
             id="financialYear"
             value={filters.currentYear.toString()}
             onChange={handleYearChange}
@@ -287,7 +293,7 @@ export function OMSummaryFilters({
                 FY{year}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
         </div>
 
         {/* OpCo 多選 */}

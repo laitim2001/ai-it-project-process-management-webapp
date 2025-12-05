@@ -61,7 +61,7 @@ import { BudgetPoolOverview } from '@/components/dashboard/BudgetPoolOverview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui';
 import {
   Briefcase,
@@ -269,8 +269,7 @@ export default function SupervisorDashboard() {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   {t('filters.status.label')}
                 </label>
-                <Select
-                  value={status || ''}
+                <NativeSelect value={status || ''}
                   onChange={(e) => {
                     setStatus(e.target.value || null);
                     setPage(1);
@@ -281,15 +280,14 @@ export default function SupervisorDashboard() {
                   <option value="InProgress">{t('projectStatus.InProgress')}</option>
                   <option value="Completed">{t('projectStatus.Completed')}</option>
                   <option value="Archived">{t('projectStatus.Archived')}</option>
-                </Select>
+                </NativeSelect>
               </div>
 
               <div className="flex-1 min-w-[200px]">
                 <label className="block text-sm font-medium text-foreground mb-2">
                   {t('filters.manager.label')}
                 </label>
-                <Select
-                  value={managerId || ''}
+                <NativeSelect value={managerId || ''}
                   onChange={(e) => {
                     setManagerId(e.target.value || null);
                     setPage(1);
@@ -304,7 +302,7 @@ export default function SupervisorDashboard() {
                       })}
                     </option>
                   ))}
-                </Select>
+                </NativeSelect>
               </div>
 
               <div className="flex items-end">

@@ -4,6 +4,7 @@
  * @description
  * 顯示 O&M 費用的明細列表，使用階層結構：Category → OpCo → Items。
  * 使用 Accordion 組件實現可展開/收合的分組結構。
+ * FEAT-007 更新：支援新的 OMExpenseItem 架構，項目點擊可導航至詳情頁。
  *
  * @component OMSummaryDetailGrid
  *
@@ -17,26 +18,31 @@
  * - 百分比顏色區分（正值綠色、負值紅色）
  * - 日期格式化
  * - 響應式設計
+ * - 項目可點擊導航（FEAT-007）
+ * - Dark Mode 支援
  *
  * @dependencies
  * - @/components/ui/accordion - Accordion 組件
  * - @/components/ui/table - Table 組件
+ * - lucide-react - 圖標
  * - next-intl - 國際化
  *
  * @related
  * - apps/web/src/app/[locale]/om-summary/page.tsx - 主頁面
- * - packages/api/src/routers/omExpense.ts - API
+ * - apps/web/src/app/[locale]/om-expenses/[id]/page.tsx - OM 費用詳情頁面
+ * - packages/api/src/routers/omExpense.ts - API (getSummary)
+ * - packages/db/prisma/schema.prisma - OMExpense, OMExpenseItem 資料模型
  *
  * @author IT Department
  * @since FEAT-003 - O&M Summary Page
- * @lastModified 2025-11-29
+ * @lastModified 2025-12-05
  */
 
 'use client';
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { FolderOpen, Building2 } from 'lucide-react';
+import { FolderOpen, Building2, ExternalLink } from 'lucide-react';
 
 import {
   Accordion,
@@ -55,6 +61,10 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
+// ============================================================
+// Types
+// ============================================================
+
 export interface ItemDetail {
   id: string;
   name: string;
@@ -63,6 +73,10 @@ export interface ItemDetail {
   previousYearActual: number | null;
   changePercent: number | null;
   endDate: Date | string;
+  /** FEAT-007: 關聯的 OM Expense ID（用於導航） */
+  omExpenseId?: string;
+  /** FEAT-007: 是否為 OMExpenseItem（新架構）或舊 OMExpense */
+  isNewArchitecture?: boolean;
 }
 
 export interface OpCoSubTotal {
@@ -96,7 +110,10 @@ interface OMSummaryDetailGridProps {
   currentYear: number;
   previousYear: number;
   isLoading?: boolean;
-  showOpCoGroups?: boolean; // 是否顯示 OpCo 分組（當只選一個 OpCo 時可隱藏）
+  /** 是否顯示 OpCo 分組（當只選一個 OpCo 時可隱藏） */
+  showOpCoGroups?: boolean;
+  /** FEAT-007: 項目點擊回調（用於導航到詳情頁） */
+  onItemClick?: (item: ItemDetail) => void;
 }
 
 /**
@@ -149,6 +166,7 @@ export function OMSummaryDetailGrid({
   previousYear,
   isLoading = false,
   showOpCoGroups = true,
+  onItemClick,
 }: OMSummaryDetailGridProps) {
   const t = useTranslations('omSummary');
 
@@ -233,6 +251,7 @@ export function OMSummaryDetailGrid({
                             currentBudgetHeader={currentBudgetHeader}
                             previousActualHeader={previousActualHeader}
                             t={t}
+                            onItemClick={onItemClick}
                           />
                         </AccordionContent>
                       </AccordionItem>
@@ -254,6 +273,7 @@ export function OMSummaryDetailGrid({
                         currentBudgetHeader={currentBudgetHeader}
                         previousActualHeader={previousActualHeader}
                         t={t}
+                        onItemClick={onItemClick}
                       />
                     </div>
                   ))
@@ -298,6 +318,8 @@ export function OMSummaryDetailGrid({
  * 使用與 OMSummaryCategoryGrid 相同的百分比寬度確保對齊
  * 右側 4 欄：FY預算(13%) + FY實際(13%) + 變動%(10%) + 最後欄(10%) = 46%
  * 左側欄位：#(5%) + 項目(49%) = 54%
+ *
+ * FEAT-007: 支援項目點擊導航
  */
 function ItemTable({
   items,
@@ -305,13 +327,16 @@ function ItemTable({
   currentBudgetHeader,
   previousActualHeader,
   t,
+  onItemClick,
 }: {
   items: ItemDetail[];
   subTotal: OpCoSubTotal;
   currentBudgetHeader: string;
   previousActualHeader: string;
   t: ReturnType<typeof useTranslations<'omSummary'>>;
+  onItemClick?: (item: ItemDetail) => void;
 }) {
+  const isClickable = !!onItemClick;
   return (
     <Table className="table-fixed w-full">
       <colgroup>
@@ -334,13 +359,24 @@ function ItemTable({
       </TableHeader>
       <TableBody>
         {items.map((item, index) => (
-          <TableRow key={item.id}>
+          <TableRow
+            key={item.id}
+            className={cn(
+              isClickable && 'cursor-pointer hover:bg-accent/50 transition-colors'
+            )}
+            onClick={isClickable ? () => onItemClick(item) : undefined}
+          >
             <TableCell className="text-muted-foreground">{index + 1}</TableCell>
             <TableCell>
-              <div>
-                <div className="font-medium">{item.name}</div>
-                {item.description && (
-                  <div className="text-sm text-muted-foreground">{item.description}</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="font-medium">{item.name}</div>
+                  {item.description && (
+                    <div className="text-sm text-muted-foreground">{item.description}</div>
+                  )}
+                </div>
+                {isClickable && (
+                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
               </div>
             </TableCell>

@@ -63,7 +63,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
@@ -318,8 +318,7 @@ export default function ExpensesPage() {
         {/* 篩選欄 */}
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
-            <Select
-              value={status || ''}
+            <NativeSelect value={status || ''}
               onChange={(e) => {
                 setStatus(e.target.value || undefined);
                 setPage(1);
@@ -330,12 +329,11 @@ export default function ExpensesPage() {
               <option value="Submitted">{t('list.filter.submitted')}</option>
               <option value="Approved">{t('list.filter.approved')}</option>
               <option value="Paid">{t('list.filter.paid')}</option>
-            </Select>
+            </NativeSelect>
           </div>
 
           <div className="flex-1 min-w-[200px]">
-            <Select
-              value={purchaseOrderId || ''}
+            <NativeSelect value={purchaseOrderId || ''}
               onChange={(e) => {
                 setPurchaseOrderId(e.target.value || undefined);
                 setPage(1);
@@ -347,7 +345,7 @@ export default function ExpensesPage() {
                   {po.poNumber} - {po.project.name}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </div>
         </div>
 

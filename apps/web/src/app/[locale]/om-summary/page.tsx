@@ -3,24 +3,27 @@
  *
  * @description
  * 提供 O&M 費用和專案摘要的總覽視圖，使用 Tab 切換顯示。
- * - O&M Summary Tab: 按年度、OpCo、Category 過濾的 O&M 費用
+ * 支援 FEAT-007 表頭-明細架構，顯示彙總自所有明細項目的預算和實際支出。
+ * - O&M Summary Tab: 按年度、OpCo、Category 過濾的 O&M 費用（從 OMExpenseItem 彙總）
  * - Project Summary Tab: 按年度、預算類別過濾的專案摘要 (FEAT-006)
  *
  * @page /[locale]/om-summary
  *
  * @features
+ * - FEAT-007 表頭-明細架構支援
  * - Tab 切換：O&M 費用總覽 / 專案摘要
  * - O&M Summary:
  *   - 財務年度選擇（顯示當前年度 Budget vs 上年度 Actual）
- *   - OpCo 多選過濾
+ *   - OpCo 多選過濾（過濾明細項目的 OpCo）
  *   - O&M Category 多選過濾
- *   - 類別匯總表格（Category、Budget、Actual、Change%、Item Count）
+ *   - 類別匯總表格（從所有明細項目彙總）
  *   - 明細表格（Category → OpCo → Items 階層結構）
- * - Project Summary:
+ * - Project Summary (FEAT-006):
  *   - 財務年度單選過濾
  *   - 預算類別多選過濾
  *   - 類別統計摘要表格
  *   - 專案明細 Accordion 表格
+ * - 向後相容舊資料格式
  * - 重置過濾器功能
  * - 響應式設計
  *
@@ -35,15 +38,16 @@
  * - shadcn/ui: UI 組件庫
  *
  * @related
- * - packages/api/src/routers/omExpense.ts - OMExpense API Router (getSummary)
+ * - packages/api/src/routers/omExpense.ts - OMExpense API Router (getSummary, FEAT-007)
  * - packages/api/src/routers/project.ts - Project API Router (getProjectSummary)
  * - packages/api/src/routers/operatingCompany.ts - OpCo API Router
- * - apps/web/src/components/om-summary/* - O&M Summary 組件
+ * - apps/web/src/components/om-summary/* - O&M Summary 組件 (FEAT-007 重構)
  * - apps/web/src/components/project-summary/* - Project Summary 組件 (FEAT-006)
  *
  * @author IT Department
  * @since FEAT-003 - O&M Summary Page
  * @modified FEAT-006 - Project Summary Tab (2025-12-05)
+ * @modified FEAT-007 - Header-Detail Architecture (2025-12-05)
  * @lastModified 2025-12-05
  */
 

@@ -2,24 +2,26 @@
  * @fileoverview O&M Expense Detail Page - 維運費用詳情頁面
  *
  * @description
- * 顯示單一維運費用的完整資訊，包含預算類別、金額、發票和審批狀態。
- * 提供審批工作流操作，Supervisor 可在此頁面進行審批操作。
+ * 顯示單一維運費用的完整資訊，支援 FEAT-007 表頭-明細架構。
+ * 包含表頭資訊、明細項目列表（支援拖曳排序）、每個項目的月度記錄。
  *
  * @page /[locale]/om-expenses/[id]
  *
  * @features
- * - 維運費用詳情展示（預算類別、金額、發票號、日期）
- * - 發票檔案預覽和下載（Azure Blob Storage）
- * - 審批工作流（提交、審批、拒絕）
- * - 狀態徽章顯示（Draft, Submitted, Approved, Paid）
- * - 審批歷史記錄（狀態變更軌跡）
- * - 編輯操作（僅 Draft 狀態可編輯）
- * - 權限控制（根據角色和費用狀態控制操作權限）
+ * - FEAT-007 表頭-明細架構顯示
+ * - 表頭資訊展示（名稱、財年、類別、預設 OpCo、供應商）
+ * - 明細項目列表（OMExpenseItemList 組件）
+ * - 拖曳排序功能（@dnd-kit）
+ * - 項目新增、編輯、刪除操作
+ * - 選定項目的月度記錄顯示（OMExpenseItemMonthlyGrid）
+ * - 預算匯總卡片（總預算、總實際支出、使用率）
+ * - YoY 增長率計算
+ * - 編輯和刪除操作
  * - 麵包屑導航
  *
  * @permissions
  * - ProjectManager: 查看和編輯自己的維運費用
- * - Supervisor: 查看所有維運費用，審批 Submitted 費用
+ * - Supervisor: 查看所有維運費用
  * - Admin: 完整權限
  *
  * @routing
@@ -31,28 +33,25 @@
  * - next-intl: 國際化支援
  * - @tanstack/react-query: tRPC 查詢和快取
  * - shadcn/ui: UI 組件庫
+ * - @dnd-kit: 拖曳排序
  *
  * @related
- * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router（getById、delete、calculateYoYGrowth）
- * - `packages/db/prisma/schema.prisma` - OMExpense 和 OMExpenseMonthlyRecord 資料模型定義
- * - `apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx` - 月度費用表格組件（編輯器）
- * - `apps/web/src/app/[locale]/om-expenses/page.tsx` - OMExpense 列表頁（返回列表）
- * - `apps/web/src/app/[locale]/om-expenses/[id]/edit/page.tsx` - OMExpense 編輯頁（編輯按鈕）
- * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
- * - `apps/web/src/components/ui/card.tsx` - Card UI 組件（資訊卡片展示）
- * - `apps/web/src/components/ui/badge.tsx` - Badge UI 組件（狀態徽章和增長率）
- * - `apps/web/src/components/ui/breadcrumb.tsx` - Breadcrumb 導航組件
+ * - packages/api/src/routers/omExpense.ts - OMExpense API Router
+ * - apps/web/src/components/om-expense/OMExpenseItemList.tsx - 明細項目列表
+ * - apps/web/src/components/om-expense/OMExpenseItemMonthlyGrid.tsx - 項目月度記錄
  *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
- * @lastModified 2025-11-14
+ * @modified FEAT-007 - Header-Detail Architecture (2025-12-05)
+ * @lastModified 2025-12-05
  */
 
 'use client';
 
-import { Link, useRouter } from "@/i18n/routing";
+import { useState, useCallback, useMemo } from 'react';
+import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Edit, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { ArrowLeft, Edit, TrendingUp, TrendingDown, Minus, Layers } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -64,19 +63,38 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import OMExpenseMonthlyGrid from '@/components/om-expense/OMExpenseMonthlyGrid';
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
+// FEAT-007 Components
+import OMExpenseItemList, { type OMExpenseItemData } from '@/components/om-expense/OMExpenseItemList';
+import OMExpenseItemMonthlyGrid from '@/components/om-expense/OMExpenseItemMonthlyGrid';
+import OMExpenseItemForm from '@/components/om-expense/OMExpenseItemForm';
+
 export default function OMExpenseDetailPage({ params }: { params: { id: string } }) {
   const t = useTranslations('omExpenses');
+  const tItems = useTranslations('omExpenses.items');
   const tNav = useTranslations('navigation');
   const tCommon = useTranslations('common');
   const router = useRouter();
   const { toast } = useToast();
 
-  // Get OM expense details
+  // Selected item for monthly grid display
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  // Item form state (for add/edit dialog)
+  const [itemFormMode, setItemFormMode] = useState<'add' | 'edit' | null>(null);
+  const [editingItem, setEditingItem] = useState<OMExpenseItemData | null>(null);
+
+  // Get OM expense details with items
   const { data: omExpense, isLoading, refetch } = api.omExpense.getById.useQuery({
     id: params.id,
   });
@@ -129,6 +147,37 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     },
   });
 
+  // FEAT-007: Item mutations (add/update handled by OMExpenseItemForm)
+  const deleteItemMutation = api.omExpense.removeItem.useMutation({
+    onSuccess: () => {
+      toast({
+        title: tCommon('success'),
+        description: tItems('deleteSuccess', { defaultValue: '明細項目已刪除' }),
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: tCommon('error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const reorderItemsMutation = api.omExpense.reorderItems.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: tCommon('error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-HK', {
@@ -140,7 +189,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   };
 
   // Format date
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('zh-HK', {
       year: 'numeric',
       month: '2-digit',
@@ -166,10 +215,10 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   // Growth rate color
   const getGrowthRateColor = (rate: number | null) => {
     if (rate === null) return 'bg-gray-500';
-    if (rate > 10) return 'bg-red-500'; // High growth (warning)
-    if (rate > 0) return 'bg-yellow-500'; // Positive growth
-    if (rate < 0) return 'bg-green-500'; // Negative growth (savings)
-    return 'bg-gray-500'; // Zero growth
+    if (rate > 10) return 'bg-red-500';
+    if (rate > 0) return 'bg-yellow-500';
+    if (rate < 0) return 'bg-green-500';
+    return 'bg-gray-500';
   };
 
   // Delete confirmation
@@ -178,6 +227,51 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       deleteMutation.mutate({ id: params.id });
     }
   };
+
+  // Handle item selection for monthly grid
+  const handleItemSelect = useCallback((itemId: string) => {
+    setSelectedItemId(itemId === selectedItemId ? null : itemId);
+  }, [selectedItemId]);
+
+  // FEAT-007: Item handlers for OMExpenseItemList
+  const handleAddItem = useCallback(() => {
+    setItemFormMode('add');
+    setEditingItem(null);
+  }, []);
+
+  const handleEditItem = useCallback((item: OMExpenseItemData) => {
+    setItemFormMode('edit');
+    setEditingItem(item);
+  }, []);
+
+  const handleDeleteItem = useCallback((itemId: string) => {
+    if (confirm(tItems('deleteConfirm', { defaultValue: '確定要刪除此明細項目嗎？刪除後將無法恢復。' }))) {
+      deleteItemMutation.mutate({ id: itemId });
+    }
+  }, [deleteItemMutation, tItems]);
+
+  const handleReorder = useCallback((newOrder: string[]) => {
+    reorderItemsMutation.mutate({
+      omExpenseId: params.id,
+      itemIds: newOrder,
+    });
+  }, [reorderItemsMutation, params.id]);
+
+  const handleEditMonthly = useCallback((item: OMExpenseItemData) => {
+    setSelectedItemId(item.id);
+  }, []);
+
+  const handleItemFormClose = useCallback(() => {
+    setItemFormMode(null);
+    setEditingItem(null);
+  }, []);
+
+  // Item form success handler (form handles its own mutations)
+  const handleItemFormSuccess = useCallback(() => {
+    setItemFormMode(null);
+    setEditingItem(null);
+    refetch();
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -200,8 +294,48 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     );
   }
 
-  const utilizationRate =
-    omExpense.budgetAmount > 0 ? (omExpense.actualSpent / omExpense.budgetAmount) * 100 : 0;
+  // FEAT-007: Use totalBudgetAmount and totalActualSpent from items aggregation
+  const totalBudget = omExpense.totalBudgetAmount ?? omExpense.budgetAmount ?? 0;
+  const totalActual = omExpense.totalActualSpent ?? omExpense.actualSpent ?? 0;
+  const utilizationRate = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
+
+  // Get items array (FEAT-007)
+  // Transform API items to OMExpenseItemData format (Date to string conversion)
+  const transformedItems: OMExpenseItemData[] = useMemo(() => {
+    const apiItems = omExpense.items || [];
+    return apiItems.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      sortOrder: item.sortOrder,
+      budgetAmount: item.budgetAmount,
+      actualSpent: item.actualSpent,
+      opCoId: item.opCoId,
+      currencyId: item.currencyId,
+      // Convert Date to ISO string
+      startDate: item.startDate ? new Date(item.startDate).toISOString() : null,
+      endDate: new Date(item.endDate).toISOString(),
+      opCo: item.opCo ? {
+        id: item.opCo.id,
+        code: item.opCo.code,
+        name: item.opCo.name,
+      } : undefined,
+      currency: item.currency ? {
+        id: item.currency.id,
+        code: item.currency.code,
+        name: item.currency.name,
+      } : null,
+      monthlyRecords: item.monthlyRecords?.map((record) => ({
+        month: record.month,
+        actualAmount: record.actualAmount,
+      })),
+    }));
+  }, [omExpense.items]);
+
+  // Get selected item for monthly grid
+  const selectedItem = selectedItemId
+    ? transformedItems.find((item) => item.id === selectedItemId)
+    : null;
 
   return (
     <DashboardLayout>
@@ -242,6 +376,11 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
             <h1 className="text-3xl font-bold">{omExpense.name}</h1>
             <p className="mt-2 text-muted-foreground">
               FY{omExpense.financialYear} · {omExpense.category}
+              {transformedItems.length > 0 && (
+                <span className="ml-2">
+                  · <Layers className="inline h-4 w-4" /> {transformedItems.length} {tItems('itemCount', { defaultValue: '個項目' })}
+                </span>
+              )}
             </p>
           </div>
           <div className="flex gap-2">
@@ -261,7 +400,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left Column: Basic Info and Related Info */}
+        {/* Left Column: Basic Info and Budget Overview */}
         <div className="space-y-6 lg:col-span-1">
           {/* Basic Information Card */}
           <Card>
@@ -286,30 +425,33 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                 <div className="mt-1 font-medium">{omExpense.category}</div>
               </div>
 
-              <div>
-                <div className="text-sm text-muted-foreground">{t('detail.dateRange')}</div>
-                <div className="mt-1 text-sm">
-                  {formatDate(omExpense.startDate)} - {formatDate(omExpense.endDate)}
+              {/* FEAT-007: Show default OpCo if set */}
+              {omExpense.defaultOpCo && (
+                <div>
+                  <div className="text-sm text-muted-foreground">
+                    {t('detail.defaultOpCo', { defaultValue: '預設 OpCo' })}
+                  </div>
+                  <div className="mt-1">
+                    <Badge variant="outline" className="font-mono">
+                      {omExpense.defaultOpCo.code}
+                    </Badge>
+                    <div className="mt-1 text-sm">{omExpense.defaultOpCo.name}</div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              )}
 
-          {/* Related Information Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('detail.relatedInfo')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="text-sm text-muted-foreground">{t('detail.opCo')}</div>
-                <div className="mt-1">
-                  <Badge variant="outline" className="font-mono">
-                    {omExpense.opCo.code}
-                  </Badge>
-                  <div className="mt-1 text-sm">{omExpense.opCo.name}</div>
+              {/* Legacy OpCo display for backward compatibility */}
+              {!omExpense.defaultOpCo && omExpense.opCo && (
+                <div>
+                  <div className="text-sm text-muted-foreground">{t('detail.opCo')}</div>
+                  <div className="mt-1">
+                    <Badge variant="outline" className="font-mono">
+                      {omExpense.opCo.code}
+                    </Badge>
+                    <div className="mt-1 text-sm">{omExpense.opCo.name}</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {omExpense.vendor ? (
                 <div>
@@ -330,15 +472,18 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
             </CardContent>
           </Card>
 
-          {/* Budget Overview Card */}
+          {/* Budget Overview Card - FEAT-007: Use totals from items */}
           <Card>
             <CardHeader>
               <CardTitle>{t('detail.budgetOverview')}</CardTitle>
+              <CardDescription>
+                {tItems('totalFromItems', { count: transformedItems.length, defaultValue: `從 ${transformedItems.length} 個項目匯總` })}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('detail.budgetAmount')}</span>
-                <span className="font-semibold">{formatCurrency(omExpense.budgetAmount)}</span>
+                <span className="font-semibold">{formatCurrency(totalBudget)}</span>
               </div>
 
               <div className="flex justify-between">
@@ -352,14 +497,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                       : 'text-green-600'
                   }`}
                 >
-                  {formatCurrency(omExpense.actualSpent)}
+                  {formatCurrency(totalActual)}
                 </span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('detail.remainingBudget')}</span>
                 <span className="font-semibold">
-                  {formatCurrency(omExpense.budgetAmount - omExpense.actualSpent)}
+                  {formatCurrency(totalBudget - totalActual)}
                 </span>
               </div>
 
@@ -433,16 +578,118 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
           </Card>
         </div>
 
-        {/* Right Column: Monthly Grid Editor */}
-        <div className="lg:col-span-2">
-          <OMExpenseMonthlyGrid
-            omExpenseId={params.id}
-            budgetAmount={omExpense.budgetAmount}
-            initialRecords={omExpense.monthlyRecords}
-            onSave={() => refetch()}
-          />
+        {/* Right Column: Items and Monthly Grid - FEAT-007 */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Items Section with Tabs */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layers className="h-5 w-5" />
+                    {tItems('title', { defaultValue: '明細項目' })}
+                  </CardTitle>
+                  <CardDescription>
+                    {tItems('description', { defaultValue: '管理此 OM 費用的明細項目和月度記錄' })}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {transformedItems.length > 0 ? (
+                <Tabs defaultValue="items" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="items">
+                      {tItems('listTab', { defaultValue: '項目列表' })} ({transformedItems.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="monthly" disabled={!selectedItemId}>
+                      {tItems('monthlyTab', { defaultValue: '月度記錄' })}
+                      {selectedItem && ` - ${selectedItem.name}`}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="items" className="mt-4">
+                    <OMExpenseItemList
+                      omExpenseId={params.id}
+                      items={transformedItems}
+                      onAddItem={handleAddItem}
+                      onEditItem={handleEditItem}
+                      onDeleteItem={handleDeleteItem}
+                      onReorder={handleReorder}
+                      onEditMonthly={handleEditMonthly}
+                      isLoading={isLoading}
+                      canEdit={true}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="monthly" className="mt-4">
+                    {selectedItem ? (
+                      <OMExpenseItemMonthlyGrid
+                        item={selectedItem}
+                        onSave={() => refetch()}
+                        onClose={() => setSelectedItemId(null)}
+                      />
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {tItems('selectItemForMonthly', { defaultValue: '請從項目列表中選擇一個項目以查看月度記錄' })}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <div className="text-center py-8">
+                  <Layers className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    {tItems('noItems', { defaultValue: '尚無明細項目' })}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {tItems('addFirstItemHint', { defaultValue: '點擊下方按鈕新增第一個明細項目' })}
+                  </p>
+                  <OMExpenseItemList
+                    omExpenseId={params.id}
+                    items={[]}
+                    onAddItem={handleAddItem}
+                    onEditItem={handleEditItem}
+                    onDeleteItem={handleDeleteItem}
+                    onReorder={handleReorder}
+                    onEditMonthly={handleEditMonthly}
+                    isLoading={isLoading}
+                    canEdit={true}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* FEAT-007: Item Form Dialog for Add/Edit */}
+      <Dialog open={itemFormMode !== null} onOpenChange={(open) => !open && handleItemFormClose()}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {itemFormMode === 'add'
+                ? tItems('addItem', { defaultValue: '新增明細項目' })
+                : tItems('editItem', { defaultValue: '編輯明細項目' })}
+            </DialogTitle>
+            <DialogDescription>
+              {itemFormMode === 'add'
+                ? tItems('addItemDescription', { defaultValue: '為此 OM 費用新增一個明細項目' })
+                : tItems('editItemDescription', { defaultValue: '修改明細項目資訊' })}
+            </DialogDescription>
+          </DialogHeader>
+          {itemFormMode && (
+            <OMExpenseItemForm
+              mode={itemFormMode === 'add' ? 'create' : 'edit'}
+              omExpenseId={params.id}
+              initialData={editingItem || undefined}
+              defaultOpCoId={omExpense.defaultOpCoId || undefined}
+              onSuccess={handleItemFormSuccess}
+              onCancel={handleItemFormClose}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

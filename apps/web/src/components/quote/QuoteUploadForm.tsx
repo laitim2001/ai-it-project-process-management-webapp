@@ -39,7 +39,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui';
@@ -267,8 +267,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
             <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mb-2">
               {t('form.vendor.label')} <span className="text-red-500">*</span>
             </label>
-            <Select
-              id="vendor"
+            <NativeSelect id="vendor"
               value={vendorId}
               onChange={(e) => setVendorId(e.target.value)}
               required
@@ -280,7 +279,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
                   {vendor.name}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </div>
 
           {/* 報價金額 */}

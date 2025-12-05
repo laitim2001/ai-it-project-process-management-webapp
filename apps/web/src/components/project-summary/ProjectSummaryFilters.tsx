@@ -37,7 +37,7 @@ import { useTranslations } from 'next-intl';
 import { RotateCcw, Check, ChevronsUpDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import {
   Popover,
@@ -247,8 +247,7 @@ export function ProjectSummaryFilters({
         {/* 財務年度 */}
         <div className="space-y-2">
           <Label htmlFor="financialYear">{t('filters.financialYear')}</Label>
-          <Select
-            id="financialYear"
+          <NativeSelect id="financialYear"
             value={filters.financialYear.toString()}
             onChange={handleYearChange}
             disabled={isLoading}
@@ -258,7 +257,7 @@ export function ProjectSummaryFilters({
                 FY{year}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
         </div>
 
         {/* 預算類別多選 */}

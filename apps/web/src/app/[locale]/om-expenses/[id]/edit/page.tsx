@@ -2,23 +2,28 @@
  * @fileoverview Edit O&M Expense Page - 編輯維運費用頁面
  *
  * @description
- * 提供編輯現有維運費用的表單頁面，支援修改費用資訊。
- * 僅允許編輯 Draft 狀態的維運費用，使用 React Hook Form 進行表單驗證。
+ * 提供編輯現有維運費用表頭資訊的表單頁面，支援 FEAT-007 表頭-明細架構。
+ * 此頁面僅編輯 OMExpense 表頭欄位，明細項目（OMExpenseItem）的管理
+ * 在詳情頁面透過 OMExpenseItemList 組件進行。
  *
  * @page /[locale]/om-expenses/[id]/edit
  *
  * @features
- * - 完整的維運費用編輯表單（預填充現有資料）
- * - 修改預算類別、金額、描述、發票
- * - 狀態檢查（僅允許編輯 Draft 費用）
+ * - FEAT-007 表頭-明細架構支援
+ * - 表頭資訊編輯（名稱、描述、財年、類別、預設 OpCo、供應商）
+ * - 向後相容舊資料（opCoId → defaultOpCoId 映射）
  * - 即時表單驗證（Zod schema）
- * - 錯誤處理（權限錯誤、狀態錯誤、網路錯誤）
+ * - 錯誤處理和成功提示（Toast）
+ *
+ * @note
+ * 明細項目（OMExpenseItem）的新增、編輯、刪除、排序在詳情頁面進行：
+ * - `/om-expenses/[id]` - 使用 OMExpenseItemList 組件管理明細
+ * - 月度記錄（OMExpenseMonthly）在詳情頁面使用 OMExpenseItemMonthlyGrid 編輯
  *
  * @permissions
- * - ProjectManager: 可編輯自己的 Draft 維運費用
- * - Supervisor: 可編輯任意 Draft 維運費用
+ * - ProjectManager: 可編輯維運費用表頭
+ * - Supervisor: 完整權限
  * - Admin: 完整權限
- * - 限制: 僅 Draft 狀態的費用可編輯
  *
  * @routing
  * - 編輯頁: /om-expenses/[id]/edit
@@ -32,16 +37,17 @@
  *
  * @related
  * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router（getById、update 操作）
- * - `packages/db/prisma/schema.prisma` - OMExpense 資料模型定義
- * - `apps/web/src/components/om-expense/OMExpenseForm.tsx` - OMExpense 表單組件（編輯模式）
- * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁（編輯成功後返回）
+ * - `packages/db/prisma/schema.prisma` - OMExpense, OMExpenseItem 資料模型
+ * - `apps/web/src/components/om-expense/OMExpenseForm.tsx` - OMExpense 表單組件（FEAT-007 重構）
+ * - `apps/web/src/components/om-expense/OMExpenseItemList.tsx` - 明細項目列表組件
+ * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁（明細管理）
  * - `apps/web/src/app/[locale]/om-expenses/page.tsx` - OMExpense 列表頁
  * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
- * - `apps/web/src/components/ui/breadcrumb.tsx` - Breadcrumb 導航組件
  *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
- * @lastModified 2025-11-14
+ * @modified FEAT-007 - Header-Detail Architecture (2025-12-05)
+ * @lastModified 2025-12-05
  */
 
 'use client';
@@ -93,18 +99,32 @@ export default function EditOMExpensePage({ params }: { params: { id: string } }
     );
   }
 
-  // Prepare initial data
+  // Prepare initial data for FEAT-007 Header-Detail architecture
+  // Note: Edit mode only modifies header fields
+  // Items (OMExpenseItem) are managed on the detail page via OMExpenseItemList
   const initialData = {
     id: omExpense.id,
     name: omExpense.name,
     description: omExpense.description ?? undefined,
     financialYear: omExpense.financialYear,
     category: omExpense.category,
-    opCoId: omExpense.opCoId,
-    budgetAmount: omExpense.budgetAmount,
     vendorId: omExpense.vendorId ?? undefined,
-    startDate: new Date(omExpense.startDate).toISOString().split('T')[0],
-    endDate: new Date(omExpense.endDate).toISOString().split('T')[0],
+    sourceExpenseId: omExpense.sourceExpenseId ?? undefined,
+    // FEAT-007: Use defaultOpCoId, fallback to legacy opCoId for backward compatibility
+    defaultOpCoId: omExpense.defaultOpCoId ?? omExpense.opCoId ?? undefined,
+    // Include source expense info if available
+    sourceExpense: omExpense.sourceExpense ? {
+      id: omExpense.sourceExpense.id,
+      name: omExpense.sourceExpense.name,
+      purchaseOrder: omExpense.sourceExpense.purchaseOrder ? {
+        poNumber: omExpense.sourceExpense.purchaseOrder.poNumber,
+        project: omExpense.sourceExpense.purchaseOrder.project ? {
+          name: omExpense.sourceExpense.purchaseOrder.project.name,
+        } : undefined,
+      } : undefined,
+    } : undefined,
+    // Legacy fields (for backward compatibility with OMExpenseForm)
+    opCoId: omExpense.opCoId ?? undefined,
   };
 
   return (

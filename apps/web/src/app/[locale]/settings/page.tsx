@@ -63,7 +63,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { Settings, User, Bell, Eye, Shield, Save } from 'lucide-react';
@@ -310,20 +310,18 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="language">{t('preferences.language')}</Label>
-                  <Select
-                    id="language"
+                  <NativeSelect id="language"
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                   >
                     <option value="zh-TW">繁體中文</option>
                     <option value="en">English</option>
-                  </Select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="timezone">{t('preferences.timezone')}</Label>
-                  <Select
-                    id="timezone"
+                  <NativeSelect id="timezone"
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                   >
@@ -331,20 +329,19 @@ export default function SettingsPage() {
                     <option value="Asia/Hong_Kong">香港 (GMT+8)</option>
                     <option value="Asia/Shanghai">上海 (GMT+8)</option>
                     <option value="UTC">UTC (GMT+0)</option>
-                  </Select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="dateFormat">{t('preferences.dateFormat')}</Label>
-                  <Select
-                    id="dateFormat"
+                  <NativeSelect id="dateFormat"
                     value={dateFormat}
                     onChange={(e) => setDateFormat(e.target.value)}
                   >
                     <option value="YYYY/MM/DD">YYYY/MM/DD</option>
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                  </Select>
+                  </NativeSelect>
                 </div>
 
                 <div className="flex justify-end">

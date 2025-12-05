@@ -37,7 +37,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -127,15 +127,14 @@ export default function OMExpenseCategoriesPage() {
               </div>
 
               {/* 狀態過濾 */}
-              <Select
-                value={statusFilter}
+              <NativeSelect value={statusFilter}
                 onChange={handleStatusFilterChange}
                 className="w-full sm:w-[180px]"
               >
                 <option value="all">{t('filters.all')}</option>
                 <option value="active">{t('status.active')}</option>
                 <option value="inactive">{t('status.inactive')}</option>
-              </Select>
+              </NativeSelect>
             </div>
           </CardContent>
         </Card>

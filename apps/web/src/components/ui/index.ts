@@ -74,8 +74,8 @@ export type { LabelProps } from "./label"
 export { Textarea } from "./textarea"
 export type { TextareaProps } from "./textarea"
 
-export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "./select"
-export type { SelectProps } from "./select"
+export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel, NativeSelect } from "./select"
+export type { NativeSelectProps } from "./select"
 
 // Dialog Components
 export {

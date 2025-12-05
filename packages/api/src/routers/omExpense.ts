@@ -1485,6 +1485,8 @@ export const omExpenseRouter = createTRPCRouter({
       const omExpense = await ctx.prisma.oMExpense.findUnique({
         where: { id: input.id },
         include: {
+          // FEAT-007: Include both defaultOpCo and legacy opCo
+          defaultOpCo: true,
           opCo: true,
           vendor: true,
           sourceExpense: {
@@ -1581,6 +1583,8 @@ export const omExpenseRouter = createTRPCRouter({
       const items = await ctx.prisma.oMExpense.findMany({
         where,
         include: {
+          // FEAT-007: Include both defaultOpCo and legacy opCo
+          defaultOpCo: true,
           opCo: true,
           vendor: true,
           // FEAT-007: 包含明細項目計數

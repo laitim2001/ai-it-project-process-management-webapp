@@ -59,7 +59,7 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
@@ -217,8 +217,7 @@ export default function QuotesPage() {
         {/* 篩選欄 */}
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
-            <Select
-              value={projectId || ''}
+            <NativeSelect value={projectId || ''}
               onChange={(e) => {
                 setProjectId(e.target.value || undefined);
                 setPage(1);
@@ -230,12 +229,11 @@ export default function QuotesPage() {
                   {project.name}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </div>
 
           <div className="flex-1 min-w-[200px]">
-            <Select
-              value={vendorId || ''}
+            <NativeSelect value={vendorId || ''}
               onChange={(e) => {
                 setVendorId(e.target.value || undefined);
                 setPage(1);
@@ -247,7 +245,7 @@ export default function QuotesPage() {
                   {vendor.name}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </div>
         </div>
 

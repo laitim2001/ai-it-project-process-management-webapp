@@ -5,6 +5,11 @@
  * 顯示 O&M 費用按類別分組的匯總表格，包含當前年度預算、上年度實際支出、
  * 變化百分比和項目數量。表格底部顯示總計行。
  *
+ * FEAT-007 說明：此組件顯示的是匯總資料，來源可以是：
+ * - 舊架構：直接從 OMExpense 匯總
+ * - 新架構：從 OMExpenseItem 匯總（通過 API getSummary 處理）
+ * API 層處理資料聚合邏輯，此組件只負責顯示。
+ *
  * @component OMSummaryCategoryGrid
  *
  * @features
@@ -14,6 +19,7 @@
  * - 百分比顏色區分（正值綠色、負值紅色）
  * - 總計行
  * - 響應式設計
+ * - Dark Mode 支援
  *
  * @dependencies
  * - @/components/ui/table - Table 組件
@@ -21,11 +27,12 @@
  *
  * @related
  * - apps/web/src/app/[locale]/om-summary/page.tsx - 主頁面
- * - packages/api/src/routers/omExpense.ts - API
+ * - packages/api/src/routers/omExpense.ts - API (getSummary)
+ * - packages/db/prisma/schema.prisma - OMExpense, OMExpenseItem 資料模型
  *
  * @author IT Department
  * @since FEAT-003 - O&M Summary Page
- * @lastModified 2025-11-29
+ * @lastModified 2025-12-05
  */
 
 'use client';

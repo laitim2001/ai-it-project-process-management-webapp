@@ -53,7 +53,7 @@ import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -236,8 +236,7 @@ export default function VendorsPage() {
             />
           </div>
 
-          <Select
-            value={`${sortBy}-${sortOrder}`}
+          <NativeSelect value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [newSortBy, newSortOrder] = e.target.value.split('-') as [
                 'name' | 'createdAt' | 'updatedAt',
@@ -253,7 +252,7 @@ export default function VendorsPage() {
             <option value="createdAt-asc">{tCommon('sort.createdAtAsc')}</option>
             <option value="updatedAt-desc">{tCommon('sort.updatedAtDesc')}</option>
             <option value="updatedAt-asc">{tCommon('sort.updatedAtAsc')}</option>
-          </Select>
+          </NativeSelect>
         </div>
 
         {/* 結果計數 */}

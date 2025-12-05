@@ -49,7 +49,7 @@
 'use client';
 
 import React from 'react';
-import { Select } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/select';
 import { api } from '@/lib/trpc';
 import { useTranslations } from 'next-intl';
 
@@ -92,33 +92,32 @@ export function CurrencySelect({
   // 載入中狀態
   if (isLoading) {
     return (
-      <Select disabled={true} className={className}>
+      <NativeSelect disabled={true} className={className}>
         <option value="">{t('loading')}</option>
-      </Select>
+      </NativeSelect>
     );
   }
 
   // 錯誤狀態
   if (error) {
     return (
-      <Select disabled={true} className={className}>
+      <NativeSelect disabled={true} className={className}>
         <option value="">{t('error')}</option>
-      </Select>
+      </NativeSelect>
     );
   }
 
   // 沒有可用貨幣
   if (!currencies || currencies.length === 0) {
     return (
-      <Select disabled={true} className={className}>
+      <NativeSelect disabled={true} className={className}>
         <option value="">{t('noCurrenciesAvailable')}</option>
-      </Select>
+      </NativeSelect>
     );
   }
 
   return (
-    <Select
-      value={value}
+    <NativeSelect value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       required={required}
@@ -132,7 +131,7 @@ export function CurrencySelect({
           {currency.code} - {currency.name} ({currency.symbol})
         </option>
       ))}
-    </Select>
+    </NativeSelect>
   );
 }
 
@@ -158,17 +157,16 @@ export function CurrencySelectCompact({
 
   if (isLoading || error || !currencies || currencies.length === 0) {
     return (
-      <Select disabled={true} className={className}>
+      <NativeSelect disabled={true} className={className}>
         <option value="">
           {isLoading ? t('loading') : error ? t('error') : t('noCurrenciesAvailable')}
         </option>
-      </Select>
+      </NativeSelect>
     );
   }
 
   return (
-    <Select
-      value={value}
+    <NativeSelect value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       required={required}
@@ -182,6 +180,6 @@ export function CurrencySelectCompact({
           {currency.code}
         </option>
       ))}
-    </Select>
+    </NativeSelect>
   );
 }

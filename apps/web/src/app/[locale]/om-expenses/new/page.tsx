@@ -2,19 +2,21 @@
  * @fileoverview New O&M Expense Page - 建立維運費用頁面
  *
  * @description
- * 提供建立新維運費用的表單頁面，支援預算類別選擇、金額輸入和發票上傳。
- * 使用 React Hook Form 進行表單驗證，提供即時驗證和錯誤提示。
+ * 提供建立新維運費用的表單頁面，支援 FEAT-007 表頭-明細架構。
+ * 使用者可以建立 OMExpense（表頭）並新增多個 OMExpenseItem（明細項目），
+ * 每個明細項目可以有獨立的 OpCo、預算金額和結束日期。
  *
  * @page /[locale]/om-expenses/new
  *
  * @features
- * - 完整的維運費用建立表單（預算類別、金額、描述、發票）
- * - 預算類別選擇（Combobox 組件）
- * - 金額輸入（自動格式化，貨幣符號）
- * - 發票資訊輸入（發票號、日期）
- * - 發票檔案上傳（PDF/圖片，Azure Blob Storage）
- * - 即時表單驗證（Zod schema）
+ * - FEAT-007 表頭-明細架構支援
+ * - 表頭資訊輸入（名稱、描述、財年、類別、預設 OpCo、供應商）
+ * - 明細項目管理（新增、編輯、刪除）
+ * - 每個明細項目支援獨立 OpCo、預算金額、幣別、日期
+ * - 即時預算總額計算
+ * - 完整表單驗證（Zod schema）
  * - 錯誤處理和成功提示（Toast）
+ * - 一次提交表頭 + 所有明細（createWithItems API）
  *
  * @permissions
  * - ProjectManager: 可建立維運費用
@@ -32,16 +34,17 @@
  * - shadcn/ui: UI 組件庫
  *
  * @related
- * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router（CRUD 操作、預算類別查詢）
- * - `packages/db/prisma/schema.prisma` - OMExpense 資料模型定義（包含 OMExpenseMonthlyRecord）
- * - `apps/web/src/components/om-expense/OMExpenseForm.tsx` - OMExpense 表單組件（建立和編輯模式）
- * - `apps/web/src/app/[locale]/om-expenses/page.tsx` - OMExpense 列表頁（建立成功後返回）
- * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁（建立成功後導向）
+ * - `packages/api/src/routers/omExpense.ts` - OMExpense API Router（createWithItems 操作）
+ * - `packages/db/prisma/schema.prisma` - OMExpense, OMExpenseItem, OMExpenseMonthly 資料模型
+ * - `apps/web/src/components/om-expense/OMExpenseForm.tsx` - OMExpense 表單組件（FEAT-007 重構）
+ * - `apps/web/src/app/[locale]/om-expenses/page.tsx` - OMExpense 列表頁
+ * - `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - OMExpense 詳情頁
  * - `apps/web/src/components/layout/dashboard-layout.tsx` - Dashboard 佈局組件
  *
  * @author IT Department
  * @since Epic 6 - Expense Recording & Financial Integration
- * @lastModified 2025-11-14
+ * @modified FEAT-007 - Header-Detail Architecture (2025-12-05)
+ * @lastModified 2025-12-05
  */
 
 'use client';
