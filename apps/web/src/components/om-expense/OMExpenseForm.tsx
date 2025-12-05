@@ -631,7 +631,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle>
-                    {t('itemsSection', { defaultValue: '明細項目' })}
+                    {t('itemsSection.title', { defaultValue: '明細項目' })}
                   </CardTitle>
                   <CardDescription>
                     {tItems('description', {

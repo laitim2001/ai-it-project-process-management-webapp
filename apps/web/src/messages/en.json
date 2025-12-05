@@ -2014,6 +2014,11 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "createNotice": "After creating, you can add monthly expense amounts on the detail page",
+      "createNoticeNew": "After creating, you can manage line items and monthly records on the detail page",
+      "itemsSection": {
+        "title": "Line Items",
+        "description": "Manage line items for this OM expense"
+      },
       "fields": {
         "name": {
           "label": "OM Expense Name",
@@ -2027,9 +2032,16 @@
           "label": "Operating Company (OpCo)",
           "placeholder": "Select OpCo"
         },
+        "defaultOpCo": {
+          "label": "Default OpCo",
+          "placeholder": "Select default OpCo",
+          "noSelection": "No default",
+          "description": "Set default OpCo, will be auto-filled when creating line items"
+        },
         "vendor": {
           "label": "Vendor (Optional)",
-          "placeholder": "Select vendor"
+          "placeholder": "Select vendor",
+          "noSelection": "None"
         },
         "financialYear": {
           "label": "Financial Year",

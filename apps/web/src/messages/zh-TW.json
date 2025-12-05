@@ -2014,6 +2014,11 @@
       "startDate": "開始日期",
       "endDate": "結束日期",
       "createNotice": "創建後,您可以在詳情頁面新增每月費用金額",
+      "createNoticeNew": "創建後，您可以在詳情頁面管理明細項目和月度記錄",
+      "itemsSection": {
+        "title": "明細項目",
+        "description": "管理此 OM 費用的明細項目"
+      },
       "fields": {
         "name": {
           "label": "OM 費用名稱",
@@ -2027,9 +2032,16 @@
           "label": "營運公司 (OpCo)",
           "placeholder": "選擇 OpCo"
         },
+        "defaultOpCo": {
+          "label": "預設 OpCo",
+          "placeholder": "選擇預設 OpCo",
+          "noSelection": "不指定預設",
+          "description": "設定預設 OpCo，建立明細項目時會自動帶入"
+        },
         "vendor": {
           "label": "供應商（選填）",
-          "placeholder": "選擇供應商"
+          "placeholder": "選擇供應商",
+          "noSelection": "不指定"
         },
         "financialYear": {
           "label": "財務年度",

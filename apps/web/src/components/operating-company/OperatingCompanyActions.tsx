@@ -71,7 +71,8 @@ interface OperatingCompanyActionsProps {
     isActive: boolean;
     _count?: {
       chargeOuts: number;
-      omExpenses: number;
+      omExpenseItems: number;
+      omExpensesLegacy: number;
     };
   };
   onSuccess?: () => void;
@@ -131,7 +132,9 @@ export function OperatingCompanyActions({ opCo, onSuccess }: OperatingCompanyAct
   });
 
   // 計算是否可以刪除（沒有關聯資料）
-  const hasRelations = (opCo._count?.chargeOuts ?? 0) > 0 || (opCo._count?.omExpenses ?? 0) > 0;
+  const hasRelations = (opCo._count?.chargeOuts ?? 0) > 0 ||
+    (opCo._count?.omExpenseItems ?? 0) > 0 ||
+    (opCo._count?.omExpensesLegacy ?? 0) > 0;
 
   const handleEdit = () => {
     router.push(`/operating-companies/${opCo.id}/edit`);

@@ -268,7 +268,7 @@ export default function OperatingCompaniesPage() {
                       {opCo._count.chargeOuts}
                     </TableCell>
                     <TableCell className="text-center">
-                      {opCo._count.omExpenses}
+                      {(opCo._count.omExpenseItems ?? 0) + (opCo._count.omExpensesLegacy ?? 0)}
                     </TableCell>
                     <TableCell className="text-right">
                       <OperatingCompanyActions
