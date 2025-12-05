@@ -91,6 +91,29 @@ import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 
 // ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * 將日期值轉換為 HTML input[type="date"] 所需的 yyyy-MM-dd 格式
+ * 處理 ISO 格式字串、Date 物件或已經是 yyyy-MM-dd 格式的字串
+ */
+function formatDateForInput(value: string | Date | null | undefined): string {
+  if (!value) return '';
+
+  // 如果已經是 yyyy-MM-dd 格式，直接返回
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // 轉換 ISO 格式或 Date 物件
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(date.getTime())) return '';
+
+  return date.toISOString().split('T')[0];
+}
+
+// ============================================================
 // Types
 // ============================================================
 
@@ -411,7 +434,11 @@ export default function OMExpenseItemForm({
               <FormItem>
                 <FormLabel>{t('itemFields.startDate.label', { defaultValue: '開始日期' })}</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} value={field.value || ''} />
+                  <Input
+                    type="date"
+                    {...field}
+                    value={formatDateForInput(field.value)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -429,7 +456,11 @@ export default function OMExpenseItemForm({
                   <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    type="date"
+                    {...field}
+                    value={formatDateForInput(field.value)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
