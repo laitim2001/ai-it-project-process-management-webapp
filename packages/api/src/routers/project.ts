@@ -82,9 +82,33 @@ export const globalFlagEnum = z.enum(['RCL', 'Region']);
 export const priorityEnum = z.enum(['High', 'Medium', 'Low']);
 
 /**
+ * 專案類型枚舉 (FEAT-006)
+ * - Project: 專案
+ * - Budget: 預算
+ */
+export const projectTypeEnum = z.enum(['Project', 'Budget']);
+
+/**
+ * 費用類型枚舉 (FEAT-006)
+ * - Expense: 費用
+ * - Capital: 資本支出
+ * - Collection: 收款
+ */
+export const expenseTypeEnum = z.enum(['Expense', 'Capital', 'Collection']);
+
+/**
+ * 機率枚舉 (FEAT-006)
+ * - High: 高
+ * - Medium: 中
+ * - Low: 低
+ */
+export const probabilityEnum = z.enum(['High', 'Medium', 'Low']);
+
+/**
  * 創建專案的驗證 Schema
  * 必填欄位：name（專案名稱）、projectCode（專案編號）、budgetPoolId（預算池ID）、managerId（專案經理ID）、supervisorId（主管ID）、startDate（開始日期）
  * 可選欄位：description（專案描述）、endDate（結束日期）、budgetCategoryId（預算類別ID）、requestedBudget（請求預算金額）、globalFlag（全域標誌，預設 Region）、priority（優先權，預設 Medium）、currencyId（貨幣 ID）
+ * FEAT-006 新增：projectCategory、projectType、expenseType、chargeBackToOpCo、chargeOutOpCoIds、chargeOutMethod、probability、team、personInCharge
  */
 export const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(255),
@@ -106,12 +130,23 @@ export const createProjectSchema = z.object({
   globalFlag: globalFlagEnum.default('Region'), // 預設為 Region
   priority: priorityEnum.default('Medium'), // 預設為 Medium
   currencyId: z.string().uuid('Invalid currency ID').optional(), // 可選：貨幣 ID
+
+  // FEAT-006: Project Summary Tab 新增欄位 (8 個新欄位)
+  projectCategory: z.string().max(100).optional(), // 專案類別 (如 Data Lines, Hardware, Software)
+  projectType: projectTypeEnum.default('Project'), // "Project" | "Budget"
+  expenseType: expenseTypeEnum.default('Expense'), // "Expense" | "Capital" | "Collection"
+  chargeBackToOpCo: z.boolean().default(false), // 是否向 OpCo 收費
+  chargeOutOpCoIds: z.array(z.string().uuid()).optional(), // 向哪些 OpCo 收費（多選）
+  chargeOutMethod: z.string().max(1000).optional(), // 如何向 OpCo 收費 (free text)
+  probability: probabilityEnum.default('Medium'), // "High" | "Medium" | "Low"
+  team: z.string().max(100).optional(), // 團隊
+  personInCharge: z.string().max(100).optional(), // 負責人 (PIC)
 });
 
 /**
  * 更新專案的驗證 Schema
  * 必填欄位：id（專案ID）
- * 所有其他欄位均為可選（包含 FEAT-001 的 4 個新欄位）
+ * 所有其他欄位均為可選（包含 FEAT-001 的 4 個新欄位 + FEAT-006 的 8 個新欄位）
  */
 export const updateProjectSchema = z.object({
   id: z.string().uuid(),
@@ -137,6 +172,17 @@ export const updateProjectSchema = z.object({
   globalFlag: globalFlagEnum.optional(),
   priority: priorityEnum.optional(),
   currencyId: z.string().uuid('Invalid currency ID').nullable().optional(), // 可選且可為 null
+
+  // FEAT-006: Project Summary Tab 新增欄位 (8 個新欄位，所有可選)
+  projectCategory: z.string().max(100).nullable().optional(), // 專案類別
+  projectType: projectTypeEnum.optional(), // "Project" | "Budget"
+  expenseType: expenseTypeEnum.optional(), // "Expense" | "Capital" | "Collection"
+  chargeBackToOpCo: z.boolean().optional(), // 是否向 OpCo 收費
+  chargeOutOpCoIds: z.array(z.string().uuid()).optional(), // 向哪些 OpCo 收費（多選）
+  chargeOutMethod: z.string().max(1000).nullable().optional(), // 如何向 OpCo 收費
+  probability: probabilityEnum.optional(), // "High" | "Medium" | "Low"
+  team: z.string().max(100).nullable().optional(), // 團隊
+  personInCharge: z.string().max(100).nullable().optional(), // 負責人 (PIC)
 });
 
 // ============================================================
@@ -301,7 +347,7 @@ export const projectRouter = createTRPCRouter({
    * - id: 專案 ID（UUID 格式）
    *
    * 回傳：
-   * - 完整專案資訊，包含關聯的預算池、專案經理、主管、提案、採購單
+   * - 完整專案資訊，包含關聯的預算池、專案經理、主管、提案、採購單、chargeOutOpCos (FEAT-006)
    *
    * 錯誤處理：
    * - 若專案不存在，拋出錯誤
@@ -344,6 +390,13 @@ export const projectRouter = createTRPCRouter({
               financialYear: true,
             },
           },
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+            },
+          },
           currency: {
             select: {
               id: true,
@@ -378,6 +431,18 @@ export const projectRouter = createTRPCRouter({
             },
             orderBy: {
               date: 'desc',
+            },
+          },
+          // FEAT-006: 包含 chargeOutOpCos 多對多關係
+          chargeOutOpCos: {
+            include: {
+              opCo: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                },
+              },
             },
           },
         },
@@ -531,6 +596,7 @@ export const projectRouter = createTRPCRouter({
    * - requestedBudget: 請求預算金額（可選，Module 2 新增）
    * - managerId: 專案經理 ID（必填）
    * - supervisorId: 主管 ID（必填）
+   * - FEAT-006 欄位: projectCategory, projectType, expenseType, chargeBackToOpCo, chargeOutOpCoIds, chargeOutMethod, probability, team, personInCharge
    *
    * 回傳：
    * - 新創建的專案資訊
@@ -539,6 +605,7 @@ export const projectRouter = createTRPCRouter({
    * - 預設狀態為 "Draft"（草稿）
    * - 如果提供 budgetCategoryId，驗證其屬於選擇的 budgetPoolId
    * - 如果提供 budgetCategoryId，檢查該類別是否為 active
+   * - 如果提供 chargeOutOpCoIds，使用 transaction 創建多對多關係
    */
   create: protectedProcedure
     .input(createProjectSchema)
@@ -576,57 +643,100 @@ export const projectRouter = createTRPCRouter({
         }
       }
 
-      return ctx.prisma.project.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          budgetPoolId: input.budgetPoolId,
-          budgetCategoryId: input.budgetCategoryId, // Module 2 新增
-          requestedBudget: input.requestedBudget,   // Module 2 新增
-          managerId: input.managerId,
-          supervisorId: input.supervisorId,
-          startDate: input.startDate,
-          endDate: input.endDate,
-          status: 'Draft', // 預設狀態為草稿
-          // FEAT-001: 專案欄位擴展
-          projectCode: input.projectCode,
-          globalFlag: input.globalFlag,
-          priority: input.priority,
-          currencyId: input.currencyId,
-        },
-        include: {
-          manager: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+      // FEAT-006: 提取 chargeOutOpCoIds 用於創建多對多關係
+      const { chargeOutOpCoIds, ...projectData } = input;
+
+      // 使用 transaction 創建專案和多對多關係
+      return ctx.prisma.$transaction(async (tx) => {
+        // 創建專案
+        const project = await tx.project.create({
+          data: {
+            name: projectData.name,
+            description: projectData.description,
+            budgetPoolId: projectData.budgetPoolId,
+            budgetCategoryId: projectData.budgetCategoryId,
+            requestedBudget: projectData.requestedBudget,
+            managerId: projectData.managerId,
+            supervisorId: projectData.supervisorId,
+            startDate: projectData.startDate,
+            endDate: projectData.endDate,
+            status: 'Draft',
+            // FEAT-001: 專案欄位擴展
+            projectCode: projectData.projectCode,
+            globalFlag: projectData.globalFlag,
+            priority: projectData.priority,
+            currencyId: projectData.currencyId,
+            // FEAT-006: Project Summary Tab 新增欄位
+            projectCategory: projectData.projectCategory,
+            projectType: projectData.projectType,
+            expenseType: projectData.expenseType,
+            chargeBackToOpCo: projectData.chargeBackToOpCo,
+            chargeOutMethod: projectData.chargeOutMethod,
+            probability: projectData.probability,
+            team: projectData.team,
+            personInCharge: projectData.personInCharge,
+          },
+        });
+
+        // FEAT-006: 創建 chargeOutOpCos 多對多關係
+        if (chargeOutOpCoIds && chargeOutOpCoIds.length > 0) {
+          await tx.projectChargeOutOpCo.createMany({
+            data: chargeOutOpCoIds.map((opCoId) => ({
+              projectId: project.id,
+              opCoId,
+            })),
+          });
+        }
+
+        // 重新查詢完整專案資料（包含關聯）
+        return tx.project.findUnique({
+          where: { id: project.id },
+          include: {
+            manager: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            supervisor: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            budgetPool: {
+              select: {
+                id: true,
+                name: true,
+                totalAmount: true,
+                financialYear: true,
+              },
+            },
+            budgetCategory: {
+              select: {
+                id: true,
+                categoryName: true,
+                categoryCode: true,
+                budgetPoolId: true,
+                isActive: true,
+              },
+            },
+            // FEAT-006: 包含 chargeOutOpCos
+            chargeOutOpCos: {
+              include: {
+                opCo: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
             },
           },
-          supervisor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          budgetPool: {
-            select: {
-              id: true,
-              name: true,
-              totalAmount: true,
-              financialYear: true,
-            },
-          },
-          budgetCategory: { // Module 2 新增
-            select: {
-              id: true,
-              categoryName: true,
-              categoryCode: true,
-              budgetPoolId: true,
-              isActive: true,
-            },
-          },
-        },
+        });
       });
     }),
 
@@ -644,6 +754,7 @@ export const projectRouter = createTRPCRouter({
    * - approvedBudget: 批准預算金額（可選，Module 2 新增）
    * - managerId: 專案經理 ID（可選）
    * - supervisorId: 主管 ID（可選）
+   * - FEAT-006 欄位: projectCategory, projectType, expenseType, chargeBackToOpCo, chargeOutOpCoIds, chargeOutMethod, probability, team, personInCharge
    *
    * 回傳：
    * - 更新後的專案資訊
@@ -652,11 +763,12 @@ export const projectRouter = createTRPCRouter({
    * - 只更新提供的欄位（部分更新）
    * - 如果更新 budgetCategoryId，驗證其屬於對應的 budgetPoolId
    * - 如果同時更新 budgetPoolId 和 budgetCategoryId，驗證兩者關聯
+   * - 如果提供 chargeOutOpCoIds，刪除舊的關係並創建新的
    */
   update: protectedProcedure
     .input(updateProjectSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
+      const { id, chargeOutOpCoIds, ...updateData } = input;
 
       // Module 2: 驗證 budgetCategoryId 與 budgetPoolId 的關聯
       if (input.budgetCategoryId) {
@@ -708,42 +820,82 @@ export const projectRouter = createTRPCRouter({
         }
       }
 
-      return ctx.prisma.project.update({
-        where: { id },
-        data: updateData,
-        include: {
-          manager: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+      // 使用 transaction 更新專案和多對多關係
+      return ctx.prisma.$transaction(async (tx) => {
+        // 更新專案
+        await tx.project.update({
+          where: { id },
+          data: updateData,
+        });
+
+        // FEAT-006: 更新 chargeOutOpCos 多對多關係
+        // 只有在明確提供 chargeOutOpCoIds 時才更新關係
+        if (chargeOutOpCoIds !== undefined) {
+          // 刪除舊的關係
+          await tx.projectChargeOutOpCo.deleteMany({
+            where: { projectId: id },
+          });
+
+          // 創建新的關係
+          if (chargeOutOpCoIds.length > 0) {
+            await tx.projectChargeOutOpCo.createMany({
+              data: chargeOutOpCoIds.map((opCoId) => ({
+                projectId: id,
+                opCoId,
+              })),
+            });
+          }
+        }
+
+        // 重新查詢完整專案資料（包含關聯）
+        return tx.project.findUnique({
+          where: { id },
+          include: {
+            manager: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            supervisor: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            budgetPool: {
+              select: {
+                id: true,
+                name: true,
+                totalAmount: true,
+                financialYear: true,
+              },
+            },
+            budgetCategory: {
+              select: {
+                id: true,
+                categoryName: true,
+                categoryCode: true,
+                budgetPoolId: true,
+                isActive: true,
+              },
+            },
+            // FEAT-006: 包含 chargeOutOpCos
+            chargeOutOpCos: {
+              include: {
+                opCo: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
             },
           },
-          supervisor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          budgetPool: {
-            select: {
-              id: true,
-              name: true,
-              totalAmount: true,
-              financialYear: true,
-            },
-          },
-          budgetCategory: { // Module 2 新增
-            select: {
-              id: true,
-              categoryName: true,
-              categoryCode: true,
-              budgetPoolId: true,
-              isActive: true,
-            },
-          },
-        },
+        });
       });
     }),
 
@@ -1162,6 +1314,175 @@ export const projectRouter = createTRPCRouter({
       return {
         available: false,
         message: 'Project code is already in use',
+      };
+    }),
+
+  /**
+   * 獲取專案摘要資料 (FEAT-006)
+   *
+   * @description
+   * 專為 Project Summary Tab 設計的 API，
+   * 支援按財務年度和預算類別過濾，
+   * 回傳專案列表並按 OpCo 和 Budget Category 分組。
+   *
+   * 輸入參數：
+   * - financialYear: 財務年度（可選，預設為當前年度）
+   * - budgetCategoryIds: 預算類別 ID 陣列（可選，多選過濾）
+   *
+   * 回傳：
+   * - projects: 專案列表（包含所有 Summary Tab 需要的欄位）
+   * - summary: 按預算類別分組的統計資料
+   */
+  getProjectSummary: protectedProcedure
+    .input(
+      z.object({
+        financialYear: z.number().optional(),
+        budgetCategoryIds: z.array(z.string().uuid()).optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      // 預設為當前年度
+      const currentYear = new Date().getFullYear();
+      const financialYear = input?.financialYear ?? currentYear;
+
+      // 構建查詢條件
+      const where: Record<string, unknown> = {
+        budgetPool: {
+          financialYear,
+        },
+      };
+
+      // 如果有選擇預算類別，添加過濾條件
+      if (input?.budgetCategoryIds && input.budgetCategoryIds.length > 0) {
+        where.budgetCategoryId = {
+          in: input.budgetCategoryIds,
+        };
+      }
+
+      // 查詢專案列表
+      const projects = await ctx.prisma.project.findMany({
+        where,
+        orderBy: [
+          { projectCategory: 'asc' },
+          { budgetCategory: { categoryName: 'asc' } },
+          { name: 'asc' },
+        ],
+        include: {
+          budgetPool: {
+            select: {
+              id: true,
+              name: true,
+              financialYear: true,
+            },
+          },
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+            },
+          },
+          currency: {
+            select: {
+              id: true,
+              code: true,
+              symbol: true,
+            },
+          },
+          chargeOutOpCos: {
+            include: {
+              opCo: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // 計算預算類別統計
+      const categoryStats = await ctx.prisma.budgetCategory.findMany({
+        where: {
+          budgetPool: {
+            financialYear,
+          },
+          projects: {
+            some: {},
+          },
+        },
+        select: {
+          id: true,
+          categoryName: true,
+          categoryCode: true,
+          projects: {
+            select: {
+              requestedBudget: true,
+              approvedBudget: true,
+            },
+          },
+        },
+      });
+
+      // 計算每個類別的統計
+      const summary = categoryStats.map((category) => ({
+        categoryId: category.id,
+        categoryName: category.categoryName,
+        categoryCode: category.categoryCode,
+        projectCount: category.projects.length,
+        totalRequestedBudget: category.projects.reduce(
+          (sum, p) => sum + (p.requestedBudget ?? 0),
+          0
+        ),
+        totalApprovedBudget: category.projects.reduce(
+          (sum, p) => sum + (p.approvedBudget ?? 0),
+          0
+        ),
+      }));
+
+      return {
+        projects,
+        summary,
+        financialYear,
+      };
+    }),
+
+  /**
+   * 獲取專案類別列表 (FEAT-006)
+   *
+   * @description
+   * 獲取所有不重複的專案類別，用於過濾器下拉選單。
+   *
+   * 回傳：
+   * - categories: 專案類別字串陣列
+   */
+  getProjectCategories: protectedProcedure
+    .query(async ({ ctx }) => {
+      // 使用 findMany + distinct 獲取不重複的 projectCategory
+      const projects = await ctx.prisma.project.findMany({
+        where: {
+          projectCategory: {
+            not: null,
+          },
+        },
+        select: {
+          projectCategory: true,
+        },
+        distinct: ['projectCategory'],
+        orderBy: {
+          projectCategory: 'asc',
+        },
+      });
+
+      // 提取並過濾掉 null 值
+      const categories = projects
+        .map((p) => p.projectCategory)
+        .filter((c): c is string => c !== null);
+
+      return {
+        categories,
       };
     }),
 });

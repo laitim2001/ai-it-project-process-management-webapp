@@ -627,6 +627,56 @@
         "currency": {
           "label": "貨幣",
           "placeholder": "選擇貨幣（選填）"
+        },
+        "projectCategory": {
+          "label": "專案類別",
+          "placeholder": "輸入專案類別（選填）"
+        },
+        "projectType": {
+          "label": "專案類型",
+          "options": {
+            "project": "專案",
+            "budget": "預算"
+          }
+        },
+        "expenseType": {
+          "label": "費用類型",
+          "options": {
+            "expense": "費用",
+            "capital": "資本",
+            "collection": "代收"
+          }
+        },
+        "chargeBackToOpCo": {
+          "label": "向 OpCo 收費",
+          "description": "是否將費用轉嫁給營運公司"
+        },
+        "chargeOutOpCos": {
+          "label": "轉嫁對象 OpCo",
+          "placeholder": "選擇營運公司（可多選）",
+          "searchPlaceholder": "搜尋營運公司...",
+          "noOpCoFound": "未找到營運公司",
+          "selectOpCosFirst": "請先啟用「向 OpCo 收費」"
+        },
+        "chargeOutMethod": {
+          "label": "轉嫁方式",
+          "placeholder": "輸入轉嫁方式（選填）"
+        },
+        "probability": {
+          "label": "機率",
+          "options": {
+            "low": "低",
+            "medium": "中",
+            "high": "高"
+          }
+        },
+        "team": {
+          "label": "團隊",
+          "placeholder": "輸入負責團隊（選填）"
+        },
+        "personInCharge": {
+          "label": "負責人",
+          "placeholder": "輸入負責人（選填）"
         }
       },
       "actions": {
@@ -2721,6 +2771,10 @@
   "omSummary": {
     "title": "O&M 費用總覽",
     "description": "查看各 OpCo 和類別的 O&M 費用匯總",
+    "tabs": {
+      "omSummary": "O&M 費用總覽",
+      "projectSummary": "專案摘要"
+    },
     "filters": {
       "fiscalYear": "財務年度",
       "financialYear": "財務年度",
@@ -2952,6 +3006,39 @@
     "empty": {
       "title": "尚無費用類別",
       "description": "開始建立您的第一個 OM 費用類別"
+    }
+  },
+  "projectSummary": {
+    "filters": {
+      "financialYear": "財務年度",
+      "budgetCategories": "預算類別",
+      "selectCategories": "選擇預算類別",
+      "searchCategories": "搜尋預算類別...",
+      "noCategoryFound": "未找到預算類別",
+      "reset": "重置"
+    },
+    "summary": {
+      "title": "預算類別統計",
+      "category": "預算類別",
+      "projectCount": "專案數",
+      "requestedBudget": "請求預算",
+      "approvedBudget": "批准預算",
+      "total": "合計"
+    },
+    "table": {
+      "title": "專案摘要列表",
+      "noData": "此條件下暫無專案資料",
+      "projects": "個專案",
+      "projectName": "專案名稱",
+      "projectCode": "專案編號",
+      "projectType": "專案類型",
+      "expenseType": "費用類型",
+      "probability": "機率",
+      "budget": "預算金額",
+      "chargeBack": "向OpCo收費",
+      "chargeToOpCo": "轉嫁OpCo",
+      "team": "團隊",
+      "pic": "負責人"
     }
   }
 }

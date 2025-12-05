@@ -132,6 +132,16 @@ model Project {
   priority    String  @default("Medium") // 優先權: "High", "Medium", "Low"
   currencyId  String? // 關聯到 Currency 表
 
+  // FEAT-006: Project Summary Tab 新增欄位 (8 個新欄位)
+  projectCategory  String?  // 專案類別 (如 Data Lines, Hardware, Software)
+  projectType      String   @default("Project") // "Project" | "Budget"
+  expenseType      String   @default("Expense") // "Expense" | "Capital" | "Collection"
+  chargeBackToOpCo Boolean  @default(false) // 是否向 OpCo 收費
+  chargeOutMethod  String?  @db.Text // 如何向 OpCo 收費 (free text)
+  probability      String   @default("Medium") // "High" | "Medium" | "Low" (不同於 priority)
+  team             String?  // 團隊
+  personInCharge   String?  // 負責人 (PIC)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -144,6 +154,7 @@ model Project {
   quotes         Quote[]
   purchaseOrders PurchaseOrder[]
   chargeOuts     ChargeOut[] // 新增：費用轉嫁
+  chargeOutOpCos ProjectChargeOutOpCo[] // FEAT-006: 向哪些 OpCo 收費（多選）
 
   @@index([managerId])
   @@index([supervisorId])
@@ -154,6 +165,13 @@ model Project {
   @@index([globalFlag]) // FEAT-001: 全域標誌索引
   @@index([priority]) // FEAT-001: 優先權索引
   @@index([currencyId]) // FEAT-001: 貨幣索引
+  // FEAT-006: 新增索引
+  @@index([projectCategory])
+  @@index([projectType])
+  @@index([expenseType])
+  @@index([chargeBackToOpCo])
+  @@index([probability])
+  @@index([team])
 }
 
 model BudgetProposal {
@@ -380,9 +398,29 @@ model OperatingCompany {
   chargeOuts            ChargeOut[]
   omExpenses            OMExpense[]
   omExpenseMonthly      OMExpenseMonthly[]
-  chargeOutExpenseItems ExpenseItem[]      @relation("ChargeOutExpenseItems") // CHANGE-002: 費用明細轉嫁目標
+  chargeOutExpenseItems ExpenseItem[]            @relation("ChargeOutExpenseItems") // CHANGE-002: 費用明細轉嫁目標
+  projectChargeOuts     ProjectChargeOutOpCo[]   // FEAT-006: 專案費用轉嫁目標
 
   @@index([isActive])
+}
+
+// ==================================================================
+// 5.1 專案與營運公司多對多關係 (Project ↔ OperatingCompany)
+// FEAT-006: Project Summary Tab - 向哪些 OpCo 收費
+// ==================================================================
+
+model ProjectChargeOutOpCo {
+  id        String   @id @default(uuid())
+  projectId String
+  opCoId    String
+  createdAt DateTime @default(now())
+
+  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  opCo    OperatingCompany @relation(fields: [opCoId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, opCoId]) // 每個 Project-OpCo 組合只能有一條記錄
+  @@index([projectId])
+  @@index([opCoId])
 }
 
 // 預算類別

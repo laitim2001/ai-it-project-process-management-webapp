@@ -53,7 +53,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-16 (FEAT-001: 新增專案編號、全域標誌、優先權、貨幣欄位)
+ * @lastModified 2025-12-05 (FEAT-006: 新增專案類型、費用類型、OpCo 轉嫁、機率、團隊、負責人欄位)
  */
 
 'use client';
@@ -233,6 +233,16 @@ export default function EditProjectPage() {
                 globalFlag: project.globalFlag,
                 priority: project.priority,
                 currencyId: project.currencyId,
+                // FEAT-006: 專案擴展欄位
+                projectCategory: project.projectCategory,
+                projectType: project.projectType,
+                expenseType: project.expenseType,
+                chargeBackToOpCo: project.chargeBackToOpCo,
+                chargeOutOpCoIds: project.chargeOutOpCos?.map((c: { opCo: { id: string } }) => c.opCo.id) ?? [],
+                chargeOutMethod: project.chargeOutMethod,
+                probability: project.probability,
+                team: project.team,
+                personInCharge: project.personInCharge,
               }}
             />
           </CardContent>

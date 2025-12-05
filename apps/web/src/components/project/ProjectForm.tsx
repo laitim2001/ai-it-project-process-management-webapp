@@ -6,6 +6,7 @@
  * 整合預算池選擇、預算類別選擇（Module 2 新增）、專案經理和主管選擇功能。
  * 提供即時表單驗證、日期範圍檢查和國際化支援。
  * FEAT-001 新增：專案編號、全域標誌、優先權、貨幣欄位支援。
+ * FEAT-006 新增：專案類型、費用類型、OpCo 轉嫁、機率、團隊、負責人欄位。
  *
  * @component ProjectForm
  *
@@ -18,6 +19,10 @@
  * - 全域標誌選擇（RCL/Region，FEAT-001）
  * - 優先權選擇（High/Medium/Low，FEAT-001）
  * - 貨幣選擇（Combobox 可搜尋，載入啟用的貨幣，FEAT-001）
+ * - 專案類型選擇（Project/Budget，FEAT-006）
+ * - 費用類型選擇（Expense/Capital/Collection，FEAT-006）
+ * - OpCo 轉嫁設定（支援多選 OpCo，FEAT-006）
+ * - 機率、團隊、負責人欄位（FEAT-006）
  * - 專案經理和主管選擇
  * - 專案日期範圍選擇和驗證
  * - 即時表單驗證（必填欄位、日期範圍、專案編號格式和唯一性）
@@ -80,7 +85,7 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-16 (FEAT-001: 新增專案編號、全域標誌、優先權、貨幣欄位)
+ * @lastModified 2025-12-05 (FEAT-006: 新增專案類型、費用類型、OpCo 轉嫁、機率、團隊、負責人欄位)
  */
 
 'use client';
@@ -110,6 +115,16 @@ interface ProjectFormProps {
     globalFlag: string; // 'RCL' | 'Region'
     priority: string;   // 'High' | 'Medium' | 'Low'
     currencyId: string | null;
+    // FEAT-006: 專案擴展欄位
+    projectCategory: string | null;
+    projectType: string; // 'Project' | 'Budget'
+    expenseType: string; // 'Expense' | 'Capital' | 'Collection'
+    chargeBackToOpCo: boolean;
+    chargeOutOpCoIds: string[]; // OpCo IDs
+    chargeOutMethod: string | null;
+    probability: string; // 'High' | 'Medium' | 'Low'
+    team: string | null;
+    personInCharge: string | null;
   };
   mode: 'create' | 'edit';
 }
@@ -139,6 +154,16 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     globalFlag: initialData?.globalFlag ?? 'Region', // 預設 Region
     priority: initialData?.priority ?? 'Medium',     // 預設 Medium
     currencyId: initialData?.currencyId ?? '',
+    // FEAT-006: 專案擴展欄位
+    projectCategory: initialData?.projectCategory ?? '',
+    projectType: initialData?.projectType ?? 'Project', // 預設 Project
+    expenseType: initialData?.expenseType ?? 'Expense', // 預設 Expense
+    chargeBackToOpCo: initialData?.chargeBackToOpCo ?? false,
+    chargeOutOpCoIds: initialData?.chargeOutOpCoIds ?? [],
+    chargeOutMethod: initialData?.chargeOutMethod ?? '',
+    probability: initialData?.probability ?? 'Medium', // 預設 Medium
+    team: initialData?.team ?? '',
+    personInCharge: initialData?.personInCharge ?? '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -173,6 +198,9 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   // FEAT-001: 查詢啟用的貨幣列表
   const { data: currencies } = api.currency.getActive.useQuery();
+
+  // FEAT-006: 查詢啟用的營運公司列表（用於 OpCo 轉嫁選擇）
+  const { data: operatingCompanies } = api.operatingCompany.getAll.useQuery({ isActive: true });
 
   // FEAT-001: 專案編號即時驗證（debounce 500ms）
   const debouncedProjectCode = useDebounce(formData.projectCode, 500);
@@ -294,6 +322,16 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       globalFlag: formData.globalFlag,
       priority: formData.priority,
       currencyId: formData.currencyId.trim() === '' ? undefined : formData.currencyId,
+      // FEAT-006: 專案擴展欄位
+      projectCategory: formData.projectCategory.trim() === '' ? undefined : formData.projectCategory,
+      projectType: formData.projectType,
+      expenseType: formData.expenseType,
+      chargeBackToOpCo: formData.chargeBackToOpCo,
+      chargeOutOpCoIds: formData.chargeBackToOpCo ? formData.chargeOutOpCoIds : undefined,
+      chargeOutMethod: formData.chargeOutMethod.trim() === '' ? undefined : formData.chargeOutMethod,
+      probability: formData.probability,
+      team: formData.team.trim() === '' ? undefined : formData.team,
+      personInCharge: formData.personInCharge.trim() === '' ? undefined : formData.personInCharge,
     };
 
     if (mode === 'create') {
@@ -417,6 +455,181 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         {errors.currencyId && (
           <p className="mt-1 text-sm text-red-600">{errors.currencyId}</p>
         )}
+      </div>
+
+      {/* FEAT-006: 專案類別、專案類型、費用類型 */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div>
+          <label htmlFor="projectCategory" className="block text-sm font-medium text-gray-700">
+            {tFields('projectCategory.label')}
+          </label>
+          <input
+            type="text"
+            id="projectCategory"
+            name="projectCategory"
+            value={formData.projectCategory}
+            onChange={(e) => setFormData({ ...formData, projectCategory: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('projectCategory.placeholder')}
+            maxLength={100}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="projectType" className="block text-sm font-medium text-gray-700">
+            {tFields('projectType.label')} <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="projectType"
+            name="projectType"
+            value={formData.projectType}
+            onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          >
+            <option value="Project">{tFields('projectType.options.project')}</option>
+            <option value="Budget">{tFields('projectType.options.budget')}</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="expenseType" className="block text-sm font-medium text-gray-700">
+            {tFields('expenseType.label')} <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="expenseType"
+            name="expenseType"
+            value={formData.expenseType}
+            onChange={(e) => setFormData({ ...formData, expenseType: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          >
+            <option value="Expense">{tFields('expenseType.options.expense')}</option>
+            <option value="Capital">{tFields('expenseType.options.capital')}</option>
+            <option value="Collection">{tFields('expenseType.options.collection')}</option>
+          </select>
+        </div>
+      </div>
+
+      {/* FEAT-006: OpCo 轉嫁設定 */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="chargeBackToOpCo"
+            name="chargeBackToOpCo"
+            checked={formData.chargeBackToOpCo}
+            onChange={(e) => {
+              setFormData({
+                ...formData,
+                chargeBackToOpCo: e.target.checked,
+                // 取消勾選時清空 OpCo 選擇
+                chargeOutOpCoIds: e.target.checked ? formData.chargeOutOpCoIds : [],
+              });
+            }}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <div>
+            <label htmlFor="chargeBackToOpCo" className="text-sm font-medium text-gray-700">
+              {tFields('chargeBackToOpCo.label')}
+            </label>
+            <p className="text-xs text-gray-500">{tFields('chargeBackToOpCo.description')}</p>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="chargeOutOpCos" className="block text-sm font-medium text-gray-700">
+            {tFields('chargeOutOpCos.label')}
+          </label>
+          <select
+            id="chargeOutOpCos"
+            name="chargeOutOpCos"
+            multiple
+            value={formData.chargeOutOpCoIds}
+            onChange={(e) => {
+              const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+              setFormData({ ...formData, chargeOutOpCoIds: selectedOptions });
+            }}
+            disabled={!formData.chargeBackToOpCo}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            size={4}
+          >
+            {operatingCompanies?.map((opCo) => (
+              <option key={opCo.id} value={opCo.id}>
+                {opCo.code} - {opCo.name}
+              </option>
+            ))}
+          </select>
+          {!formData.chargeBackToOpCo && (
+            <p className="mt-1 text-xs text-gray-500">{tFields('chargeOutOpCos.selectOpCosFirst')}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="chargeOutMethod" className="block text-sm font-medium text-gray-700">
+            {tFields('chargeOutMethod.label')}
+          </label>
+          <input
+            type="text"
+            id="chargeOutMethod"
+            name="chargeOutMethod"
+            value={formData.chargeOutMethod}
+            onChange={(e) => setFormData({ ...formData, chargeOutMethod: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('chargeOutMethod.placeholder')}
+            maxLength={100}
+          />
+        </div>
+      </div>
+
+      {/* FEAT-006: 機率、團隊、負責人 */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div>
+          <label htmlFor="probability" className="block text-sm font-medium text-gray-700">
+            {tFields('probability.label')} <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="probability"
+            name="probability"
+            value={formData.probability}
+            onChange={(e) => setFormData({ ...formData, probability: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          >
+            <option value="Low">{tFields('probability.options.low')}</option>
+            <option value="Medium">{tFields('probability.options.medium')}</option>
+            <option value="High">{tFields('probability.options.high')}</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="team" className="block text-sm font-medium text-gray-700">
+            {tFields('team.label')}
+          </label>
+          <input
+            type="text"
+            id="team"
+            name="team"
+            value={formData.team}
+            onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('team.placeholder')}
+            maxLength={100}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="personInCharge" className="block text-sm font-medium text-gray-700">
+            {tFields('personInCharge.label')}
+          </label>
+          <input
+            type="text"
+            id="personInCharge"
+            name="personInCharge"
+            value={formData.personInCharge}
+            onChange={(e) => setFormData({ ...formData, personInCharge: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('personInCharge.placeholder')}
+            maxLength={100}
+          />
+        </div>
       </div>
 
       <div>

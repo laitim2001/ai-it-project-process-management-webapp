@@ -627,6 +627,56 @@
         "currency": {
           "label": "Currency",
           "placeholder": "Select currency (optional)"
+        },
+        "projectCategory": {
+          "label": "Project Category",
+          "placeholder": "Enter project category (optional)"
+        },
+        "projectType": {
+          "label": "Project Type",
+          "options": {
+            "project": "Project",
+            "budget": "Budget"
+          }
+        },
+        "expenseType": {
+          "label": "Expense Type",
+          "options": {
+            "expense": "Expense",
+            "capital": "Capital",
+            "collection": "Collection"
+          }
+        },
+        "chargeBackToOpCo": {
+          "label": "Charge Back to OpCo",
+          "description": "Whether to charge back expenses to operating company"
+        },
+        "chargeOutOpCos": {
+          "label": "Charge Out OpCos",
+          "placeholder": "Select operating companies (multiple)",
+          "searchPlaceholder": "Search operating companies...",
+          "noOpCoFound": "No operating company found",
+          "selectOpCosFirst": "Please enable 'Charge Back to OpCo' first"
+        },
+        "chargeOutMethod": {
+          "label": "Charge Out Method",
+          "placeholder": "Enter charge out method (optional)"
+        },
+        "probability": {
+          "label": "Probability",
+          "options": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High"
+          }
+        },
+        "team": {
+          "label": "Team",
+          "placeholder": "Enter team name (optional)"
+        },
+        "personInCharge": {
+          "label": "Person In Charge",
+          "placeholder": "Enter person in charge (optional)"
         }
       },
       "actions": {
@@ -2721,6 +2771,10 @@
   "omSummary": {
     "title": "O&M Summary",
     "description": "View O&M expense summary by OpCo and category",
+    "tabs": {
+      "omSummary": "O&M Summary",
+      "projectSummary": "Project Summary"
+    },
     "filters": {
       "fiscalYear": "Fiscal Year",
       "financialYear": "Fiscal Year",
@@ -2952,6 +3006,39 @@
     "empty": {
       "title": "No expense categories",
       "description": "Get started by creating your first OM expense category"
+    }
+  },
+  "projectSummary": {
+    "filters": {
+      "financialYear": "Financial Year",
+      "budgetCategories": "Budget Categories",
+      "selectCategories": "Select budget categories",
+      "searchCategories": "Search budget categories...",
+      "noCategoryFound": "No budget category found",
+      "reset": "Reset"
+    },
+    "summary": {
+      "title": "Budget Category Statistics",
+      "category": "Budget Category",
+      "projectCount": "Project Count",
+      "requestedBudget": "Requested Budget",
+      "approvedBudget": "Approved Budget",
+      "total": "Total"
+    },
+    "table": {
+      "title": "Project Summary List",
+      "noData": "No project data available for the selected filters",
+      "projects": "projects",
+      "projectName": "Project Name",
+      "projectCode": "Project Code",
+      "projectType": "Project Type",
+      "expenseType": "Expense Type",
+      "probability": "Probability",
+      "budget": "Budget Amount",
+      "chargeBack": "Charge to OpCo",
+      "chargeToOpCo": "Charge Out OpCo",
+      "team": "Team",
+      "pic": "Person In Charge"
     }
   }
 }

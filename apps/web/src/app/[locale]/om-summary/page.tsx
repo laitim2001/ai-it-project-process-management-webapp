@@ -2,23 +2,31 @@
  * @fileoverview O&M Summary Page - O&M 費用總覽頁面
  *
  * @description
- * 提供 O&M 費用的總覽視圖，類似 Excel 的表格樣式顯示。
- * 支援按年度、OpCo、Category 過濾，顯示類別匯總和明細列表。
+ * 提供 O&M 費用和專案摘要的總覽視圖，使用 Tab 切換顯示。
+ * - O&M Summary Tab: 按年度、OpCo、Category 過濾的 O&M 費用
+ * - Project Summary Tab: 按年度、預算類別過濾的專案摘要 (FEAT-006)
  *
  * @page /[locale]/om-summary
  *
  * @features
- * - 財務年度選擇（顯示當前年度 Budget vs 上年度 Actual）
- * - OpCo 多選過濾
- * - O&M Category 多選過濾
- * - 類別匯總表格（Category、Budget、Actual、Change%、Item Count）
- * - 明細表格（Category → OpCo → Items 階層結構）
+ * - Tab 切換：O&M 費用總覽 / 專案摘要
+ * - O&M Summary:
+ *   - 財務年度選擇（顯示當前年度 Budget vs 上年度 Actual）
+ *   - OpCo 多選過濾
+ *   - O&M Category 多選過濾
+ *   - 類別匯總表格（Category、Budget、Actual、Change%、Item Count）
+ *   - 明細表格（Category → OpCo → Items 階層結構）
+ * - Project Summary:
+ *   - 財務年度單選過濾
+ *   - 預算類別多選過濾
+ *   - 類別統計摘要表格
+ *   - 專案明細 Accordion 表格
  * - 重置過濾器功能
  * - 響應式設計
  *
  * @permissions
- * - ProjectManager: 查看 O&M Summary
- * - Supervisor: 查看 O&M Summary
+ * - ProjectManager: 查看 O&M Summary 和 Project Summary
+ * - Supervisor: 查看 O&M Summary 和 Project Summary
  * - Admin: 完整權限
  *
  * @dependencies
@@ -28,12 +36,15 @@
  *
  * @related
  * - packages/api/src/routers/omExpense.ts - OMExpense API Router (getSummary)
+ * - packages/api/src/routers/project.ts - Project API Router (getProjectSummary)
  * - packages/api/src/routers/operatingCompany.ts - OpCo API Router
  * - apps/web/src/components/om-summary/* - O&M Summary 組件
+ * - apps/web/src/components/project-summary/* - Project Summary 組件 (FEAT-006)
  *
  * @author IT Department
  * @since FEAT-003 - O&M Summary Page
- * @lastModified 2025-11-29
+ * @modified FEAT-006 - Project Summary Tab (2025-12-05)
+ * @lastModified 2025-12-05
  */
 
 'use client';
@@ -51,6 +62,12 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@/components/ui/tabs';
 import { api } from '@/lib/trpc';
 
 import {
@@ -59,15 +76,23 @@ import {
   OMSummaryDetailGrid,
   type FilterState,
 } from '@/components/om-summary';
+import {
+  ProjectSummaryFilters,
+  ProjectSummaryTable,
+} from '@/components/project-summary';
 
 export default function OMSummaryPage() {
   const t = useTranslations('omSummary');
+  const tProjectSummary = useTranslations('projectSummary');
   const tCommon = useTranslations('common');
 
   // 當前財務年度
   const currentFY = new Date().getFullYear();
 
-  // 過濾器狀態
+  // Tab 狀態
+  const [activeTab, setActiveTab] = React.useState<'om-summary' | 'project-summary'>('om-summary');
+
+  // O&M Summary 過濾器狀態
   const [filters, setFilters] = React.useState<FilterState>({
     currentYear: currentFY,
     previousYear: currentFY - 1,
@@ -75,8 +100,18 @@ export default function OMSummaryPage() {
     categories: [],
   });
 
+  // Project Summary 過濾器狀態
+  const [projectFilters, setProjectFilters] = React.useState<{
+    financialYear: number;
+    budgetCategoryIds: string[];
+  }>({
+    financialYear: currentFY,
+    budgetCategoryIds: [],
+  });
+
   // 標記是否已初始化
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [isProjectSummaryInitialized, setIsProjectSummaryInitialized] = React.useState(false);
 
   // 獲取 OpCo 列表
   const { data: opCoData, isLoading: isLoadingOpCos } = api.operatingCompany.getAll.useQuery();
@@ -111,6 +146,62 @@ export default function OMSummaryPage() {
     }
   );
 
+  // ========== Project Summary (FEAT-006) ==========
+
+  // 獲取 Project Summary 數據（先不帶過濾器獲取所有數據，用於初始化類別選項）
+  const {
+    data: projectSummaryAllData,
+    isLoading: isLoadingProjectSummaryAll,
+  } = api.project.getProjectSummary.useQuery(
+    { financialYear: projectFilters.financialYear },
+    {
+      enabled: activeTab === 'project-summary',
+    }
+  );
+
+  // 獲取過濾後的 Project Summary 數據
+  const {
+    data: projectSummaryData,
+    isLoading: isLoadingProjectSummary,
+    isFetching: isFetchingProjectSummary,
+  } = api.project.getProjectSummary.useQuery(
+    {
+      financialYear: projectFilters.financialYear,
+      budgetCategoryIds: projectFilters.budgetCategoryIds.length > 0
+        ? projectFilters.budgetCategoryIds
+        : undefined,
+    },
+    {
+      enabled: activeTab === 'project-summary' && isProjectSummaryInitialized,
+      keepPreviousData: true,
+    }
+  );
+
+  // 從 projectSummaryAllData 提取預算類別選項
+  const budgetCategoryOptions = React.useMemo(() => {
+    if (!projectSummaryAllData?.summary) return [];
+    return projectSummaryAllData.summary.map((s) => ({
+      id: s.categoryId,
+      categoryName: s.categoryName,
+      categoryCode: s.categoryCode,
+    }));
+  }, [projectSummaryAllData]);
+
+  // Project Summary 初始化（全選所有類別）
+  // 當 API 載入完成後（不管有沒有數據），都完成初始化
+  React.useEffect(() => {
+    if (!isProjectSummaryInitialized && !isLoadingProjectSummaryAll && projectSummaryAllData !== undefined) {
+      // 如果有類別選項，全選所有類別
+      if (budgetCategoryOptions.length > 0) {
+        setProjectFilters((prev) => ({
+          ...prev,
+          budgetCategoryIds: budgetCategoryOptions.map((c) => c.id),
+        }));
+      }
+      setIsProjectSummaryInitialized(true);
+    }
+  }, [budgetCategoryOptions, isProjectSummaryInitialized, isLoadingProjectSummaryAll, projectSummaryAllData]);
+
   // 生成可用年度列表（當前年度 ± 5 年）
   const availableYears = React.useMemo(() => {
     const years: number[] = [];
@@ -125,13 +216,29 @@ export default function OMSummaryPage() {
     setFilters(newFilters);
   };
 
+  // 處理 Project Summary 過濾器變更
+  const handleProjectFiltersChange = (newFilters: {
+    financialYear: number;
+    budgetCategoryIds: string[];
+  }) => {
+    // 如果年度變更，重置初始化狀態以重新獲取類別
+    if (newFilters.financialYear !== projectFilters.financialYear) {
+      setIsProjectSummaryInitialized(false);
+    }
+    setProjectFilters(newFilters);
+  };
+
   // 判斷是否顯示 OpCo 分組（當只選一個 OpCo 時隱藏）
   const showOpCoGroups = filters.opCoIds.length !== 1;
 
-  // 載入狀態
+  // O&M Summary 載入狀態
   const isLoading = isLoadingOpCos || isLoadingCategories || !isInitialized;
   // 資料重新載入狀態（篩選器變更時）
   const isRefetching = isFetchingSummary;
+
+  // Project Summary 載入狀態
+  const isProjectLoading = isLoadingProjectSummaryAll || !isProjectSummaryInitialized;
+  const isProjectRefetching = isFetchingProjectSummary;
 
   return (
     <DashboardLayout>
@@ -158,38 +265,73 @@ export default function OMSummaryPage() {
         <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
-      {/* 過濾器 */}
-      <OMSummaryFilters
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        availableYears={availableYears}
-        opCoOptions={opCoData || []}
-        categoryOptions={categoryData || []}
-        isLoading={isLoading}
-      />
+      {/* Tab 切換 */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'om-summary' | 'project-summary')}
+        className="w-full"
+      >
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsTrigger value="om-summary">{t('tabs.omSummary')}</TabsTrigger>
+          <TabsTrigger value="project-summary">{t('tabs.projectSummary')}</TabsTrigger>
+        </TabsList>
 
-      {/* 類別匯總表格 */}
-      <OMSummaryCategoryGrid
-        data={summaryData?.categorySummary || []}
-        grandTotal={summaryData?.grandTotal || {
-          currentYearBudget: 0,
-          previousYearActual: 0,
-          changePercent: null,
-          itemCount: 0,
-        }}
-        currentYear={filters.currentYear}
-        previousYear={filters.previousYear}
-        isLoading={isLoading}
-      />
+        {/* O&M Summary Tab */}
+        <TabsContent value="om-summary">
+          {/* 過濾器 */}
+          <OMSummaryFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            availableYears={availableYears}
+            opCoOptions={opCoData || []}
+            categoryOptions={categoryData || []}
+            isLoading={isLoading}
+          />
 
-      {/* 明細表格 */}
-      <OMSummaryDetailGrid
-        data={summaryData?.detailData || []}
-        currentYear={filters.currentYear}
-        previousYear={filters.previousYear}
-        isLoading={isLoading}
-        showOpCoGroups={showOpCoGroups}
-      />
+          {/* 類別匯總表格 */}
+          <OMSummaryCategoryGrid
+            data={summaryData?.categorySummary || []}
+            grandTotal={summaryData?.grandTotal || {
+              currentYearBudget: 0,
+              previousYearActual: 0,
+              changePercent: null,
+              itemCount: 0,
+            }}
+            currentYear={filters.currentYear}
+            previousYear={filters.previousYear}
+            isLoading={isLoading}
+          />
+
+          {/* 明細表格 */}
+          <OMSummaryDetailGrid
+            data={summaryData?.detailData || []}
+            currentYear={filters.currentYear}
+            previousYear={filters.previousYear}
+            isLoading={isLoading}
+            showOpCoGroups={showOpCoGroups}
+          />
+        </TabsContent>
+
+        {/* Project Summary Tab (FEAT-006) */}
+        <TabsContent value="project-summary">
+          {/* 過濾器 */}
+          <ProjectSummaryFilters
+            filters={projectFilters}
+            onFiltersChange={handleProjectFiltersChange}
+            availableYears={availableYears}
+            budgetCategoryOptions={budgetCategoryOptions}
+            isLoading={isProjectLoading}
+          />
+
+          {/* 專案摘要表格 */}
+          <ProjectSummaryTable
+            projects={projectSummaryData?.projects || []}
+            categorySummary={projectSummaryData?.summary || []}
+            financialYear={projectFilters.financialYear}
+            isLoading={isProjectLoading}
+          />
+        </TabsContent>
+      </Tabs>
     </DashboardLayout>
   );
 }
