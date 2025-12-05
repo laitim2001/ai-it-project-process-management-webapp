@@ -3,31 +3,39 @@
  *
  * @description
  * 提供 O&M (Operations & Maintenance) 費用的完整管理功能，支援表頭-明細架構。
- * 表頭記錄年度預算和基本資訊，明細記錄12個月的實際支出，系統自動彙總計算總支出。
+ * FEAT-007: 重構為 OMExpense (表頭) → OMExpenseItem (明細) → OMExpenseMonthly (月度記錄) 架構。
+ * 表頭記錄年度基本資訊，明細項目記錄各項目預算和 OpCo 歸屬，月度記錄追蹤實際支出。
  * 支援跨年度比較和年增長率（YoY）計算，用於預算追蹤和趨勢分析。
  *
  * @module api/routers/omExpense
  *
  * @features
- * - 建立 OM 費用並自動初始化 12 個月度記錄
- * - 批量更新月度實際支出並自動重算總額
+ * - FEAT-007: 表頭-明細架構（一個 OMExpense 可有多個 OMExpenseItem）
+ * - 每個明細項目獨立管理 OpCo 歸屬、預算金額、日期範圍
+ * - 每個明細項目獨立管理 12 個月度記錄
+ * - 表頭匯總數據自動計算（totalBudgetAmount, totalActualSpent）
+ * - 明細項目支援拖曳排序（sortOrder）
  * - 計算年度增長率（YoY Growth Rate）與歷史比較
  * - 查詢 OM 費用列表（支援年度、OpCo、類別過濾）
  * - 查詢月度支出匯總（用於儀表板統計圖表）
- * - 獲取所有 OM 類別列表（用於下拉選單）
- * - 級聯刪除檢查（刪除時自動刪除月度記錄）
+ * - 級聯刪除檢查（刪除時自動刪除明細和月度記錄）
  *
  * @procedures
- * - create: 建立 OM 費用（自動建立 12 個月度記錄）
- * - update: 更新 OM 費用基本資訊
- * - updateMonthlyRecords: 批量更新月度記錄並重算總額
+ * - create: 建立 OM 費用（表頭 + 明細項目 + 月度記錄）
+ * - update: 更新 OM 費用表頭資訊
+ * - addItem: 新增明細項目（自動建立 12 個月度記錄）
+ * - updateItem: 更新明細項目資訊
+ * - removeItem: 刪除明細項目（級聯刪除月度記錄）
+ * - reorderItems: 調整明細項目排序
+ * - updateItemMonthlyRecords: 更新明細項目的月度記錄
  * - calculateYoYGrowth: 計算年度增長率
- * - getById: 查詢單一 OM 費用詳情（含月度記錄和來源費用）
+ * - getById: 查詢單一 OM 費用詳情（含明細項目和月度記錄）
  * - getAll: 查詢 OM 費用列表（支援分頁和過濾）
- * - getBySourceExpenseId: 查詢由指定費用衍生的 OM 費用列表 (CHANGE-001)
- * - delete: 刪除 OM 費用（級聯刪除月度記錄）
+ * - getBySourceExpenseId: 查詢由指定費用衍生的 OM 費用列表
+ * - delete: 刪除 OM 費用（級聯刪除所有明細和月度記錄）
  * - getCategories: 獲取所有 OM 類別列表
  * - getMonthlyTotals: 獲取指定年度的月度支出匯總
+ * - getSummary: 獲取 O&M Summary 數據
  *
  * @dependencies
  * - Prisma Client: 資料庫操作和交易管理
@@ -35,27 +43,57 @@
  * - tRPC: API 框架和類型安全
  *
  * @related
- * - packages/db/prisma/schema.prisma - OMExpense 和 OMExpenseMonthly 資料模型
+ * - packages/db/prisma/schema.prisma - OMExpense, OMExpenseItem, OMExpenseMonthly 資料模型
  * - packages/api/src/routers/operatingCompany.ts - 營運公司 Router
  * - packages/api/src/routers/vendor.ts - 供應商 Router
  * - apps/web/src/app/[locale]/om-expenses/page.tsx - OM 費用列表頁面
  *
  * @author IT Department
  * @since Module 3 - OM Expense Management
- * @lastModified 2025-11-14
+ * @lastModified 2025-12-05 (FEAT-007 表頭-明細架構重構)
  */
 
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
-// ========== Zod Schemas ==========
+// ============================================================
+// FEAT-007: Zod Schemas - 表頭-明細架構
+// ============================================================
 
+// ========== 月度記錄 Schema ==========
 const monthlyRecordSchema = z.object({
   month: z.number().int().min(1).max(12),
   actualAmount: z.number().nonnegative(),
 });
 
+// ========== FEAT-007: 明細項目 Schema ==========
+const omExpenseItemSchema = z.object({
+  name: z.string().min(1, '項目名稱不能為空').max(200),
+  description: z.string().optional(),
+  sortOrder: z.number().int().min(0).default(0),
+  budgetAmount: z.number().nonnegative('預算金額不能為負'),
+  opCoId: z.string().min(1, 'OpCo 不能為空'),
+  currencyId: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().min(1, '結束日期不能為空'),
+});
+
+// ========== FEAT-007: 建立 OM Expense (含明細) Schema ==========
+const createOMExpenseWithItemsSchema = z.object({
+  // 表頭資訊
+  name: z.string().min(1, 'OM費用名稱不能為空').max(200),
+  description: z.string().optional(),
+  financialYear: z.number().int().min(2000).max(2100),
+  category: z.string().min(1, '類別不能為空').max(100),
+  vendorId: z.string().optional(),
+  sourceExpenseId: z.string().optional(),
+  defaultOpCoId: z.string().optional(), // 預設 OpCo（用於明細項目）
+  // FEAT-007: 明細項目（至少一項）
+  items: z.array(omExpenseItemSchema).min(1, '至少需要一個明細項目'),
+});
+
+// ========== 舊版 create schema（向後兼容）==========
 const createOMExpenseSchema = z.object({
   name: z.string().min(1, 'OM費用名稱不能為空').max(200),
   description: z.string().optional(),
@@ -64,23 +102,54 @@ const createOMExpenseSchema = z.object({
   opCoId: z.string().min(1, 'OpCo 不能為空'),
   budgetAmount: z.number().positive('預算金額必須大於 0'),
   vendorId: z.string().optional(),
-  sourceExpenseId: z.string().optional(), // CHANGE-001: 來源費用追蹤
+  sourceExpenseId: z.string().optional(),
   startDate: z.string().min(1, '開始日期不能為空'),
   endDate: z.string().min(1, '結束日期不能為空'),
 });
 
+// ========== FEAT-007: 更新表頭 Schema ==========
 const updateOMExpenseSchema = z.object({
   id: z.string().min(1, 'ID 不能為空'),
   name: z.string().min(1).max(200).optional(),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   category: z.string().min(1).max(100).optional(),
-  budgetAmount: z.number().positive().optional(),
   vendorId: z.string().optional().nullable(),
-  sourceExpenseId: z.string().optional().nullable(), // CHANGE-001: 來源費用追蹤
-  startDate: z.string().optional(),
+  sourceExpenseId: z.string().optional().nullable(),
+  defaultOpCoId: z.string().optional().nullable(),
+});
+
+// ========== FEAT-007: 新增明細項目 Schema ==========
+const addItemSchema = z.object({
+  omExpenseId: z.string().min(1, 'OM費用 ID 不能為空'),
+  item: omExpenseItemSchema,
+});
+
+// ========== FEAT-007: 更新明細項目 Schema ==========
+const updateItemSchema = z.object({
+  id: z.string().min(1, 'Item ID 不能為空'),
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().optional().nullable(),
+  sortOrder: z.number().int().min(0).optional(),
+  budgetAmount: z.number().nonnegative().optional(),
+  opCoId: z.string().optional(),
+  currencyId: z.string().optional().nullable(),
+  startDate: z.string().optional().nullable(),
   endDate: z.string().optional(),
 });
 
+// ========== FEAT-007: 調整排序 Schema ==========
+const reorderItemsSchema = z.object({
+  omExpenseId: z.string().min(1, 'OM費用 ID 不能為空'),
+  itemIds: z.array(z.string()), // 按新順序排列的 ID 陣列
+});
+
+// ========== FEAT-007: 更新 Item 月度記錄 Schema ==========
+const updateItemMonthlyRecordsSchema = z.object({
+  omExpenseItemId: z.string().min(1, 'Item ID 不能為空'),
+  monthlyData: z.array(monthlyRecordSchema).length(12, '必須提供 12 個月的數據'),
+});
+
+// ========== 舊版月度記錄 Schema（向後兼容）==========
 const updateMonthlyRecordsSchema = z.object({
   omExpenseId: z.string().min(1, 'OM費用 ID 不能為空'),
   monthlyData: z.array(monthlyRecordSchema).length(12, '必須提供 12 個月的數據'),
@@ -165,8 +234,856 @@ export interface OMSummaryResponse {
 // ========== Router ==========
 
 export const omExpenseRouter = createTRPCRouter({
+  // ============================================================
+  // FEAT-007: 新版表頭-明細架構 Procedures
+  // ============================================================
+
   /**
-   * 創建 OM 費用
+   * FEAT-007: 建立 OM 費用（新版表頭-明細架構）
+   *
+   * @description
+   * 使用新的表頭-明細架構建立 OM 費用：
+   * - 建立 OMExpense 表頭（自動計算 totalBudgetAmount 和 totalActualSpent）
+   * - 為每個明細項目建立 OMExpenseItem
+   * - 為每個明細項目自動初始化 12 個月度記錄（OMExpenseMonthly）
+   *
+   * @input createOMExpenseWithItemsSchema
+   * - name: 表頭名稱
+   * - description: 描述（可選）
+   * - financialYear: 財務年度
+   * - category: 類別
+   * - vendorId: 供應商 ID（可選）
+   * - sourceExpenseId: 來源費用 ID（可選）
+   * - defaultOpCoId: 預設 OpCo ID（可選）
+   * - items: 明細項目陣列（至少一項）
+   *
+   * @returns 完整的 OMExpense 資料（含明細項目和月度記錄）
+   */
+  createWithItems: protectedProcedure
+    .input(createOMExpenseWithItemsSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 驗證所有明細項目的 OpCo 是否存在
+      const opCoIds = [...new Set(input.items.map((item) => item.opCoId))];
+      const opCos = await ctx.prisma.operatingCompany.findMany({
+        where: { id: { in: opCoIds } },
+      });
+
+      if (opCos.length !== opCoIds.length) {
+        const foundIds = opCos.map((oc) => oc.id);
+        const missingIds = opCoIds.filter((id) => !foundIds.includes(id));
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `以下 OpCo 不存在: ${missingIds.join(', ')}`,
+        });
+      }
+
+      // 如果提供了 defaultOpCoId，驗證是否存在
+      if (input.defaultOpCoId) {
+        const defaultOpCo = await ctx.prisma.operatingCompany.findUnique({
+          where: { id: input.defaultOpCoId },
+        });
+        if (!defaultOpCo) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '預設 OpCo 不存在',
+          });
+        }
+      }
+
+      // 如果提供了 vendorId，驗證 vendor 是否存在
+      if (input.vendorId) {
+        const vendor = await ctx.prisma.vendor.findUnique({
+          where: { id: input.vendorId },
+        });
+        if (!vendor) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '供應商不存在',
+          });
+        }
+      }
+
+      // 如果提供了 sourceExpenseId，驗證 expense 是否存在
+      if (input.sourceExpenseId) {
+        const sourceExpense = await ctx.prisma.expense.findUnique({
+          where: { id: input.sourceExpenseId },
+        });
+        if (!sourceExpense) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '來源費用記錄不存在',
+          });
+        }
+      }
+
+      // 如果提供了 currencyId，驗證 currency 是否存在
+      const currencyIds = input.items
+        .map((item) => item.currencyId)
+        .filter((id): id is string => !!id);
+      if (currencyIds.length > 0) {
+        const currencies = await ctx.prisma.currency.findMany({
+          where: { id: { in: currencyIds } },
+        });
+        if (currencies.length !== new Set(currencyIds).size) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '部分幣別不存在',
+          });
+        }
+      }
+
+      // 驗證所有明細項目的日期邏輯
+      for (const item of input.items) {
+        if (item.startDate) {
+          const startDate = new Date(item.startDate);
+          const endDate = new Date(item.endDate);
+          if (startDate >= endDate) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `明細項目 "${item.name}": 結束日期必須晚於開始日期`,
+            });
+          }
+        }
+      }
+
+      // 計算表頭匯總數據
+      const totalBudgetAmount = input.items.reduce(
+        (sum, item) => sum + item.budgetAmount,
+        0
+      );
+
+      // 獲取第一個項目（Zod 已驗證至少有一項）
+      const firstItem = input.items[0]!;
+
+      // 使用 transaction 創建完整的表頭-明細架構
+      const omExpense = await ctx.prisma.$transaction(async (tx) => {
+        // 1. 創建 OMExpense 表頭
+        const newOMExpense = await tx.oMExpense.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            financialYear: input.financialYear,
+            category: input.category,
+            vendorId: input.vendorId,
+            sourceExpenseId: input.sourceExpenseId,
+            defaultOpCoId: input.defaultOpCoId,
+            // FEAT-007: 新欄位
+            totalBudgetAmount,
+            totalActualSpent: 0,
+            // 舊欄位（向後兼容，使用第一個 item 的值或預設值）
+            opCoId: firstItem.opCoId,
+            budgetAmount: totalBudgetAmount,
+            actualSpent: 0,
+            startDate: firstItem.startDate
+              ? new Date(firstItem.startDate)
+              : new Date(),
+            endDate: new Date(firstItem.endDate),
+          },
+        });
+
+        // 2. 創建所有明細項目和對應的月度記錄
+        for (let i = 0; i < input.items.length; i++) {
+          const itemInput = input.items[i]!;
+
+          // 創建 OMExpenseItem
+          const newItem = await tx.oMExpenseItem.create({
+            data: {
+              omExpenseId: newOMExpense.id,
+              name: itemInput.name,
+              description: itemInput.description,
+              sortOrder: itemInput.sortOrder ?? i,
+              budgetAmount: itemInput.budgetAmount,
+              actualSpent: 0,
+              opCoId: itemInput.opCoId,
+              currencyId: itemInput.currencyId,
+              startDate: itemInput.startDate
+                ? new Date(itemInput.startDate)
+                : null,
+              endDate: new Date(itemInput.endDate),
+            },
+          });
+
+          // 為每個 item 創建 12 個月度記錄
+          const monthlyRecords = Array.from({ length: 12 }, (_, monthIndex) => ({
+            omExpenseItemId: newItem.id,
+            omExpenseId: newOMExpense.id, // 保持向後兼容
+            month: monthIndex + 1,
+            actualAmount: 0,
+            opCoId: itemInput.opCoId,
+          }));
+
+          await tx.oMExpenseMonthly.createMany({
+            data: monthlyRecords,
+          });
+        }
+
+        // 3. 返回完整的 OMExpense（包含明細項目和月度記錄）
+        return tx.oMExpense.findUnique({
+          where: { id: newOMExpense.id },
+          include: {
+            opCo: true,
+            vendor: true,
+            sourceExpense: {
+              include: {
+                purchaseOrder: {
+                  include: {
+                    project: true,
+                  },
+                },
+              },
+            },
+            // FEAT-007: 包含明細項目
+            items: {
+              orderBy: { sortOrder: 'asc' },
+              include: {
+                opCo: true,
+                currency: true,
+                monthlyRecords: {
+                  orderBy: { month: 'asc' },
+                },
+              },
+            },
+            // 舊版月度記錄（向後兼容）
+            monthlyRecords: {
+              orderBy: { month: 'asc' },
+            },
+          },
+        });
+      });
+
+      return omExpense;
+    }),
+
+  /**
+   * FEAT-007: 新增明細項目
+   *
+   * @description
+   * 為現有的 OM 費用新增一個明細項目：
+   * - 驗證 OM 費用存在
+   * - 驗證 OpCo 和 Currency 存在
+   * - 創建 OMExpenseItem
+   * - 自動創建 12 個月度記錄
+   * - 更新表頭的 totalBudgetAmount
+   *
+   * @input addItemSchema
+   * - omExpenseId: OM費用 ID
+   * - item: 明細項目資訊
+   *
+   * @returns 更新後的完整 OMExpense 資料
+   */
+  addItem: protectedProcedure
+    .input(addItemSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 驗證 OM 費用是否存在
+      const omExpense = await ctx.prisma.oMExpense.findUnique({
+        where: { id: input.omExpenseId },
+        include: { items: true },
+      });
+
+      if (!omExpense) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'OM 費用不存在',
+        });
+      }
+
+      // 驗證 OpCo 是否存在
+      const opCo = await ctx.prisma.operatingCompany.findUnique({
+        where: { id: input.item.opCoId },
+      });
+
+      if (!opCo) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'OpCo 不存在',
+        });
+      }
+
+      // 如果提供了 currencyId，驗證 currency 是否存在
+      if (input.item.currencyId) {
+        const currency = await ctx.prisma.currency.findUnique({
+          where: { id: input.item.currencyId },
+        });
+        if (!currency) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '幣別不存在',
+          });
+        }
+      }
+
+      // 驗證日期邏輯
+      if (input.item.startDate) {
+        const startDate = new Date(input.item.startDate);
+        const endDate = new Date(input.item.endDate);
+        if (startDate >= endDate) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '結束日期必須晚於開始日期',
+          });
+        }
+      }
+
+      // 計算新的 sortOrder（放在最後）
+      const maxSortOrder = omExpense.items.reduce(
+        (max, item) => Math.max(max, item.sortOrder),
+        -1
+      );
+      const newSortOrder = input.item.sortOrder ?? maxSortOrder + 1;
+
+      // 使用 transaction 創建明細項目和月度記錄
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // 1. 創建 OMExpenseItem
+        const newItem = await tx.oMExpenseItem.create({
+          data: {
+            omExpenseId: input.omExpenseId,
+            name: input.item.name,
+            description: input.item.description,
+            sortOrder: newSortOrder,
+            budgetAmount: input.item.budgetAmount,
+            actualSpent: 0,
+            opCoId: input.item.opCoId,
+            currencyId: input.item.currencyId,
+            startDate: input.item.startDate
+              ? new Date(input.item.startDate)
+              : null,
+            endDate: new Date(input.item.endDate),
+          },
+        });
+
+        // 2. 創建 12 個月度記錄
+        const monthlyRecords = Array.from({ length: 12 }, (_, monthIndex) => ({
+          omExpenseItemId: newItem.id,
+          omExpenseId: input.omExpenseId,
+          month: monthIndex + 1,
+          actualAmount: 0,
+          opCoId: input.item.opCoId,
+        }));
+
+        await tx.oMExpenseMonthly.createMany({
+          data: monthlyRecords,
+        });
+
+        // 3. 更新表頭的 totalBudgetAmount
+        const newTotalBudgetAmount =
+          omExpense.totalBudgetAmount + input.item.budgetAmount;
+
+        await tx.oMExpense.update({
+          where: { id: input.omExpenseId },
+          data: {
+            totalBudgetAmount: newTotalBudgetAmount,
+            // 同時更新舊欄位（向後兼容）
+            budgetAmount: newTotalBudgetAmount,
+          },
+        });
+
+        return newItem;
+      });
+
+      // 返回更新後的完整 OMExpense
+      const updated = await ctx.prisma.oMExpense.findUnique({
+        where: { id: input.omExpenseId },
+        include: {
+          opCo: true,
+          vendor: true,
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          monthlyRecords: {
+            orderBy: { month: 'asc' },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * FEAT-007: 更新明細項目
+   *
+   * @description
+   * 更新現有的明細項目資訊：
+   * - 驗證明細項目存在
+   * - 如果更改 budgetAmount，自動更新表頭的 totalBudgetAmount
+   * - 如果更改 OpCo，驗證新 OpCo 存在
+   *
+   * @input updateItemSchema
+   * - id: 明細項目 ID
+   * - 其他可選更新欄位
+   *
+   * @returns 更新後的完整 OMExpense 資料
+   */
+  updateItem: protectedProcedure
+    .input(updateItemSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updateData } = input;
+
+      // 驗證明細項目是否存在
+      const existingItem = await ctx.prisma.oMExpenseItem.findUnique({
+        where: { id },
+        include: { omExpense: true },
+      });
+
+      if (!existingItem) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '明細項目不存在',
+        });
+      }
+
+      // 如果更改 OpCo，驗證新 OpCo 存在
+      if (updateData.opCoId) {
+        const opCo = await ctx.prisma.operatingCompany.findUnique({
+          where: { id: updateData.opCoId },
+        });
+        if (!opCo) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'OpCo 不存在',
+          });
+        }
+      }
+
+      // 如果更改 currencyId，驗證 currency 存在
+      if (updateData.currencyId) {
+        const currency = await ctx.prisma.currency.findUnique({
+          where: { id: updateData.currencyId },
+        });
+        if (!currency) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: '幣別不存在',
+          });
+        }
+      }
+
+      // 驗證日期邏輯
+      if (updateData.startDate || updateData.endDate) {
+        const startDate = updateData.startDate
+          ? new Date(updateData.startDate)
+          : existingItem.startDate;
+        const endDate = updateData.endDate
+          ? new Date(updateData.endDate)
+          : existingItem.endDate;
+
+        if (startDate && startDate >= endDate) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '結束日期必須晚於開始日期',
+          });
+        }
+      }
+
+      // 準備更新資料
+      const dataToUpdate: Record<string, unknown> = {};
+      if (updateData.name !== undefined) dataToUpdate.name = updateData.name;
+      if (updateData.description !== undefined)
+        dataToUpdate.description = updateData.description;
+      if (updateData.sortOrder !== undefined)
+        dataToUpdate.sortOrder = updateData.sortOrder;
+      if (updateData.budgetAmount !== undefined)
+        dataToUpdate.budgetAmount = updateData.budgetAmount;
+      if (updateData.opCoId !== undefined)
+        dataToUpdate.opCoId = updateData.opCoId;
+      if (updateData.currencyId !== undefined)
+        dataToUpdate.currencyId = updateData.currencyId;
+      if (updateData.startDate !== undefined)
+        dataToUpdate.startDate = updateData.startDate
+          ? new Date(updateData.startDate)
+          : null;
+      if (updateData.endDate !== undefined)
+        dataToUpdate.endDate = new Date(updateData.endDate);
+
+      // 使用 transaction 更新
+      await ctx.prisma.$transaction(async (tx) => {
+        // 1. 更新明細項目
+        await tx.oMExpenseItem.update({
+          where: { id },
+          data: dataToUpdate,
+        });
+
+        // 2. 如果更新了 budgetAmount，重新計算表頭的 totalBudgetAmount
+        if (updateData.budgetAmount !== undefined) {
+          const allItems = await tx.oMExpenseItem.findMany({
+            where: { omExpenseId: existingItem.omExpenseId },
+          });
+
+          const newTotalBudgetAmount = allItems.reduce(
+            (sum, item) =>
+              sum +
+              (item.id === id ? updateData.budgetAmount! : item.budgetAmount),
+            0
+          );
+
+          await tx.oMExpense.update({
+            where: { id: existingItem.omExpenseId },
+            data: {
+              totalBudgetAmount: newTotalBudgetAmount,
+              budgetAmount: newTotalBudgetAmount, // 向後兼容
+            },
+          });
+        }
+
+        // 3. 如果更新了 OpCo，同步更新該項目的月度記錄的 opCoId
+        if (updateData.opCoId !== undefined) {
+          await tx.oMExpenseMonthly.updateMany({
+            where: { omExpenseItemId: id },
+            data: { opCoId: updateData.opCoId },
+          });
+        }
+      });
+
+      // 返回更新後的完整 OMExpense
+      const updated = await ctx.prisma.oMExpense.findUnique({
+        where: { id: existingItem.omExpenseId },
+        include: {
+          opCo: true,
+          vendor: true,
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          monthlyRecords: {
+            orderBy: { month: 'asc' },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * FEAT-007: 刪除明細項目
+   *
+   * @description
+   * 刪除現有的明細項目：
+   * - 驗證明細項目存在
+   * - 檢查是否為最後一個項目（不允許刪除最後一項）
+   * - 級聯刪除相關的月度記錄
+   * - 更新表頭的 totalBudgetAmount 和 totalActualSpent
+   *
+   * @input { id: string } - 明細項目 ID
+   * @returns 更新後的完整 OMExpense 資料
+   */
+  removeItem: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      // 驗證明細項目是否存在
+      const existingItem = await ctx.prisma.oMExpenseItem.findUnique({
+        where: { id: input.id },
+        include: {
+          omExpense: {
+            include: { items: true },
+          },
+        },
+      });
+
+      if (!existingItem) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '明細項目不存在',
+        });
+      }
+
+      // 檢查是否為最後一個項目
+      if (existingItem.omExpense.items.length <= 1) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '不能刪除最後一個明細項目，OM 費用至少需要一個明細項目',
+        });
+      }
+
+      const omExpenseId = existingItem.omExpenseId;
+
+      // 使用 transaction 刪除
+      await ctx.prisma.$transaction(async (tx) => {
+        // 1. 刪除明細項目的月度記錄
+        await tx.oMExpenseMonthly.deleteMany({
+          where: { omExpenseItemId: input.id },
+        });
+
+        // 2. 刪除明細項目
+        await tx.oMExpenseItem.delete({
+          where: { id: input.id },
+        });
+
+        // 3. 重新計算表頭的匯總數據
+        const remainingItems = await tx.oMExpenseItem.findMany({
+          where: { omExpenseId },
+        });
+
+        const newTotalBudgetAmount = remainingItems.reduce(
+          (sum, item) => sum + item.budgetAmount,
+          0
+        );
+        const newTotalActualSpent = remainingItems.reduce(
+          (sum, item) => sum + item.actualSpent,
+          0
+        );
+
+        await tx.oMExpense.update({
+          where: { id: omExpenseId },
+          data: {
+            totalBudgetAmount: newTotalBudgetAmount,
+            totalActualSpent: newTotalActualSpent,
+            budgetAmount: newTotalBudgetAmount, // 向後兼容
+            actualSpent: newTotalActualSpent, // 向後兼容
+          },
+        });
+      });
+
+      // 返回更新後的完整 OMExpense
+      const updated = await ctx.prisma.oMExpense.findUnique({
+        where: { id: omExpenseId },
+        include: {
+          opCo: true,
+          vendor: true,
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          monthlyRecords: {
+            orderBy: { month: 'asc' },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * FEAT-007: 調整明細項目排序
+   *
+   * @description
+   * 批量更新明細項目的排序順序：
+   * - 接收按新順序排列的項目 ID 陣列
+   * - 驗證所有項目屬於同一 OM 費用
+   * - 批量更新 sortOrder
+   *
+   * @input reorderItemsSchema
+   * - omExpenseId: OM費用 ID
+   * - itemIds: 按新順序排列的明細項目 ID 陣列
+   *
+   * @returns 更新後的完整 OMExpense 資料
+   */
+  reorderItems: protectedProcedure
+    .input(reorderItemsSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 驗證 OM 費用是否存在
+      const omExpense = await ctx.prisma.oMExpense.findUnique({
+        where: { id: input.omExpenseId },
+        include: { items: true },
+      });
+
+      if (!omExpense) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'OM 費用不存在',
+        });
+      }
+
+      // 驗證所有項目 ID 都屬於此 OM 費用
+      const existingItemIds = omExpense.items.map((item) => item.id);
+      const invalidIds = input.itemIds.filter(
+        (id) => !existingItemIds.includes(id)
+      );
+
+      if (invalidIds.length > 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `以下項目 ID 不屬於此 OM 費用: ${invalidIds.join(', ')}`,
+        });
+      }
+
+      // 批量更新 sortOrder
+      await ctx.prisma.$transaction(
+        input.itemIds.map((itemId, index) =>
+          ctx.prisma.oMExpenseItem.update({
+            where: { id: itemId },
+            data: { sortOrder: index },
+          })
+        )
+      );
+
+      // 返回更新後的完整 OMExpense
+      const updated = await ctx.prisma.oMExpense.findUnique({
+        where: { id: input.omExpenseId },
+        include: {
+          opCo: true,
+          vendor: true,
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          monthlyRecords: {
+            orderBy: { month: 'asc' },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * FEAT-007: 更新明細項目的月度記錄
+   *
+   * @description
+   * 批量更新指定明細項目的 12 個月度記錄：
+   * - 驗證明細項目存在
+   * - 接收完整的 12 個月數據
+   * - 更新或創建月度記錄
+   * - 自動重算明細項目的 actualSpent
+   * - 自動更新表頭的 totalActualSpent
+   *
+   * @input updateItemMonthlyRecordsSchema
+   * - omExpenseItemId: 明細項目 ID
+   * - monthlyData: 12 個月的數據陣列
+   *
+   * @returns 更新後的完整 OMExpense 資料
+   */
+  updateItemMonthlyRecords: protectedProcedure
+    .input(updateItemMonthlyRecordsSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 驗證明細項目是否存在
+      const existingItem = await ctx.prisma.oMExpenseItem.findUnique({
+        where: { id: input.omExpenseItemId },
+        include: { omExpense: true },
+      });
+
+      if (!existingItem) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '明細項目不存在',
+        });
+      }
+
+      // 驗證月份是否完整（1-12）
+      const months = input.monthlyData.map((d) => d.month).sort((a, b) => a - b);
+      const expectedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+
+      if (JSON.stringify(months) !== JSON.stringify(expectedMonths)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '必須提供完整的 1-12 月數據',
+        });
+      }
+
+      // 使用 transaction 更新月度記錄和匯總數據
+      await ctx.prisma.$transaction(async (tx) => {
+        // 1. 批量更新或創建月度記錄
+        for (const monthData of input.monthlyData) {
+          await tx.oMExpenseMonthly.upsert({
+            where: {
+              omExpenseItemId_month: {
+                omExpenseItemId: input.omExpenseItemId,
+                month: monthData.month,
+              },
+            },
+            update: {
+              actualAmount: monthData.actualAmount,
+            },
+            create: {
+              omExpenseItemId: input.omExpenseItemId,
+              omExpenseId: existingItem.omExpenseId,
+              month: monthData.month,
+              actualAmount: monthData.actualAmount,
+              opCoId: existingItem.opCoId,
+            },
+          });
+        }
+
+        // 2. 計算此明細項目的總實際支出
+        const itemActualSpent = input.monthlyData.reduce(
+          (sum, record) => sum + record.actualAmount,
+          0
+        );
+
+        // 3. 更新明細項目的 actualSpent
+        await tx.oMExpenseItem.update({
+          where: { id: input.omExpenseItemId },
+          data: { actualSpent: itemActualSpent },
+        });
+
+        // 4. 重新計算表頭的 totalActualSpent
+        const allItems = await tx.oMExpenseItem.findMany({
+          where: { omExpenseId: existingItem.omExpenseId },
+        });
+
+        // 計算新的 totalActualSpent（其他項目的 actualSpent + 本項目新的 actualSpent）
+        const newTotalActualSpent = allItems.reduce(
+          (sum, item) =>
+            sum +
+            (item.id === input.omExpenseItemId ? itemActualSpent : item.actualSpent),
+          0
+        );
+
+        // 5. 更新表頭的 totalActualSpent
+        await tx.oMExpense.update({
+          where: { id: existingItem.omExpenseId },
+          data: {
+            totalActualSpent: newTotalActualSpent,
+            actualSpent: newTotalActualSpent, // 向後兼容
+          },
+        });
+      });
+
+      // 返回更新後的完整 OMExpense
+      const updated = await ctx.prisma.oMExpense.findUnique({
+        where: { id: existingItem.omExpenseId },
+        include: {
+          opCo: true,
+          vendor: true,
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          monthlyRecords: {
+            orderBy: { month: 'asc' },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  // ============================================================
+  // 舊版 Procedures（向後兼容，將在下一版本移除）
+  // ============================================================
+
+  /**
+   * @deprecated 請使用 createWithItems 代替
+   * 創建 OM 費用（舊版單一結構）
    * 自動初始化 12 個月度記錄（actualAmount = 0）
    */
   create: protectedProcedure
@@ -281,8 +1198,21 @@ export const omExpenseRouter = createTRPCRouter({
     }),
 
   /**
-   * 更新 OM 費用基本資訊
-   * 注意：不更新 actualSpent（由月度記錄自動計算）
+   * FEAT-007: 更新 OM 費用表頭資訊
+   *
+   * @description
+   * 只更新表頭層級的欄位，不影響明細項目。
+   * 日期欄位已移至明細項目層級，表頭只管理基本資訊。
+   * 匯總數據（totalBudgetAmount, totalActualSpent）由系統自動維護。
+   *
+   * @input updateOMExpenseSchema
+   * - id: OM費用 ID（必填）
+   * - name: 表頭名稱（可選）
+   * - description: 描述（可選）
+   * - category: 類別（可選）
+   * - vendorId: 供應商 ID（可選）
+   * - sourceExpenseId: 來源費用 ID（可選）
+   * - defaultOpCoId: 預設 OpCo ID（可選）
    */
   update: protectedProcedure
     .input(updateOMExpenseSchema)
@@ -292,6 +1222,9 @@ export const omExpenseRouter = createTRPCRouter({
       // 驗證 OM 費用是否存在
       const existing = await ctx.prisma.oMExpense.findUnique({
         where: { id },
+        include: {
+          items: true,
+        },
       });
 
       if (!existing) {
@@ -329,39 +1262,28 @@ export const omExpenseRouter = createTRPCRouter({
         }
       }
 
-      // 驗證日期邏輯（如果有更新日期）
-      if (updateData.startDate || updateData.endDate) {
-        const startDate = updateData.startDate
-          ? new Date(updateData.startDate)
-          : existing.startDate;
-        const endDate = updateData.endDate ? new Date(updateData.endDate) : existing.endDate;
+      // FEAT-007: 如果提供了 defaultOpCoId，驗證 OpCo 是否存在
+      if (updateData.defaultOpCoId) {
+        const defaultOpCo = await ctx.prisma.operatingCompany.findUnique({
+          where: { id: updateData.defaultOpCoId },
+        });
 
-        if (startDate >= endDate) {
+        if (!defaultOpCo) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: '結束日期必須晚於開始日期',
+            code: 'NOT_FOUND',
+            message: '預設 OpCo 不存在',
           });
         }
       }
 
-      // 處理日期轉換
-      const dataToUpdate: Record<string, unknown> = { ...updateData };
-      if (updateData.startDate) {
-        dataToUpdate.startDate = new Date(updateData.startDate);
-      }
-      if (updateData.endDate) {
-        dataToUpdate.endDate = new Date(updateData.endDate);
-      }
-
-      // 更新 OM 費用
+      // 更新 OM 費用表頭
       const updated = await ctx.prisma.oMExpense.update({
         where: { id },
-        data: dataToUpdate,
+        data: updateData,
         include: {
           opCo: true,
           vendor: true,
           sourceExpense: {
-            // CHANGE-001: 包含來源費用詳情
             include: {
               purchaseOrder: {
                 include: {
@@ -370,6 +1292,18 @@ export const omExpenseRouter = createTRPCRouter({
               },
             },
           },
+          // FEAT-007: 包含明細項目
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          // 舊版月度記錄（向後兼容）
           monthlyRecords: {
             orderBy: { month: 'asc' },
           },
@@ -409,6 +1343,10 @@ export const omExpenseRouter = createTRPCRouter({
         });
       }
 
+      // FEAT-007: 向後兼容 - opCoId 現在可能為 null
+      // 如果沒有 opCoId，從第一個 item 獲取或使用空字串（不應該發生）
+      const legacyOpCoId = omExpense.opCoId ?? omExpense.defaultOpCoId ?? '';
+
       // 使用 transaction 更新月度記錄和 actualSpent
       const _result = await ctx.prisma.$transaction(async (tx) => {
         // 1. 批量更新月度記錄
@@ -427,7 +1365,7 @@ export const omExpenseRouter = createTRPCRouter({
               omExpenseId: input.omExpenseId,
               month: monthData.month,
               actualAmount: monthData.actualAmount,
-              opCoId: omExpense.opCoId,
+              opCoId: legacyOpCoId,
             },
           });
         }
@@ -529,7 +1467,17 @@ export const omExpenseRouter = createTRPCRouter({
     }),
 
   /**
-   * 獲取 OM 費用詳情（含月度記錄）
+   * FEAT-007: 獲取 OM 費用詳情
+   *
+   * @description
+   * 查詢單一 OM 費用的完整詳情，包含：
+   * - 表頭資訊（含 totalBudgetAmount, totalActualSpent）
+   * - 明細項目（按 sortOrder 排序，含 OpCo 和 Currency）
+   * - 每個明細項目的月度記錄（12 個月）
+   * - 舊版月度記錄（向後兼容）
+   *
+   * @input { id: string } - OM費用 ID
+   * @returns 完整的 OMExpense 資料（含明細項目和月度記錄）
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().min(1) }))
@@ -540,7 +1488,6 @@ export const omExpenseRouter = createTRPCRouter({
           opCo: true,
           vendor: true,
           sourceExpense: {
-            // CHANGE-001: 包含來源費用詳情
             include: {
               purchaseOrder: {
                 include: {
@@ -549,6 +1496,18 @@ export const omExpenseRouter = createTRPCRouter({
               },
             },
           },
+          // FEAT-007: 包含明細項目
+          items: {
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              opCo: true,
+              currency: true,
+              monthlyRecords: {
+                orderBy: { month: 'asc' },
+              },
+            },
+          },
+          // 舊版月度記錄（向後兼容）
           monthlyRecords: {
             orderBy: { month: 'asc' },
           },
@@ -566,8 +1525,23 @@ export const omExpenseRouter = createTRPCRouter({
     }),
 
   /**
-   * 獲取 OM 費用列表
-   * 支持過濾：年度、OpCo、類別
+   * FEAT-007: 獲取 OM 費用列表
+   *
+   * @description
+   * 查詢 OM 費用列表，支援：
+   * - 按財務年度、OpCo、類別過濾
+   * - 分頁查詢
+   * - 包含表頭匯總數據（totalBudgetAmount, totalActualSpent）
+   * - 包含明細項目計數
+   *
+   * @input
+   * - financialYear: 財務年度過濾（可選）
+   * - opCoId: OpCo 過濾（可選）
+   * - category: 類別過濾（可選）
+   * - page: 頁碼（預設 1）
+   * - limit: 每頁筆數（預設 20，最大 100）
+   *
+   * @returns { items, total, page, limit, totalPages }
    */
   getAll: protectedProcedure
     .input(
@@ -609,8 +1583,12 @@ export const omExpenseRouter = createTRPCRouter({
         include: {
           opCo: true,
           vendor: true,
+          // FEAT-007: 包含明細項目計數
           _count: {
-            select: { monthlyRecords: true },
+            select: {
+              items: true,
+              monthlyRecords: true,
+            },
           },
         },
         orderBy: [{ financialYear: 'desc' }, { category: 'asc' }, { name: 'asc' }],
@@ -825,6 +1803,11 @@ export const omExpenseRouter = createTRPCRouter({
       >();
 
       for (const item of currentYearData) {
+        // FEAT-007: 跳過沒有必要欄位的記錄（新架構中這些欄位可能為 null）
+        if (!item.opCoId || !item.opCo || item.budgetAmount === null || !item.endDate) {
+          continue;
+        }
+
         const existing = categoryMap.get(item.category) || {
           currentYearBudget: 0,
           previousYearActual: 0,
@@ -867,6 +1850,11 @@ export const omExpenseRouter = createTRPCRouter({
       >();
 
       for (const item of currentYearData) {
+        // FEAT-007: 跳過沒有必要欄位的記錄
+        if (!item.opCoId || !item.opCo || item.budgetAmount === null || !item.endDate) {
+          continue;
+        }
+
         // 確保 Category 存在
         if (!categoryDetailMap.has(item.category)) {
           categoryDetailMap.set(item.category, new Map());

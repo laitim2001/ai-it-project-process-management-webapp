@@ -148,7 +148,9 @@ export const operatingCompanyRouter = createTRPCRouter({
           _count: {
             select: {
               chargeOuts: true,
-              omExpenses: true,
+              // FEAT-007: 更新關係名稱
+              omExpenseItems: true, // 明細項目數量
+              omExpensesLegacy: true, // 舊版 OM 費用數量（向後兼容）
             },
           },
         },
@@ -193,7 +195,9 @@ export const operatingCompanyRouter = createTRPCRouter({
           _count: {
             select: {
               chargeOuts: true,
-              omExpenses: true,
+              // FEAT-007: 更新關係名稱
+              omExpenseItems: true, // 明細項目數量
+              omExpensesLegacy: true, // 舊版 OM 費用數量（向後兼容）
             },
           },
         },
@@ -206,7 +210,7 @@ export const operatingCompanyRouter = createTRPCRouter({
   /**
    * 刪除營運公司
    * 權限：Supervisor only
-   * 注意：如果有關聯的費用轉嫁或 OM 費用，禁止刪除
+   * 注意：如果有關聯的費用轉嫁或 OM 費用明細項目，禁止刪除
    */
   delete: supervisorProcedure
     .input(z.object({ id: z.string().min(1) }))
@@ -218,7 +222,9 @@ export const operatingCompanyRouter = createTRPCRouter({
           _count: {
             select: {
               chargeOuts: true,
-              omExpenses: true,
+              // FEAT-007: 更新關係名稱
+              omExpenseItems: true, // 明細項目數量
+              omExpensesLegacy: true, // 舊版 OM 費用數量
               omExpenseMonthly: true,
             },
           },
@@ -232,9 +238,11 @@ export const operatingCompanyRouter = createTRPCRouter({
         });
       }
 
+      // FEAT-007: 更新關聯檢查
       const hasRelations =
         (opCo._count.chargeOuts ?? 0) > 0 ||
-        (opCo._count.omExpenses ?? 0) > 0 ||
+        (opCo._count.omExpenseItems ?? 0) > 0 ||
+        (opCo._count.omExpensesLegacy ?? 0) > 0 ||
         (opCo._count.omExpenseMonthly ?? 0) > 0;
 
       if (hasRelations) {
