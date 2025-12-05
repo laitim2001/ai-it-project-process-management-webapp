@@ -532,7 +532,7 @@ export const omExpenseRouter = createTRPCRouter({
       const newSortOrder = input.item.sortOrder ?? maxSortOrder + 1;
 
       // 使用 transaction 創建明細項目和月度記錄
-      const result = await ctx.prisma.$transaction(async (tx) => {
+      const _result = await ctx.prisma.$transaction(async (tx) => {
         // 1. 創建 OMExpenseItem
         const newItem = await tx.oMExpenseItem.create({
           data: {

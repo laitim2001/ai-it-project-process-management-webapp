@@ -2062,18 +2062,21 @@
     },
     "monthlyGrid": {
       "title": "月度費用統計",
+      "titleForItem": "月度記錄",
       "description": "編輯 1-12 月的實際支出金額，系統將自動計算總額",
-      "saveButton": "保存月度記錄",
-      "saveSuccess": "月度記錄已保存，總實際支出：{amount}",
+      "descriptionForItem": "編輯此項目各月份的實際支出金額",
+      "saveButton": "儲存月度記錄",
+      "saveSuccess": "月度記錄已更新，項目實際支出：{amount}",
       "monthColumn": "月份",
       "amountColumn": "實際支出 (HKD)",
       "total": "總計",
       "tips": {
         "title": "使用提示",
         "enterAmounts": "輸入每個月的實際支出金額",
-        "autoCalculate": "系統會自動計算總實際支出和使用率",
-        "clickSave": "點擊「保存月度記錄」按鈕保存所有更改",
-        "autoUpdate": "保存後，系統會自動更新 OM 費用的 actualSpent 欄位"
+        "autoCalculate": "系統會自動計算總實際支出和利用率",
+        "clickSave": "點擊「儲存月度記錄」按鈕儲存所有變更",
+        "autoUpdate": "保存後，系統會自動更新 OM 費用的 actualSpent 欄位",
+        "autoUpdateItem": "儲存後，系統會自動更新此項目和表頭的實際支出"
       },
       "months": {
         "jan": "一月",
@@ -2088,6 +2091,53 @@
         "oct": "十月",
         "nov": "十一月",
         "dec": "十二月"
+      }
+    },
+    "items": {
+      "title": "明細項目",
+      "description": "管理 OM 費用的明細項目，拖曳可調整順序",
+      "addItem": "新增項目",
+      "editItem": "編輯項目",
+      "removeItem": "刪除項目",
+      "noItems": "尚無明細項目",
+      "addFirstItem": "點擊上方按鈕新增第一個項目",
+      "total": "總計",
+      "itemCount": "項",
+      "dragToReorder": "拖曳以排序",
+      "editMonthly": "編輯月度記錄",
+      "confirmDeleteTitle": "確認刪除",
+      "confirmDelete": "確定要刪除此項目嗎？相關的月度記錄也會一併刪除。此操作無法復原。",
+      "addSuccess": "明細項目已新增",
+      "updateSuccess": "明細項目已更新",
+      "deleteSuccess": "明細項目已刪除",
+      "reorderSuccess": "排序已更新",
+      "saveChanges": "儲存變更",
+      "itemBudget": "項目預算"
+    },
+    "itemFields": {
+      "name": {
+        "label": "項目名稱",
+        "placeholder": "輸入項目名稱"
+      },
+      "opCo": {
+        "label": "所屬 OpCo",
+        "placeholder": "選擇 OpCo"
+      },
+      "budgetAmount": {
+        "label": "項目預算",
+        "placeholder": "0.00"
+      },
+      "currency": {
+        "label": "幣別",
+        "placeholder": "選擇幣別（可選）",
+        "noSelection": "不指定",
+        "description": "可選：指定此項目使用的幣別"
+      },
+      "startDate": {
+        "label": "開始日期"
+      },
+      "endDate": {
+        "label": "結束日期"
       }
     },
     "status": {

@@ -2062,9 +2062,11 @@
     },
     "monthlyGrid": {
       "title": "Monthly Expense Statistics",
+      "titleForItem": "Monthly Records",
       "description": "Edit actual spending amounts for months 1-12, system will automatically calculate total",
+      "descriptionForItem": "Edit monthly actual spending amounts for this item",
       "saveButton": "Save Monthly Records",
-      "saveSuccess": "Monthly records saved, total actual spending: {amount}",
+      "saveSuccess": "Monthly records updated, item actual spending: {amount}",
       "monthColumn": "Month",
       "amountColumn": "Actual Spending (HKD)",
       "total": "Total",
@@ -2073,7 +2075,8 @@
         "enterAmounts": "Enter actual spending amount for each month",
         "autoCalculate": "System will automatically calculate total actual spending and utilization rate",
         "clickSave": "Click \"Save Monthly Records\" button to save all changes",
-        "autoUpdate": "After saving, system will automatically update OM expense actualSpent field"
+        "autoUpdate": "After saving, system will automatically update OM expense actualSpent field",
+        "autoUpdateItem": "After saving, system will automatically update item and header actual spending"
       },
       "months": {
         "jan": "January",
@@ -2088,6 +2091,53 @@
         "oct": "October",
         "nov": "November",
         "dec": "December"
+      }
+    },
+    "items": {
+      "title": "Line Items",
+      "description": "Manage OM expense line items, drag to reorder",
+      "addItem": "Add Item",
+      "editItem": "Edit Item",
+      "removeItem": "Delete Item",
+      "noItems": "No line items yet",
+      "addFirstItem": "Click the button above to add your first item",
+      "total": "Total",
+      "itemCount": "items",
+      "dragToReorder": "Drag to reorder",
+      "editMonthly": "Edit Monthly Records",
+      "confirmDeleteTitle": "Confirm Delete",
+      "confirmDelete": "Are you sure you want to delete this item? Related monthly records will also be deleted. This action cannot be undone.",
+      "addSuccess": "Line item added successfully",
+      "updateSuccess": "Line item updated successfully",
+      "deleteSuccess": "Line item deleted successfully",
+      "reorderSuccess": "Order updated successfully",
+      "saveChanges": "Save Changes",
+      "itemBudget": "Item Budget"
+    },
+    "itemFields": {
+      "name": {
+        "label": "Item Name",
+        "placeholder": "Enter item name"
+      },
+      "opCo": {
+        "label": "OpCo",
+        "placeholder": "Select OpCo"
+      },
+      "budgetAmount": {
+        "label": "Item Budget",
+        "placeholder": "0.00"
+      },
+      "currency": {
+        "label": "Currency",
+        "placeholder": "Select currency (optional)",
+        "noSelection": "Not specified",
+        "description": "Optional: Specify currency for this item"
+      },
+      "startDate": {
+        "label": "Start Date"
+      },
+      "endDate": {
+        "label": "End Date"
       }
     },
     "status": {
