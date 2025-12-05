@@ -404,9 +404,11 @@ export const omExpenseRouter = createTRPCRouter({
           });
 
           // 為每個 item 創建 12 個月度記錄
+          // FEAT-007 修復: 移除 omExpenseId 避免舊版唯一約束衝突
+          // 因為 @@unique([omExpenseId, month]) 仍然存在，多個 items 會造成重複
           const monthlyRecords = Array.from({ length: 12 }, (_, monthIndex) => ({
             omExpenseItemId: newItem.id,
-            omExpenseId: newOMExpense.id, // 保持向後兼容
+            // omExpenseId: 不設置，避免舊版唯一約束衝突
             month: monthIndex + 1,
             actualAmount: 0,
             opCoId: itemInput.opCoId,
@@ -552,9 +554,10 @@ export const omExpenseRouter = createTRPCRouter({
         });
 
         // 2. 創建 12 個月度記錄
+        // FEAT-007 修復: 移除 omExpenseId 避免舊版唯一約束衝突
         const monthlyRecords = Array.from({ length: 12 }, (_, monthIndex) => ({
           omExpenseItemId: newItem.id,
-          omExpenseId: input.omExpenseId,
+          // omExpenseId: 不設置，避免舊版唯一約束衝突
           month: monthIndex + 1,
           actualAmount: 0,
           opCoId: input.item.opCoId,

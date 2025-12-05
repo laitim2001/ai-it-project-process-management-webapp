@@ -1979,7 +1979,8 @@
       "recalculating": "重新計算中...",
       "increaseBy": "支出增加 {rate}%",
       "decreaseBy": "支出減少 {rate}%",
-      "noChange": "支出持平"
+      "noChange": "支出持平",
+      "defaultOpCo": "預設 OpCo"
     },
     "form": {
       "create": {
@@ -2128,7 +2129,12 @@
       "deleteSuccess": "明細項目已刪除",
       "reorderSuccess": "排序已更新",
       "saveChanges": "儲存變更",
-      "itemBudget": "項目預算"
+      "itemBudget": "項目預算",
+      "totalFromItems": "明細項目匯總",
+      "listTab": "項目列表",
+      "monthlyTab": "月度記錄",
+      "selectItemForMonthly": "選擇一個項目以查看月度記錄",
+      "editItemDescription": "編輯項目詳情和月度支出記錄"
     },
     "itemFields": {
       "name": {

@@ -1979,7 +1979,8 @@
       "recalculating": "Recalculating...",
       "increaseBy": "Spending increased by {rate}%",
       "decreaseBy": "Spending decreased by {rate}%",
-      "noChange": "Spending unchanged"
+      "noChange": "Spending unchanged",
+      "defaultOpCo": "Default OpCo"
     },
     "form": {
       "create": {
@@ -2128,7 +2129,12 @@
       "deleteSuccess": "Line item deleted successfully",
       "reorderSuccess": "Order updated successfully",
       "saveChanges": "Save Changes",
-      "itemBudget": "Item Budget"
+      "itemBudget": "Item Budget",
+      "totalFromItems": "Total from Items",
+      "listTab": "Item List",
+      "monthlyTab": "Monthly Records",
+      "selectItemForMonthly": "Select an item to view monthly records",
+      "editItemDescription": "Edit item details and monthly expense records"
     },
     "itemFields": {
       "name": {
