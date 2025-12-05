@@ -2,8 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-11-29
-> **Project Status**: Post-MVP Enhancement Phase (MVP 100% Complete)
+> **Last Updated**: 2025-12-05
+> **Project Status**: Post-MVP Enhancement Phase (FEAT-007 Complete)
 > **Total Code**: ~35,000+ lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
 > **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境 已部署
@@ -61,6 +61,7 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - 4 new pages (Quotes, Settings, Register, Forgot Password)
 - Environment deployment optimization
 - Quality fixes (FIX-003, FIX-004, FIX-005)
+- **FEAT-007**: OM Expense 表頭-明細架構重構 (OMExpense → OMExpenseItem → OMExpenseMonthly)
 
 **📋 Next Phase: Epic 9-10** (AI Assistant + External Integration)
 
@@ -716,6 +717,11 @@ pnpm validate:i18n
 - Environment setup automation (DEVELOPMENT-SETUP.md, check-environment.js)
 - Cross-platform deployment optimization
 - Quality fixes (FIX-003, FIX-004, FIX-005)
+- **FEAT-007**: OM Expense 表頭-明細架構重構
+  - 新增 OMExpenseItem 模型 (支援多明細項目)
+  - 新增 6 個 API procedures (createWithItems, addItem, updateItem, removeItem, reorderItems, updateItemMonthlyRecords)
+  - 新增 3 個前端組件 (OMExpenseItemForm, OMExpenseItemList, OMExpenseItemMonthlyGrid)
+  - 支援拖曳排序 (@dnd-kit 整合)
 
 ### 📋 Epic 9: AI Assistant (Planned)
 - Intelligent budget suggestions during proposal phase
@@ -901,22 +907,23 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ## Project Metrics
 
-**Code Statistics** (as of 2025-11-29):
+**Code Statistics** (as of 2025-12-05):
 - Total Core Code: ~35,000+ lines
 - Indexed Files: 250+ important files
-- UI Components: 68 (35 design system + 33 business)
+- UI Components: 71 (35 design system + 36 business)
 - API Routers: 15 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, notification, omExpense, project, purchaseOrder, quote, seed, user, vendor, health)
-- Prisma Models: 24 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ChargeOut, ChargeOutItem, OMExpense, OMExpenseMonthly, OperatingCompany, Currency, Comment, History, Notification)
+- Prisma Models: 25 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ChargeOut, ChargeOutItem, OMExpense, **OMExpenseItem**, OMExpenseMonthly, OperatingCompany, Currency, Comment, History, Notification)
 - Pages: 51 full-featured pages (16 route modules)
 - Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements
 
 **Development Timeline:**
 - Sprint 0-8: MVP Phase 1 (Epic 1-8) ✅
 - Sprint 9-10: Post-MVP Enhancements ✅
-- Sprint 11+: Epic 9-10 (Planned)
+- Sprint 11: FEAT-007 OM Expense 表頭-明細重構 ✅
+- Sprint 12+: Epic 9-10 (Planned)
 
 ---
 
-**Last Updated**: 2025-11-29
+**Last Updated**: 2025-12-05
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion
