@@ -263,11 +263,15 @@ export function ProjectSummaryTable({
                 </AccordionTrigger>
                 <AccordionContent className="pt-0">
                   <div className="overflow-x-auto">
-                    <Table>
+                    {/* FIX: 使用 table-fixed 和 colgroup 確保不同 category 的欄位對齊 */}
+                    <Table className="table-fixed w-full">
+{/* FIX: colgroup 內不能有空白或註釋，會導致 hydration 錯誤 */}
+                      {/* 欄位寬度: # 3%, Project Name 18%, Project Code 8%, Project Type 8%, Expense Type 8%, Probability 8%, Budget 10%, Charge Back 6%, Charge To OpCo 10%, Team 9%, Person In Charge 12% */}
+                      <colgroup><col style={{ width: '3%' }} /><col style={{ width: '18%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '10%' }} /><col style={{ width: '6%' }} /><col style={{ width: '10%' }} /><col style={{ width: '9%' }} /><col style={{ width: '12%' }} /></colgroup>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-12">#</TableHead>
-                          <TableHead className="min-w-[200px]">{t('table.projectName')}</TableHead>
+                          <TableHead>#</TableHead>
+                          <TableHead>{t('table.projectName')}</TableHead>
                           <TableHead>{t('table.projectCode')}</TableHead>
                           <TableHead>{t('table.projectType')}</TableHead>
                           <TableHead>{t('table.expenseType')}</TableHead>
@@ -283,18 +287,18 @@ export function ProjectSummaryTable({
                         {categoryProjects.map((project, index) => (
                           <TableRow key={project.id}>
                             <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                            <TableCell>
-                              <div>
-                                <div className="font-medium">{project.name}</div>
+                            <TableCell className="overflow-hidden">
+                              <div className="truncate">
+                                <div className="font-medium truncate">{project.name}</div>
                                 {project.description && (
-                                  <div className="text-sm text-muted-foreground truncate max-w-[300px]">
+                                  <div className="text-sm text-muted-foreground truncate">
                                     {project.description}
                                   </div>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{project.projectCode}</Badge>
+                            <TableCell className="overflow-hidden">
+                              <Badge variant="outline" className="truncate max-w-full">{project.projectCode}</Badge>
                             </TableCell>
                             <TableCell>
                               <Badge variant={project.projectType === 'Project' ? 'default' : 'secondary'}>
@@ -314,14 +318,14 @@ export function ProjectSummaryTable({
                             <TableCell className="text-right">
                               {formatCurrency(project.requestedBudget, project.currency?.symbol)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               {project.chargeBackToOpCo ? (
-                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                <CheckCircle2 className="h-5 w-5 text-green-600 inline-block" />
                               ) : (
-                                <XCircle className="h-5 w-5 text-muted-foreground" />
+                                <XCircle className="h-5 w-5 text-muted-foreground inline-block" />
                               )}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="overflow-hidden">
                               {project.chargeOutOpCos.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">
                                   {project.chargeOutOpCos.map((co) => (
@@ -334,8 +338,8 @@ export function ProjectSummaryTable({
                                 <span className="text-muted-foreground">-</span>
                               )}
                             </TableCell>
-                            <TableCell>{project.team || '-'}</TableCell>
-                            <TableCell>{project.personInCharge || '-'}</TableCell>
+                            <TableCell className="truncate">{project.team || '-'}</TableCell>
+                            <TableCell className="truncate">{project.personInCharge || '-'}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

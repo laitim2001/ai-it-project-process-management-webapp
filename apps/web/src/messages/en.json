@@ -1386,7 +1386,7 @@
         "placeholder": "Select vendor"
       },
       "amount": {
-        "label": "Quote Amount (TWD)",
+        "label": "Quote Amount",
         "placeholder": "Enter quote amount"
       },
       "file": {
@@ -2899,7 +2899,9 @@
       "expand": "Expand",
       "collapse": "Collapse",
       "noData": "No data matching the criteria",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "headerTotal": "Header Total",
+      "headerSubTotal": "Sub Total"
     },
     "totals": {
       "grandTotal": "Grand Total",

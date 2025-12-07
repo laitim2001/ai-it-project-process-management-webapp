@@ -1386,7 +1386,7 @@
         "placeholder": "請選擇供應商"
       },
       "amount": {
-        "label": "報價金額 (TWD)",
+        "label": "報價金額",
         "placeholder": "請輸入報價金額"
       },
       "file": {
@@ -2899,7 +2899,9 @@
       "expand": "展開",
       "collapse": "收合",
       "noData": "沒有符合條件的數據",
-      "loading": "載入中..."
+      "loading": "載入中...",
+      "headerTotal": "表頭總計",
+      "headerSubTotal": "小計"
     },
     "totals": {
       "grandTotal": "總計",

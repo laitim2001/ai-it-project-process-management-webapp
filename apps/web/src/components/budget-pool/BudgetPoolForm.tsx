@@ -137,12 +137,14 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
     categories?: CategoryErrors[];
   }>({});
 
-  // FEAT-002: Update currencyId when currencies are loaded (create mode only)
+  // FEAT-002: Update currencyId when currencies are loaded
+  // FIX: 同時處理 create 和 edit 模式（當 currencyId 為空時使用預設值）
   useEffect(() => {
-    if (mode === 'create' && !initialData?.currencyId && defaultCurrencyId && !formData.currencyId) {
+    if (defaultCurrencyId && !formData.currencyId) {
+      // 如果 currencyId 為空且已載入貨幣列表，設置預設值
       setFormData(prev => ({ ...prev, currencyId: defaultCurrencyId }));
     }
-  }, [defaultCurrencyId, mode, initialData?.currencyId, formData.currencyId]);
+  }, [defaultCurrencyId, formData.currencyId]);
 
   // ========== API Mutations ==========
 

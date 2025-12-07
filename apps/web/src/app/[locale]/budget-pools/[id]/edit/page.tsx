@@ -204,6 +204,7 @@ export default function EditBudgetPoolPage() {
                 name: budgetPool.name,
                 description: budgetPool.description ?? undefined,
                 financialYear: budgetPool.financialYear,
+                currencyId: budgetPool.currencyId ?? undefined, // FIX: 傳遞 currencyId
                 categories: budgetPool.categories?.map((cat) => ({
                   id: cat.id,
                   categoryName: cat.categoryName,

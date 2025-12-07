@@ -182,6 +182,10 @@ export interface ItemDetail {
   previousYearActual: number | null;
   changePercent: number | null;
   endDate: Date;
+  /** CHANGE-004: 關聯的 OM Expense ID（用於導航和識別） */
+  omExpenseId?: string;
+  /** CHANGE-004: 是否為 OMExpenseItem（新架構）或舊 OMExpense */
+  isNewArchitecture?: boolean;
 }
 
 export interface OpCoSubTotal {
@@ -190,11 +194,32 @@ export interface OpCoSubTotal {
   changePercent: number | null;
 }
 
+/**
+ * CHANGE-004: OM Expense 表頭分組
+ * 用於在 OM Summary 頁面顯示 OMExpense 表頭及其明細項目
+ */
+export interface OMExpenseHeaderGroup {
+  omExpenseId: string;
+  omExpenseName: string;
+  omExpenseDescription: string | null;
+  createdByName: string;
+  createdAt: Date;
+  items: ItemDetail[];
+  headerTotal: {
+    currentYearBudget: number;
+    previousYearActual: number;
+    changePercent: number | null;
+  };
+}
+
 export interface OpCoGroup {
   opCoId: string;
   opCoCode: string;
   opCoName: string;
+  /** 舊架構：直接項目列表（用於沒有 OMExpenseItem 的記錄） */
   items: ItemDetail[];
+  /** CHANGE-004: 新架構：按表頭分組的項目列表 */
+  omExpenseHeaders?: OMExpenseHeaderGroup[];
   subTotal: OpCoSubTotal;
 }
 
@@ -1739,32 +1764,61 @@ export const omExpenseRouter = createTRPCRouter({
       const { currentYear, previousYear, opCoIds, categories } = input;
 
       // 構建查詢條件
+      // FIX: OpCo 過濾需要同時支援舊架構（表頭 opCoId）和新架構（明細 items.opCoId）
+      const hasOpCoFilter = opCoIds && opCoIds.length > 0;
+      const hasCategoryFilter = categories && categories.length > 0;
+
+      // 當前年度查詢條件
       const currentYearWhere: Record<string, unknown> = {
         financialYear: currentYear,
       };
 
+      // 上年度查詢條件（舊架構，直接過濾表頭 opCoId）
       const previousYearWhere: Record<string, unknown> = {
         financialYear: previousYear,
       };
 
-      // OpCo 過濾
-      if (opCoIds && opCoIds.length > 0) {
-        currentYearWhere.opCoId = { in: opCoIds };
+      // OpCo 過濾 - 上年度（舊架構）
+      if (hasOpCoFilter) {
         previousYearWhere.opCoId = { in: opCoIds };
       }
 
       // Category 過濾
-      if (categories && categories.length > 0) {
+      if (hasCategoryFilter) {
         currentYearWhere.category = { in: categories };
         previousYearWhere.category = { in: categories };
       }
 
+      // FIX: 對於當前年度，OpCo 過濾需要使用 OR 條件：
+      // - 舊架構：表頭的 opCoId 匹配（沒有 items 的 OMExpense）
+      // - 新架構：有 items 且至少有一個 item 的 opCoId 匹配
+      if (hasOpCoFilter) {
+        currentYearWhere.OR = [
+          // 舊架構：表頭 opCoId 匹配且沒有 items
+          { opCoId: { in: opCoIds }, items: { none: {} } },
+          // 新架構：有 items 且至少有一個 item 的 opCoId 匹配
+          { items: { some: { opCoId: { in: opCoIds } } } },
+        ];
+      }
+
       // 查詢當前年度數據（Budget）
+      // CHANGE-004: 包含 items（OMExpenseItem）以支援表頭-明細架構
+      // FIX: items 也需要過濾 opCoId（新架構）
       const currentYearData = await ctx.prisma.oMExpense.findMany({
         where: currentYearWhere,
         include: {
           opCo: true,
           vendor: true,
+          // CHANGE-004: 新增 items 關聯（用於表頭-明細結構）
+          // FIX: 當有 OpCo 過濾時，只返回匹配的 items
+          items: {
+            where: hasOpCoFilter ? { opCoId: { in: opCoIds } } : undefined,
+            include: {
+              opCo: true,
+              currency: true,
+            },
+            orderBy: { sortOrder: 'asc' },
+          },
         },
         orderBy: [{ category: 'asc' }, { name: 'asc' }],
       });
@@ -1800,6 +1854,7 @@ export const omExpenseRouter = createTRPCRouter({
       };
 
       // ========== 1. 計算類別匯總 ==========
+      // CHANGE-004: 更新以支援新架構（OMExpenseItem）和舊架構（OMExpense）
       const categoryMap = new Map<
         string,
         {
@@ -1809,26 +1864,51 @@ export const omExpenseRouter = createTRPCRouter({
         }
       >();
 
-      for (const item of currentYearData) {
-        // FEAT-007: 跳過沒有必要欄位的記錄（新架構中這些欄位可能為 null）
-        if (!item.opCoId || !item.opCo || item.budgetAmount === null || !item.endDate) {
-          continue;
+      for (const omExpense of currentYearData) {
+        const hasItems = omExpense.items && omExpense.items.length > 0;
+
+        if (hasItems) {
+          // CHANGE-004: 新架構 - 使用 OMExpenseItem 的數據
+          for (const expenseItem of omExpense.items) {
+            if (!expenseItem.opCoId || !expenseItem.opCo) continue;
+
+            const existing = categoryMap.get(omExpense.category) || {
+              currentYearBudget: 0,
+              previousYearActual: 0,
+              itemCount: 0,
+            };
+
+            const prevKey = `${expenseItem.name}|${omExpense.category}|${expenseItem.opCoId}`;
+            const prevActual = previousYearMap.get(prevKey) || 0;
+
+            categoryMap.set(omExpense.category, {
+              currentYearBudget: existing.currentYearBudget + expenseItem.budgetAmount,
+              previousYearActual: existing.previousYearActual + prevActual,
+              itemCount: existing.itemCount + 1,
+            });
+          }
+        } else {
+          // 舊架構 - 使用 OMExpense 的數據
+          // 跳過沒有必要欄位的記錄
+          if (!omExpense.opCoId || !omExpense.opCo || omExpense.budgetAmount === null || !omExpense.endDate) {
+            continue;
+          }
+
+          const existing = categoryMap.get(omExpense.category) || {
+            currentYearBudget: 0,
+            previousYearActual: 0,
+            itemCount: 0,
+          };
+
+          const prevKey = `${omExpense.name}|${omExpense.category}|${omExpense.opCoId}`;
+          const prevActual = previousYearMap.get(prevKey) || 0;
+
+          categoryMap.set(omExpense.category, {
+            currentYearBudget: existing.currentYearBudget + omExpense.budgetAmount,
+            previousYearActual: existing.previousYearActual + prevActual,
+            itemCount: existing.itemCount + 1,
+          });
         }
-
-        const existing = categoryMap.get(item.category) || {
-          currentYearBudget: 0,
-          previousYearActual: 0,
-          itemCount: 0,
-        };
-
-        const prevKey = `${item.name}|${item.category}|${item.opCoId}`;
-        const prevActual = previousYearMap.get(prevKey) || 0;
-
-        categoryMap.set(item.category, {
-          currentYearBudget: existing.currentYearBudget + item.budgetAmount,
-          previousYearActual: existing.previousYearActual + prevActual,
-          itemCount: existing.itemCount + 1,
-        });
       }
 
       const categorySummary: CategorySummaryItem[] = Array.from(categoryMap.entries())
@@ -1841,64 +1921,128 @@ export const omExpenseRouter = createTRPCRouter({
         }))
         .sort((a, b) => a.category.localeCompare(b.category));
 
-      // ========== 2. 計算明細數據（Category → OpCo → Items） ==========
-      // 首先按 Category 分組
-      const categoryDetailMap = new Map<
-        string,
-        Map<
-          string,
-          {
-            opCoId: string;
-            opCoCode: string;
-            opCoName: string;
-            items: ItemDetail[];
+      // ========== 2. 計算明細數據（Category → OpCo → OMExpense Header → Items） ==========
+      // CHANGE-004: 重構分組邏輯以支援表頭-明細架構
+      // 新結構：Category → OpCo → OMExpense Headers → Items
+
+      // 定義中間數據結構
+      interface OpCoDetailData {
+        opCoId: string;
+        opCoCode: string;
+        opCoName: string;
+        items: ItemDetail[];  // 舊架構的直接項目
+        omExpenseHeaders: Map<string, {
+          omExpenseId: string;
+          omExpenseName: string;
+          omExpenseDescription: string | null;
+          createdAt: Date;
+          items: ItemDetail[];
+        }>;
+      }
+
+      const categoryDetailMap = new Map<string, Map<string, OpCoDetailData>>();
+
+      for (const omExpense of currentYearData) {
+        const hasItems = omExpense.items && omExpense.items.length > 0;
+
+        if (hasItems) {
+          // ========== 新架構：處理 OMExpenseItem ==========
+          for (const expenseItem of omExpense.items) {
+            if (!expenseItem.opCoId || !expenseItem.opCo) continue;
+
+            // 確保 Category 存在
+            if (!categoryDetailMap.has(omExpense.category)) {
+              categoryDetailMap.set(omExpense.category, new Map());
+            }
+            const opCoMap = categoryDetailMap.get(omExpense.category)!;
+
+            // 確保 OpCo 存在（基於 item 的 opCoId）
+            if (!opCoMap.has(expenseItem.opCoId)) {
+              opCoMap.set(expenseItem.opCoId, {
+                opCoId: expenseItem.opCoId,
+                opCoCode: expenseItem.opCo.code,
+                opCoName: expenseItem.opCo.name,
+                items: [],
+                omExpenseHeaders: new Map(),
+              });
+            }
+            const opCoData = opCoMap.get(expenseItem.opCoId)!;
+
+            // 確保 OMExpense Header 存在
+            if (!opCoData.omExpenseHeaders.has(omExpense.id)) {
+              opCoData.omExpenseHeaders.set(omExpense.id, {
+                omExpenseId: omExpense.id,
+                omExpenseName: omExpense.name,
+                omExpenseDescription: omExpense.description,
+                createdAt: omExpense.createdAt,
+                items: [],
+              });
+            }
+            const headerGroup = opCoData.omExpenseHeaders.get(omExpense.id)!;
+
+            // 獲取上年度實際支出（使用 item name）
+            const prevKey = `${expenseItem.name}|${omExpense.category}|${expenseItem.opCoId}`;
+            const previousYearActual = previousYearMap.get(prevKey) ?? null;
+
+            // 添加明細項目到表頭
+            headerGroup.items.push({
+              id: expenseItem.id,
+              name: expenseItem.name,
+              description: expenseItem.description,
+              currentYearBudget: expenseItem.budgetAmount,
+              previousYearActual,
+              changePercent: calculateChangePercent(expenseItem.budgetAmount, previousYearActual),
+              endDate: expenseItem.endDate,
+              omExpenseId: omExpense.id,
+              isNewArchitecture: true,
+            });
           }
-        >
-      >();
+        } else {
+          // ========== 舊架構：處理沒有 items 的 OMExpense ==========
+          // 跳過沒有必要欄位的記錄
+          if (!omExpense.opCoId || !omExpense.opCo || omExpense.budgetAmount === null || !omExpense.endDate) {
+            continue;
+          }
 
-      for (const item of currentYearData) {
-        // FEAT-007: 跳過沒有必要欄位的記錄
-        if (!item.opCoId || !item.opCo || item.budgetAmount === null || !item.endDate) {
-          continue;
-        }
+          // 確保 Category 存在
+          if (!categoryDetailMap.has(omExpense.category)) {
+            categoryDetailMap.set(omExpense.category, new Map());
+          }
+          const opCoMap = categoryDetailMap.get(omExpense.category)!;
 
-        // 確保 Category 存在
-        if (!categoryDetailMap.has(item.category)) {
-          categoryDetailMap.set(item.category, new Map());
-        }
+          // 確保 OpCo 存在
+          if (!opCoMap.has(omExpense.opCoId)) {
+            opCoMap.set(omExpense.opCoId, {
+              opCoId: omExpense.opCoId,
+              opCoCode: omExpense.opCo.code,
+              opCoName: omExpense.opCo.name,
+              items: [],
+              omExpenseHeaders: new Map(),
+            });
+          }
+          const opCoData = opCoMap.get(omExpense.opCoId)!;
 
-        const opCoMap = categoryDetailMap.get(item.category)!;
+          // 獲取上年度實際支出
+          const prevKey = `${omExpense.name}|${omExpense.category}|${omExpense.opCoId}`;
+          const previousYearActual = previousYearMap.get(prevKey) ?? null;
 
-        // 確保 OpCo 存在
-        if (!opCoMap.has(item.opCoId)) {
-          opCoMap.set(item.opCoId, {
-            opCoId: item.opCoId,
-            opCoCode: item.opCo.code,
-            opCoName: item.opCo.name,
-            items: [],
+          // 添加為舊架構項目
+          opCoData.items.push({
+            id: omExpense.id,
+            name: omExpense.name,
+            description: omExpense.description,
+            currentYearBudget: omExpense.budgetAmount,
+            previousYearActual,
+            changePercent: calculateChangePercent(omExpense.budgetAmount, previousYearActual),
+            endDate: omExpense.endDate,
+            omExpenseId: omExpense.id,
+            isNewArchitecture: false,
           });
         }
-
-        // 獲取上年度實際支出
-        const prevKey = `${item.name}|${item.category}|${item.opCoId}`;
-        const previousYearActual = previousYearMap.get(prevKey) ?? null;
-
-        // 添加項目
-        const opCoGroup = opCoMap.get(item.opCoId)!;
-        opCoGroup.items.push({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          currentYearBudget: item.budgetAmount,
-          previousYearActual,
-          changePercent: calculateChangePercent(item.budgetAmount, previousYearActual),
-          endDate: item.endDate,
-        });
       }
 
       // 轉換為最終結構並計算小計
       const detailData: CategoryDetailGroup[] = [];
-
       const sortedCategories = Array.from(categoryDetailMap.keys()).sort();
 
       for (const category of sortedCategories) {
@@ -1914,15 +2058,56 @@ export const omExpenseRouter = createTRPCRouter({
         );
 
         for (const opCoData of sortedOpCos) {
-          // 按項目名稱排序
+          // 收集所有項目（包括舊架構和新架構）用於計算小計
+          const allItems: ItemDetail[] = [...opCoData.items];
+
+          // CHANGE-004: 轉換 omExpenseHeaders 為 OMExpenseHeaderGroup 陣列
+          const omExpenseHeaders: OMExpenseHeaderGroup[] = [];
+
+          for (const [, headerData] of opCoData.omExpenseHeaders) {
+            // 按項目名稱排序
+            headerData.items.sort((a, b) => a.name.localeCompare(b.name));
+
+            // 計算表頭小計
+            const headerBudgetTotal = headerData.items.reduce(
+              (sum, item) => sum + item.currentYearBudget,
+              0
+            );
+            const headerActualTotal = headerData.items.reduce(
+              (sum, item) => sum + (item.previousYearActual || 0),
+              0
+            );
+
+            omExpenseHeaders.push({
+              omExpenseId: headerData.omExpenseId,
+              omExpenseName: headerData.omExpenseName,
+              omExpenseDescription: headerData.omExpenseDescription,
+              createdByName: '', // OMExpense 沒有 createdBy 欄位，使用空字串
+              createdAt: headerData.createdAt,
+              items: headerData.items,
+              headerTotal: {
+                currentYearBudget: headerBudgetTotal,
+                previousYearActual: headerActualTotal,
+                changePercent: calculateChangePercent(headerBudgetTotal, headerActualTotal),
+              },
+            });
+
+            // 加入所有項目以計算 OpCo 小計
+            allItems.push(...headerData.items);
+          }
+
+          // 按表頭名稱排序
+          omExpenseHeaders.sort((a, b) => a.omExpenseName.localeCompare(b.omExpenseName));
+
+          // 按項目名稱排序舊架構項目
           opCoData.items.sort((a, b) => a.name.localeCompare(b.name));
 
           // 計算 OpCo 小計
-          const opCoBudgetTotal = opCoData.items.reduce(
+          const opCoBudgetTotal = allItems.reduce(
             (sum, item) => sum + item.currentYearBudget,
             0
           );
-          const opCoActualTotal = opCoData.items.reduce(
+          const opCoActualTotal = allItems.reduce(
             (sum, item) => sum + (item.previousYearActual || 0),
             0
           );
@@ -1934,7 +2119,8 @@ export const omExpenseRouter = createTRPCRouter({
             opCoId: opCoData.opCoId,
             opCoCode: opCoData.opCoCode,
             opCoName: opCoData.opCoName,
-            items: opCoData.items,
+            items: opCoData.items,  // 舊架構項目
+            omExpenseHeaders: omExpenseHeaders.length > 0 ? omExpenseHeaders : undefined,  // CHANGE-004: 新架構表頭
             subTotal: {
               currentYearBudget: opCoBudgetTotal,
               previousYearActual: opCoActualTotal,

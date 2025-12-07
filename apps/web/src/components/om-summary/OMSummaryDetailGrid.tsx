@@ -42,7 +42,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { FolderOpen, Building2, ExternalLink } from 'lucide-react';
+import { FolderOpen, Building2, ExternalLink, FileText } from 'lucide-react';
 
 import {
   Accordion,
@@ -73,10 +73,28 @@ export interface ItemDetail {
   previousYearActual: number | null;
   changePercent: number | null;
   endDate: Date | string;
-  /** FEAT-007: 關聯的 OM Expense ID（用於導航） */
+  /** FEAT-007/CHANGE-004: 關聯的 OM Expense ID（用於導航） */
   omExpenseId?: string;
-  /** FEAT-007: 是否為 OMExpenseItem（新架構）或舊 OMExpense */
+  /** FEAT-007/CHANGE-004: 是否為 OMExpenseItem（新架構）或舊 OMExpense */
   isNewArchitecture?: boolean;
+}
+
+/**
+ * CHANGE-004: OM Expense 表頭分組
+ * 用於在 OpCo 層下方顯示按 OMExpense 表頭分組的明細
+ */
+export interface OMExpenseHeaderGroup {
+  omExpenseId: string;
+  omExpenseName: string;
+  omExpenseDescription: string | null;
+  createdByName: string;
+  createdAt: Date | string;
+  items: ItemDetail[];
+  headerTotal: {
+    currentYearBudget: number;
+    previousYearActual: number;
+    changePercent: number | null;
+  };
 }
 
 export interface OpCoSubTotal {
@@ -89,7 +107,10 @@ export interface OpCoGroup {
   opCoId: string;
   opCoCode: string;
   opCoName: string;
+  /** 舊架構：直接項目列表（用於沒有 OMExpenseItem 的記錄） */
   items: ItemDetail[];
+  /** CHANGE-004: 新架構：按 OMExpense 表頭分組的項目列表 */
+  omExpenseHeaders?: OMExpenseHeaderGroup[];
   subTotal: OpCoSubTotal;
 }
 
@@ -245,14 +266,25 @@ export function OMSummaryDetailGrid({
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pt-0">
-                          <ItemTable
-                            items={opCoGroup.items}
-                            subTotal={opCoGroup.subTotal}
-                            currentBudgetHeader={currentBudgetHeader}
-                            previousActualHeader={previousActualHeader}
-                            t={t}
-                            onItemClick={onItemClick}
-                          />
+                          {/* CHANGE-004: 檢查是否有新架構的表頭分組 */}
+                          {opCoGroup.omExpenseHeaders && opCoGroup.omExpenseHeaders.length > 0 ? (
+                            <OMExpenseHeaderSection
+                              headers={opCoGroup.omExpenseHeaders}
+                              currentBudgetHeader={currentBudgetHeader}
+                              previousActualHeader={previousActualHeader}
+                              t={t}
+                              onItemClick={onItemClick}
+                            />
+                          ) : (
+                            <ItemTable
+                              items={opCoGroup.items}
+                              subTotal={opCoGroup.subTotal}
+                              currentBudgetHeader={currentBudgetHeader}
+                              previousActualHeader={previousActualHeader}
+                              t={t}
+                              onItemClick={onItemClick}
+                            />
+                          )}
                         </AccordionContent>
                       </AccordionItem>
                     ))}
@@ -267,14 +299,25 @@ export function OMSummaryDetailGrid({
                           <span>{opCoGroup.opCoCode} - {opCoGroup.opCoName}</span>
                         </div>
                       )}
-                      <ItemTable
-                        items={opCoGroup.items}
-                        subTotal={opCoGroup.subTotal}
-                        currentBudgetHeader={currentBudgetHeader}
-                        previousActualHeader={previousActualHeader}
-                        t={t}
-                        onItemClick={onItemClick}
-                      />
+                      {/* CHANGE-004: 檢查是否有新架構的表頭分組 */}
+                      {opCoGroup.omExpenseHeaders && opCoGroup.omExpenseHeaders.length > 0 ? (
+                        <OMExpenseHeaderSection
+                          headers={opCoGroup.omExpenseHeaders}
+                          currentBudgetHeader={currentBudgetHeader}
+                          previousActualHeader={previousActualHeader}
+                          t={t}
+                          onItemClick={onItemClick}
+                        />
+                      ) : (
+                        <ItemTable
+                          items={opCoGroup.items}
+                          subTotal={opCoGroup.subTotal}
+                          currentBudgetHeader={currentBudgetHeader}
+                          previousActualHeader={previousActualHeader}
+                          t={t}
+                          onItemClick={onItemClick}
+                        />
+                      )}
                     </div>
                   ))
                 )}
@@ -305,6 +348,142 @@ export function OMSummaryDetailGrid({
                   </Table>
                 </div>
               </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </div>
+  );
+}
+
+/**
+ * CHANGE-004: OM Expense 表頭區段組件
+ * 顯示按 OMExpense 表頭分組的明細，包含：
+ * - 表頭層 Accordion（可展開/收合）
+ * - 每個表頭下的明細 Table（含小計）
+ */
+function OMExpenseHeaderSection({
+  headers,
+  currentBudgetHeader,
+  previousActualHeader,
+  t,
+  onItemClick,
+}: {
+  headers: OMExpenseHeaderGroup[];
+  currentBudgetHeader: string;
+  previousActualHeader: string;
+  t: ReturnType<typeof useTranslations<'omSummary'>>;
+  onItemClick?: (item: ItemDetail) => void;
+}) {
+  const isClickable = !!onItemClick;
+
+  // 預設展開所有表頭
+  const defaultExpandedHeaders = headers.map((h) => h.omExpenseId);
+
+  return (
+    <div className="space-y-2">
+      {/* OMExpense 表頭 Accordion */}
+      <Accordion
+        type="multiple"
+        defaultValue={defaultExpandedHeaders}
+        className="space-y-2"
+      >
+        {headers.map((header) => (
+          <AccordionItem
+            key={header.omExpenseId}
+            value={header.omExpenseId}
+            className="border rounded-lg overflow-hidden"
+          >
+            <AccordionTrigger className="px-4 py-2 bg-muted/10 hover:bg-muted/20 hover:no-underline">
+              <div className="flex items-center gap-2 flex-1">
+                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex-1 text-left">
+                  <span className="font-medium">{header.omExpenseName}</span>
+                  {header.omExpenseDescription && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      - {header.omExpenseDescription}
+                    </span>
+                  )}
+                </div>
+                {/* 表頭小計 */}
+                <div className="flex items-center gap-4 text-sm mr-4">
+                  <span className="text-muted-foreground">
+                    {t('detailGrid.headerTotal')}:
+                  </span>
+                  <span className="font-medium">
+                    {formatCurrency(header.headerTotal.currentYearBudget)}
+                  </span>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-0">
+              {/* 明細項目表格 */}
+              <Table className="table-fixed w-full">
+                <colgroup>
+                  <col style={{ width: '5%' }} />
+                  <col style={{ width: '49%' }} />
+                  <col style={{ width: '13%' }} />
+                  <col style={{ width: '13%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '10%' }} />
+                </colgroup>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>{t('detailGrid.item')}</TableHead>
+                    <TableHead className="text-right">{currentBudgetHeader}</TableHead>
+                    <TableHead className="text-right">{previousActualHeader}</TableHead>
+                    <TableHead className="text-right">{t('summaryGrid.changePercent')}</TableHead>
+                    <TableHead className="text-right">{t('detailGrid.endDate')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {header.items.map((item, index) => (
+                    <TableRow
+                      key={item.id}
+                      className={cn(
+                        isClickable && 'cursor-pointer hover:bg-accent/50 transition-colors'
+                      )}
+                      onClick={isClickable ? () => onItemClick(item) : undefined}
+                    >
+                      <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.name}</div>
+                            {item.description && (
+                              <div className="text-sm text-muted-foreground">{item.description}</div>
+                            )}
+                          </div>
+                          {isClickable && (
+                            <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.currentYearBudget)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.previousYearActual)}</TableCell>
+                      <TableCell className={cn('text-right', getPercentColorClass(item.changePercent))}>
+                        {formatPercent(item.changePercent)}
+                      </TableCell>
+                      <TableCell className="text-right">{formatDate(item.endDate)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                {/* 表頭小計 */}
+                <TableFooter>
+                  <TableRow className="bg-blue-50/50 dark:bg-blue-900/20">
+                    <TableCell colSpan={2} className="font-medium text-blue-700 dark:text-blue-300">
+                      {t('detailGrid.headerSubTotal')}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(header.headerTotal.currentYearBudget)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(header.headerTotal.previousYearActual)}</TableCell>
+                    <TableCell className={cn('text-right font-medium', getPercentColorClass(header.headerTotal.changePercent))}>
+                      {formatPercent(header.headerTotal.changePercent)}
+                    </TableCell>
+                    <TableCell className="text-right">-</TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
             </AccordionContent>
           </AccordionItem>
         ))}
