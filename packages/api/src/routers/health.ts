@@ -905,4 +905,149 @@ export const healthRouter = createTRPCRouter({
       };
     }
   }),
+
+  /**
+   * FEAT-007: 創建 OMExpenseItem 表
+   * 用於 OM 費用表頭-明細架構重構
+   */
+  createOMExpenseItemTable: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      results.push('=== FEAT-007: 創建 OMExpenseItem 表 ===');
+
+      // 1. 檢查表是否已存在
+      const tableExists = await ctx.prisma.$queryRaw<{ exists: boolean }[]>`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_name = 'OMExpenseItem'
+        )
+      `;
+
+      if (tableExists[0]?.exists) {
+        results.push('OMExpenseItem 表已存在，跳過創建');
+      } else {
+        // 2. 創建 OMExpenseItem 表
+        results.push('\n[1/5] 創建 OMExpenseItem 表...');
+        await ctx.prisma.$executeRaw`
+          CREATE TABLE "OMExpenseItem" (
+            "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+            "omExpenseId" TEXT NOT NULL,
+            "name" TEXT NOT NULL,
+            "description" TEXT,
+            "sortOrder" INTEGER NOT NULL DEFAULT 0,
+            "budgetAmount" DOUBLE PRECISION NOT NULL,
+            "actualSpent" DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "currencyId" TEXT,
+            "opCoId" TEXT NOT NULL,
+            "startDate" TIMESTAMP(3),
+            "endDate" TIMESTAMP(3) NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "OMExpenseItem_pkey" PRIMARY KEY ("id")
+          )
+        `;
+        results.push('OMExpenseItem: 表已創建');
+      }
+
+      // 3. 創建索引
+      results.push('\n[2/5] 創建索引...');
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpenseItem_omExpenseId_idx" ON "OMExpenseItem"("omExpenseId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpenseItem_opCoId_idx" ON "OMExpenseItem"("opCoId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpenseItem_currencyId_idx" ON "OMExpenseItem"("currencyId")`;
+      results.push('索引: 已創建');
+
+      // 4. 添加外鍵約束
+      results.push('\n[3/5] 添加外鍵約束...');
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OMExpenseItem_omExpenseId_fkey') THEN
+            ALTER TABLE "OMExpenseItem" ADD CONSTRAINT "OMExpenseItem_omExpenseId_fkey"
+            FOREIGN KEY ("omExpenseId") REFERENCES "OMExpense"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OMExpenseItem_opCoId_fkey') THEN
+            ALTER TABLE "OMExpenseItem" ADD CONSTRAINT "OMExpenseItem_opCoId_fkey"
+            FOREIGN KEY ("opCoId") REFERENCES "OperatingCompany"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OMExpenseItem_currencyId_fkey') THEN
+            ALTER TABLE "OMExpenseItem" ADD CONSTRAINT "OMExpenseItem_currencyId_fkey"
+            FOREIGN KEY ("currencyId") REFERENCES "Currency"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('外鍵約束: 已添加');
+
+      // 5. 修改 OMExpenseMonthly 表支援新架構
+      results.push('\n[4/5] 修改 OMExpenseMonthly 表...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseMonthly" ADD COLUMN IF NOT EXISTS "omExpenseItemId" TEXT`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpenseMonthly_omExpenseItemId_idx" ON "OMExpenseMonthly"("omExpenseItemId")`;
+
+      // 將 omExpenseId 改為可選
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'OMExpenseMonthly'
+            AND column_name = 'omExpenseId'
+            AND is_nullable = 'NO'
+          ) THEN
+            ALTER TABLE "OMExpenseMonthly" ALTER COLUMN "omExpenseId" DROP NOT NULL;
+          END IF;
+        END $$
+      `;
+
+      // 添加 omExpenseItemId 外鍵
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OMExpenseMonthly_omExpenseItemId_fkey') THEN
+            ALTER TABLE "OMExpenseMonthly" ADD CONSTRAINT "OMExpenseMonthly_omExpenseItemId_fkey"
+            FOREIGN KEY ("omExpenseItemId") REFERENCES "OMExpenseItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('OMExpenseMonthly: 已添加 omExpenseItemId 欄位和外鍵');
+
+      // 6. 修改 OMExpense 表添加 hasItems 欄位
+      results.push('\n[5/5] 修改 OMExpense 表...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "hasItems" BOOLEAN NOT NULL DEFAULT false`;
+      results.push('OMExpense: 已添加 hasItems 欄位');
+
+      results.push('\n=== FEAT-007 Schema 修復完成 ===');
+
+      // 驗證
+      const verifyTable = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'OMExpenseItem'
+        ORDER BY ordinal_position
+      `;
+      results.push(`\n驗證 OMExpenseItem 欄位: ${verifyTable.map((c) => c.column_name).join(', ')}`);
+
+      return {
+        success: true,
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
 });
