@@ -1050,4 +1050,107 @@ export const healthRouter = createTRPCRouter({
       };
     }
   }),
+
+  /**
+   * 修復 FEAT-006 和 FEAT-007 缺失的欄位
+   * - FEAT-006: Project 表的 8 個新欄位
+   * - FEAT-007: OMExpense 表的 3 個新欄位
+   */
+  fixFeat006AndFeat007Columns: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      results.push('=== 修復 FEAT-006 & FEAT-007 缺失欄位 ===');
+
+      // ========== FEAT-006: Project 表新增欄位 ==========
+      results.push('\n[1/2] 修復 Project 表 (FEAT-006)...');
+
+      // projectCategory - 專案類別
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCategory" TEXT`;
+
+      // projectType - 專案類型
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectType" TEXT DEFAULT 'Project'`;
+
+      // expenseType - 費用類型
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "expenseType" TEXT DEFAULT 'Expense'`;
+
+      // chargeBackToOpCo - 是否向 OpCo 收費
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "chargeBackToOpCo" BOOLEAN DEFAULT false`;
+
+      // chargeOutMethod - 收費方式
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "chargeOutMethod" TEXT`;
+
+      // probability - 成功機率
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "probability" TEXT DEFAULT 'Medium'`;
+
+      // team - 團隊
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "team" TEXT`;
+
+      // personInCharge - 負責人
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "personInCharge" TEXT`;
+
+      results.push('Project: 已添加 projectCategory, projectType, expenseType, chargeBackToOpCo, chargeOutMethod, probability, team, personInCharge');
+
+      // ========== FEAT-007: OMExpense 表新增欄位 ==========
+      results.push('\n[2/2] 修復 OMExpense 表 (FEAT-007)...');
+
+      // totalBudgetAmount - 總預算
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "totalBudgetAmount" DOUBLE PRECISION DEFAULT 0`;
+
+      // totalActualSpent - 總實際支出
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "totalActualSpent" DOUBLE PRECISION DEFAULT 0`;
+
+      // defaultOpCoId - 預設 OpCo
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "defaultOpCoId" TEXT`;
+
+      // 添加 defaultOpCoId 索引
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "OMExpense_defaultOpCoId_idx" ON "OMExpense"("defaultOpCoId")`;
+
+      // 添加 defaultOpCoId 外鍵約束
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OMExpense_defaultOpCoId_fkey') THEN
+            ALTER TABLE "OMExpense" ADD CONSTRAINT "OMExpense_defaultOpCoId_fkey"
+            FOREIGN KEY ("defaultOpCoId") REFERENCES "OperatingCompany"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+
+      results.push('OMExpense: 已添加 totalBudgetAmount, totalActualSpent, defaultOpCoId');
+
+      results.push('\n=== FEAT-006 & FEAT-007 欄位修復完成 ===');
+
+      // 驗證 Project 欄位
+      const projectCols = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'Project'
+        ORDER BY ordinal_position
+      `;
+      results.push(`\n驗證 Project 欄位: ${projectCols.map((c) => c.column_name).join(', ')}`);
+
+      // 驗證 OMExpense 欄位
+      const omExpenseCols = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'OMExpense'
+        ORDER BY ordinal_position
+      `;
+      results.push(`\n驗證 OMExpense 欄位: ${omExpenseCols.map((c) => c.column_name).join(', ')}`);
+
+      return {
+        success: true,
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
 });
