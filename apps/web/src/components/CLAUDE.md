@@ -6,8 +6,8 @@
 ## 🏗️ 組織結構
 
 ```
-components/
-├── ui/                      # 設計系統組件（35 個 shadcn/ui）
+components/                  # 共 20 個組件目錄
+├── ui/                      # 設計系統組件（35+ 個 shadcn/ui）
 │   ├── button.tsx
 │   ├── card.tsx
 │   ├── input.tsx
@@ -15,7 +15,7 @@ components/
 │   ├── accordion.tsx
 │   ├── tabs.tsx
 │   ├── pagination.tsx
-│   └── ...（共 35 個）
+│   └── ...（共 35+ 個）
 ├── layout/                  # 佈局組件
 │   ├── dashboard-layout.tsx
 │   ├── Sidebar.tsx
@@ -28,43 +28,54 @@ components/
 ├── shared/                  # 共享業務組件
 │   ├── CurrencyDisplay.tsx
 │   └── CurrencySelect.tsx
-├── [domain]/                # 業務領域組件（33 個）
-│   ├── budget-pool/         # 預算池 (3)
+├── [domain]/                # 業務領域組件
+│   ├── budget-pool/         # 預算池
 │   │   ├── BudgetPoolFilters.tsx
 │   │   ├── BudgetPoolForm.tsx
 │   │   └── CategoryFormRow.tsx
-│   ├── charge-out/          # 費用轉嫁 (2)
+│   ├── charge-out/          # 費用轉嫁
 │   │   ├── ChargeOutActions.tsx
 │   │   └── ChargeOutForm.tsx
-│   ├── dashboard/           # 儀表板 (3)
+│   ├── dashboard/           # 儀表板
 │   │   ├── BudgetPoolOverview.tsx
 │   │   ├── StatCard.tsx
 │   │   └── StatsCard.tsx
-│   ├── expense/             # 費用 (2)
+│   ├── expense/             # 費用
 │   │   ├── ExpenseActions.tsx
 │   │   └── ExpenseForm.tsx
-│   ├── notification/        # 通知 (2)
+│   ├── notification/        # 通知
 │   │   ├── NotificationBell.tsx
 │   │   └── NotificationDropdown.tsx
-│   ├── om-expense/          # OM 費用 (2)
+│   ├── om-expense/          # OM 費用 (FEAT-007 重構)
 │   │   ├── OMExpenseForm.tsx
+│   │   ├── OMExpenseItemForm.tsx      # 明細表單
+│   │   ├── OMExpenseItemList.tsx      # 明細列表
+│   │   ├── OMExpenseItemMonthlyGrid.tsx
 │   │   └── OMExpenseMonthlyGrid.tsx
-│   ├── project/             # 專案 (1)
+│   ├── om-expense-category/ # OM 費用類別 (FEAT-007)
+│   │   └── OMExpenseCategoryForm.tsx
+│   ├── om-summary/          # OM Summary (CHANGE-004)
+│   │   └── OMSummaryTable.tsx
+│   ├── operating-company/   # 營運公司
+│   │   └── OperatingCompanyForm.tsx
+│   ├── project/             # 專案
 │   │   └── ProjectForm.tsx
-│   ├── proposal/            # 提案 (5)
+│   ├── project-summary/     # 專案 Summary (FEAT-006)
+│   │   └── ProjectSummaryTable.tsx
+│   ├── proposal/            # 提案
 │   │   ├── BudgetProposalForm.tsx
 │   │   ├── CommentSection.tsx
 │   │   ├── ProposalActions.tsx
 │   │   ├── ProposalFileUpload.tsx
 │   │   └── ProposalMeetingNotes.tsx
-│   ├── purchase-order/      # 採購單 (2)
+│   ├── purchase-order/      # 採購單
 │   │   ├── PurchaseOrderActions.tsx
 │   │   └── PurchaseOrderForm.tsx
-│   ├── quote/               # 報價單 (1)
+│   ├── quote/               # 報價單
 │   │   └── QuoteUploadForm.tsx
-│   ├── user/                # 用戶 (1)
+│   ├── user/                # 用戶
 │   │   └── UserForm.tsx
-│   └── vendor/              # 供應商 (1)
+│   └── vendor/              # 供應商
 │       └── VendorForm.tsx
 ```
 

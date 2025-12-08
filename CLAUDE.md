@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-12-05
+> **Last Updated**: 2025-12-08
 > **Project Status**: Post-MVP Enhancement Phase (FEAT-007 Complete)
 > **Total Code**: ~35,000+ lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
@@ -52,8 +52,8 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 
 **✅ MVP Phase 1: 100% Complete** (Epic 1-8)
 - All 8 core Epics delivered and tested
-- 51 pages implemented (16 route modules)
-- 68 components (35 UI + 33 business)
+- 55+ pages implemented (19 route modules)
+- 75+ components (35+ UI + 40 business)
 - ~35,000+ lines of production code
 
 **✅ Post-MVP Enhancements: Complete**
@@ -99,50 +99,63 @@ This is a **Turborepo monorepo** with the following structure:
 ├── apps/
 │   └── web/              # Next.js frontend application
 │       ├── src/
-│       │   ├── app/      # App Router pages (18 pages)
-│       │   │   ├── dashboard/        ✅ PM + Supervisor
-│       │   │   ├── projects/         ✅ Full CRUD
-│       │   │   ├── proposals/        ✅ Full CRUD + Approval
-│       │   │   ├── budget-pools/     ✅ Full CRUD
-│       │   │   ├── vendors/          ✅ Full CRUD
-│       │   │   ├── quotes/           ✅ List View (Post-MVP)
-│       │   │   ├── purchase-orders/  ✅ List + Detail
-│       │   │   ├── expenses/         ✅ Full CRUD + Approval
-│       │   │   ├── users/            ✅ Full CRUD
-│       │   │   ├── notifications/    ✅ List View (Epic 8)
-│       │   │   ├── settings/         ✅ User Settings (Post-MVP)
-│       │   │   ├── login/            ✅ Azure AD B2C + Local
-│       │   │   ├── register/         ✅ Sign Up (Post-MVP)
-│       │   │   └── forgot-password/  ✅ Password Reset (Post-MVP)
-│       │   ├── components/
-│       │   │   ├── ui/               # 26 shadcn/ui components
+│       │   ├── app/      # App Router pages (55+ pages, 19 route modules)
+│       │   │   ├── dashboard/              ✅ PM + Supervisor
+│       │   │   ├── projects/               ✅ Full CRUD
+│       │   │   ├── proposals/              ✅ Full CRUD + Approval
+│       │   │   ├── budget-pools/           ✅ Full CRUD
+│       │   │   ├── vendors/                ✅ Full CRUD
+│       │   │   ├── quotes/                 ✅ List View (Post-MVP)
+│       │   │   ├── purchase-orders/        ✅ Full CRUD
+│       │   │   ├── expenses/               ✅ Full CRUD + Approval
+│       │   │   ├── charge-outs/            ✅ Full CRUD (FEAT-005)
+│       │   │   ├── om-expenses/            ✅ Full CRUD (FEAT-007 重構)
+│       │   │   ├── om-expense-categories/  ✅ Full CRUD (FEAT-007)
+│       │   │   ├── om-summary/             ✅ Report (CHANGE-004)
+│       │   │   ├── operating-companies/    ✅ Full CRUD
+│       │   │   ├── users/                  ✅ Full CRUD
+│       │   │   ├── notifications/          ✅ List View (Epic 8)
+│       │   │   ├── settings/               ✅ User Settings (Post-MVP)
+│       │   │   ├── login/                  ✅ Azure AD B2C + Local
+│       │   │   ├── register/               ✅ Sign Up (Post-MVP)
+│       │   │   └── forgot-password/        ✅ Password Reset (Post-MVP)
+│       │   ├── components/           # 75+ components
+│       │   │   ├── ui/               # 35+ shadcn/ui components
 │       │   │   ├── layout/           # Sidebar, TopBar, DashboardLayout
 │       │   │   ├── dashboard/        # StatsCard, BudgetPoolOverview
 │       │   │   ├── project/          # ProjectForm
 │       │   │   ├── proposal/         # ProposalActions, CommentSection
 │       │   │   ├── notification/     # NotificationBell, NotificationDropdown
+│       │   │   ├── om-expense/       # OMExpenseForm, OMExpenseItemList (FEAT-007)
+│       │   │   ├── om-summary/       # OMSummaryTable (CHANGE-004)
 │       │   │   └── theme/            # ThemeToggle (Light/Dark/System)
 │       │   ├── hooks/                # useTheme, useDebounce
 │       │   └── lib/                  # tRPC client, utils (cn)
 │       └── package.json
 │
 ├── packages/
-│   ├── api/              # tRPC backend routers (8 routers)
+│   ├── api/              # tRPC backend routers (16 routers)
 │   │   └── src/
 │   │       ├── routers/
 │   │       │   ├── budgetPool.ts
-│   │       │   ├── project.ts
-│   │       │   ├── user.ts
 │   │       │   ├── budgetProposal.ts
-│   │       │   ├── vendor.ts
-│   │       │   ├── quote.ts
-│   │       │   ├── purchaseOrder.ts
-│   │       │   ├── expense.ts
+│   │       │   ├── chargeOut.ts          # FEAT-005
+│   │       │   ├── currency.ts           # FEAT-001
 │   │       │   ├── dashboard.ts
-│   │       │   └── notification.ts   # Epic 8
+│   │       │   ├── expense.ts
+│   │       │   ├── expenseCategory.ts    # FEAT-007
+│   │       │   ├── health.ts             # Health Check API
+│   │       │   ├── notification.ts       # Epic 8
+│   │       │   ├── omExpense.ts          # FEAT-007 重構
+│   │       │   ├── operatingCompany.ts
+│   │       │   ├── project.ts
+│   │       │   ├── purchaseOrder.ts
+│   │       │   ├── quote.ts
+│   │       │   ├── user.ts
+│   │       │   └── vendor.ts
 │   │       └── lib/
 │   │           └── email.ts          # EmailService (Epic 8)
-│   ├── db/               # Prisma schema (10+ models)
+│   ├── db/               # Prisma schema (27 models)
 │   │   └── prisma/schema.prisma
 │   ├── auth/             # NextAuth.js + Azure AD B2C
 │   ├── eslint-config/    # Shared ESLint configuration
@@ -907,14 +920,14 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ## Project Metrics
 
-**Code Statistics** (as of 2025-12-05):
+**Code Statistics** (as of 2025-12-08):
 - Total Core Code: ~35,000+ lines
 - Indexed Files: 250+ important files
-- UI Components: 71 (35 design system + 36 business)
-- API Routers: 15 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, notification, omExpense, project, purchaseOrder, quote, seed, user, vendor, health)
-- Prisma Models: 25 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ChargeOut, ChargeOutItem, OMExpense, **OMExpenseItem**, OMExpenseMonthly, OperatingCompany, Currency, Comment, History, Notification)
-- Pages: 51 full-featured pages (16 route modules)
-- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements
+- UI Components: 75+ (35+ design system + 40 business)
+- API Routers: 16 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, notification, omExpense, operatingCompany, project, purchaseOrder, quote, user, vendor, health)
+- Prisma Models: 27 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ExpenseCategory, ChargeOut, ChargeOutItem, OMExpense, OMExpenseItem, OMExpenseMonthly, OperatingCompany, ProjectChargeOutOpCo, Currency, Comment, History, Notification)
+- Pages: 55+ full-featured pages (19 route modules)
+- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements + FEAT-007 + CHANGE-004
 
 **Development Timeline:**
 - Sprint 0-8: MVP Phase 1 (Epic 1-8) ✅
@@ -924,6 +937,6 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ---
 
-**Last Updated**: 2025-12-05
+**Last Updated**: 2025-12-08
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion

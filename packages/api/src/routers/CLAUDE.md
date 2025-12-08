@@ -6,22 +6,23 @@
 ## 🏗️ 檔案結構模式
 
 ```
-routers/
-├── budgetPool.ts          # 預算池管理
-├── budgetProposal.ts      # 預算提案與審批
-├── chargeOut.ts           # 費用轉嫁
-├── currency.ts            # 幣別管理 (FEAT-001)
-├── dashboard.ts           # 儀表板統計
-├── expense.ts             # 費用記錄
-├── health.ts              # 健康檢查
-├── notification.ts        # 通知系統
-├── omExpense.ts           # OM 費用
-├── operatingCompany.ts    # 營運公司
-├── project.ts             # 專案管理
-├── purchaseOrder.ts       # 採購單
-├── quote.ts               # 報價單
-├── user.ts                # 用戶管理
-└── vendor.ts              # 供應商管理
+routers/                         # 共 16 個 API Routers
+├── budgetPool.ts                # 預算池管理
+├── budgetProposal.ts            # 預算提案與審批
+├── chargeOut.ts                 # 費用轉嫁 (FEAT-005)
+├── currency.ts                  # 幣別管理 (FEAT-001)
+├── dashboard.ts                 # 儀表板統計
+├── expense.ts                   # 費用記錄
+├── expenseCategory.ts           # 費用類別管理 (FEAT-007)
+├── health.ts                    # 健康檢查 API
+├── notification.ts              # 通知系統
+├── omExpense.ts                 # OM 費用 (FEAT-007 重構：支援表頭-明細架構)
+├── operatingCompany.ts          # 營運公司
+├── project.ts                   # 專案管理
+├── purchaseOrder.ts             # 採購單
+├── quote.ts                     # 報價單
+├── user.ts                      # 用戶管理
+└── vendor.ts                    # 供應商管理
 ```
 
 ## 🎯 核心模式與約定

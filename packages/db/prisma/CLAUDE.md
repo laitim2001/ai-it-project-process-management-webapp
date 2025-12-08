@@ -14,7 +14,7 @@ prisma/
 
 ## 🎯 Schema 組織結構
 
-### 1. schema.prisma 分區（共 24 個 Models）
+### 1. schema.prisma 分區（共 27 個 Models）
 ```prisma
 // 1. 核心使用者與權限模型 (5 個)
 model User { ... }
@@ -35,16 +35,19 @@ model Quote { ... }
 model PurchaseOrder { ... }
 model PurchaseOrderItem { ... }
 
-// 4. 費用管理模型 (6 個)
+// 4. 費用管理模型 (9 個) - FEAT-007 重構後
 model Expense { ... }
 model ExpenseItem { ... }
+model ExpenseCategory { ... }      // 費用類別 (FEAT-007)
 model ChargeOut { ... }
 model ChargeOutItem { ... }
-model OMExpense { ... }
-model OMExpenseMonthly { ... }
+model OMExpense { ... }            // OM 費用表頭 (FEAT-007 重構)
+model OMExpenseItem { ... }        // OM 費用明細 (FEAT-007 新增)
+model OMExpenseMonthly { ... }     // OM 費用月份金額
 
 // 5. 系統與輔助模型 (5 個)
 model OperatingCompany { ... }
+model ProjectChargeOutOpCo { ... } // 專案-轉嫁-營運公司關聯
 model Currency { ... }             // 幣別管理 (FEAT-001)
 model Comment { ... }
 model History { ... }

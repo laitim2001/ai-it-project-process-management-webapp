@@ -330,7 +330,7 @@ class IndexSyncChecker {
   async detectMissingFiles() {
     console.log('\\n🔍 檢測可能遺漏的重要文件...');
 
-    const importantDirectories = ['docs', 'src', 'lib', 'components', 'apps', 'packages', 'scripts'];
+    const importantDirectories = ['docs', 'src', 'lib', 'components', 'apps', 'packages', 'scripts', 'azure', 'claudedocs'];
     const importantExtensions = ['.md', '.js', '.ts', '.tsx', '.prisma'];
 
     for (const dir of importantDirectories) {
@@ -370,8 +370,17 @@ class IndexSyncChecker {
       const stat = fs.statSync(filePath);
 
       if (stat.isDirectory()) {
-        // 避免掃描工具目錄
-        const avoidDirs = ['.bmad-core', '.bmad-infrastructure-devops', '.bmad-creative-writing', 'web-bundles', '.claude', '.cursor', '.git', 'node_modules'];
+        // 避免掃描工具目錄、範例文檔和測試目錄
+        const avoidDirs = [
+          '.bmad-core', '.bmad-infrastructure-devops', '.bmad-creative-writing',
+          'web-bundles', '.claude', '.cursor', '.git', 'node_modules',
+          'Sample-Docs', '.next', 'dist', 'build', '.turbo', 'coverage',
+          '7-archive', 'archive', // 歸檔目錄不需要索引
+          'e2e', '__tests__', 'tests', 'test', // 測試目錄
+          '.playwright', 'playwright-report', 'test-results', // Playwright 相關
+          'migrations', // 資料庫遷移目錄（由 Prisma 管理）
+          'generated' // 自動生成目錄
+        ];
         if (!avoidDirs.includes(file)) {
           await this.scanDirectoryForImportantFiles(
             filePath,
@@ -390,8 +399,10 @@ class IndexSyncChecker {
         }
 
         // 檢查是否為重要文件但未在索引中
-        if (this.isImportantFile(file, ext) &&
-            !this.isFileInIndex(relativeFilePath)) {
+        // 排除 claudedocs 細粒度文件（已在目錄結構中組織）
+        if (this.isImportantFile(file, ext, relativeFilePath) &&
+            !this.isFileInIndex(relativeFilePath) &&
+            !this.isClaudedocsGranularFile(relativeFilePath)) {
           const importance = this.getFileImportance(relativeFilePath);
           this.suggestions.push({
             type: 'add_to_index',
@@ -408,18 +419,46 @@ class IndexSyncChecker {
 
   /**
    * 判斷是否為重要文件
+   * @version 1.1.0 - 新增 claudedocs 細粒度文件排除邏輯
    */
-  isImportantFile(fileName, extension) {
+  isImportantFile(fileName, extension, relativePath = '') {
     const importantFiles = [
       'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
       'package.json', 'tsconfig.json', 'next.config.js', 'next.config.mjs',
       'schema.prisma', 'docker-compose.yml'
     ];
 
+    // 需要排除的測試和自動生成文件模式
+    const excludePatterns = [
+      /\.spec\.(js|ts|tsx)$/,    // E2E 測試文件
+      /\.test\.(js|ts|tsx)$/,    // 單元測試文件
+      /\.d\.ts$/,                // TypeScript 宣告文件
+      /\.map$/,                  // Source map 文件
+      /\.lock$/,                 // Lock 文件
+      /\.log$/,                  // Log 文件
+    ];
+
+    // 排除測試和自動生成文件
+    if (excludePatterns.some(pattern => pattern.test(fileName))) {
+      return false;
+    }
+
+    // 特殊處理：子目錄中的 CLAUDE.md 文件（已作為類別記錄，不需要單獨索引）
+    // 統一使用正斜線進行路徑檢查（跨平台兼容）
+    const normalizedRelPath = relativePath.replace(/\\/g, '/');
+    if (fileName === 'CLAUDE.md' && normalizedRelPath.includes('/')) {
+      return false;
+    }
+
+    // 排除組件目錄下的 barrel export 文件（index.ts）
+    // 這些文件只是重新導出，不包含實際邏輯
+    if (fileName === 'index.ts' &&
+        (normalizedRelPath.includes('/components/') || normalizedRelPath.includes('/messages/'))) {
+      return false;
+    }
+
     const importantPatterns = [
       /^.*\.config\.(js|ts|json|mjs)$/,
-      /^.*\.spec\.(js|ts)$/,
-      /^.*\.test\.(js|ts)$/,
       /^index\.(js|ts|tsx)$/,
       /^.*\.md$/,
       // Next.js 頁面文件模式
@@ -441,20 +480,76 @@ class IndexSyncChecker {
   }
 
   /**
+   * 判斷是否為 claudedocs 細粒度文件（已在目錄結構中組織，不需要單獨索引）
+   * @version 1.1.0 新增
+   */
+  isClaudedocsGranularFile(relativePath) {
+    const normalizedPath = relativePath.replace(/\\/g, '/');
+
+    // 需要排除的 claudedocs 細粒度文件模式
+    // 這些文件已在 claudedocs/README.md 或對應子目錄索引中組織
+    const granularPatterns = [
+      // 1-planning/architecture 架構文檔（已在總索引中分類記錄）
+      /claudedocs\/1-planning\/architecture\/.*\.md$/,
+      // FEAT-* 子文檔（01-requirements.md, 02-technical-design.md 等）
+      /claudedocs\/1-planning\/features\/FEAT-\d+.*\/.*\.md$/,
+      // AZURE-DEPLOY-PREP 所有子文檔
+      /claudedocs\/1-planning\/features\/AZURE-DEPLOY-PREP\/.*\.md$/,
+      // FIX-* 個別文件
+      /claudedocs\/4-changes\/bug-fixes\/.*\.md$/,
+      // I18N 個別文件
+      /claudedocs\/4-changes\/i18n\/.*\.md$/,
+      // CHANGE-* 個別文件
+      /claudedocs\/4-changes\/feature-changes\/.*\.md$/,
+      // 每日進度（已歸類為類別）
+      /claudedocs\/3-progress\/daily\/.*\.md$/,
+      // 週報（除了當前週）- 只保留最近 2 週
+      /claudedocs\/3-progress\/weekly\/2025-W4[0-7]\.md$/,
+      // Sprint 測試報告所有文件
+      /claudedocs\/2-sprints\/testing-validation\/.*\.md$/,
+      // AI 助手分析報告個別文件
+      /claudedocs\/6-ai-assistant\/analysis\/.*\.md$/,
+      // Handoff 文件
+      /claudedocs\/6-ai-assistant\/handoff\/.*\.md$/,
+      // claudedocs 根目錄的歷史記錄文件
+      /claudedocs\/AZURE-.*\.md$/,
+      /claudedocs\/DOCUMENTATION-.*\.md$/,
+      /claudedocs\/PROJECT-.*\.md$/,
+      /claudedocs\/WINDOWS-.*\.md$/,
+      // 5-status 測試記錄
+      /claudedocs\/5-status\/testing\/.*\.md$/,
+    ];
+
+    return granularPatterns.some(pattern => pattern.test(normalizedPath));
+  }
+
+  /**
    * 檢查文件是否已在索引中
    */
   isFileInIndex(filePath) {
     const indexFiles = ['AI-ASSISTANT-GUIDE.md', 'PROJECT-INDEX.md'];
 
     // 標準化路徑格式，統一使用正斜線
-    const normalizedPath = filePath.replace(/\\\\/g, '/');
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    // 同時準備反斜線版本（用於 Windows 路徑匹配）
+    const windowsPath = filePath.replace(/\//g, '\\');
+    // 提取文件名用於部分匹配
+    const fileName = path.basename(filePath);
 
     for (const indexFile of indexFiles) {
       const indexPath = path.join(this.projectRoot, indexFile);
       if (fs.existsSync(indexPath)) {
         const content = fs.readFileSync(indexPath, 'utf-8');
-        // 檢查標準化路徑或原始路徑
-        if (content.includes(normalizedPath) || content.includes(filePath)) {
+        // 檢查多種路徑格式
+        if (content.includes(normalizedPath) ||
+            content.includes(windowsPath) ||
+            content.includes(filePath)) {
+          return true;
+        }
+        // 對於某些重要文件，檢查文件名是否已經在索引中（用於表格格式）
+        // 例如: | **Brief** | `docs/brief.md` | 項目背景 |
+        if (content.includes(`\`${normalizedPath}\``) ||
+            content.includes(`\`${windowsPath}\``)) {
           return true;
         }
       }
@@ -534,7 +629,7 @@ class IndexSyncChecker {
   saveReportToFile() {
     const report = {
       timestamp: new Date().toISOString(),
-      checkerVersion: "1.0.0",
+      checkerVersion: "1.2.0", // 2025-12-08: 新增 claudedocs 細粒度文件排除邏輯
       systemInfo: {
         platform: process.platform,
         nodeVersion: process.version,

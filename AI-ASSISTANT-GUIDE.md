@@ -103,7 +103,34 @@
 **實際總時程**: 8.5 週
 **當前進度**: 🎉 **所有 8 個 Epic 全部完成，達成 100% MVP 目標！**
 
-### **📅 最近更新** (2025-11-24 20:30)
+### **📅 最近更新** (2025-12-08)
+
+#### **🎯 FEAT-007 + CHANGE-004 功能重構完成** ✅ (2025-12-08)
+- ✅ **FEAT-007: OM Expense 表頭-明細架構重構**
+  - 新增 OMExpenseItem 模型 (支援多明細項目)
+  - 新增 ExpenseCategory 模型 (費用類別管理)
+  - 新增 6 個 API procedures (createWithItems, addItem, updateItem, removeItem, reorderItems, updateItemMonthlyRecords)
+  - 新增 3 個前端組件 (OMExpenseItemForm, OMExpenseItemList, OMExpenseItemMonthlyGrid)
+  - 支援拖曳排序 (@dnd-kit 整合)
+
+- ✅ **CHANGE-004: OM Summary 表頭-明細階層顯示**
+  - OM Summary 頁面顯示表頭-明細架構
+  - 支援展開/收合明細項目
+  - 明細項目月份金額獨立顯示
+  - 合計行正確計算
+
+- ✅ **項目統計更新**
+  - API Routers: 16 個 (新增 expenseCategory)
+  - Prisma Models: 27 個 (新增 OMExpenseItem, ExpenseCategory, ProjectChargeOutOpCo)
+  - 頁面路由: 19 個模塊, 55+ 頁面
+  - 組件: 75+ 個 (35+ UI + 40 業務)
+
+**代碼統計**:
+- 新增/修改文件: 50+ 個
+- 新增組件: 8 個
+- 新增 API procedures: 8 個
+
+---
 
 #### **🚀 Azure 部署架構重組完成** ✅ (2025-11-24)
 - ✅ **完整部署目錄結構** (~43 個文件)
@@ -1406,4 +1433,4 @@ git push origin feature-branch  # 推送到遠程
 
 **🎯 記住：良好的導航系統是團隊效率的倍增器！**
 
-**最後更新**: 2025-11-24 20:30
+**最後更新**: 2025-12-08

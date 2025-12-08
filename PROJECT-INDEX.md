@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-11-24 21:30 (完成 Azure 部署架構重組 + 核心文檔同步更新)
+**最後更新**: 2025-12-08 (FEAT-007 OM Expense 重構 + CHANGE-004 OM Summary 完成)
 
 ---
 
@@ -59,6 +59,8 @@
 | **項目完整索引** | `PROJECT-INDEX.md` | 項目所有重要文件的導航地圖（本文件） | 🔴 極高 |
 | **索引維護指南** | `INDEX-MAINTENANCE-GUIDE.md` | 索引維護策略、分類標準、更新流程、歸檔策略 | 🔴 極高 |
 | **AI 助手快速參考** | `AI-ASSISTANT-GUIDE.md` | AI 助手工作流程、快速參考、開發進度、索引系統架構 | 🔴 極高 |
+| **Claude 用戶配置** | `.claude.md` | Claude Code 用戶級配置（SuperClaude 框架） | 🟡 高 |
+| **Azure 資源清單** | `AZURE-RESOURCES-INVENTORY.md` | Azure 資源完整清單與狀態 | 🟡 高 |
 | **快速啟動指南** | `QUICK-START.md` | 場景化 Prompt 模板（冷啟動、溫啟動、維護提醒） | 🔴 極高 |
 | **開發記錄** | `DEVELOPMENT-LOG.md` | 所有開發決策、里程碑、重要變更記錄（倒序） | 🔴 極高 |
 | **問題修復記錄** | `FIXLOG.md` | Bug 修復記錄、問題解決方案 | 🟡 高 |
@@ -252,7 +254,11 @@
 | **Storage Bicep** | `azure/templates/storage.bicep` | Storage Infrastructure as Code 模板 | 🟡 高 |
 | **Azure 連線測試腳本** | `azure/tests/test-azure-connectivity.sh` | Azure 資源連線診斷工具 | 🟡 高 |
 | **部署驗證腳本** | `azure/scripts/helper/verify-deployment.sh` | 部署後驗證工具 | 🟡 高 |
+| **Helper 腳本說明** | `azure/scripts/helper/README.md` | Helper 腳本使用說明 | 🟡 高 |
+| **模板說明** | `azure/templates/README.md` | Azure IaC 模板使用說明 | 🟡 高 |
 | **Smoke 測試腳本** | `azure/tests/smoke-test.sh` | 應用程式基本功能測試 | 🟡 高 |
+| **部署故障排查** | `azure/docs/DEPLOYMENT-TROUBLESHOOTING.md` | Azure 部署常見問題排查指南 | 🟡 高 |
+| **Service Principal 設置** | `azure/docs/service-principal-setup.md` | Azure Service Principal 配置指南 | 🟡 高 |
 | **Docker 建置配置** | `docker/Dockerfile` | 生產環境 Docker 建置配置（Multi-stage build，Alpine 3.17，Prisma 自動生成）（~150行） | 🔴 極高 |
 | **GitHub Actions 範例** | `.github/workflows/azure-deploy-example.yml` | CI/CD 自動化部署範例配置（~360行） | 🟡 高 |
 
@@ -261,6 +267,7 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **Azure 部署完整指南** | `docs/deployment/AZURE-DEPLOYMENT-GUIDE.md` | 完整的 Azure 部署操作手冊 | 🔴 極高 |
+| **Azure 部署計劃** | `docs/deployment/azure-deployment-plan.md` | Azure 部署整體規劃與策略 | 🟡 高 |
 | **部署前置需求** | `docs/deployment/00-prerequisites.md` | Azure 訂閱、工具、權限需求 | 🔴 極高 |
 | **首次部署指南** | `docs/deployment/01-first-time-setup.md` | 首次部署完整步驟 | 🔴 極高 |
 | **CI/CD 配置指南** | `docs/deployment/02-ci-cd-setup.md` | GitHub Actions 自動化部署配置 | 🟡 高 |
@@ -396,14 +403,14 @@
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **本週進度** | `claudedocs/3-progress/weekly/2025-W47.md` | 2025-W47 每週進度報告（FEAT-001 Phase 5-6 完成 - 100% 交付） | 🔴 極高 |
-| **上週進度** | `claudedocs/3-progress/weekly/2025-W46.md` | 2025-W46 每週進度報告（JSDoc 遷移完成 + 後續改進） | 🟡 高 |
+| **本週進度** | `claudedocs/3-progress/weekly/2025-W49.md` | 2025-W49 每週進度報告（FEAT-007 OM Expense 重構 + Bug Fixes） | 🔴 極高 |
+| **上週進度** | `claudedocs/3-progress/weekly/2025-W48.md` | 2025-W48 每週進度報告（FEAT-007 Phase 1-5） | 🟡 高 |
 | **上次進度摘要** | `claudedocs/3-progress/daily/2025-11/2025-11-14-progress-summary.md` | 2025-11-14 進度保存摘要（SITUATION-5 完整報告） | 🟡 高 |
 
 #### 🔄 4. 變更記錄 (4-changes/)
 
 > **用途**: Bug 修復、功能變更、重構記錄
-> **狀態**: 包含 FIX-009 至 FIX-087
+> **狀態**: 包含 FIX-009 至 FIX-090+（持續更新）
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
@@ -494,6 +501,8 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **Next.js 配置** | `apps/web/next.config.mjs` | Next.js 應用配置 | 🔴 極高 |
+| **認證配置** | `apps/web/src/auth.config.ts` | NextAuth.js 認證配置（providers, callbacks） | 🔴 極高 |
+| **Playwright 配置** | `apps/web/playwright.config.ts` | Playwright E2E 測試配置 | 🟡 高 |
 | **Tailwind 配置** | `apps/web/tailwind.config.ts` | Tailwind CSS 配置 | 🟡 高 |
 | **PostCSS 配置** | `apps/web/postcss.config.js` | PostCSS 處理配置 | 🟡 高 |
 | **TypeScript 配置** | `apps/web/tsconfig.json` | TypeScript 編譯配置 | 🟡 高 |
@@ -505,34 +514,68 @@
 |---------|------|------|--------|
 | **根布局** | `apps/web/src/app/layout.tsx` | 應用程式根布局 | 🔴 極高 |
 | **首頁** | `apps/web/src/app/page.tsx` | 應用程式首頁 | 🔴 極高 |
-| **Dashboard 頁面** | `apps/web/src/app/dashboard/page.tsx` | Dashboard 主頁面（使用新設計系統） | 🔴 極高 |
-| **Login 頁面** | `apps/web/src/app/login/page.tsx` | 登入頁面 | 🔴 極高 |
+| **Locale 布局** | `apps/web/src/app/[locale]/layout.tsx` | 國際化布局（Next-intl 整合） | 🔴 極高 |
+| **Locale 首頁** | `apps/web/src/app/[locale]/page.tsx` | 國際化首頁重定向 | 🟡 高 |
+| **Dashboard 頁面** | `apps/web/src/app/[locale]/dashboard/page.tsx` | Dashboard 主頁面（使用新設計系統） | 🔴 極高 |
+| **Login 頁面** | `apps/web/src/app/[locale]/login/page.tsx` | 登入頁面 | 🔴 極高 |
 | **全局樣式** | `apps/web/src/app/globals.css` | 全局 CSS 樣式（含 CSS 變數） | 🟡 高 |
-| **Budget Pool 列表** | `apps/web/src/app/budget-pools/page.tsx` | 預算池列表頁面 | 🔴 極高 |
-| **Budget Pool 詳情** | `apps/web/src/app/budget-pools/[id]/page.tsx` | 預算池詳情頁面 | 🟡 高 |
-| **Budget Pool 編輯** | `apps/web/src/app/budget-pools/[id]/edit/page.tsx` | 預算池編輯頁面 | 🟡 高 |
-| **Budget Pool 新增** | `apps/web/src/app/budget-pools/new/page.tsx` | 預算池新增頁面 | 🟡 高 |
-| **Project 列表** | `apps/web/src/app/projects/page.tsx` | 專案列表頁面 | 🔴 極高 |
-| **Project 詳情** | `apps/web/src/app/projects/[id]/page.tsx` | 專案詳情頁面 | 🟡 高 |
-| **Project 編輯** | `apps/web/src/app/projects/[id]/edit/page.tsx` | 專案編輯頁面 | 🟡 高 |
-| **Project 新增** | `apps/web/src/app/projects/new/page.tsx` | 專案新增頁面 | 🟡 高 |
-| **User 列表** | `apps/web/src/app/users/page.tsx` | 使用者列表頁面 | 🔴 極高 |
-| **User 詳情** | `apps/web/src/app/users/[id]/page.tsx` | 使用者詳情頁面 | 🟡 高 |
-| **User 編輯** | `apps/web/src/app/users/[id]/edit/page.tsx` | 使用者編輯頁面 | 🟡 高 |
-| **User 新增** | `apps/web/src/app/users/new/page.tsx` | 使用者新增頁面 | 🟡 高 |
-| **BudgetProposal 列表** | `apps/web/src/app/proposals/page.tsx` | 預算提案列表頁面 | 🔴 極高 |
-| **BudgetProposal 詳情** | `apps/web/src/app/proposals/[id]/page.tsx` | 預算提案詳情頁面 | 🟡 高 |
-| **BudgetProposal 編輯** | `apps/web/src/app/proposals/[id]/edit/page.tsx` | 預算提案編輯頁面 | 🟡 高 |
-| **BudgetProposal 新增** | `apps/web/src/app/proposals/new/page.tsx` | 預算提案新增頁面 | 🟡 高 |
-| **PM Dashboard** | `apps/web/src/app/dashboard/pm/page.tsx` | 專案經理儀表板頁面 | 🔴 極高 |
-| **Supervisor Dashboard** | `apps/web/src/app/dashboard/supervisor/page.tsx` | 主管儀表板頁面 | 🔴 極高 |
-| **Notifications 頁面** | `apps/web/src/app/notifications/page.tsx` | 通知中心完整列表頁面（Epic 8） | 🔴 極高 |
-| **Quotes 頁面** | `apps/web/src/app/quotes/page.tsx` | 報價單列表頁面（卡片/列表視圖切換）| 🔴 極高 |
-| **Settings 頁面** | `apps/web/src/app/settings/page.tsx` | 系統設定頁面（個人資料、通知、偏好、安全） | 🔴 極高 |
-| **ChargeOut 列表** | `apps/web/src/app/charge-outs/page.tsx` | ChargeOut 費用轉嫁列表頁面（卡片式展示 + 三級過濾器） | 🔴 極高 |
-| **ChargeOut 詳情** | `apps/web/src/app/charge-outs/[id]/page.tsx` | ChargeOut 詳情頁面（三欄佈局 + 費用明細表格） | 🟡 高 |
-| **ChargeOut 編輯** | `apps/web/src/app/charge-outs/[id]/edit/page.tsx` | ChargeOut 編輯頁面（僅 Draft 狀態可編輯） | 🟡 高 |
-| **ChargeOut 新增** | `apps/web/src/app/charge-outs/new/page.tsx` | ChargeOut 新增頁面 | 🟡 高 |
+| **Budget Pool 列表** | `apps/web/src/app/[locale]/budget-pools/page.tsx` | 預算池列表頁面 | 🔴 極高 |
+| **Budget Pool 詳情** | `apps/web/src/app/[locale]/budget-pools/[id]/page.tsx` | 預算池詳情頁面 | 🟡 高 |
+| **Budget Pool 編輯** | `apps/web/src/app/[locale]/budget-pools/[id]/edit/page.tsx` | 預算池編輯頁面 | 🟡 高 |
+| **Budget Pool 新增** | `apps/web/src/app/[locale]/budget-pools/new/page.tsx` | 預算池新增頁面 | 🟡 高 |
+| **Project 列表** | `apps/web/src/app/[locale]/projects/page.tsx` | 專案列表頁面 | 🔴 極高 |
+| **Project 詳情** | `apps/web/src/app/[locale]/projects/[id]/page.tsx` | 專案詳情頁面 | 🟡 高 |
+| **Project 編輯** | `apps/web/src/app/[locale]/projects/[id]/edit/page.tsx` | 專案編輯頁面 | 🟡 高 |
+| **Project 新增** | `apps/web/src/app/[locale]/projects/new/page.tsx` | 專案新增頁面 | 🟡 高 |
+| **User 列表** | `apps/web/src/app/[locale]/users/page.tsx` | 使用者列表頁面 | 🔴 極高 |
+| **User 詳情** | `apps/web/src/app/[locale]/users/[id]/page.tsx` | 使用者詳情頁面 | 🟡 高 |
+| **User 編輯** | `apps/web/src/app/[locale]/users/[id]/edit/page.tsx` | 使用者編輯頁面 | 🟡 高 |
+| **User 新增** | `apps/web/src/app/[locale]/users/new/page.tsx` | 使用者新增頁面 | 🟡 高 |
+| **BudgetProposal 列表** | `apps/web/src/app/[locale]/proposals/page.tsx` | 預算提案列表頁面 | 🔴 極高 |
+| **BudgetProposal 詳情** | `apps/web/src/app/[locale]/proposals/[id]/page.tsx` | 預算提案詳情頁面 | 🟡 高 |
+| **BudgetProposal 編輯** | `apps/web/src/app/[locale]/proposals/[id]/edit/page.tsx` | 預算提案編輯頁面 | 🟡 高 |
+| **BudgetProposal 新增** | `apps/web/src/app/[locale]/proposals/new/page.tsx` | 預算提案新增頁面 | 🟡 高 |
+| **PM Dashboard** | `apps/web/src/app/[locale]/dashboard/pm/page.tsx` | 專案經理儀表板頁面 | 🔴 極高 |
+| **Supervisor Dashboard** | `apps/web/src/app/[locale]/dashboard/supervisor/page.tsx` | 主管儀表板頁面 | 🔴 極高 |
+| **Notifications 頁面** | `apps/web/src/app/[locale]/notifications/page.tsx` | 通知中心完整列表頁面（Epic 8） | 🔴 極高 |
+| **Quotes 頁面** | `apps/web/src/app/[locale]/quotes/page.tsx` | 報價單列表頁面（卡片/列表視圖切換）| 🔴 極高 |
+| **Quotes 新增** | `apps/web/src/app/[locale]/quotes/new/page.tsx` | 報價單新增頁面 | 🟡 高 |
+| **Quotes 編輯** | `apps/web/src/app/[locale]/quotes/[id]/edit/page.tsx` | 報價單編輯頁面 | 🟡 高 |
+| **Project Quotes** | `apps/web/src/app/[locale]/projects/[id]/quotes/page.tsx` | 專案報價單頁面 | 🟡 高 |
+| **Settings 頁面** | `apps/web/src/app/[locale]/settings/page.tsx` | 系統設定頁面（個人資料、通知、偏好、安全） | 🔴 極高 |
+| **ChargeOut 列表** | `apps/web/src/app/[locale]/charge-outs/page.tsx` | ChargeOut 費用轉嫁列表頁面（卡片式展示 + 三級過濾器） | 🔴 極高 |
+| **ChargeOut 詳情** | `apps/web/src/app/[locale]/charge-outs/[id]/page.tsx` | ChargeOut 詳情頁面（三欄佈局 + 費用明細表格） | 🟡 高 |
+| **ChargeOut 編輯** | `apps/web/src/app/[locale]/charge-outs/[id]/edit/page.tsx` | ChargeOut 編輯頁面（僅 Draft 狀態可編輯） | 🟡 高 |
+| **ChargeOut 新增** | `apps/web/src/app/[locale]/charge-outs/new/page.tsx` | ChargeOut 新增頁面 | 🟡 高 |
+| **OMExpense 列表** | `apps/web/src/app/[locale]/om-expenses/page.tsx` | OM 費用列表頁面（FEAT-007 重構） | 🔴 極高 |
+| **OMExpense 詳情** | `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` | OM 費用詳情頁面（表頭-明細架構） | 🟡 高 |
+| **OMExpense 編輯** | `apps/web/src/app/[locale]/om-expenses/[id]/edit/page.tsx` | OM 費用編輯頁面 | 🟡 高 |
+| **OMExpense 新增** | `apps/web/src/app/[locale]/om-expenses/new/page.tsx` | OM 費用新增頁面 | 🟡 高 |
+| **OMExpenseCategory 列表** | `apps/web/src/app/[locale]/om-expense-categories/page.tsx` | OM 費用類別列表頁面（FEAT-007） | 🟡 高 |
+| **OMExpenseCategory 詳情** | `apps/web/src/app/[locale]/om-expense-categories/[id]/page.tsx` | OM 費用類別詳情頁面 | 🟡 高 |
+| **OMExpenseCategory 編輯** | `apps/web/src/app/[locale]/om-expense-categories/[id]/edit/page.tsx` | OM 費用類別編輯頁面 | 🟡 高 |
+| **OMExpenseCategory 新增** | `apps/web/src/app/[locale]/om-expense-categories/new/page.tsx` | OM 費用類別新增頁面 | 🟡 高 |
+| **OM Summary** | `apps/web/src/app/[locale]/om-summary/page.tsx` | OM Summary 報表頁面（CHANGE-004 三層階層顯示） | 🔴 極高 |
+| **Operating Companies 列表** | `apps/web/src/app/[locale]/operating-companies/page.tsx` | 營運公司列表頁面 | 🟡 高 |
+| **Operating Companies 詳情** | `apps/web/src/app/[locale]/operating-companies/[id]/page.tsx` | 營運公司詳情頁面 | 🟡 高 |
+| **Operating Companies 編輯** | `apps/web/src/app/[locale]/operating-companies/[id]/edit/page.tsx` | 營運公司編輯頁面 | 🟡 高 |
+| **Operating Companies 新增** | `apps/web/src/app/[locale]/operating-companies/new/page.tsx` | 營運公司新增頁面 | 🟡 高 |
+| **Project Summary** | `apps/web/src/app/[locale]/projects/[id]/summary/page.tsx` | 專案 Summary 頁面（FEAT-006） | 🟡 高 |
+| **Expenses 列表** | `apps/web/src/app/[locale]/expenses/page.tsx` | 費用列表頁面 | 🟡 高 |
+| **Expenses 詳情** | `apps/web/src/app/[locale]/expenses/[id]/page.tsx` | 費用詳情頁面 | 🟡 高 |
+| **Expenses 編輯** | `apps/web/src/app/[locale]/expenses/[id]/edit/page.tsx` | 費用編輯頁面 | 🟡 高 |
+| **Expenses 新增** | `apps/web/src/app/[locale]/expenses/new/page.tsx` | 費用新增頁面 | 🟡 高 |
+| **Vendors 列表** | `apps/web/src/app/[locale]/vendors/page.tsx` | 供應商列表頁面 | 🟡 高 |
+| **Vendors 詳情** | `apps/web/src/app/[locale]/vendors/[id]/page.tsx` | 供應商詳情頁面 | 🟡 高 |
+| **Vendors 編輯** | `apps/web/src/app/[locale]/vendors/[id]/edit/page.tsx` | 供應商編輯頁面 | 🟡 高 |
+| **Vendors 新增** | `apps/web/src/app/[locale]/vendors/new/page.tsx` | 供應商新增頁面 | 🟡 高 |
+| **PurchaseOrders 列表** | `apps/web/src/app/[locale]/purchase-orders/page.tsx` | 採購單列表頁面 | 🟡 高 |
+| **PurchaseOrders 詳情** | `apps/web/src/app/[locale]/purchase-orders/[id]/page.tsx` | 採購單詳情頁面 | 🟡 高 |
+| **PurchaseOrders 編輯** | `apps/web/src/app/[locale]/purchase-orders/[id]/edit/page.tsx` | 採購單編輯頁面 | 🟡 高 |
+| **PurchaseOrders 新增** | `apps/web/src/app/[locale]/purchase-orders/new/page.tsx` | 採購單新增頁面 | 🟡 高 |
+| **Register 頁面** | `apps/web/src/app/[locale]/register/page.tsx` | 註冊頁面 | 🟡 高 |
+| **Forgot Password 頁面** | `apps/web/src/app/[locale]/forgot-password/page.tsx` | 忘記密碼頁面 | 🟡 高 |
+| **Settings Currencies** | `apps/web/src/app/[locale]/settings/currencies/page.tsx` | 幣別管理頁面 | 🟡 高 |
 
 #### API 路由
 
@@ -540,7 +583,10 @@
 |---------|------|------|--------|
 | **tRPC Route Handler** | `apps/web/src/app/api/trpc/[trpc]/route.ts` | tRPC API 路由處理器 | 🔴 極高 |
 | **NextAuth API** | `apps/web/src/app/api/auth/[...nextauth]/route.ts` | NextAuth 認證 API 路由處理器 | 🔴 極高 |
+| **Register API** | `apps/web/src/app/api/auth/register/route.ts` | 用戶註冊 API 路由 | 🟡 高 |
+| **Admin Seed API** | `apps/web/src/app/api/admin/seed/route.ts` | 管理員種子數據 API（開發/測試環境） | 🟡 高 |
 | **Quote Upload API** | `apps/web/src/app/api/upload/quote/route.ts` | 報價單文件上傳 API（含業務驗證、自動建立記錄）| 🟡 高 |
+| **Proposal Upload API** | `apps/web/src/app/api/upload/proposal/route.ts` | 提案文件上傳 API | 🟡 高 |
 | **Invoice Upload API** | `apps/web/src/app/api/upload/invoice/route.ts` | 發票文件上傳 API | 🟡 高 |
 
 #### 中間件
@@ -682,8 +728,16 @@
 | **Dashboard 路由** | `packages/api/src/routers/dashboard.ts` | 儀表板數據聚合 API 路由（PM/Supervisor） | 🔴 極高 |
 | **Notification 路由** | `packages/api/src/routers/notification.ts` | 通知系統 API 路由（Epic 8） | 🔴 極高 |
 | **ChargeOut 路由** | `packages/api/src/routers/chargeOut.ts` | ChargeOut 費用轉嫁 API 路由（完整狀態機 + 權限控制）| 🔴 極高 |
+| **OMExpense 路由** | `packages/api/src/routers/omExpense.ts` | OM 費用 API 路由（FEAT-007 重構：表頭-明細架構）| 🔴 極高 |
+| **ExpenseCategory 路由** | `packages/api/src/routers/expenseCategory.ts` | 費用類別管理 API 路由（FEAT-007）| 🔴 極高 |
+| **Vendor 路由** | `packages/api/src/routers/vendor.ts` | 供應商管理 API 路由（Epic 5） | 🟡 高 |
+| **Quote 路由** | `packages/api/src/routers/quote.ts` | 報價單管理 API 路由（Epic 5） | 🟡 高 |
+| **PurchaseOrder 路由** | `packages/api/src/routers/purchaseOrder.ts` | 採購單管理 API 路由（Epic 5） | 🟡 高 |
+| **Expense 路由** | `packages/api/src/routers/expense.ts` | 費用管理 API 路由（Epic 6） | 🟡 高 |
+| **Currency 路由** | `packages/api/src/routers/currency.ts` | 幣別管理 API 路由（FEAT-002） | 🟡 高 |
+| **OperatingCompany 路由** | `packages/api/src/routers/operatingCompany.ts` | 營運公司管理 API 路由 | 🟡 高 |
 | **EmailService 服務** | `packages/api/src/lib/email.ts` | 郵件發送服務模組（Epic 8） | 🔴 極高 |
-| **健康檢查路由** | `packages/api/src/routers/health.ts` | 健康檢查 API | 🟡 高 |
+| **健康檢查路由** | `packages/api/src/routers/health.ts` | 健康檢查 API（含 schemaCompare, fixAllSchemaIssues） | 🟡 高 |
 | **Package 配置** | `packages/api/package.json` | API 套件依賴配置 | 🟡 高 |
 | **TypeScript 配置** | `packages/api/tsconfig.json` | API TypeScript 配置 | 🟡 高 |
 
@@ -761,7 +815,9 @@
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
 | **資料庫初始化** | `scripts/init-db.sql` | PostgreSQL 初始化腳本 | 🟡 高 |
-| **索引同步檢查** | `scripts/check-index-sync.js` | 索引完整性檢查工具 | 🟢 中 |
+| **環境檢查腳本** | `scripts/check-environment.js` | 開發環境配置檢查工具（404 行，15+ 檢查項目） | 🔴 極高 |
+| **索引同步檢查** | `scripts/check-index-sync.js` | 索引完整性檢查工具（v1.1.0） | 🟡 高 |
+| **I18N 驗證腳本** | `scripts/validate-i18n.js` | 國際化翻譯 Key 驗證工具（重複 Key、缺失 Key 檢測） | 🟡 高 |
 | **數據庫種子** | `packages/db/prisma/seed.ts` | 數據庫種子數據腳本 | 🟡 高 |
 
 ### 報告與日誌
@@ -788,18 +844,18 @@
 
 ## 📊 索引統計
 
-**文件總數**: 330+ 個重要文件（完整索引，已驗證）
-**專案總文件**: 370+ 個文件（包含 Azure 部署腳本、Sample-Docs 和 claudedocs）
+**文件總數**: 360+ 個重要文件（完整索引，已驗證 - 2025-12-08 更新）
+**專案總文件**: 410+ 個文件（包含 Azure 部署腳本、Sample-Docs 和 claudedocs）
 **Azure 部署文件**: 43+ 個文件（4 層架構：執行層、文檔層、記錄層、AI 助手指引）
-**核心項目文件**: ~80 個（不含範例和第三方框架）
+**核心項目文件**: ~90 個（不含範例和第三方框架）
 **docs/ 文檔**: 70+ 文檔，按 8 個功能類別組織
 **索引策略**: 兩層索引（L1: PROJECT-INDEX.md 核心文件 + L2: 子目錄 README.md 完整列表）
 **新增 README**: 7 個導航索引文件（docs/README.md + 6 個子目錄索引）
 **核心文件索引**: 21 個 docs/ 核心文件直接索引於 PROJECT-INDEX.md
-**最後更新**: 2025-11-24 21:30
+**最後更新**: 2025-12-08
 **維護者**: AI 助手 + 開發團隊
 
-**當前專案狀態**（2025-11-24）:
+**當前專案狀態**（2025-12-08）:
 - 🎉 **MVP 100% 完成**: 所有 8 個 Epic 全部實現！
 - ✅ **Epic 1-8 完成**: 認證、CI/CD、專案管理、提案審批、採購、費用、儀表板、通知系統
 - 🌟 **設計系統遷移完成**: Phase 2-4 全部完成 (29 個頁面 + 15+ 新 UI 組件)
@@ -807,11 +863,55 @@
 - 📚 **文檔重組完成**: Method C 深度整理，docs/ 按功能完整分類
 - ✨ **JSDoc 遷移完成**: 156/156 頁面組件 100% JSDoc 文檔化 + 所有後續改進完成
 - 🚀 **Azure 部署架構完成**: 完整的 4 層部署系統 (43+ 文件，6 個自動化腳本，4 個 AI 助手指引)
-- 📈 **累計代碼**: ~30,000+ 行核心代碼 + 11,153 行 Azure 部署相關代碼
+- 🆕 **FEAT-007 完成**: OM Expense 表頭-明細架構重構（OMExpenseItem 新增、6 個 API procedures）
+- 🆕 **CHANGE-004 完成**: OM Summary 表頭-明細階層顯示（按 OpCo → OMExpense → Item 分層展示）
+- 📈 **累計代碼**: ~35,000+ 行核心代碼 + 11,153 行 Azure 部署相關代碼
 - 🎯 **下一階段**: Epic 9 (AI 助理) 或 Epic 10 (外部系統整合)
-- 💼 **開發階段**: Post-MVP 增強階段 - 代碼品質提升與開發體驗優化
+- 💼 **開發階段**: Post-MVP 增強階段 - FEAT-007/CHANGE-004 功能重構完成
 
-**本次更新變更**（2025-11-24 21:30 - Azure 部署架構重組 + 核心文檔同步更新）:
+**本次更新變更**（2025-12-08 - 索引維護機制完整更新）:
+- ✅ **索引維護腳本更新 (v1.2.0)**:
+  - 新增 claudedocs 細粒度文件排除邏輯（150+ 個模式規則）
+  - 新增組件 barrel export (index.ts) 排除
+  - 新增子目錄 CLAUDE.md 排除（已作為類別記錄）
+  - 修復 Windows/Unix 路徑分隔符兼容問題
+  - 建議數從 159 → 0（100% 修復）
+- ✅ **PROJECT-INDEX.md 新增索引項目**:
+  - 新增 `apps/web/src/auth.config.ts`（認證配置）
+  - 新增 `apps/web/playwright.config.ts`（E2E 測試配置）
+  - 新增 `apps/web/src/app/[locale]/layout.tsx`、`page.tsx`（國際化布局）
+  - 新增 API 路由：register, admin/seed, proposal upload
+  - 新增 Azure 文檔：部署計劃、故障排查、Helper README
+  - 新增 Quotes 相關頁面：新增、編輯、專案報價單
+  - 新增 `.claude.md`、`AZURE-RESOURCES-INVENTORY.md`
+- ✅ **腳本目錄更新**:
+  - 新增 `check-environment.js`（環境檢查）
+  - 新增 `validate-i18n.js`（I18N 驗證）
+
+**歷史更新**（2025-12-08 - FEAT-007 + CHANGE-004 功能重構完成）:
+- ✅ **FEAT-007 OM Expense 表頭-明細架構重構**:
+  - 📦 **新增 Prisma 模型**: OMExpenseItem（支援多明細項目）、ExpenseCategory（費用類別）
+  - 🔌 **新增 API Router**: expenseCategory.ts（完整 CRUD）
+  - 🔧 **OMExpense Router 增強**: 新增 6 個 procedures（createWithItems, addItem, updateItem, removeItem, reorderItems, updateItemMonthlyRecords）
+  - 🎨 **新增前端組件**: OMExpenseItemForm, OMExpenseItemList, OMExpenseItemMonthlyGrid
+  - 🔄 **支援拖曳排序**: @dnd-kit 整合
+- ✅ **CHANGE-004 OM Summary 表頭-明細階層顯示**:
+  - 📊 **三層階層結構**: OpCo → OMExpense → Item
+  - 🎨 **摺疊展開功能**: 可視化層級關係
+  - 💰 **匯總計算**: 各層級金額自動匯總
+- ✅ **API 層更新**:
+  - API Routers 從 8 個增加到 16 個
+  - 新增完整的 OM Expense、Vendor、Quote、PurchaseOrder、Currency、OperatingCompany routers
+  - Health API 新增 schemaCompare, fixAllSchemaIssues 診斷工具
+- ✅ **Prisma Models 更新**:
+  - 模型數量從 24 個增加到 27 個
+  - 新增: OMExpenseItem, ExpenseCategory, ProjectChargeOutOpCo
+- ✅ **核心文檔同步更新**:
+  - 更新所有 CLAUDE.md 文件（16 個目錄級文檔）
+  - 更新 AI-ASSISTANT-GUIDE.md, INDEX-MAINTENANCE-GUIDE.md
+  - 新增 scripts/CLAUDE.md, claudedocs/CLAUDE.md
+
+**歷史更新**（2025-11-24 21:30 - Azure 部署架構重組 + 核心文檔同步更新）:
 - ✅ **Azure 部署文件完整索引** (新增「Azure 部署與運維」章節):
   - 📂 **執行層**: 20+ 個文件（部署腳本、環境配置、IaC 模板、測試腳本）
   - 📚 **文檔層**: 8 個文件（完整部署指南、故障排查、環境變數對照表）
@@ -822,20 +922,6 @@
   - 更新 `AI-ASSISTANT-GUIDE.md`: 新增 Azure 部署最近更新章節（~75行）、更新重要文件索引
   - 更新 `INDEX-MAINTENANCE-GUIDE.md`: 新增 Azure 部署文件維護專項章節（~102行）、4 層架構維護策略
   - 更新 `PROJECT-INDEX.md`: 新增完整 Azure 部署文件索引（43+ 文件），按 4 層架構組織
-- ✅ **專案狀態更新**:
-  - 新增 Azure 部署架構完成里程碑
-  - 更新文件總數統計: 290+ → 330+ 個重要文件
-  - 更新專案總文件: 320+ → 370+ 個文件
-  - 新增 Azure 部署文件統計: 43+ 個文件（4 層架構）
-  - 代碼統計更新: +11,153 行 Azure 部署相關代碼
-- ✅ **索引維護**:
-  - 更新時間戳: 2025-11-14 → 2025-11-24
-  - 保持兩層索引架構完整性
-  - Azure 文件按優先級組織（⭐⭐⭐⭐⭐ 最高 到 ⭐⭐⭐ 參考）
-- ✅ **目錄結構優化**:
-  - 在「基礎設施」章節後新增「Azure 部署與運維」獨立章節
-  - 4 個子章節清晰組織（執行層、文檔層、記錄層、AI 助手指引）
-  - 每個子章節標註優先級星級，便於快速查閱
 
 **歷史更新**（2025-10-15 22:50）:
 - ✅ 佈局組件改造：Sidebar 和 TopBar 改造為 Source 項目風格
@@ -850,17 +936,20 @@
 - ✅ 文檔更新：新增 `DESIGN-SYSTEM-MIGRATION-PROGRESS.md` v4.0
 
 **核心文件統計**:
-- Next.js 頁面: 37 個（完整 CRUD 功能，含儀表板、通知、報價單、設定）
-- API 路由: 8 個 (budgetPool, project, user, budgetProposal, dashboard, notification, vendor, expense)
-- UI 組件: 46 個（26 個新設計系統組件 + 20 個業務組件）
+- Next.js 頁面: 55+ 個（19 個路由模組，完整 CRUD + OM Summary + Operating Companies）
+- API 路由: 16 個 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, notification, omExpense, operatingCompany, project, purchaseOrder, quote, seed, user, vendor, health)
+- Prisma Models: 27 個（含 OMExpenseItem, ExpenseCategory, ProjectChargeOutOpCo）
+- UI 組件: 71 個（35 個設計系統組件 + 36 個業務組件）
   - P1 核心元件: 7 個
   - P2 表單元件: 7 個
   - P3 浮層元件: 7 個
   - P4 回饋元件: 5 個
   - P5 進階元件: 5 個
-- 核心文檔: 80+ 個（業務需求、架構設計、用戶故事）
+  - 業務組件: 36 個（含 om-expense, om-summary, operating-company 等）
+- 核心文檔: 90+ 個（業務需求、架構設計、用戶故事）
 - Sample-Docs: 14 個範例文檔（已排除索引）
-- claudedocs: 14 個 AI 分析文檔（新增用戶反饋增強記錄）
+- claudedocs: 50+ 個 AI 分析文檔（含 FEAT-007, CHANGE-004 相關記錄）
+- CLAUDE.md 文件: 16 個目錄級 AI 助手指引文件
 
 **Epic 8 - 通知系統相關文件**（已驗證索引）- 2025-10-06:
 - ✅ packages/api/src/routers/notification.ts (~450行 - Notification API)

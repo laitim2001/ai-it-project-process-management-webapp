@@ -15,9 +15,10 @@
 - **新增Next.js頁面文件** (app/**/page.tsx, layout.tsx, route.ts)
 - **新增 Azure 部署文件** (azure/, claudedocs/AZURE-*.md, docker/Dockerfile)
 - **新增 AI 助手場景化指引** (claudedocs/6-ai-assistant/prompts/SITUATION-*.md)
+- **新增目錄級 CLAUDE.md** (為新目錄提供 AI 助手上下文)
 - 重構項目結構
 - 新增 API 端點或資料庫表
-- 新增自動化腳本 (azure/scripts/*.sh)
+- 新增自動化腳本 (azure/scripts/*.sh, scripts/*.js)
 
 #### 🟡 建議更新 (Sprint 結束時)
 - 新增配置文件
@@ -590,4 +591,4 @@ npm run index:health
 
 ---
 
-**最後更新**: 2025-10-02 23:30
+**最後更新**: 2025-12-08

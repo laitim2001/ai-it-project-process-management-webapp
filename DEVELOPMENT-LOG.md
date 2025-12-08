@@ -20,6 +20,55 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-08 | 🔧 索引維護機制優化 | 完成 ✅
+
+**類型**: 維護 + 優化 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+執行索引同步檢查時發現 159 個建議項目，主要是因為：
+1. claudedocs 細粒度文檔（FEAT-*, FIX-*, CHANGE-* 等）被不當標記
+2. Windows 反斜線路徑未正確處理
+3. 組件目錄的 barrel export (index.ts) 被錯誤建議
+4. 子目錄的 CLAUDE.md 被重複標記
+
+**主要變更**:
+
+1. **check-index-sync.js 腳本更新** (v1.1.0 → v1.2.0)
+   - 新增 `isClaudedocsGranularFile()` 函數，包含 15+ 正則表達式排除模式
+   - 修復 Windows 路徑兼容性：`relativePath.replace(/\\/g, '/')`
+   - 新增 barrel export 排除：components/ 和 messages/ 目錄下的 index.ts
+   - 修復子目錄 CLAUDE.md 排除邏輯
+
+2. **PROJECT-INDEX.md 更新**
+   - 新增認證配置：`auth.config.ts`
+   - 新增測試配置：`playwright.config.ts`
+   - 新增 i18n 布局：`[locale]/layout.tsx`, `[locale]/page.tsx`
+   - 新增 API 路由：register, admin/seed, proposal upload
+   - 新增 Azure 文檔：deployment plan, troubleshooting, helper README
+   - 新增 Quotes 頁面：new, edit, project quotes
+   - 新增根目錄文件：`.claude.md`, `AZURE-RESOURCES-INVENTORY.md`
+   - 新增腳本：`check-environment.js`, `validate-i18n.js`
+   - 更新文件統計：360+ → 380+
+
+**驗證結果**:
+| 指標 | 修復前 | 修復後 |
+|------|--------|--------|
+| 索引建議數量 | 159 | 0 |
+| High Severity | 0 | 0 |
+| Medium Severity | 0 | 0 |
+| 狀態 | needs_review | perfect_sync |
+
+**關鍵學習**:
+- Windows/Unix 路徑差異需要在所有路徑比較處統一處理
+- 細粒度文檔應按目錄結構組織，不需單獨索引
+- barrel export 文件是實現細節，不是重要文件
+
+**修改的文件** (2 個):
+- `scripts/check-index-sync.js`
+- `PROJECT-INDEX.md`
+
+---
+
 ### 2025-12-03 | 🔧 修復 Azure 公司環境 Post-MVP 表格缺失問題 | 完成 ✅
 
 **類型**: 修復 + 部署 | **負責人**: AI 助手 | **狀態**: ✅ 完成
