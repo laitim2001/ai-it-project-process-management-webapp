@@ -1119,6 +1119,57 @@ export const healthRouter = createTRPCRouter({
 
       results.push('OMExpense: 已添加 totalBudgetAmount, totalActualSpent, defaultOpCoId');
 
+      // ========== FEAT-006: 創建 ProjectChargeOutOpCo 表 ==========
+      results.push('\n[3/3] 創建 ProjectChargeOutOpCo 表 (FEAT-006)...');
+
+      // 檢查表是否已存在
+      const tableExists = await ctx.prisma.$queryRaw<{ exists: boolean }[]>`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_name = 'ProjectChargeOutOpCo'
+        )
+      `;
+
+      if (tableExists[0]?.exists) {
+        results.push('ProjectChargeOutOpCo 表已存在，跳過創建');
+      } else {
+        // 創建表
+        await ctx.prisma.$executeRaw`
+          CREATE TABLE "ProjectChargeOutOpCo" (
+            "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+            "projectId" TEXT NOT NULL,
+            "opCoId" TEXT NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "ProjectChargeOutOpCo_pkey" PRIMARY KEY ("id")
+          )
+        `;
+
+        // 創建唯一約束
+        await ctx.prisma.$executeRaw`
+          ALTER TABLE "ProjectChargeOutOpCo"
+          ADD CONSTRAINT "ProjectChargeOutOpCo_projectId_opCoId_key" UNIQUE ("projectId", "opCoId")
+        `;
+
+        // 創建索引
+        await ctx.prisma.$executeRaw`CREATE INDEX "ProjectChargeOutOpCo_projectId_idx" ON "ProjectChargeOutOpCo"("projectId")`;
+        await ctx.prisma.$executeRaw`CREATE INDEX "ProjectChargeOutOpCo_opCoId_idx" ON "ProjectChargeOutOpCo"("opCoId")`;
+
+        // 創建外鍵約束
+        await ctx.prisma.$executeRaw`
+          ALTER TABLE "ProjectChargeOutOpCo"
+          ADD CONSTRAINT "ProjectChargeOutOpCo_projectId_fkey"
+          FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `;
+
+        await ctx.prisma.$executeRaw`
+          ALTER TABLE "ProjectChargeOutOpCo"
+          ADD CONSTRAINT "ProjectChargeOutOpCo_opCoId_fkey"
+          FOREIGN KEY ("opCoId") REFERENCES "OperatingCompany"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `;
+
+        results.push('ProjectChargeOutOpCo: 表已創建（含索引和外鍵約束）');
+      }
+
       results.push('\n=== FEAT-006 & FEAT-007 欄位修復完成 ===');
 
       // 驗證 Project 欄位
@@ -1149,6 +1200,117 @@ export const healthRouter = createTRPCRouter({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
         results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
+
+  /**
+   * 診斷 project.getProjectSummary 問題
+   */
+  diagProjectSummary: publicProcedure.query(async ({ ctx }) => {
+    const diagnostics: string[] = [];
+
+    try {
+      // Step 1: 檢查 Project 表欄位
+      diagnostics.push('Step 1: Checking Project table columns...');
+      const columns = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'Project'
+        ORDER BY ordinal_position
+      `;
+      diagnostics.push(`Project has ${columns.length} columns: ${columns.map((c) => c.column_name).join(', ')}`);
+
+      // Step 2: 簡單查詢測試
+      diagnostics.push('Step 2: Testing simple Project query...');
+      try {
+        const simple = await ctx.prisma.project.findMany({
+          take: 1,
+          select: { id: true, name: true },
+        });
+        diagnostics.push(`Simple query returned ${simple.length} rows`);
+      } catch (error) {
+        diagnostics.push(`Simple query FAILED: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+
+      // Step 3: 測試 projectCategory 排序
+      diagnostics.push('Step 3: Testing orderBy projectCategory...');
+      try {
+        const withOrder = await ctx.prisma.project.findMany({
+          take: 1,
+          orderBy: { projectCategory: 'asc' },
+        });
+        diagnostics.push(`OrderBy projectCategory returned ${withOrder.length} rows`);
+      } catch (error) {
+        diagnostics.push(`OrderBy projectCategory FAILED: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+
+      // Step 4: 測試完整查詢 (與 getProjectSummary 相同)
+      diagnostics.push('Step 4: Testing full getProjectSummary query...');
+      try {
+        const fullQuery = await ctx.prisma.project.findMany({
+          take: 1,
+          where: {
+            budgetPool: {
+              financialYear: 2025,
+            },
+          },
+          orderBy: [
+            { projectCategory: 'asc' },
+            { budgetCategory: { categoryName: 'asc' } },
+            { name: 'asc' },
+          ],
+          include: {
+            budgetPool: {
+              select: {
+                id: true,
+                name: true,
+                financialYear: true,
+              },
+            },
+            budgetCategory: {
+              select: {
+                id: true,
+                categoryName: true,
+                categoryCode: true,
+              },
+            },
+            currency: {
+              select: {
+                id: true,
+                code: true,
+                symbol: true,
+              },
+            },
+            chargeOutOpCos: {
+              include: {
+                opCo: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+        diagnostics.push(`Full query returned ${fullQuery.length} rows`);
+      } catch (error) {
+        diagnostics.push(`Full query FAILED: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+
+      return {
+        success: true,
+        diagnostics,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        diagnostics,
         timestamp: new Date().toISOString(),
       };
     }
