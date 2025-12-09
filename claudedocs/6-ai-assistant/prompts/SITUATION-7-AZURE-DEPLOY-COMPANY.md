@@ -28,6 +28,25 @@
   - [ ] schema.prisma 包含 linux-musl-openssl-3.0.x binaryTarget
   - [ ] 所有 migration SQL 檔案都已提交到 Git
   - [ ] 環境變數配置檔案已準備好
+  - [ ] ⚠️ 確認所有 schema 變更都有對應的 migration（見下方警告）
+```
+
+### ⚠️ 關鍵警告：db push vs migration
+
+```yaml
+critical_warning:
+  問題: 開發時使用 "prisma db push" 不會創建 migration 文件
+  後果: 本地數據庫有新欄位/表，但 Azure 部署時不會執行
+
+  發生過的案例 (2025-12-08):
+    - FEAT-006: Project 8 個新欄位 + ProjectChargeOutOpCo 表 → 無 migration
+    - FEAT-007: OMExpense 3 個新欄位 → 無 migration
+    - 結果: 部署後 /projects, /om-expenses, /om-summary 全部 500 錯誤
+
+  預防措施:
+    1. 開發完成後，執行 "pnpm db:migrate" 創建正式 migration
+    2. 或確保 health.ts 有對應的修復 API
+    3. 部署後立即執行 schema 修復 API
 ```
 
 ---
@@ -263,6 +282,8 @@ az webapp config appsettings set \
 | `health.dbCheck` | GET | 資料庫連線檢查 |
 | `health.schemaCheck` | GET | 驗證所有表格是否存在 |
 | `health.schemaCompare` | GET | **比較 schema.prisma vs 實際資料庫欄位** |
+| `health.diagOmExpense` | GET | 診斷 OMExpense 相關表格和欄位 |
+| `health.diagProjectSummary` | GET | 診斷 Project Summary 所需的表格和欄位 |
 
 ### 修復端點
 
@@ -273,6 +294,8 @@ az webapp config appsettings set \
 | `health.fixOmExpenseSchema` | POST | 修復 OMExpense 欄位 |
 | `health.fixExpenseItemSchema` | POST | 修復 ExpenseItem 欄位 |
 | `health.fixAllSchemaIssues` | POST | **一鍵修復所有 Schema 不同步問題** |
+| `health.createOMExpenseItemTable` | POST | 創建 FEAT-007 OMExpenseItem 表格 |
+| `health.fixFeat006AndFeat007Columns` | POST | **修復 FEAT-006/007 缺失欄位和表格** |
 
 **使用範例：**
 
@@ -294,6 +317,30 @@ curl -X POST "$BASE_URL/api/trpc/health.fixOmExpenseSchema"
 
 # 如果 expense.create 返回 chargeOutOpCoId 欄位錯誤
 curl -X POST "$BASE_URL/api/trpc/health.fixExpenseItemSchema"
+```
+
+### FEAT-006/007 專用修復流程 (2025-12-08+)
+
+如果 `/projects`、`/om-expenses`、`/om-summary` 頁面出現 500 錯誤：
+
+```bash
+BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+
+# 1️⃣ 先診斷問題
+curl "$BASE_URL/api/trpc/health.diagOmExpense"
+curl "$BASE_URL/api/trpc/health.diagProjectSummary"
+
+# 2️⃣ 創建 FEAT-007 OMExpenseItem 表格（如果不存在）
+curl -X POST "$BASE_URL/api/trpc/health.createOMExpenseItemTable"
+
+# 3️⃣ 修復 FEAT-006/007 缺失欄位和 ProjectChargeOutOpCo 表格
+curl -X POST "$BASE_URL/api/trpc/health.fixFeat006AndFeat007Columns"
+
+# 修復內容：
+# - Project: projectCategory, projectType, expenseType, chargeBackToOpCo,
+#           chargeOutMethod, probability, team, personInCharge (8 欄位)
+# - OMExpense: totalBudgetAmount, totalActualSpent, defaultOpCoId (3 欄位)
+# - ProjectChargeOutOpCo: 整個表格 + 索引 + 外鍵約束
 ```
 
 **詳細診斷指南：** 請參閱 SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md
@@ -433,10 +480,16 @@ critical_check:
 
 ---
 
-**版本**: 2.0.0 **最後更新**: 2025-12-03 **維護者**: DevOps Team + Azure Administrator
+**版本**: 2.1.0 **最後更新**: 2025-12-08 **維護者**: DevOps Team + Azure Administrator
 
 **更新記錄**:
 
+- v2.1.0 (2025-12-08): **FEAT-006/007 部署經驗更新**
+  - 🚨 新增關鍵警告：db push vs migration 差異導致的 Schema 不同步問題
+  - 新增診斷端點：health.diagOmExpense, health.diagProjectSummary
+  - 新增修復端點：health.createOMExpenseItemTable, health.fixFeat006AndFeat007Columns
+  - 新增 FEAT-006/007 專用修復流程章節
+  - 記錄 Project 8 欄位、OMExpense 3 欄位、ProjectChargeOutOpCo 表格修復經驗
 - v2.0.0 (2025-12-03): **重大重組**
   - 將文檔精簡為「部署流程指南」
   - 移除所有問題排查歷史到 SITUATION-9

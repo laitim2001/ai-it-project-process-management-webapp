@@ -1,0 +1,645 @@
+{
+  "summary": {
+    "total_rows": 500,
+    "unique_headers": 69,
+    "unique_items": 160,
+    "unique_categories": 9,
+    "unique_opcos": 42
+  },
+  "headers": [
+    "#",
+    "OM Expense Header",
+    "OM Expense Description",
+    "OM Expense Item Details",
+    "OM Expense Item Details Description",
+    "Expense Category",
+    "FY26 OM Expense Budget Amount (USD)",
+    "FY26 OM Expense Budget Amount (HKD)",
+    "Increment (%) Compare to FY25",
+    "Charge to OpCos",
+    "FY25 Actual OM Expense Charges ",
+    "FY26 Actual OM Expense Charges",
+    "OM Expense End Date"
+  ],
+  "categories": [
+    "Application System",
+    "Cloud",
+    "Computer Room Maintenance",
+    "Datalines",
+    "Hardware",
+    "IT Security",
+    "Network",
+    "Others",
+    "Software"
+  ],
+  "opcos": [
+    "ASPC",
+    "P&C",
+    "PFU Asia",
+    "PFU-Asia",
+    "PFU-HK",
+    "PJ DRIVE",
+    "R.IT",
+    "R.IT (NR)",
+    "R.IT (R. DWH)",
+    "R.IT (RCI)",
+    "R.IT (RDC2)",
+    "R.IT (RDC2) (NR)",
+    "R.IT (RDC2) (S2)",
+    "R.IT (S)",
+    "R.IT (S2)",
+    "R.IT(RDC2)",
+    "RA",
+    "RAP",
+    "RAPO",
+    "RBS",
+    "RBS (ROC)",
+    "RCN",
+    "RCN (IT pay 1st)",
+    "RHK",
+    "RHK (IT pay 1st)",
+    "RHK (S2)",
+    "RHK (incl. P&C)",
+    "RIMV",
+    "RIT",
+    "RIT (S)",
+    "RKR",
+    "RMS",
+    "RNZ",
+    "RPH",
+    "RSP",
+    "RTH",
+    "RTMAP",
+    "RTMEAP",
+    "RTMEAP / RTMAP",
+    "RTW",
+    "RVN",
+    "SCM"
+  ],
+  "om_expense_headers": [
+    {
+      "name": "Adobe License Subscription (for E-Commerce Portal) Budget @US$63,080",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Anaplan  (Budget @US$140,902)    *Estimate 20% increment",
+      "description": "1.  1x Model Builder (US$13,626 + 10%)\t\n2.  42x Professional (@US$2,725.38 x 42 = US$114,465.96 + 10%)\t\n*2-yr contract will expire in Jul-26 (FY24 - USD121,993.2, FY25 - USD128,092.86)",
+      "category": "Application System"
+    },
+    {
+      "name": "Anthropic Max Plan 20x Subscription (US$240/month)",
+      "description": "*Subscribe for Chris Lai to be an internal development tool for fure application\t\ndevelopment",
+      "category": "Others"
+    },
+    {
+      "name": "BCP Project",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Barcode Label Printer for ASPC",
+      "description": null,
+      "category": "Hardware"
+    },
+    {
+      "name": "Barcode System  (Budget HK$34,100)  ~Estimate 10% increment",
+      "description": "1. Handheld (6 sets) + Cradle (2 sets) *Estimate ~HK$3,300 \t\n\t(replaced in FY24, warrnaty will expire in Oct-25 (2 sets handheld)  & Jan-26 (4 sets handheld))\n2. Software *Estimate HK$58K (Warranty expires on 7-Jan-2026)\t\n\t**Vendor quoted the warranty expiry date & maint. price to Anthony on 7/7/25",
+      "category": "Application System"
+    },
+    {
+      "name": "Bitsight - Security Rating Service (Budget @US$35,826)",
+      "description": "(recharged by RCL instead of RUS wef Yr2025)              *Estimate 10% increment\t\t\n**Start to recharge OpCos from FY26 onwards\t\t\nJPY4,704,450 charged by RCL in Aug-25\t\t\n\t\t\nTotal: 470 users as of Oct-25:\t\t\nRIT-52 (2 for RCI), RHK-60, RA-5, RSP-21, RAP-70, RNZ-50, RMS-10\t\t\nRBS-5, RTH-63, RTW-31, RPH-20, RVN-13, RCN-50, RKR-20",
+      "category": "IT Security"
+    },
+    {
+      "name": "CCTV Unit and Smart Card Access Control System for RDC2 Computer Room",
+      "description": null,
+      "category": "Computer Room Maintenance"
+    },
+    {
+      "name": "CISCO Switches - 19 27 51 units @7x24 support *Estimate 10% increment",
+      "description": "i)\tOne Kowloon\n\t20/F - 2 units\n\t21/F - 8 units \nii)\tRDC2 - 2 units \niii)\tMTL - 1 units\niv)\tAPAC TGT DC - 6  units (cost @HK$9660 is included in item see #F.3.v)\n\t*reduced from 27 units to 19 units due to 8 units were replaced by Meraki Switch (E1 (ii))",
+      "category": "Network"
+    },
+    {
+      "name": "Cisco Meraki Wireless Network + Switch Network H/W + License",
+      "description": "**Paid 3-yr support fee (HK$186,299) until 17-Jul-28, \n**Cost sharing: RIT - 30%, RHK - 70) (Ref: IT250603)\n- Cisco Meraki Wifi - Wireless Network Access Point H/W\n- License Subscription (upgraded from Enterprise to Advance version)\n - CISCO Meraki MS250-24P to replace ASPC WH CISCO 2960X (item vi)\n(Ref: IT240606) *Bought by RHK & Installed in May-24 with 3-yr support (h/w & s/w)",
+      "category": "Network"
+    },
+    {
+      "name": "Cloudflare Cloud Service (SaaS) for AP Region",
+      "description": "(Charged by RAP in Oct-24 @A$71,037.6, exch rate @A$1 = HK$4.95)\t\t\n\t\t\n**FY26 cost Estimation for 15 domains:\t\t\nR.IT(1), RHK(1), RA(2), RAP(2), RNZ(1), RMS(1), RPH(1), RSP(1), RTW(1), RTH(1), RVN(1), RKR(1)\t\t\nand/or RBS (1)",
+      "category": "IT Security"
+    },
+    {
+      "name": "Computer Room Maintenance",
+      "description": null,
+      "category": "Computer Room Maintenance"
+    },
+    {
+      "name": "Delinea PAM License (ref: IT250601)",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Docuware License (15 units) (Budget @US$5,434) *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Domain Names Annual Renewal",
+      "description": null,
+      "category": "Cloud"
+    },
+    {
+      "name": "EG / EGMMT  (Budget @US$169,750)",
+      "description": "Recharged by RCL twice/year, i.e. April & October for following items:-\t\n\t- EGMMT Development/O&M\n\t- EG Demand Planning\n\t- EGMMT",
+      "category": "Software"
+    },
+    {
+      "name": "ESU (Extended Security Update) for Windows Servers (2012)",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Enterprise Application Architecture (SSC) (Budget @HKD2,172,000)",
+      "description": "- 3 developers (HK$67K + HK$57K + HK%57K) per month",
+      "category": "Others"
+    },
+    {
+      "name": "Flexera Subscription for OpCos (FY25 @US$51,250.99 charged by RCL)",
+      "description": "(Commenced from FY24)\nTotal 4,965 units for FY25: RAPO-354, RHK-690, RA-37, RAP-472, RNZ-336,\n RBS-150, RMS-344, RPH-181, RSP-128, RTH-1961, RTW-165, RVN-147\n\nTotal 5,548 units for FY24 (US$56,254.8):\nRAPO-366, RHK-760, RA-35, RAP-622, RNZ-347, RBS-0,\nRMS-532, RPH-244, RSP-138, RTH-2113, RTW-229, RVN-162",
+      "category": "Software"
+    },
+    {
+      "name": "Fluke Networks - LinkRunner (Budget @HK$3,273) *Estimate 10% increment",
+      "description": null,
+      "category": "Network"
+    },
+    {
+      "name": "Gartner Consulting Service (Budget @US$160,000, ~20% increment)",
+      "description": "*Approved in Mar-23, signed 3-yr contract: FY23 - FY25)\t\nFY23 - US$120,500, FY24: US$126,500, FY25: US$133,000",
+      "category": "Others"
+    },
+    {
+      "name": "HULFT (Budget @¥137,700)",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Internet  Lines",
+      "description": null,
+      "category": "Datalines"
+    },
+    {
+      "name": "Internet Servers  (Cost sharing: RIT/RHK @50:50)",
+      "description": null,
+      "category": "Hardware"
+    },
+    {
+      "name": "Jboss (Budget @18,700)  ~ Estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "KnowBe4 Security Awareness Training Subscription (USD41,644.8)",
+      "description": "1. Subscribe 3 years (Apr25 - Apr27) for 5,784 users @US$7.2/user/year\t\t\n2. 1st order - 5,388 users (IT250401)\t\t\n3. 2nd order - 396 users (IT250611)\t\t\n\t\t\n\t\t\n*Will recharge OpCos in Apr-26 for 2 yrs cost (i.e. FY25 & FY26)\t\t\nFY25 - Total 5,784 users (as of Oct-25):\t\t\nRIT-38, RAPO-46, RHK-696, RCN-810, RA-140, RBS-152, RSP-140, RAP-584, RNZ-360,\t\t\nRMS-376, RPH-172, RTH-1884, RTW-196, RVN-124, RKR-74, PFU-Asia - 26, PFU-HK - 4",
+      "category": "IT Security"
+    },
+    {
+      "name": "LaserFiche (Budger @US$17,809)     ~Estimate 10% increment",
+      "description": null,
+      "category": "Application System"
+    },
+    {
+      "name": "MS Unified Enterpse Support           ~Estimate 10% increment",
+      "description": "(Cost Sharing: O&M - 50%, PJ DRIVE - 50%)\t\t\nFY24 cost @US$199,500, FY24 & FY25 cost subject to new purchased item",
+      "category": "Others"
+    },
+    {
+      "name": "ManageEngine (Stop maint. for 10.1, 10.2, 10.4, 10.6 & 10.8 wef FY25) *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Meraki AP & PA Firewall for RDC2 Network Revamp (IT250604)",
+      "description": "*purchased in Jun-25 with 3-yr support until Jul-2028 \n- Meraki AP - 1 unit (HK$1,766 for 3 yr)\n- PA Firewll - 2 units (HK$8,000 for 3 yr)",
+      "category": "Network"
+    },
+    {
+      "name": "MetroNet",
+      "description": null,
+      "category": "Datalines"
+    },
+    {
+      "name": "Network Security Testing Fee (i.e. Insight) (Budget @JPY256,960)",
+      "description": null,
+      "category": "IT Security"
+    },
+    {
+      "name": "O365 Subscription (M365) (65% increment based on current MS price list as of Nov-25)",
+      "description": "8.1   i)\tFor Production\n\t(Refer to attached worksheet for details)\n\tReplace O365 E3 by M365 E3 for all OpCos started from Yr24\n\tCopilot User License - min. 300 unit ~ US$360/user\n\t*Wef FY24, PowerBI is bought from RCL (@US$4,872 for 290 units\n\t*Charge back PFU-HK & PFU-APAC wef FY24\n\t\nii)\tMDE (MDATP for Endpoint) \n\t(Installed in May-21, Ref: IT210505 & IT210614)\n\tClient - 4964, Server - 908\n\t(Refer to attached worksheet for details)\n\t\n\t*Charge back PFU-HK & PFU-APAC wef FY24\n\t\niii)\tMDO (MS Defender O365 P2 - 4,834 units) (Budget @US$166.483)\n\t\n\tRenewed maint. for 4,633 units in FY24 @US$34.44/unit: \n\t (No. of users:  RIT - 45, RAPO - 44, RHK - 707, OpCos - 4,016, PFU-HK - 4,\n\tPFU-Asia - 18)\n\t*Charge back PFU-HK & PFU-APAC wef FY24",
+      "category": "Software"
+    },
+    {
+      "name": "Oracle 9i Standard Edition  *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Others",
+      "description": null,
+      "category": "Cloud"
+    },
+    {
+      "name": "PRTG Servers",
+      "description": null,
+      "category": "Hardware"
+    },
+    {
+      "name": "Packt Subscription (eBook)",
+      "description": "*Subscription started in Sep-22 @USD12.99/mth (eqv. HK$103), auto-paid by Dewey's company card",
+      "category": "IT Security"
+    },
+    {
+      "name": "PlanetPress S/W for Form-Printing *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Qualys WAS 100 scans (Web Application Security Testing)  *Estimate +10%",
+      "description": null,
+      "category": "IT Security"
+    },
+    {
+      "name": "R-WAN (Budget @US$65,712, charged by RCL quarterly)",
+      "description": "R-WAN (Budget @US$65,712, charged by RCL quarterly)\t\n**Item #1.1-1.3's cost to be evenly shared by 13 OpCos (excl. RA):\t\ni.e. RAPO - 7.7%, RCN - 7.7%, Rest of OpCos** - 84.6% \t\n(**RAPO, RHK, RMS, RSP, RPH, RTW, RCN, RTH, RVN, RAP, RNZ, RKR, RBS)\t\n*Start chargeback RBS in Apr-25 \t\n*Start chargeback RIMV wef 1-Sep-25\t\n1.1\tTGT-DC (wef Sep-23) @US$2,724/mth  (charged by RCL quarterly)\n1.2\tRDC2  (8MB + 4MB@US$2,585/mth) (charged by RCL quarterly)\n1.3\t X-Connection x 2 (@HK$1,300/mth) (charged by DYXNet monthly)\n\t    - 2x External X-connect by DYXNet for NTT R-WAN Dataline (Ref: IT230903)\n\t    - Connect from DataCenter Rack to MMR Cable Room wef 28-Sep-23\n\t       (24-mth contract signed in Sep-23 to Sep-25)\n\t(Apr-Aug/25: 13 OpCos)\n\t(Sep/25 onwards: 14 OpCos)",
+      "category": "Datalines"
+    },
+    {
+      "name": "RCI & ISMS Audit Service for OpCos",
+      "description": "2.1 ISMS Maintenance & Internal Audit for RCI (by iTotalSecurity)\t\t\n\t\t\n2.2 ISMS External Audits (by SGS)\t\t\n*External Audit schedules (each Opcos - twice for every 3 yrs):-\t\t\nFY25 - RCI (HK$49K), RTH (HK$24.5K), RAP - (HK$44.1K), RMS (HK$31.85K), RVN (HK$29.4K)\t\t\n*RBS will be audited in Jan or Feb 26\t\t\nFY24 - RCI (HK$17.2K), RHK (HK$40K), RTH (HK$22.9K), RNZ (HK$40.8K), RSP (HK$38.4K)\t\t\nFY23 - RVN (HK$48.3K), RTW (HK$53K), RMS (HK$43.8K), RPH (HK$52K), RAP (HK$78.3K)\tRNZ, RSP (RVN, RTW, RMS & RPH were added in FY23)\t\n\t\t\nFY22 - RHK, RNZ, RMS & RTH (HK$152,080) HK$152,308 were paid in Mar-23\t\t\n\t\t\n**Not yet decide which OpCos will be audited in FY26\t\t\n*No audit plan for RCN & RKR, and RA will not be audited",
+      "category": "Others"
+    },
+    {
+      "name": "RCI - MS Azure Cloud Services",
+      "description": null,
+      "category": "Cloud"
+    },
+    {
+      "name": "RDC2 PRTG Server",
+      "description": null,
+      "category": "Hardware"
+    },
+    {
+      "name": "RHK - Parts Center Servre",
+      "description": null,
+      "category": "Hardware"
+    },
+    {
+      "name": "ROC Security Service (for Incident Mgt)  (Charged by ROC)",
+      "description": "1. Service Desk for Incident Management @US$500/month\t\t\nAs of Jun-25, total No. of users - 4,874:\t\t\n(RIT-47, RAPO - 45, RHK-695, RA-87, RBS-162, RSP-136, RAP-601, RNZ-346,\t\t\n RMS-362, RPH-175, RTH-1882, RTW-212, RVN-124)",
+      "category": "IT Security"
+    },
+    {
+      "name": "ROC Support Services (Charged by ROC quarterly)         *new in FY25",
+      "description": "Wef FY25, one single contract (US$180K) for following services charged by ROC:\t\t\ni) Regional IT Opeartion @US$8,000/month\t\t\nii) RHK & RAPO IT Support @US$2,000/month\t\t\niii) Service Desk for Incident Mgt @US$500/month (figures posted in item #H.9)\t\t\niv) Azure Managed Service @US$4,500/month (figures posted in item #G.V)",
+      "category": "Others"
+    },
+    {
+      "name": "RightFax Solution *estimate 10% increment",
+      "description": null,
+      "category": "Application System"
+    },
+    {
+      "name": "SASE Subscription",
+      "description": "i) SASE BP  (Budgeted @HK$669,830, 2,000 units)\t\t\n(Total 2,000 users, i.e. initially 1,300 deployed in Aug-22, +300 in Oct-23, +700 in May-25)\t\t\nTotal 1,965 users as of Oct-25:\t\t\nRA-49, RMS-223, RBS-145, RNZ-1, RPH-109, RSP-54, RTH-1,123, RTW-156, RVN-105\t\t\n\t\t\n\t\t\nRecharged OpCos (HK$736,430 for 22 months) in Apr-25:-\t\t\ni.e. FY24 - HK$401,689 (31/3/24 to 30/3/25)  & FY25 - HK$334,741 (31/3/25-26/1/26)\t\t\nTotal 2,261 users: RA - 51, RBS - 118, RMS - 252, RNZ - 2, RPH - 123, RSP - 73,\t\t\nRTH - 1,362, RTW - 166, RVN - 114",
+      "category": "IT Security"
+    },
+    {
+      "name": "SD-WAN (HK & AP)",
+      "description": null,
+      "category": "Datalines"
+    },
+    {
+      "name": "ScrewDrivers V6 (Budget @US$437.42/unit) *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Server Consolidation RDC1 (TGT DC)",
+      "description": "**Cost of Advance Portion HK$106,260 * 20% @HK$21,252 (RIT portion & excl. PureStorage)",
+      "category": "Hardware"
+    },
+    {
+      "name": "Server Consolidation RDC2",
+      "description": "(SAN switch end of support, need to purchase new model)\n**Cost of Advance Portion: HK$101,640 * 0.64 @HK$65,050",
+      "category": "Hardware"
+    },
+    {
+      "name": "Servers for RHK (RDC1 & MTL)",
+      "description": null,
+      "category": "Hardware"
+    },
+    {
+      "name": "ServiceNow ITSM/CSM Support  ~Estimate 10% increment",
+      "description": "Bought 12mth CSM support from Rococo, contract period: 1/9/25 - 31/8/26 @US$23,340/yr",
+      "category": "Others"
+    },
+    {
+      "name": "ServiceNow® Subscription *estimate 20% increment",
+      "description": "i) ITSM\t\n\t- ITSM Fulfiller User Pro - US$900 x 128 units = US$115,200\n\t  (FY25: PJ Drive - 4, RIT-41, RAPO(SSF)-3, RHK-9, RTH-30, RPH-6, RTW-2, RSP-3\n\t  RMS-5, RVN-3, RBS-22 (14+8)\n\tLicense cost for PJ DRIVE @3,600 (4 units x US$900)\n\t\n\t- ITSM Approver: US$114.00 x 60 units = US$6,840\n\t   (FY25: RAPO(SSF)-3, RHK-20, P&C-1, RTH-36, )\n\t\ni) ITOM *100% at RIT cost\t\n\t- ITOM Operator: US$41.4 x 500 units = US$20,700\n\t\nii) CSM\t\n\t- CSM Fulfiller: US$1,170 x 88 units = US$102,960\n\t(FY25: RIT-2, RA-4, RTH-50 (12+6+32), RSP-7, RMS-7, RBS-18\n\t- CSM Fulfiller Upgrade (1 unit for RTH) @US$270",
+      "category": "Software"
+    },
+    {
+      "name": "SonicWall",
+      "description": "a)\tSonicWall NSA4600 CGSS HA + Platinum Support *Stop maint. renewal on FY26\n\t  (cost shared by RIT & RHK @1:1)   (budget @HK$49,695)\nb)\tSonicWall TZ-400 CGSS + Gold Support for DEMO section\n\t(bought for RCI-T in Aug-16, on-loan to RHK wef Yr23)\nc)\tSonicWall TZ-600 CGSS + Platinum support (Setup in Apr/17 in One Kln C.Rm for ABW project)\n\t(Actual @HK$15,480) *Stop maint. renewal on FY26\nd)\tSonicWall NSA2650 AGSS + Platinum Support  (for O365 Pjt)\n\t(Cost shared by RIT & RHK @1:1) (Budget @HK$30,876)\ne)\tSonicWall NSA2600 w/HA and Platinum Support (for HRA-SAP) Retired in 2023",
+      "category": "Network"
+    },
+    {
+      "name": "TGT DC (Average @HK$38,507/month)",
+      "description": "(Go-live on 1-Apr-23, 2-year contract signed with DYXNet, Ref #IT230208) \t\t\ni)   DC Facility Rental, Internet Link 200Mbps x 2 (HK$24,650/mth)\t\t\nii)  AP SD-WAN 100 Mbps x 2 (HK$7,700/mth)\t\t\niii) Extra Power Consumption (Est. HK$600/mth)\t\t\niv) PA IP440 Firewall (2 units) @HK$39,720/yr)\t\t\nv)  PA-440 / HA SCM Pro License (1 unit @HK$15,373)  \t\t\n\t(bought in Oct-25, ref: IT251007)\t\n\t\t\nvi) CISCO Switches - 2960X (2 units) & 9300 (2 units @HK$11,592)\t\t\nCost sharing: RIT - 65%, RHK - 35% (to be included in IT Sharing Cost File)\t\t\n\t\t\n**Advance - 22%, RIT - 43%, RHK - 35% (FY26 budget incl. item i to vi)",
+      "category": "Computer Room Maintenance"
+    },
+    {
+      "name": "Tableau (Budget @US$11,000) *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Tango Pro License Subscription (Budget @US$2,308) *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Telephone Lines",
+      "description": null,
+      "category": "Datalines"
+    },
+    {
+      "name": "Telerik DevCraft Complete Developer License (Budget @US$1,774) *estimate 10% increment",
+      "description": "(Dev. Tool for RDC2 & SSC Developers, charged by Progress)  \n- 2x Telerik DevCraft Complete (bought on 30-Jul-15) \n- 2x Telerik DevCraft Complete (bought on 6-Nov-15)  **stop maint. wef Yr2021\n- 3x Telerik DevCraft Complete (bought in Jul-16)  **stop maint. wef Yr2021",
+      "category": "Software"
+    },
+    {
+      "name": "UiPath for RPA Project (Rechared by RCL, Budget @HK$132152, est. 10% increment)",
+      "description": "(RPA Tool - RPA Developer & Orchestrator)\n\nTotal 16 users for FY24: RIT-2, SCM/ASPC - 2, RAP - 5, RMS - 2, RSP - 1, RTH - 3, RTW - 1\nFY24 Cost Breakdown (¥2,022,500), DN rec'd in Mar-25:\n- RIT, SCM/ASPC & RMS @¥307,813 each, RSP & RTW @¥153,906 each\nRAP @¥769,531, RTH @¥461,719",
+      "category": "Software"
+    },
+    {
+      "name": "VMWare (bought from local vendor wef Sep-24) *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "VMWare for ADVANCE System *estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Veeam Backup License    *Estimate 10% increment",
+      "description": null,
+      "category": "Software"
+    },
+    {
+      "name": "Visual Studio w/ MSDN (30 units)  (@¥1,259,250, charged by RCL)",
+      "description": "(Cost charged in Nov-24 @JPY41,975 each) 98 ERP\n ¥110 = US$1",
+      "category": "Software"
+    },
+    {
+      "name": "Wazuh SIEM (Budget US$8,085)               Estimate 10% increment)",
+      "description": "1. Wazuh Standard Support 200\t\t\n\t\t\n(FY25) Total 312 agents: RIT-46, RHK-20, RSP-14, RAP-5, RNZ-54, RMS-28, \t\t\n RTH-94, RTW-10, RPH-21, RVN-13, RBS-7\t\t\n\t\t\n(FY24 @US$7K) Total 343 agents: RIT-65, RHK-20, RTH-87, RPH-25, RNZ-68, RSP-17, RAP-0,\t\t\nRVN-16, RTW-12, RMS-33",
+      "category": "IT Security"
+    },
+    {
+      "name": "WebServer 40bit SSL Key",
+      "description": null,
+      "category": "Cloud"
+    },
+    {
+      "name": "XPlus Subscrption (Test Automation Tool for D365)",
+      "description": null,
+      "category": "Software"
+    }
+  ],
+  "sample_items": [
+    {
+      "header": "R-WAN (Budget @US$65,712, charged by RCL quarterly)",
+      "item": "R-WAN (Budget @US$65,712, charged by RCL quarterly)",
+      "item_desc": "(2724+2585+167)*12/14*1",
+      "category": "Datalines",
+      "opcos_count": 14,
+      "unique_opcos": [
+        "RHK (IT pay 1st)",
+        "RPH",
+        "RKR",
+        "RNZ",
+        "RAPO"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "HK SD-WAN  (HKT)  (Budget @HK$115,920)",
+      "item_desc": null,
+      "category": "Datalines",
+      "opcos_count": 4,
+      "unique_opcos": [
+        "RHK",
+        "R.IT (RDC2)",
+        "ASPC",
+        "R.IT"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "AP SD-WAN (DYXnet)",
+      "item_desc": "RDC1, RDC2, RMS & RTH SD-WAN (DYXnet)  (Budget @HK$806,016)\n- Contract end-date: Feb-25, @HK$67,168 / mth (Ref: IT200917)",
+      "category": "Datalines",
+      "opcos_count": 3,
+      "unique_opcos": [
+        "R.IT",
+        "RTH",
+        "RBS"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RTW, RPH & RVN SD-WAN  (DYXnet)  (Budget @HK$450,360)",
+      "item_desc": "**Mthly Cost: RTW-HK$6,060, RPH-HK$10,910, RVN-HK$20,560",
+      "category": "Datalines",
+      "opcos_count": 3,
+      "unique_opcos": [
+        "RTW",
+        "RPH",
+        "RVN"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RSP SD-WAN  (DYXnet)  (Budget @HK$90,210)",
+      "item_desc": "**Live-run on 18-Mar-22, Mthly Cost @HK$7,510",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "RSP"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RNZ SD-WAN  (DYXnet)  (Budget @HK$72,960)",
+      "item_desc": "**Live-run on 1-May-22, Mthly Cost @HK$6,080",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "RNZ"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RMS SD-WAN  (DYXnet)  (Budget @HK$245,520)",
+      "item_desc": "**Live-run on 22-Sep-22, Mthly Cost @HK$20,460)",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "RMS"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RAP SD-WAN  (DYXnet)  (Budget @HK$159,600)",
+      "item_desc": "**Live-run on 5-Nov-22, Mthly Cost @HK$13,300)",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "RAP"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RKR SD-WAN  (DYXnet)  (Budget @HK$168,000)",
+      "item_desc": "Signed 2-year contract from Apr-24 to Apr-26 (IT240102)\n**Live-run on 20-Apr-24, Mthly Cost @HK$14,000)",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "RKR"
+      ]
+    },
+    {
+      "header": "SD-WAN (HK & AP)",
+      "item": "RIMV SD-WAN  (DYXnet)",
+      "item_desc": "Signed 2-year contract from Apr-24 to Apr-26 (IT240102)\n**Live-run on 1-Sep-25, Mthly Cost @HK$16,000)",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "RIMV"
+      ]
+    },
+    {
+      "header": "MetroNet",
+      "item": "HKBN",
+      "item_desc": "*2-yr contract renewed for MetroNet & X-connection wef 2-Jun-24 (Ref: IT240506)\t\ni)\tMetroNet 1000M/1000M for Veeam bkup services in RDC1 & RDC2 (HK$3,860/mth)\n\t(Relocated RDC1's MetroNet from One Kln to TGT-DC wef Mid-May 23, Ref: IT230313)\n\t *Upgrade from 300M/300M with new price @HK$3,960/mth wef 2-Jun-24\nii)\tX-connection for TGT-DC @HK$660/mth (Ref: IT230313) wef 15-May-23 for 14 mths\n\t - Connect from 2/F Telecom Room to 2/F MMR A in TGT DC\n\t*new price @HK$660 wef 2-Jun-24",
+      "category": "Datalines",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "R.IT"
+      ]
+    },
+    {
+      "header": "Internet  Lines",
+      "item": "HGC",
+      "item_desc": "2x DIA 1000M (@HK$32,160/mth) (Ref: IT240609)\n*Renewed 2-yr contract in Jul-24 and upgrade from 450M to 1000M @HK$32,160/mth",
+      "category": "Datalines",
+      "opcos_count": 3,
+      "unique_opcos": [
+        "R.IT (RDC2)",
+        "RHK",
+        "R.IT (S)"
+      ]
+    },
+    {
+      "header": "Internet  Lines",
+      "item": "HKT",
+      "item_desc": "Resillence Internet Link for RDC2 \n(Changed to HKBN  wef end Oct-25, see item #3.1.iii)",
+      "category": "Datalines",
+      "opcos_count": 2,
+      "unique_opcos": [
+        "R.IT (RDC2)",
+        "R.IT"
+      ]
+    },
+    {
+      "header": "Telephone Lines",
+      "item": "Telephone Lines",
+      "item_desc": "2 lines for RDC2 (HK$1,165.8/qtr)",
+      "category": "Datalines",
+      "opcos_count": 2,
+      "unique_opcos": [
+        "RHK",
+        "R.IT (RDC2) (NR)"
+      ]
+    },
+    {
+      "header": "Server Consolidation RDC1 (TGT DC)",
+      "item": "RDC1 (TGT DC)",
+      "item_desc": "- Pure Storage for VM Servers (PUSTG101) & SAN Switch (bought in Mar-19)",
+      "category": "Hardware",
+      "opcos_count": 2,
+      "unique_opcos": [
+        "RHK",
+        "R.IT"
+      ]
+    },
+    {
+      "header": "Server Consolidation RDC2",
+      "item": "RDC2",
+      "item_desc": "- 4x ESX Host (ESXC2001, 2002, 2003, 2004, HK$45,360)",
+      "category": "Hardware",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "R.IT (RDC2)"
+      ]
+    },
+    {
+      "header": "Internet Servers  (Cost sharing: RIT/RHK @50:50)",
+      "item": "1x Physical VM Host for Allot (ESX95) @HK$11,340)",
+      "item_desc": null,
+      "category": "Hardware",
+      "opcos_count": 2,
+      "unique_opcos": [
+        "RHK",
+        "R.IT"
+      ]
+    },
+    {
+      "header": "PRTG Servers",
+      "item": "PRTG server for RDC1 (NT362, HK$8,800) *stop maint. wef FY25",
+      "item_desc": null,
+      "category": "Hardware",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "R.IT"
+      ]
+    },
+    {
+      "header": "PRTG Servers",
+      "item": "PRTG server for RDC2 & RCI (NT434, HK$8,800) *moved from item 5",
+      "item_desc": null,
+      "category": "Hardware",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "R.IT(RDC2)"
+      ]
+    },
+    {
+      "header": "PRTG Servers",
+      "item": "1x Host of WAP Proxy, ADFS for O365 (ESX93, ESX94, stop maint. from FY25)",
+      "item_desc": null,
+      "category": "Hardware",
+      "opcos_count": 1,
+      "unique_opcos": [
+        "R.IT"
+      ]
+    }
+  ]
+}
