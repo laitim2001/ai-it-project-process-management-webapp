@@ -474,7 +474,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                       <SelectContent>
                         {expenseCategories?.map((category) => (
                           <SelectItem key={category.id} value={category.name}>
-                            {category.code} - {category.name}
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -523,7 +523,7 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                         </SelectItem>
                         {opCos?.map((opCo) => (
                           <SelectItem key={opCo.id} value={opCo.id}>
-                            {opCo.code} - {opCo.name}
+                            {opCo.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -886,7 +886,7 @@ function InlineItemForm({
                 <option value="">{t('opCo.placeholder')}</option>
                 {opCos.map((opCo) => (
                   <option key={opCo.id} value={opCo.id}>
-                    {opCo.code} - {opCo.name}
+                    {opCo.name}
                   </option>
                 ))}
               </select>

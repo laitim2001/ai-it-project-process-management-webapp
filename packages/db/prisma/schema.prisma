@@ -630,8 +630,9 @@ model OMExpenseItem {
   sortOrder   Int     @default(0) // 排序順序（用於拖曳排序）
 
   // 預算和實際
-  budgetAmount Float // 此項目預算
-  actualSpent  Float @default(0) // 由月度記錄自動計算
+  budgetAmount        Float // 此項目預算
+  actualSpent         Float  @default(0) // 由月度記錄自動計算
+  lastFYActualExpense Float? // FEAT-008: 上年度實際支出（用於 Summary 年度比較）
 
   // 幣別（支援多幣別）
   currencyId String?

@@ -262,7 +262,7 @@ export function OMSummaryDetailGrid({
                         <AccordionTrigger className="px-4 py-2 bg-muted/30 hover:bg-muted/50 hover:no-underline">
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{opCoGroup.opCoCode} - {opCoGroup.opCoName}</span>
+                            <span className="font-medium">{opCoGroup.opCoName}</span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pt-0">
@@ -296,7 +296,7 @@ export function OMSummaryDetailGrid({
                       {showOpCoGroups && categoryGroup.opCoGroups.length === 1 && (
                         <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
                           <Building2 className="h-4 w-4" />
-                          <span>{opCoGroup.opCoCode} - {opCoGroup.opCoName}</span>
+                          <span>{opCoGroup.opCoName}</span>
                         </div>
                       )}
                       {/* CHANGE-004: 檢查是否有新架構的表頭分組 */}

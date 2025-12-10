@@ -54,10 +54,23 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, Link } from "@/i18n/routing";
-import { Plus } from 'lucide-react';
+import { Plus, LayoutGrid, List, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import {
   Breadcrumb,
@@ -73,7 +86,15 @@ export default function OMExpensesPage() {
   const t = useTranslations('omExpenses');
   const tCommon = useTranslations('common');
   const router = useRouter();
+  const { toast } = useToast();
   const currentYear = new Date().getFullYear();
+
+  // 視圖模式狀態
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+
+  // CHANGE-005: 批量選擇狀態
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // 過濾狀態
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
@@ -89,13 +110,58 @@ export default function OMExpensesPage() {
   const { data: categories } = api.omExpense.getCategories.useQuery();
 
   // 獲取 OM 費用列表
-  const { data: omExpenses, isLoading } = api.omExpense.getAll.useQuery({
+  const { data: omExpenses, isLoading, refetch } = api.omExpense.getAll.useQuery({
     financialYear: selectedYear,
     opCoId: selectedOpCo || undefined,
     category: selectedCategory || undefined,
     page,
     limit,
   });
+
+  // CHANGE-005: 批量刪除 mutation
+  const deleteManyMutation = api.omExpense.deleteMany.useMutation({
+    onSuccess: (data) => {
+      toast({
+        title: t('list.batchActions.deleteSuccess', { count: data.deletedCount }),
+        variant: 'default',
+      });
+      setSelectedIds([]);
+      setIsDeleteDialogOpen(false);
+      void refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: t('list.batchActions.deleteError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // CHANGE-005: 選擇處理函數
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (!omExpenses?.items) return;
+    const allIds = omExpenses.items.map((om) => om.id);
+    setSelectedIds(allIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedIds([]);
+  };
+
+  const isAllSelected = omExpenses?.items && omExpenses.items.length > 0 &&
+    omExpenses.items.every((om) => selectedIds.includes(om.id));
+
+  const handleBatchDelete = () => {
+    if (selectedIds.length === 0) return;
+    deleteManyMutation.mutate({ ids: selectedIds });
+  };
 
   // 格式化金額
   const formatCurrency = (amount: number) => {
@@ -130,8 +196,8 @@ export default function OMExpensesPage() {
     return 'text-green-600';
   };
 
-  // 年度選項（最近 5 年）
-  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  // 年度選項（過去 3 年 + 當前年 + 未來 3 年，從新到舊排序）
+  const yearOptions = Array.from({ length: 7 }, (_, i) => currentYear + 3 - i);
 
   return (
     <DashboardLayout>
@@ -159,10 +225,33 @@ export default function OMExpensesPage() {
               {t('description')}
             </p>
           </div>
-          <Button onClick={() => router.push('/om-expenses/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('list.newOMExpense')}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* 視圖切換按鈕 */}
+            <div className="flex border border-input rounded-md">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className="rounded-r-none"
+                title={t('list.viewMode.card')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+                title={t('list.viewMode.list')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button onClick={() => router.push('/om-expenses/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('list.newOMExpense')}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -203,7 +292,7 @@ export default function OMExpensesPage() {
                 <option value="">{t('list.filters.allOpCos')}</option>
                 {opCos?.map((opCo) => (
                   <option key={opCo.id} value={opCo.id}>
-                    {opCo.code} - {opCo.name}
+                    {opCo.name}
                   </option>
                 ))}
               </select>
@@ -232,115 +321,265 @@ export default function OMExpensesPage() {
         </CardContent>
       </Card>
 
+      {/* CHANGE-005: 批量操作工具列 */}
+      {omExpenses && omExpenses.items.length > 0 && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
+          <div className="flex items-center gap-4">
+            <Checkbox
+              id="select-all"
+              checked={isAllSelected}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  handleSelectAll();
+                } else {
+                  handleDeselectAll();
+                }
+              }}
+            />
+            <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+              {isAllSelected ? t('list.batchActions.deselectAll') : t('list.batchActions.selectAll')}
+            </label>
+            {selectedIds.length > 0 && (
+              <Badge variant="secondary">
+                {t('list.batchActions.selected', { count: selectedIds.length })}
+              </Badge>
+            )}
+          </div>
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              disabled={deleteManyMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('list.batchActions.delete')}
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* OM 費用列表 */}
       {isLoading ? (
         <div className="text-center py-8">{tCommon('loading')}</div>
       ) : omExpenses && omExpenses.items.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {omExpenses.items.map((om) => {
-              // FEAT-007: Use totalBudgetAmount/totalActualSpent with fallback to legacy fields
-              const totalBudget = om.totalBudgetAmount ?? om.budgetAmount ?? 0;
-              const totalActual = om.totalActualSpent ?? om.actualSpent ?? 0;
-              const itemsCount = om._count?.items ?? 0;
-              const utilizationRate = totalBudget > 0
-                ? (totalActual / totalBudget) * 100
-                : 0;
-              // FEAT-007: Use defaultOpCo, fallback to legacy opCo
-              const displayOpCo = om.defaultOpCo ?? om.opCo;
+          {/* 卡片視圖 */}
+          {viewMode === 'card' ? (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {omExpenses.items.map((om) => {
+                // FEAT-007: Use totalBudgetAmount/totalActualSpent with fallback to legacy fields
+                const totalBudget = om.totalBudgetAmount ?? om.budgetAmount ?? 0;
+                const totalActual = om.totalActualSpent ?? om.actualSpent ?? 0;
+                const itemsCount = om._count?.items ?? 0;
+                const utilizationRate = totalBudget > 0
+                  ? (totalActual / totalBudget) * 100
+                  : 0;
+                // FEAT-007: Use defaultOpCo, fallback to legacy opCo
+                const displayOpCo = om.defaultOpCo ?? om.opCo;
 
-              return (
-                <Card
-                  key={om.id}
-                  className="cursor-pointer transition-shadow hover:shadow-lg"
-                  onClick={() => router.push(`/om-expenses/${om.id}`)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{om.name}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {om.category}
-                        </CardDescription>
-                      </div>
-                      {om.yoyGrowthRate !== null && (
-                        <Badge className={getGrowthRateColor(om.yoyGrowthRate)}>
-                          {formatGrowthRate(om.yoyGrowthRate)}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {/* FEAT-007: 明細項目數量 */}
-                      {itemsCount > 0 && (
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {itemsCount} {t('list.card.items', { defaultValue: '個項目' })}
+                const isSelected = selectedIds.includes(om.id);
+
+                return (
+                  <Card
+                    key={om.id}
+                    className={`cursor-pointer transition-shadow hover:shadow-lg ${isSelected ? 'ring-2 ring-primary' : ''}`}
+                    onClick={() => router.push(`/om-expenses/${om.id}`)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        {/* CHANGE-005: Checkbox */}
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => handleToggleSelect(om.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <CardTitle className="text-lg">{om.name}</CardTitle>
+                            <CardDescription className="mt-1">
+                              {om.category}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        {om.yoyGrowthRate !== null && (
+                          <Badge className={getGrowthRateColor(om.yoyGrowthRate)}>
+                            {formatGrowthRate(om.yoyGrowthRate)}
                           </Badge>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {/* FEAT-007: 明細項目數量 */}
+                        {itemsCount > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {itemsCount} {t('list.card.items', { defaultValue: '個項目' })}
+                            </Badge>
+                          </div>
+                        )}
 
-                      {/* OpCo（預設或舊版）和供應商 */}
-                      {displayOpCo && (
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">
+                        {/* OpCo（預設或舊版）和供應商 */}
+                        {displayOpCo && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">
+                              {itemsCount > 0
+                                ? t('list.card.defaultOpCo', { defaultValue: '預設 OpCo' })
+                                : t('list.card.opCo')}:{' '}
+                            </span>
+                            <span className="font-medium">{displayOpCo.code}</span>
+                          </div>
+                        )}
+                        {om.vendor && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">{t('list.card.vendor')}: </span>
+                            <span className="font-medium">{om.vendor.name}</span>
+                          </div>
+                        )}
+
+                        {/* 預算金額（總計） */}
+                        <div className="flex items-center justify-between border-t pt-3">
+                          <span className="text-sm text-muted-foreground">
                             {itemsCount > 0
-                              ? t('list.card.defaultOpCo', { defaultValue: '預設 OpCo' })
-                              : t('list.card.opCo')}:{' '}
+                              ? t('list.card.totalBudget', { defaultValue: '總預算' })
+                              : t('list.card.budget')}
                           </span>
-                          <span className="font-medium">{displayOpCo.code}</span>
+                          <span className="font-semibold">{formatCurrency(totalBudget)}</span>
                         </div>
-                      )}
-                      {om.vendor && (
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">{t('list.card.vendor')}: </span>
-                          <span className="font-medium">{om.vendor.name}</span>
-                        </div>
-                      )}
 
-                      {/* 預算金額（總計） */}
-                      <div className="flex items-center justify-between border-t pt-3">
-                        <span className="text-sm text-muted-foreground">
-                          {itemsCount > 0
-                            ? t('list.card.totalBudget', { defaultValue: '總預算' })
-                            : t('list.card.budget')}
-                        </span>
-                        <span className="font-semibold">{formatCurrency(totalBudget)}</span>
+                        {/* 實際支出（總計） */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            {itemsCount > 0
+                              ? t('list.card.totalActualSpent', { defaultValue: '總實際支出' })
+                              : t('list.card.actualSpent')}
+                          </span>
+                          <span className={`font-semibold ${getUtilizationColor(utilizationRate)}`}>
+                            {formatCurrency(totalActual)}
+                          </span>
+                        </div>
+
+                        {/* 使用率 */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">{t('list.card.utilizationRate')}</span>
+                          <span className={`text-sm font-medium ${getUtilizationColor(utilizationRate)}`}>
+                            {utilizationRate.toFixed(1)}%
+                          </span>
+                        </div>
+
+                        {/* 月度記錄數（顯示所有項目的月度記錄總數） */}
+                        <div className="border-t pt-3">
+                          <span className="text-xs text-muted-foreground">
+                            {t('list.card.monthlyRecords')}: {om._count?.monthlyRecords ?? 0} / {itemsCount > 0 ? itemsCount * 12 : 12}
+                          </span>
+                        </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            /* 表格視圖 */
+            <div className="rounded-lg border bg-card shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {/* CHANGE-005: Checkbox 列 */}
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleSelectAll();
+                          } else {
+                            handleDeselectAll();
+                          }
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead>{t('list.table.name')}</TableHead>
+                    <TableHead>{t('list.table.category')}</TableHead>
+                    <TableHead>{t('list.table.opCo')}</TableHead>
+                    <TableHead className="text-right">{t('list.table.budget')}</TableHead>
+                    <TableHead className="text-right">{t('list.table.actualSpent')}</TableHead>
+                    <TableHead className="text-right">{t('list.table.utilizationRate')}</TableHead>
+                    <TableHead className="text-center">{t('list.table.items')}</TableHead>
+                    <TableHead className="text-right">{tCommon('fields.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {omExpenses.items.map((om) => {
+                    const totalBudget = om.totalBudgetAmount ?? om.budgetAmount ?? 0;
+                    const totalActual = om.totalActualSpent ?? om.actualSpent ?? 0;
+                    const itemsCount = om._count?.items ?? 0;
+                    const utilizationRate = totalBudget > 0
+                      ? (totalActual / totalBudget) * 100
+                      : 0;
+                    const displayOpCo = om.defaultOpCo ?? om.opCo;
+                    const isSelected = selectedIds.includes(om.id);
 
-                      {/* 實際支出（總計） */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          {itemsCount > 0
-                            ? t('list.card.totalActualSpent', { defaultValue: '總實際支出' })
-                            : t('list.card.actualSpent')}
-                        </span>
-                        <span className={`font-semibold ${getUtilizationColor(utilizationRate)}`}>
+                    return (
+                      <TableRow key={om.id} className={`hover:bg-muted/50 ${isSelected ? 'bg-muted/30' : ''}`}>
+                        {/* CHANGE-005: Checkbox */}
+                        <TableCell>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => handleToggleSelect(om.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Link
+                            href={`/om-expenses/${om.id}`}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {om.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{om.category}</TableCell>
+                        <TableCell>{displayOpCo?.name ?? '-'}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(totalBudget)}
+                        </TableCell>
+                        <TableCell className={`text-right font-medium ${getUtilizationColor(utilizationRate)}`}>
                           {formatCurrency(totalActual)}
-                        </span>
-                      </div>
-
-                      {/* 使用率 */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{t('list.card.utilizationRate')}</span>
-                        <span className={`text-sm font-medium ${getUtilizationColor(utilizationRate)}`}>
+                        </TableCell>
+                        <TableCell className={`text-right ${getUtilizationColor(utilizationRate)}`}>
                           {utilizationRate.toFixed(1)}%
-                        </span>
-                      </div>
-
-                      {/* 月度記錄數（顯示所有項目的月度記錄總數） */}
-                      <div className="border-t pt-3">
-                        <span className="text-xs text-muted-foreground">
-                          {t('list.card.monthlyRecords')}: {om._count?.monthlyRecords ?? 0} / {itemsCount > 0 ? itemsCount * 12 : 12}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {itemsCount > 0 ? (
+                            <Badge variant="outline" className="text-xs">
+                              {itemsCount}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link
+                            href={`/om-expenses/${om.id}`}
+                            className="text-primary hover:underline"
+                          >
+                            {tCommon('actions.view')}
+                          </Link>
+                          <span className="mx-2 text-muted-foreground">|</span>
+                          <Link
+                            href={`/om-expenses/${om.id}/edit`}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            {tCommon('actions.edit')}
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {/* 分頁控制 */}
           {omExpenses.totalPages > 1 && (
@@ -382,6 +621,32 @@ export default function OMExpensesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* CHANGE-005: 批量刪除確認對話框 */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('list.deleteDialog.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('list.deleteDialog.message', { count: selectedIds.length })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteManyMutation.isPending}>
+              {t('list.deleteDialog.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBatchDelete}
+              disabled={deleteManyMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteManyMutation.isPending
+                ? tCommon('loading')
+                : t('list.deleteDialog.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

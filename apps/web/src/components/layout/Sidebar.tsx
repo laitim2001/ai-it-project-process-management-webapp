@@ -71,6 +71,7 @@ import {
   Coins,
   BarChart3,
   Tags,
+  Upload,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -200,6 +201,12 @@ export function Sidebar() {
           href: "/settings/currencies",
           icon: Coins,
           description: t('descriptions.currencies')
+        },
+        {
+          name: t('menu.dataImport'),
+          href: "/data-import",
+          icon: Upload,
+          description: t('descriptions.dataImport')
         },
       ]
     },

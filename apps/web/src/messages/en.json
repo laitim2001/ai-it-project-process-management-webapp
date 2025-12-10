@@ -166,7 +166,8 @@
       "currencies": "Currencies",
       "notifications": "Notifications",
       "settings": "Settings",
-      "help": "Help Center"
+      "help": "Help Center",
+      "dataImport": "Data Import"
     },
     "descriptions": {
       "dashboard": "Project overview and key metrics",
@@ -185,7 +186,8 @@
       "users": "User accounts and permissions",
       "currencies": "Manage system currency options",
       "settings": "System parameter configuration",
-      "help": "User guide and support"
+      "help": "User guide and support",
+      "dataImport": "Bulk import OM expense data"
     },
     "search": {
       "label": "Search",
@@ -1934,6 +1936,19 @@
         "totalBudget": "Total Budget",
         "totalActualSpent": "Total Actual Spent"
       },
+      "viewMode": {
+        "card": "Card View",
+        "list": "List View"
+      },
+      "table": {
+        "name": "Name",
+        "category": "Category",
+        "opCo": "Operating Company",
+        "budget": "Budget",
+        "actualSpent": "Actual Spent",
+        "utilizationRate": "Utilization",
+        "items": "Items"
+      },
       "pagination": {
         "previous": "Previous",
         "next": "Next",
@@ -1945,6 +1960,20 @@
         "createFirst": "Create First OM Expense",
         "notFound": "OM expense not found",
         "notFoundButton": "Back to List"
+      },
+      "batchActions": {
+        "selected": "Selected {count} item(s)",
+        "delete": "Delete Selected",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "deleteSuccess": "Successfully deleted {count} record(s)",
+        "deleteError": "Failed to delete records"
+      },
+      "deleteDialog": {
+        "title": "Confirm Delete",
+        "message": "Are you sure you want to delete {count} OM expense record(s)? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
       }
     },
     "new": {
@@ -3116,6 +3145,241 @@
       "chargeToOpCo": "Charge Out OpCo",
       "team": "Team",
       "pic": "Person In Charge"
+    }
+  },
+  "dataImport": {
+    "title": "Data Import",
+    "description": "Bulk import OM expense data",
+    "tabs": {
+      "excel": "Excel File",
+      "json": "JSON Data"
+    },
+    "form": {
+      "title": "Import Configuration",
+      "description": "Supports Excel (.xlsx) or JSON format files",
+      "financialYear": {
+        "label": "Financial Year",
+        "placeholder": "Select financial year"
+      },
+      "excel": {
+        "dropzone": "Click or drag Excel file here",
+        "supportedFormats": "Supports .xlsx, .xls formats",
+        "selected": "Selected: {filename}"
+      },
+      "jsonFile": {
+        "label": "JSON Data File",
+        "placeholder": "Select or drag & drop JSON file",
+        "hint": "File must comply with import format specifications"
+      },
+      "jsonText": {
+        "label": "JSON Data",
+        "placeholder": "Paste JSON data here, or upload a file",
+        "hint": "Supports direct input of JSON array data"
+      }
+    },
+    "preview": {
+      "title": "Data Preview",
+      "totalItems": "Total Items",
+      "validItems": "Valid Items",
+      "headers": "Headers",
+      "opCos": "Operating Companies",
+      "categories": "Categories",
+      "items": "Items",
+      "noData": "Upload file to show preview",
+      "andMore": "... and {count} more",
+      "showAll": "Show all {count}",
+      "collapse": "Collapse",
+      "loadMore": "Load more",
+      "showing": "Showing {current} of {total}"
+    },
+    "statistics": {
+      "title": "Parse Statistics",
+      "totalRows": "Total Rows",
+      "validItems": "Valid Items",
+      "skippedRows": "Skipped Rows",
+      "errorRows": "Error Rows",
+      "duplicateRows": "Duplicate Rows",
+      "uniqueHeaders": "Headers",
+      "uniqueOpCos": "OpCos",
+      "uniqueCategories": "Categories"
+    },
+    "headersPreview": {
+      "title": "OM Expense Headers",
+      "name": "Header Name",
+      "category": "Category",
+      "description": "Description",
+      "itemCount": "Items",
+      "status": "Status",
+      "statusNew": "New",
+      "statusExisting": "Existing",
+      "showAll": "Show all {count}",
+      "collapse": "Collapse"
+    },
+    "itemsPreview": {
+      "title": "OM Expense Items Detail",
+      "rowNumber": "#",
+      "headerName": "Header",
+      "headerDescription": "Header Desc",
+      "itemName": "Item Name",
+      "itemDescription": "Item Desc",
+      "opCoName": "OpCo",
+      "category": "Category",
+      "budgetAmount": "Budget",
+      "endDate": "End Date",
+      "status": "Status",
+      "statusValid": "Valid",
+      "statusError": "Error",
+      "statusDuplicate": "Duplicate",
+      "showing": "Showing {current} of {total}",
+      "loadMore": "Load more",
+      "showLess": "Show less"
+    },
+    "errorRows": {
+      "title": "Error Rows",
+      "rowNumber": "Row",
+      "field": "Field",
+      "reason": "Reason",
+      "rawValue": "Original Value",
+      "empty": "No errors found"
+    },
+    "duplicateRows": {
+      "title": "Duplicate Rows",
+      "rowNumber": "Row",
+      "headerName": "Header",
+      "itemName": "Item",
+      "itemDescription": "Item Desc",
+      "category": "Category",
+      "opCoName": "OpCo",
+      "budgetAmount": "Budget",
+      "duplicateOf": "Duplicate of Row",
+      "empty": "No duplicates found"
+    },
+    "errors": {
+      "noWorksheet": "Excel file has no worksheet",
+      "cantReadWorksheet": "Cannot read worksheet content",
+      "noDataRows": "Excel file has no data rows",
+      "missingHeader": "Row {row}: Missing Header name",
+      "missingCategory": "Row {row}: Missing category",
+      "missingItemName": "Row {row}: Missing item name",
+      "missingOpCo": "Row {row}: Missing OpCo name",
+      "noValidRows": "No valid data rows",
+      "parseError": "Failed to parse Excel file: {error}",
+      "readError": "Failed to read file",
+      "invalidExcelFormat": "Please upload Excel file (.xlsx or .xls)",
+      "invalidFileFormat": "Please upload Excel (.xlsx) or JSON (.json) file",
+      "unknownError": "Unknown error"
+    },
+    "messages": {
+      "parseSuccess": "Successfully parsed {count} items",
+      "duplicatesRemoved": ", removed {duplicates} duplicates",
+      "errorsFound": ", {errors} errors"
+    },
+    "empty": {
+      "title": "No data uploaded",
+      "description": "Please upload Excel or JSON file on the left"
+    },
+    "result": {
+      "success": {
+        "title": "Import Successful",
+        "message": "Data import completed"
+      },
+      "error": {
+        "title": "Import Failed",
+        "message": "An error occurred during import"
+      },
+      "statistics": {
+        "title": "Import Statistics",
+        "totalItems": "Total Items",
+        "createdOpCos": "New Operating Companies",
+        "createdCategories": "New Categories",
+        "createdHeaders": "New Headers",
+        "createdItems": "New Items",
+        "createdMonthlyRecords": "Monthly Records",
+        "skippedDuplicates": "Skipped (Existing)"
+      },
+      "details": {
+        "title": "Import Details",
+        "opCos": "Created Operating Companies",
+        "headers": "Created Headers"
+      },
+      "duplicate": {
+        "title": "Duplicate Item Detected",
+        "message": "An item with the same header name, item name, and OpCo already exists",
+        "headerName": "Header Name",
+        "itemName": "Item Name",
+        "opCoName": "Operating Company"
+      }
+    },
+    "validation": {
+      "invalidJson": "Invalid JSON format",
+      "emptyData": "Import data cannot be empty",
+      "missingFields": "Required fields are missing",
+      "invalidFinancialYear": "Invalid financial year"
+    },
+    "actions": {
+      "selectFile": "Select File",
+      "validate": "Validate Data",
+      "import": "Import",
+      "importing": "Importing...",
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "back": "Back",
+      "uploadJson": "Upload JSON",
+      "clear": "Clear",
+      "confirmImport": "Confirm Import {count} items",
+      "reupload": "Re-upload",
+      "importAnother": "Import Another",
+      "viewOMExpenses": "View OM Expenses"
+    },
+    "excelFormat": {
+      "title": "Excel Column Mapping Guide",
+      "description": "Excel file columns must follow this format",
+      "columns": {
+        "field": "Field",
+        "excelColumn": "Excel Column",
+        "description": "Description",
+        "required": "Required"
+      },
+      "fields": {
+        "headerName": "Header Name",
+        "headerDesc": "Header Description",
+        "itemName": "Item Name",
+        "itemDesc": "Item Description",
+        "category": "Category",
+        "budgetAmount": "Budget Amount",
+        "opCoName": "OpCo Name",
+        "endDate": "End Date",
+        "lastFYActual": "Last FY Actual Expense"
+      },
+      "desc": {
+        "headerName": "OM expense header name",
+        "headerDesc": "Header description",
+        "itemName": "Detail item name",
+        "itemDesc": "Item description",
+        "category": "Expense category",
+        "budgetAmount": "Budget amount (USD)",
+        "opCoName": "Operating company name",
+        "endDate": "Maintenance end date",
+        "lastFYActual": "Last fiscal year actual expense"
+      },
+      "required": {
+        "yes": "Yes",
+        "no": "No",
+        "default0": "No (default 0)"
+      },
+      "notes": {
+        "title": "Notes:",
+        "skipHeader": "First row is header row, will be skipped",
+        "removeDuplicates": "Duplicate items (same Header + Item + OpCo) will be removed",
+        "skipEmpty": "Empty rows will be ignored",
+        "autoCreateOpCo": "OpCo will be created if not exists",
+        "autoCreateHeader": "Header will be created if not exists (category required)"
+      }
+    },
+    "steps": {
+      "upload": "Upload File",
+      "preview": "Preview & Confirm",
+      "result": "Import Result"
     }
   }
 }

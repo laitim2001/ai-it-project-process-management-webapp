@@ -349,7 +349,7 @@ export default function OMExpenseItemForm({
                   <SelectContent>
                     {opCos?.map((opCo) => (
                       <SelectItem key={opCo.id} value={opCo.id}>
-                        {opCo.code} - {opCo.name}
+                        {opCo.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

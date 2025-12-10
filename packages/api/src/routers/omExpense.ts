@@ -73,6 +73,7 @@ const omExpenseItemSchema = z.object({
   description: z.string().optional(),
   sortOrder: z.number().int().min(0).default(0),
   budgetAmount: z.number().nonnegative('預算金額不能為負'),
+  lastFYActualExpense: z.number().optional().nullable(), // FEAT-008: 上年度實際支出
   opCoId: z.string().min(1, 'OpCo 不能為空'),
   currencyId: z.string().optional(),
   startDate: z.string().optional(),
@@ -131,6 +132,7 @@ const updateItemSchema = z.object({
   description: z.string().optional().nullable(),
   sortOrder: z.number().int().min(0).optional(),
   budgetAmount: z.number().nonnegative().optional(),
+  lastFYActualExpense: z.number().optional().nullable(), // FEAT-008: 上年度實際支出
   opCoId: z.string().optional(),
   currencyId: z.string().optional().nullable(),
   startDate: z.string().optional().nullable(),
@@ -163,6 +165,86 @@ const getSummarySchema = z.object({
   opCoIds: z.array(z.string()).optional(),
   categories: z.array(z.string()).optional(),
 });
+
+// ========== FEAT-008: Import Data Schema ==========
+const importOMExpenseItemSchema = z.object({
+  // Header 資訊
+  headerName: z.string().min(1, 'Header 名稱不能為空'),
+  headerDescription: z.string().nullable().optional(),
+  category: z.string().min(1, '類別不能為空'),
+
+  // Item 資訊
+  itemName: z.string().min(1, '項目名稱不能為空'),
+  itemDescription: z.string().nullable().optional(),
+  budgetAmount: z.number().nonnegative().default(0),
+  opCoName: z.string().min(1, 'OpCo 名稱不能為空'),
+  endDate: z.string().nullable().optional(),
+  lastFYActualExpense: z.number().nullable().optional(), // 上年度實際支出
+});
+
+const importOMExpenseDataSchema = z.object({
+  financialYear: z.number().int().min(2000).max(2100),
+  items: z.array(importOMExpenseItemSchema).min(1, '至少需要一筆導入資料'),
+});
+
+// ========== FEAT-008: Import Result Type ==========
+export interface ImportResult {
+  success: boolean;
+  statistics: {
+    totalItems: number;
+    createdOpCos: number;
+    createdCategories: number; // FEAT-008: 自動建立的 ExpenseCategory 數量
+    createdHeaders: number;
+    createdItems: number;
+    createdMonthlyRecords: number;
+    skippedDuplicates: number; // 跳過的重複項目數量
+  };
+  details: {
+    opCos: string[];
+    categories: string[]; // FEAT-008: 自動建立的 ExpenseCategory 名稱
+    headers: string[];
+    skippedItems?: Array<{ headerName: string; itemName: string; opCoName: string }>; // 被跳過的項目清單
+  };
+  error?: {
+    message: string;
+    duplicateItem?: {
+      headerName: string;
+      itemName: string;
+      opCoName: string;
+    };
+  };
+}
+
+// ========== FEAT-008: Helper Functions ==========
+/**
+ * 生成 OpCo Code
+ * 規則：移除括號內容，轉大寫，移除非字母數字，取前10字符 + 時間戳
+ */
+function generateOpCoCode(name: string): string {
+  // 移除括號內容，取前綴
+  const base = name.replace(/\s*\([^)]*\)/g, '').trim();
+  // 轉為大寫，移除非字母數字
+  const cleaned = base.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  // 取前 10 個字符
+  const code = cleaned.substring(0, 10) || 'OPCO';
+  // 加上時間戳避免重複
+  return `${code}-${Date.now().toString(36).toUpperCase()}`;
+}
+
+/**
+ * 生成 Category Code
+ * 規則：取名稱的首字母縮寫 + 時間戳
+ * @example "Hardware Maintenance" -> "HM-XXXX"
+ */
+function generateCategoryCode(name: string): string {
+  // 取每個單詞的首字母
+  const words = name.trim().split(/\s+/);
+  const initials = words.map(w => w.charAt(0).toUpperCase()).join('');
+  // 取前 5 個字符
+  const code = initials.substring(0, 5) || 'CAT';
+  // 加上時間戳避免重複
+  return `${code}-${Date.now().toString(36).toUpperCase()}`;
+}
 
 // ========== TypeScript Types for Summary ==========
 
@@ -259,6 +341,345 @@ export interface OMSummaryResponse {
 // ========== Router ==========
 
 export const omExpenseRouter = createTRPCRouter({
+  // ============================================================
+  // FEAT-008: 資料導入 Procedure
+  // ============================================================
+
+  /**
+   * FEAT-008: 批量導入 OM Expense 資料
+   *
+   * @description
+   * 從 JSON 資料批量導入 OM Expense，支援：
+   * - 自動建立不存在的 Operating Company
+   * - 自動建立不存在的 OM Expense Header
+   * - 為每個 Item 建立 OMExpenseItem + 12 個月度記錄
+   * - 唯一性檢查：Header name + Item name + OpCo
+   * - 完整 Rollback 策略：任何錯誤都會回滾所有變更
+   *
+   * @input importOMExpenseDataSchema
+   * - financialYear: 財務年度
+   * - items: 導入項目陣列
+   *
+   * @returns ImportResult - 導入結果統計
+   */
+  importData: protectedProcedure
+    .input(importOMExpenseDataSchema)
+    .mutation(async ({ ctx, input }): Promise<ImportResult> => {
+      const { financialYear, items } = input;
+
+      try {
+        // 使用 Prisma Transaction - 全部成功或全部回滾
+        // 增加超時時間：預設 5 秒太短，導入大量資料需要更長時間
+        const result = await ctx.prisma.$transaction(async (tx) => {
+          // ========== Step 1: 收集所有唯一的 OpCo 名稱 ==========
+          const opCoNames = [...new Set(items.map((i) => i.opCoName))];
+
+          // ========== Step 2: 查詢現有 OpCo，建立缺失的 OpCo ==========
+          const existingOpCos = await tx.operatingCompany.findMany({
+            where: { name: { in: opCoNames } },
+          });
+          const existingOpCoMap = new Map(existingOpCos.map((o) => [o.name, o]));
+
+          // 建立缺失的 OpCo
+          const missingOpCoNames = opCoNames.filter((n) => !existingOpCoMap.has(n));
+          const createdOpCos: string[] = [];
+
+          for (const name of missingOpCoNames) {
+            const opCo = await tx.operatingCompany.create({
+              data: {
+                code: generateOpCoCode(name),
+                name: name,
+                isActive: true,
+              },
+            });
+            existingOpCoMap.set(name, opCo);
+            createdOpCos.push(name);
+          }
+
+          // ========== Step 2.5: 收集所有唯一的 Category 名稱，建立缺失的 ExpenseCategory ==========
+          const categoryNames = [...new Set(items.map((i) => i.category))];
+          const existingCategories = await tx.expenseCategory.findMany({
+            where: { name: { in: categoryNames } },
+          });
+          const categoryMap = new Map(existingCategories.map((c) => [c.name, c]));
+
+          // 建立缺失的 Category
+          const missingCategoryNames = categoryNames.filter((n) => !categoryMap.has(n));
+          const createdCategories: string[] = [];
+
+          for (const name of missingCategoryNames) {
+            const category = await tx.expenseCategory.create({
+              data: {
+                code: generateCategoryCode(name),
+                name: name,
+                description: `Auto-created from data import`,
+                sortOrder: 0,
+                isActive: true,
+              },
+            });
+            categoryMap.set(name, category);
+            createdCategories.push(name);
+          }
+
+          // ========== Step 3: 收集唯一 Header (name + category + financialYear) ==========
+          const headerKeys = [
+            ...new Set(
+              items.map((i) => `${i.headerName}|${i.category}|${financialYear}`)
+            ),
+          ];
+
+          // ========== Step 4: 查詢現有 Header ==========
+          const existingHeaders = await tx.oMExpense.findMany({
+            where: { financialYear },
+          });
+          const headerMap = new Map(
+            existingHeaders.map((h) => [
+              `${h.name}|${h.category}|${financialYear}`,
+              h,
+            ])
+          );
+
+          // ========== Step 5: 建立缺失的 Header ==========
+          const createdHeaders: string[] = [];
+          const processedHeaderKeys = new Set<string>();
+
+          for (const item of items) {
+            const headerKey = `${item.headerName}|${item.category}|${financialYear}`;
+
+            if (!headerMap.has(headerKey) && !processedHeaderKeys.has(headerKey)) {
+              // 獲取第一個 item 的 OpCo 作為 Header 的 defaultOpCoId
+              const firstOpCo = existingOpCoMap.get(item.opCoName);
+              // FEAT-008: 獲取對應的 ExpenseCategory
+              const expenseCategory = categoryMap.get(item.category);
+
+              const header = await tx.oMExpense.create({
+                data: {
+                  name: item.headerName,
+                  description: item.headerDescription ?? null,
+                  financialYear,
+                  category: item.category,
+                  // FEAT-008: 設置 categoryId 關聯
+                  categoryId: expenseCategory?.id ?? null,
+                  // FEAT-007: 設置預設值
+                  totalBudgetAmount: 0, // 之後會更新
+                  totalActualSpent: 0,
+                  // 舊欄位（向後兼容）
+                  opCoId: firstOpCo?.id ?? null,
+                  defaultOpCoId: firstOpCo?.id ?? null,
+                  budgetAmount: 0,
+                  actualSpent: 0,
+                  startDate: new Date(),
+                  endDate: item.endDate ? new Date(item.endDate) : new Date(`${financialYear}-12-31`),
+                },
+              });
+              headerMap.set(headerKey, header);
+              createdHeaders.push(item.headerName);
+              processedHeaderKeys.add(headerKey);
+            }
+          }
+
+          // ========== Step 6: 逐筆處理 Item 資料 ==========
+          let sortOrderCounter = 0;
+          let createdItemsCount = 0;
+          let createdMonthlyRecordsCount = 0;
+          let skippedDuplicatesCount = 0;
+          const skippedItems: Array<{ headerName: string; itemName: string; opCoName: string }> = [];
+
+          // 按 Header 分組以便更新 sortOrder 和 totalBudgetAmount
+          const headerItemsMap = new Map<string, { headerId: string; items: typeof items }>();
+
+          for (const item of items) {
+            const headerKey = `${item.headerName}|${item.category}|${financialYear}`;
+            const header = headerMap.get(headerKey)!;
+            const opCo = existingOpCoMap.get(item.opCoName)!;
+
+            // ========== 唯一性檢查 (6 欄位完整唯一鍵) ==========
+            // 與前端重複檢測邏輯一致：
+            // 1. headerName (via omExpenseId)
+            // 2. itemName
+            // 3. itemDescription
+            // 4. category (via omExpenseId)
+            // 5. opCoName (via opCoId)
+            // 6. budgetAmount
+            const existingItem = await tx.oMExpenseItem.findFirst({
+              where: {
+                omExpenseId: header.id,
+                name: item.itemName,
+                description: item.itemDescription ?? null,
+                opCoId: opCo.id,
+                budgetAmount: item.budgetAmount ?? 0,
+              },
+            });
+
+            if (existingItem) {
+              // 發現重複資料，跳過該筆並記錄
+              skippedDuplicatesCount++;
+              skippedItems.push({
+                headerName: item.headerName,
+                itemName: item.itemName,
+                opCoName: item.opCoName,
+              });
+              continue; // 跳過此項目，處理下一筆
+            }
+
+            // 追蹤每個 header 的 items 用於計算 sortOrder
+            if (!headerItemsMap.has(header.id)) {
+              // 查詢現有 items 的最大 sortOrder
+              const existingMaxSortOrder = await tx.oMExpenseItem.findFirst({
+                where: { omExpenseId: header.id },
+                orderBy: { sortOrder: 'desc' },
+                select: { sortOrder: true },
+              });
+              headerItemsMap.set(header.id, {
+                headerId: header.id,
+                items: [],
+              });
+              sortOrderCounter = (existingMaxSortOrder?.sortOrder ?? -1) + 1;
+            }
+
+            // 建立 OMExpenseItem
+            const newItem = await tx.oMExpenseItem.create({
+              data: {
+                omExpenseId: header.id,
+                name: item.itemName,
+                description: item.itemDescription ?? null,
+                budgetAmount: item.budgetAmount ?? 0,
+                actualSpent: 0,
+                lastFYActualExpense: item.lastFYActualExpense ?? null, // FEAT-008: 上年度實際支出
+                opCoId: opCo.id,
+                endDate: item.endDate
+                  ? new Date(item.endDate)
+                  : new Date(`${financialYear}-12-31`),
+                sortOrder: sortOrderCounter++,
+              },
+            });
+            createdItemsCount++;
+
+            // 建立 12 個月度記錄
+            const monthlyRecords = Array.from({ length: 12 }, (_, monthIndex) => ({
+              omExpenseItemId: newItem.id,
+              month: monthIndex + 1,
+              actualAmount: 0,
+              opCoId: opCo.id,
+            }));
+
+            await tx.oMExpenseMonthly.createMany({
+              data: monthlyRecords,
+            });
+            createdMonthlyRecordsCount += 12;
+          }
+
+          // ========== Step 7: 更新所有受影響的 Header 的 totalBudgetAmount ==========
+          const affectedHeaderIds = [...new Set(items.map((item) => {
+            const headerKey = `${item.headerName}|${item.category}|${financialYear}`;
+            return headerMap.get(headerKey)!.id;
+          }))];
+
+          for (const headerId of affectedHeaderIds) {
+            const allItems = await tx.oMExpenseItem.findMany({
+              where: { omExpenseId: headerId },
+            });
+
+            const totalBudgetAmount = allItems.reduce(
+              (sum, item) => sum + item.budgetAmount,
+              0
+            );
+
+            await tx.oMExpense.update({
+              where: { id: headerId },
+              data: {
+                totalBudgetAmount,
+                budgetAmount: totalBudgetAmount, // 向後兼容
+              },
+            });
+          }
+
+          // ========== Step 8: 返回成功結果 ==========
+          return {
+            success: true,
+            statistics: {
+              totalItems: items.length,
+              createdOpCos: createdOpCos.length,
+              createdCategories: createdCategories.length, // FEAT-008: 自動建立的 ExpenseCategory 數量
+              createdHeaders: createdHeaders.length,
+              createdItems: createdItemsCount,
+              createdMonthlyRecords: createdMonthlyRecordsCount,
+              skippedDuplicates: skippedDuplicatesCount,
+            },
+            details: {
+              opCos: createdOpCos,
+              categories: createdCategories, // FEAT-008: 自動建立的 ExpenseCategory 名稱
+              headers: createdHeaders,
+              skippedItems: skippedItems.length > 0 ? skippedItems : undefined,
+            },
+          };
+        }, {
+          // 增加 transaction 超時時間：導入大量資料需要更長時間
+          // maxWait: 等待資料庫連接的最大時間 (預設 2000ms)
+          // timeout: transaction 執行的最大時間 (預設 5000ms)
+          maxWait: 10000,   // 10 秒等待連接
+          timeout: 300000,  // 5 分鐘執行超時（足夠導入 500+ 筆資料）
+        });
+
+        return result;
+      } catch (error) {
+        // Transaction 自動 Rollback
+        if (error instanceof TRPCError) {
+          // 重新拋出 tRPC 錯誤，附加 duplicateItem 資訊
+          const cause = error.cause as { headerName?: string; itemName?: string; opCoName?: string } | undefined;
+          return {
+            success: false,
+            statistics: {
+              totalItems: items.length,
+              createdOpCos: 0,
+              createdCategories: 0,
+              createdHeaders: 0,
+              createdItems: 0,
+              createdMonthlyRecords: 0,
+              skippedDuplicates: 0,
+            },
+            details: {
+              opCos: [],
+              categories: [],
+              headers: [],
+            },
+            error: {
+              message: error.message,
+              duplicateItem: cause
+                ? {
+                    headerName: cause.headerName ?? '',
+                    itemName: cause.itemName ?? '',
+                    opCoName: cause.opCoName ?? '',
+                  }
+                : undefined,
+            },
+          };
+        }
+
+        // 其他錯誤
+        return {
+          success: false,
+          statistics: {
+            totalItems: items.length,
+            createdOpCos: 0,
+            createdCategories: 0,
+            createdHeaders: 0,
+            createdItems: 0,
+            createdMonthlyRecords: 0,
+            skippedDuplicates: 0,
+          },
+          details: {
+            opCos: [],
+            categories: [],
+            headers: [],
+          },
+          error: {
+            message: error instanceof Error ? error.message : '導入失敗，所有資料已回滾',
+          },
+        };
+      }
+    }),
+
   // ============================================================
   // FEAT-007: 新版表頭-明細架構 Procedures
   // ============================================================
@@ -419,6 +840,7 @@ export const omExpenseRouter = createTRPCRouter({
               sortOrder: itemInput.sortOrder ?? i,
               budgetAmount: itemInput.budgetAmount,
               actualSpent: 0,
+              lastFYActualExpense: itemInput.lastFYActualExpense ?? null, // FEAT-008
               opCoId: itemInput.opCoId,
               currencyId: itemInput.currencyId,
               startDate: itemInput.startDate
@@ -569,6 +991,7 @@ export const omExpenseRouter = createTRPCRouter({
             sortOrder: newSortOrder,
             budgetAmount: input.item.budgetAmount,
             actualSpent: 0,
+            lastFYActualExpense: input.item.lastFYActualExpense ?? null, // FEAT-008
             opCoId: input.item.opCoId,
             currencyId: input.item.currencyId,
             startDate: input.item.startDate
@@ -718,6 +1141,9 @@ export const omExpenseRouter = createTRPCRouter({
         dataToUpdate.sortOrder = updateData.sortOrder;
       if (updateData.budgetAmount !== undefined)
         dataToUpdate.budgetAmount = updateData.budgetAmount;
+      // FEAT-008: 支援 lastFYActualExpense 更新
+      if (updateData.lastFYActualExpense !== undefined)
+        dataToUpdate.lastFYActualExpense = updateData.lastFYActualExpense;
       if (updateData.opCoId !== undefined)
         dataToUpdate.opCoId = updateData.opCoId;
       if (updateData.currencyId !== undefined)
@@ -1662,6 +2088,54 @@ export const omExpenseRouter = createTRPCRouter({
       });
 
       return { success: true, message: 'OM 費用已刪除' };
+    }),
+
+  /**
+   * CHANGE-005: 批量刪除 OM 費用
+   * 使用事務處理確保數據一致性，按正確順序刪除關聯數據
+   * @input ids - 要刪除的 OM 費用 ID 陣列
+   * @returns 刪除結果（成功數量）
+   */
+  deleteMany: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string().uuid()).min(1, '至少選擇一筆記錄'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { ids } = input;
+
+      // 驗證所有 OM 費用是否存在
+      const existingRecords = await ctx.prisma.oMExpense.findMany({
+        where: { id: { in: ids } },
+        select: { id: true },
+      });
+
+      if (existingRecords.length === 0) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到任何要刪除的 OM 費用記錄',
+        });
+      }
+
+      const existingIds = existingRecords.map((r) => r.id);
+
+      // 使用事務處理批量刪除（因為有 cascade 設定，直接刪除 OMExpense 即可）
+      // Prisma cascade 會自動處理：OMExpenseItem → OMExpenseMonthly
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // 刪除所有選中的 OM 費用（cascade 會自動刪除關聯的 Item 和 Monthly）
+        const deleteResult = await tx.oMExpense.deleteMany({
+          where: { id: { in: existingIds } },
+        });
+
+        return deleteResult;
+      });
+
+      return {
+        success: true,
+        deletedCount: result.count,
+        message: `成功刪除 ${result.count} 筆 OM 費用記錄`,
+      };
     }),
 
   /**

@@ -1,0 +1,918 @@
+{
+  "metadata": {
+    "source": "OM expense - RHK.xlsx",
+    "financial_year": 2026,
+    "total_headers": 40,
+    "total_items": 84
+  },
+  "headers": [
+    {
+      "number": 1,
+      "category": "A) Datalines",
+      "name": "R-WAN (Budget @US$65,712, charged by RCL quarterly)",
+      "excel_row": 6,
+      "items": [
+        {
+          "row": 12,
+          "type": "numbered",
+          "name": "1.1 TGT-DC (wef Sep-23) @US$2,724/mth  (charged by RCL quarterly)",
+          "budget_us": 4693.714285714285,
+          "budget_hk": 36610.97142857142
+        },
+        {
+          "row": 13,
+          "type": "numbered",
+          "name": "1.2 RDC2  (8MB + 4MB@US$2,585/mth) (charged by RCL quarterly)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 14,
+          "type": "numbered",
+          "name": "1.3 X-Connection x 2 (@HK$1,300/mth) (charged by DYXNet monthly)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 15,
+          "type": "dash_c3",
+          "name": "- 2x External X-connect by DYXNet for NTT R-WAN Dataline (Ref: IT230903)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 16,
+          "type": "dash_c3",
+          "name": "- Connect from DataCenter Rack to MMR Cable Room wef 28-Sep-23",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "category": "A) Datalines",
+      "name": "SD-WAN (HK & AP)",
+      "excel_row": 23,
+      "items": [
+        {
+          "row": 24,
+          "type": "numbered",
+          "name": "2.1 HK SD-WAN  (HKT)  (Budget @HK$115,920)",
+          "budget_us": 6723.076923076923,
+          "budget_hk": 52440
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "category": "A) Datalines",
+      "name": "Internet  Lines",
+      "excel_row": 31,
+      "items": [
+        {
+          "row": 32,
+          "type": "numbered",
+          "name": "4.1 HGC",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 33,
+          "type": "roman",
+          "name": "ii) 1x 500M Broadband for RHK Demo (HK$480/mth) *renewed 2-yr in Apr-23",
+          "budget_us": 738.4615384615385,
+          "budget_hk": 5760
+        },
+        {
+          "row": 35,
+          "type": "roman",
+          "name": "iii) 1x 500M Broadband for Live Demo, Guest Wifi,…(HK$3,050/mth)",
+          "budget_us": 4692.307692307692,
+          "budget_hk": 36600
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "category": "A) Datalines",
+      "name": "Telephone Lines",
+      "excel_row": 40,
+      "items": [
+        {
+          "row": 41,
+          "type": "numbered",
+          "name": "5.2 9 lines (8 for Rightfax & 1 for CMI)  *Being follow-up by RHK",
+          "budget_us": 3083.6923076923076,
+          "budget_hk": 24052.8
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "category": "B) Hardware",
+      "name": "Server Consolidation",
+      "excel_row": 49,
+      "items": [
+        {
+          "row": 50,
+          "type": "numbered",
+          "name": "1.1 RDC1 (TGT DC)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 51,
+          "type": "dash",
+          "name": "- Pure Storage for VM Servers (PUSTG101) & SAN Switch (bought in Mar-19)",
+          "budget_us": 17346.153846153848,
+          "budget_hk": 135300
+        },
+        {
+          "row": 53,
+          "type": "dash",
+          "name": "- 2x SAN Switch (SANSW101, 102, HK$13,750 HK$21,648)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 55,
+          "type": "dash",
+          "name": "- 5x 6x ESX Host (ESXC1001, 1002, 1003, 1004 and 1005, HK$56,700)",
+          "budget_us": 7269.2307692307695,
+          "budget_hk": 56700
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "category": "B) Hardware",
+      "name": "Internet Servers  (Cost sharing: RIT/RHK @50:50)",
+      "excel_row": 60,
+      "items": [
+        {
+          "row": 61,
+          "type": "dash",
+          "name": "- 1x Physical VM Host for Allot (ESX95) @HK$11,340)",
+          "budget_us": 726.9230769230769,
+          "budget_hk": 5670
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "category": "B) Hardware",
+      "name": "Servers for RHK (RDC1 & MTL)",
+      "excel_row": 66,
+      "items": [
+        {
+          "row": 67,
+          "type": "dash",
+          "name": "- PABXESX01",
+          "budget_us": 1384.6153846153848,
+          "budget_hk": 10800
+        },
+        {
+          "row": 68,
+          "type": "dash",
+          "name": "- ESX17",
+          "budget_us": 1384.6153846153848,
+          "budget_hk": 10800
+        },
+        {
+          "row": 69,
+          "type": "dash",
+          "name": "- NT295",
+          "budget_us": 1384.6153846153848,
+          "budget_hk": 10800
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "category": "B) Hardware",
+      "name": "RHK - Parts Center Servre",
+      "excel_row": 73,
+      "items": [
+        {
+          "row": 74,
+          "type": "dash",
+          "name": "- Host for Parts Center (CSW) (ESXPC01) - IT250909",
+          "budget_us": 1184.6153846153848,
+          "budget_hk": 9240
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "category": "B) Hardware",
+      "name": "VDI Project  (Stop maint from FY24/FY25)",
+      "excel_row": 78,
+      "items": [
+        {
+          "row": 79,
+          "type": "dash",
+          "name": "- 4x VDI servers (TGT - ESXCVD01, ESXCVD02, ESXCVD03, ESXCVD04, HK$10,800)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "category": "C) Software",
+      "name": "Progress Software",
+      "excel_row": 87,
+      "items": [
+        {
+          "row": 87,
+          "type": "default",
+          "name": "Progress Software",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "category": "C) Software",
+      "name": "PlanetPress S/W for Form-Printing *estimate 10% increment",
+      "excel_row": 237,
+      "items": [
+        {
+          "row": 238,
+          "type": "numbered",
+          "name": "3.1 PlanetPress for RHK form printing (@US$6801) (ref: IT250502)",
+          "budget_us": 6801.08,
+          "budget_hk": 53048.424
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "category": "C) Software",
+      "name": "VMWare (bought from local vendor wef Sep-24) *estimate 10% increment",
+      "excel_row": 243,
+      "items": [
+        {
+          "row": 244,
+          "type": "numbered",
+          "name": "4.2 RHK (224 units)",
+          "budget_us": 33485.12820512821,
+          "budget_hk": 261184.00000000003
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "category": "C) Software",
+      "name": "BCP Project",
+      "excel_row": 249,
+      "items": [
+        {
+          "row": 250,
+          "type": "dash",
+          "name": "- ACRServe (replaced TSM for backup, not require to pay maint. fee)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "category": "C) Software",
+      "name": "O365 Subscription (M365) (65% increment based on current MS price list as of Nov-25)",
+      "excel_row": 254,
+      "items": [
+        {
+          "row": 255,
+          "type": "numbered",
+          "name": "8.1 For Production",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 257,
+          "type": "roman",
+          "name": "ii) MDE (MDATP for Endpoint)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 259,
+          "type": "roman",
+          "name": "iii) MDO (MS Defender O365 P2 - 4,834 units) (Budget @US$166.483)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "category": "C) Software",
+      "name": "ServiceNow® Subscription *estimate 20% increment",
+      "excel_row": 265,
+      "items": [
+        {
+          "row": 268,
+          "type": "dash_c3",
+          "name": "- ITSM Fulfiller User Pro - US$900 x 128 units = US$115,200",
+          "budget_us": 12456,
+          "budget_hk": 97156.8
+        },
+        {
+          "row": 273,
+          "type": "dash_c3",
+          "name": "- ITSM Approver: US$114.00 x 60 units = US$6,840",
+          "budget_us": 136.79999999999998,
+          "budget_hk": 1067.0399999999997
+        },
+        {
+          "row": 277,
+          "type": "dash_c3",
+          "name": "- ITOM Operator: US$41.4 x 500 units = US$20,700",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 280,
+          "type": "dash_c3",
+          "name": "- CSM Fulfiller: US$1,170 x 88 units = US$102,960",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 282,
+          "type": "dash_c3",
+          "name": "- CSM Fulfiller Upgrade (1 unit for RTH) @US$270",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "category": "C) Software",
+      "name": "ManageEngine (Stop maint. for 10.1, 10.2, 10.4, 10.6 & 10.8 wef FY25) *estimate 10% increment",
+      "excel_row": 286,
+      "items": [
+        {
+          "row": 287,
+          "type": "numbered",
+          "name": "10.1 ManageEngine AADSelfService Plus (Budget @HK9,561)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 291,
+          "type": "numbered",
+          "name": "10.2  Endpoint Central  (Stop maint from FY25)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 297,
+          "type": "numbered",
+          "name": "10.3  ManageEngine EventLog Analzer (Budget @HK$18,875)",
+          "budget_us": 221.15384615384616,
+          "budget_hk": 1725
+        },
+        {
+          "row": 298,
+          "type": "dash_c3",
+          "name": "- 220 units: RIT-200, RHK-20",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 300,
+          "type": "numbered",
+          "name": "10.5  Network Device Management System Tools (Budget @HK$10,196)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 302,
+          "type": "dash",
+          "name": "- ManageEngine OpUtils Professional Edition (@HK$6066.06)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 303,
+          "type": "dash",
+          "name": "- ManageEngine Network Configuration Manage (@HK$5654.22)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 304,
+          "type": "dash",
+          "name": "- ManageEngine AssetExplorer **end-of -support due to retire in 2025",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "category": "C) Software",
+      "name": "Veeam Backup License    *Estimate 10% increment",
+      "excel_row": 308,
+      "items": [
+        {
+          "row": 309,
+          "type": "dash",
+          "name": "- Veeam Backup & Replication Universal License, renewed 19 units in FY25",
+          "budget_us": 10765.107692307694,
+          "budget_hk": 83967.84000000001
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "category": "C) Software",
+      "name": "Cisco Duo Subscription  *Stop maint. wef FY25",
+      "excel_row": 314,
+      "items": [
+        {
+          "row": 315,
+          "type": "dash",
+          "name": "- 100 units  (Boudgt in Nov-21, ref: H211102)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "category": "C) Software",
+      "name": "Adobe License Subscription (for E-Commerce Portal) Budget @US$63,080",
+      "excel_row": 321,
+      "items": [
+        {
+          "row": 321,
+          "type": "default",
+          "name": "Adobe License Subscription (for E-Commerce Portal) Budget @US$63,080",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "category": "C) Software",
+      "name": "Flexera Subscription for OpCos (Actual @US$51,250.99 charged by RCL)",
+      "excel_row": 328,
+      "items": [
+        {
+          "row": 328,
+          "type": "default",
+          "name": "Flexera Subscription for OpCos (Actual @US$51,250.99 charged by RCL)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "category": "C) Software",
+      "name": "Delinea PAM License (ref: IT250601) (New in FY26)",
+      "excel_row": 339,
+      "items": [
+        {
+          "row": 339,
+          "type": "default",
+          "name": "Delinea PAM License (ref: IT250601) (New in FY26)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "category": "D) Application System",
+      "name": "RightFax Solution *estimate 10% increment",
+      "excel_row": 348,
+      "items": [
+        {
+          "row": 349,
+          "type": "dash",
+          "name": "- RightFax Server for NT-274 (Incoming Meter Reading Faxes)",
+          "budget_us": 3497.435897435898,
+          "budget_hk": 27280.000000000004
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "category": "D) Application System",
+      "name": "LaserFiche (Budger @US$17,809)     ~Estimate 10% increment",
+      "excel_row": 354,
+      "items": [
+        {
+          "row": 355,
+          "type": "numbered",
+          "name": "2.1 LF (Budget @US$3,111)",
+          "budget_us": 3110.8,
+          "budget_hk": 24264.24
+        },
+        {
+          "row": 358,
+          "type": "numbered",
+          "name": "2.2 LF for CMIS & E-Form Project (Budget @US$14,698)",
+          "budget_us": 14698.2,
+          "budget_hk": 114645.96
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "category": "E) Network",
+      "name": "i) SonicWall",
+      "excel_row": 367,
+      "items": [
+        {
+          "row": 368,
+          "type": "letter",
+          "name": "a) SonicWall NSA4600 CGSS HA + Platinum Support *Stop maint. renewal on FY26",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 370,
+          "type": "letter",
+          "name": "b) SonicWall TZ-400 CGSS + Gold Support for DEMO section",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 372,
+          "type": "letter",
+          "name": "c) SonicWall TZ-600 CGSS + Platinum support (Setup in Apr/17 in One Kln C.Rm for ABW project)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 374,
+          "type": "letter",
+          "name": "d) SonicWall NSA2650 AGSS + Platinum Support  (for O365 Pjt)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 376,
+          "type": "letter",
+          "name": "e) SonicWall NSA2600 w/HA and Platinum Support (for HRA-SAP) Retired in 2023",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "category": "E) Network",
+      "name": "ii) Cisco Meraki Wireless Network + Switch Network H/W + License",
+      "excel_row": 379,
+      "items": [
+        {
+          "row": 382,
+          "type": "dash_c3",
+          "name": "- Cisco Meraki Wifi - Wireless Network Access Point H/W",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 383,
+          "type": "dash_c3",
+          "name": "- License Subscription (upgraded from Enterprise to Advance version)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 384,
+          "type": "dash_c3",
+          "name": "- CISCO Meraki MS250-24P to replace ASPC WH CISCO 2960X (item vi)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "category": "E) Network",
+      "name": "Fluke Networks - LinkRunner (Budget @HK$3,273) *Estimate 10% increment",
+      "excel_row": 389,
+      "items": [
+        {
+          "row": 389,
+          "type": "default",
+          "name": "Fluke Networks - LinkRunner (Budget @HK$3,273) *Estimate 10% increment",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "category": "E) Network",
+      "name": "CISCO Switches - 19 27 51 units @7x24 support *Estimate 10% increment",
+      "excel_row": 395,
+      "items": [
+        {
+          "row": 396,
+          "type": "letter",
+          "name": "i) One Kowloon",
+          "budget_us": 1774.6525641025642,
+          "budget_hk": 13842.29
+        },
+        {
+          "row": 399,
+          "type": "roman",
+          "name": "ii) RDC2 - 2 units",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 400,
+          "type": "roman",
+          "name": "iii) MTL - 1 units",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 401,
+          "type": "roman",
+          "name": "iv) APAC TGT DC - 6  units (cost @HK$9660 is included in item see #F.3.v)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 28,
+      "category": "E) Network",
+      "name": "ALLOT SSG-400 Appliance (Data World)  (Stop maintenance wef FY25)",
+      "excel_row": 406,
+      "items": [
+        {
+          "row": 407,
+          "type": "dash",
+          "name": "- RDC1 Internet and HK WAN Traffic Montior and Control (O365 Pjt, Purchaed in Jun/18)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 29,
+      "category": "E) Network",
+      "name": "VDI License Subscription  (Stop maintenance to all VDI wef FY25/FY26)",
+      "excel_row": 412,
+      "items": [
+        {
+          "row": 413,
+          "type": "numbered",
+          "name": "8.1 VDI MS WINVDAPerDvc (50 users)  (Susbscribed together with #8.2 for Feb-Jun 25)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 414,
+          "type": "numbered",
+          "name": "8.2 VDI MS WINVDAPerDvc (50 users)  (Susbscribed together with #8.1 for Feb-Jun 25)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 415,
+          "type": "numbered",
+          "name": "8.3 VMWare Horizon 7 Enterprise 50 users (Subscribed 3 yrs in Dec-22)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 416,
+          "type": "numbered",
+          "name": "8.4 VMWare Horizon 7 Enterprise 50 users for 3 yr (Subscribed 3 yrs in FY23)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 30,
+      "category": "G) Cloud",
+      "name": "RCI - MS Azure Cloud Services",
+      "excel_row": 427,
+      "items": [
+        {
+          "row": 428,
+          "type": "roman_upper",
+          "name": "I) RCI1 (Production)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 431,
+          "type": "dash_c3",
+          "name": "- Training Portal+RPA Automation+Experlogix+BabyShark+Soft4Leasing",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 435,
+          "type": "dash_c3",
+          "name": "- Kaseya & RicohPlus+SAP Router+SS to Cloud + B2B + AES + \n     AutoTest+FPS +AES+AI+MIA+Survey+PJ DRIVE",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 440,
+          "type": "roman_upper",
+          "name": "IV) RCI-Test HKT Subscrition (Charged in HKD)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 442,
+          "type": "dash_c3",
+          "name": "- Training Portal+Data Warehouse+PP+abx+FMS+MIA+CFA+CMIS+\nCS-functionAPP+INTG+",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 448,
+          "type": "roman_upper",
+          "name": "V) Managed Service (Charged by ROC qtrly @US$54,000)  *US$2,895 subject to PJ DRIVE",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 31,
+      "category": "G) Cloud",
+      "name": "Others",
+      "excel_row": 459,
+      "items": [
+        {
+          "row": 459,
+          "type": "default",
+          "name": "Others",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 32,
+      "category": "H) IT Security",
+      "name": "Network Security Testing Fee (i.e. Insight) (Budget @JPY256,960)",
+      "excel_row": 476,
+      "items": [
+        {
+          "row": 476,
+          "type": "default",
+          "name": "Network Security Testing Fee (i.e. Insight) (Budget @JPY256,960)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 33,
+      "category": "H) IT Security",
+      "name": "Qualys WAS 100 scans (Web Application Security Testing)  *Estimate +10%",
+      "excel_row": 487,
+      "items": [
+        {
+          "row": 487,
+          "type": "default",
+          "name": "Qualys WAS 100 scans (Web Application Security Testing)  *Estimate +10%",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 34,
+      "category": "H) IT Security",
+      "name": "Bitsight - Security Rating Service (Budget @US$35,826)",
+      "excel_row": 496,
+      "items": [
+        {
+          "row": 496,
+          "type": "default",
+          "name": "Bitsight - Security Rating Service (Budget @US$35,826)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 35,
+      "category": "H) IT Security",
+      "name": "Cloudflare Cloud Service (SaaS) for AP Region",
+      "excel_row": 507,
+      "items": [
+        {
+          "row": 507,
+          "type": "default",
+          "name": "Cloudflare Cloud Service (SaaS) for AP Region",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 36,
+      "category": "H) IT Security",
+      "name": "SASE Subscription",
+      "excel_row": 516,
+      "items": [
+        {
+          "row": 516,
+          "type": "default",
+          "name": "SASE Subscription",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 37,
+      "category": "H) IT Security",
+      "name": "Wazuh SIEM (Budget US$8,085)               Estimate 10% increment)",
+      "excel_row": 529,
+      "items": [
+        {
+          "row": 530,
+          "type": "dash",
+          "name": "- Wazuh Standard Support 200",
+          "budget_us": 518.2692307692308,
+          "budget_hk": 4042.5000000000005
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "category": "H) IT Security",
+      "name": "ROC Security Service (for Incident Mgt)  (Charged by ROC)",
+      "excel_row": 537,
+      "items": [
+        {
+          "row": 538,
+          "type": "dash",
+          "name": "- Service Desk for Incident Management @US$500/month",
+          "budget_us": 852.3076923076924,
+          "budget_hk": 6648
+        }
+      ]
+    },
+    {
+      "number": 39,
+      "category": "H) IT Security",
+      "name": "KnowBe4 Security Awareness Training Subscription (USD41,644.8)",
+      "excel_row": 545,
+      "items": [
+        {
+          "row": 546,
+          "type": "dash",
+          "name": "- Subscribe 3 years (Apr25 - Apr27) for 5,784 users @US$7.2/user/year",
+          "budget_us": 4975.2,
+          "budget_hk": 38806.56
+        },
+        {
+          "row": 547,
+          "type": "dash",
+          "name": "- 1st order - 5,388 users (IT250401)",
+          "budget_us": null,
+          "budget_hk": null
+        },
+        {
+          "row": 548,
+          "type": "dash",
+          "name": "- 2nd order - 396 users (IT250611)",
+          "budget_us": null,
+          "budget_hk": null
+        }
+      ]
+    },
+    {
+      "number": 40,
+      "category": "Z) Others",
+      "name": "RCI & ISMS Audit Service for OpCos",
+      "excel_row": 561,
+      "items": [
+        {
+          "row": 562,
+          "type": "numbered",
+          "name": "2.2 ISMS External Audits (by SGS)",
+          "budget_us": 5769.2307692307695,
+          "budget_hk": 45000
+        }
+      ]
+    }
+  ]
+}

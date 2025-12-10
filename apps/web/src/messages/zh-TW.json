@@ -159,6 +159,7 @@
       "expenses": "費用記錄",
       "omExpenses": "OM 費用",
       "omSummary": "OM 總覽",
+      "dataImport": "資料導入",
       "chargeOuts": "費用轉嫁",
       "operatingCompanies": "營運公司",
       "omExpenseCategories": "費用類別",
@@ -179,6 +180,7 @@
       "expenses": "費用發票與核銷",
       "omExpenses": "操作與維護費用管理",
       "omSummary": "O&M 費用總覽和分析",
+      "dataImport": "批量導入 OM 費用資料",
       "chargeOuts": "ChargeOut 費用轉嫁管理",
       "operatingCompanies": "營運公司管理",
       "omExpenseCategories": "OM 費用類別管理",
@@ -1934,6 +1936,19 @@
         "totalBudget": "總預算",
         "totalActualSpent": "總實際支出"
       },
+      "viewMode": {
+        "card": "卡片視圖",
+        "list": "列表視圖"
+      },
+      "table": {
+        "name": "名稱",
+        "category": "類別",
+        "opCo": "營運公司",
+        "budget": "預算",
+        "actualSpent": "實際支出",
+        "utilizationRate": "使用率",
+        "items": "項目數"
+      },
       "pagination": {
         "previous": "上一頁",
         "next": "下一頁",
@@ -1945,6 +1960,20 @@
         "createFirst": "創建第一筆 OM 費用",
         "notFound": "找不到 OM 費用",
         "notFoundButton": "返回列表"
+      },
+      "batchActions": {
+        "selected": "已選擇 {count} 筆記錄",
+        "delete": "刪除所選",
+        "selectAll": "全選",
+        "deselectAll": "取消全選",
+        "deleteSuccess": "成功刪除 {count} 筆記錄",
+        "deleteError": "刪除記錄失敗"
+      },
+      "deleteDialog": {
+        "title": "確認刪除",
+        "message": "確定要刪除 {count} 筆 OM 費用記錄嗎？此操作無法撤銷。",
+        "confirm": "刪除",
+        "cancel": "取消"
       }
     },
     "new": {
@@ -2917,6 +2946,241 @@
     },
     "table": {
       "noResults": "沒有找到結果"
+    }
+  },
+  "dataImport": {
+    "title": "資料導入",
+    "description": "批量導入 OM 費用資料",
+    "tabs": {
+      "excel": "Excel 檔案",
+      "json": "JSON 資料"
+    },
+    "form": {
+      "title": "導入設定",
+      "description": "支援 Excel (.xlsx) 或 JSON 格式檔案",
+      "financialYear": {
+        "label": "財務年度",
+        "placeholder": "選擇年度"
+      },
+      "excel": {
+        "dropzone": "點擊或拖放 Excel 檔案到此處",
+        "supportedFormats": "支援 .xlsx, .xls 格式",
+        "selected": "已選擇: {filename}"
+      },
+      "jsonFile": {
+        "label": "JSON 資料檔案",
+        "placeholder": "選擇或拖放 JSON 檔案",
+        "hint": "檔案必須符合導入格式規範"
+      },
+      "jsonText": {
+        "label": "JSON 資料",
+        "placeholder": "在此貼上 JSON 資料，或上傳檔案",
+        "hint": "支援直接輸入 JSON 陣列資料"
+      }
+    },
+    "preview": {
+      "title": "資料預覽",
+      "totalItems": "總筆數",
+      "validItems": "有效資料",
+      "headers": "表頭",
+      "opCos": "營運公司",
+      "categories": "類別",
+      "items": "項目",
+      "noData": "上傳檔案後顯示預覽",
+      "andMore": "... 還有 {count} 個",
+      "showAll": "顯示全部 {count} 個",
+      "collapse": "收合",
+      "loadMore": "載入更多",
+      "showing": "顯示 {current} / {total}"
+    },
+    "statistics": {
+      "title": "解析統計",
+      "totalRows": "總行數",
+      "validItems": "有效資料",
+      "skippedRows": "跳過行數",
+      "errorRows": "問題行數",
+      "duplicateRows": "重複行數",
+      "uniqueHeaders": "表頭數",
+      "uniqueOpCos": "營運公司數",
+      "uniqueCategories": "類別數"
+    },
+    "headersPreview": {
+      "title": "OM 費用表頭",
+      "name": "表頭名稱",
+      "category": "類別",
+      "description": "描述",
+      "itemCount": "項目數",
+      "status": "狀態",
+      "statusNew": "新建",
+      "statusExisting": "已存在",
+      "showAll": "顯示全部 {count} 個",
+      "collapse": "收合"
+    },
+    "itemsPreview": {
+      "title": "OM 費用項目明細",
+      "rowNumber": "#",
+      "headerName": "表頭",
+      "headerDescription": "表頭描述",
+      "itemName": "項目名稱",
+      "itemDescription": "項目描述",
+      "opCoName": "營運公司",
+      "category": "類別",
+      "budgetAmount": "預算",
+      "endDate": "結束日期",
+      "status": "狀態",
+      "statusValid": "有效",
+      "statusError": "錯誤",
+      "statusDuplicate": "重複",
+      "showing": "顯示 {current} / {total}",
+      "loadMore": "載入更多",
+      "showLess": "收合"
+    },
+    "errorRows": {
+      "title": "有問題的數據行",
+      "rowNumber": "行號",
+      "field": "問題欄位",
+      "reason": "原因",
+      "rawValue": "原始值",
+      "empty": "沒有發現錯誤"
+    },
+    "duplicateRows": {
+      "title": "重複數據行",
+      "rowNumber": "行號",
+      "headerName": "表頭",
+      "itemName": "項目",
+      "itemDescription": "項目描述",
+      "category": "類別",
+      "opCoName": "營運公司",
+      "budgetAmount": "預算金額",
+      "duplicateOf": "重複於第",
+      "empty": "沒有發現重複"
+    },
+    "errors": {
+      "noWorksheet": "Excel 檔案沒有工作表",
+      "cantReadWorksheet": "無法讀取工作表內容",
+      "noDataRows": "Excel 檔案沒有資料列",
+      "missingHeader": "第 {row} 列: 缺少 Header 名稱",
+      "missingCategory": "第 {row} 列: 缺少類別",
+      "missingItemName": "第 {row} 列: 缺少項目名稱",
+      "missingOpCo": "第 {row} 列: 缺少 OpCo 名稱",
+      "noValidRows": "沒有有效的資料列",
+      "parseError": "解析 Excel 檔案失敗: {error}",
+      "readError": "讀取檔案失敗",
+      "invalidExcelFormat": "請上傳 Excel 檔案 (.xlsx 或 .xls)",
+      "invalidFileFormat": "請上傳 Excel (.xlsx) 或 JSON (.json) 檔案",
+      "unknownError": "未知錯誤"
+    },
+    "messages": {
+      "parseSuccess": "成功解析 {count} 筆資料",
+      "duplicatesRemoved": "，移除 {duplicates} 筆重複",
+      "errorsFound": "，{errors} 筆錯誤"
+    },
+    "empty": {
+      "title": "尚未上傳資料",
+      "description": "請在左側上傳 Excel 或 JSON 檔案"
+    },
+    "result": {
+      "success": {
+        "title": "導入成功",
+        "message": "資料導入完成"
+      },
+      "error": {
+        "title": "導入失敗",
+        "message": "導入過程中發生錯誤"
+      },
+      "statistics": {
+        "title": "導入統計",
+        "totalItems": "總筆數",
+        "createdOpCos": "新建營運公司",
+        "createdCategories": "新建費用類別",
+        "createdHeaders": "新建表頭",
+        "createdItems": "新建項目",
+        "createdMonthlyRecords": "月度記錄",
+        "skippedDuplicates": "跳過 (已存在)"
+      },
+      "details": {
+        "title": "導入詳情",
+        "opCos": "建立的營運公司",
+        "headers": "建立的表頭"
+      },
+      "duplicate": {
+        "title": "發現重複項目",
+        "message": "已存在相同表頭名稱、項目名稱和營運公司的項目",
+        "headerName": "表頭名稱",
+        "itemName": "項目名稱",
+        "opCoName": "營運公司"
+      }
+    },
+    "validation": {
+      "invalidJson": "無效的 JSON 格式",
+      "emptyData": "導入資料不可為空",
+      "missingFields": "缺少必填欄位",
+      "invalidFinancialYear": "無效的財務年度"
+    },
+    "actions": {
+      "selectFile": "選擇檔案",
+      "validate": "驗證資料",
+      "import": "導入",
+      "importing": "導入中...",
+      "cancel": "取消",
+      "retry": "重試",
+      "back": "返回",
+      "uploadJson": "上傳 JSON",
+      "clear": "清除",
+      "confirmImport": "確認導入 {count} 筆資料",
+      "reupload": "重新上傳",
+      "importAnother": "再次導入",
+      "viewOMExpenses": "查看 OM 費用"
+    },
+    "excelFormat": {
+      "title": "Excel 欄位對應說明",
+      "description": "Excel 檔案的欄位順序必須符合以下格式",
+      "columns": {
+        "field": "欄位",
+        "excelColumn": "Excel 欄位",
+        "description": "說明",
+        "required": "必填"
+      },
+      "fields": {
+        "headerName": "Header 名稱",
+        "headerDesc": "Header 描述",
+        "itemName": "項目名稱",
+        "itemDesc": "項目描述",
+        "category": "類別",
+        "budgetAmount": "預算金額",
+        "opCoName": "OpCo 名稱",
+        "endDate": "結束日期",
+        "lastFYActual": "去年實際費用"
+      },
+      "desc": {
+        "headerName": "OM 費用表頭名稱",
+        "headerDesc": "表頭描述說明",
+        "itemName": "明細項目名稱",
+        "itemDesc": "項目描述說明",
+        "category": "費用類別",
+        "budgetAmount": "預算金額 (USD)",
+        "opCoName": "營運公司名稱",
+        "endDate": "維護到期日",
+        "lastFYActual": "上一財年實際費用"
+      },
+      "required": {
+        "yes": "是",
+        "no": "否",
+        "default0": "否 (預設 0)"
+      },
+      "notes": {
+        "title": "注意事項：",
+        "skipHeader": "第一列為標題列，會自動跳過",
+        "removeDuplicates": "重複項目（Header + Item + OpCo 相同）會自動移除",
+        "skipEmpty": "空白列會自動忽略",
+        "autoCreateOpCo": "OpCo 不存在時會自動建立",
+        "autoCreateHeader": "Header 不存在時會自動建立（需要指定類別）"
+      }
+    },
+    "steps": {
+      "upload": "上傳檔案",
+      "preview": "預覽確認",
+      "result": "導入結果"
     }
   },
   "errors": {

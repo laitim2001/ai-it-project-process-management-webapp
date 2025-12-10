@@ -256,12 +256,12 @@ export function OMSummaryFilters({
     });
   };
 
-  // 轉換 OpCo 選項格式
+  // 轉換 OpCo 選項格式（只顯示名稱）
   const opCoSelectOptions = React.useMemo(
     () =>
       opCoOptions.map((o) => ({
         value: o.id,
-        label: `${o.code} - ${o.name}`,
+        label: o.name,
       })),
     [opCoOptions]
   );
