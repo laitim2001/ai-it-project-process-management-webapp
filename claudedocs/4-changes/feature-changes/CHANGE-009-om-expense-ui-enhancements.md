@@ -44,9 +44,13 @@
 - [x] 要求 3: Basic Info Default OpCo 只顯示 company name
 
 ### Phase 2: 測試驗證
-- [ ] 測試點擊 Item Name 可開啟編輯對話框
-- [ ] 測試 Line Items 的 OpCo 欄位顯示 company name
-- [ ] 測試 Basic Info 的 Default OpCo 只顯示一行 company name
+- [x] 測試點擊 Item Name 可開啟編輯對話框
+- [x] 測試 Line Items 的 OpCo 欄位顯示 company name
+- [x] 測試 Basic Info 的 Default OpCo 只顯示一行 company name
+
+### 問題修復
+- [x] **問題**: 缺少 `omExpenses.items.clickToEdit` 翻譯鍵導致 IntlError
+- [x] **修正**: 添加翻譯鍵到 `en.json` 和 `zh-TW.json`
 
 ## 技術實現細節
 
