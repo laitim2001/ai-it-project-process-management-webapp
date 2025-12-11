@@ -386,8 +386,10 @@ export default function DataImportPage() {
           }
 
           // CHANGE-010: lastFYActualExpense 默認值改為 0 而非 null
-          const lastFYActualExpense = row.length > EXCEL_COLUMN_MAP.lastFYActualExpense
-            ? safeFloat(row[EXCEL_COLUMN_MAP.lastFYActualExpense], 0)
+          // 修正：使用更安全的方式讀取 Column N (FY25 Actual OM Expense Charges)
+          const rawLastFYActual = row[EXCEL_COLUMN_MAP.lastFYActualExpense];
+          const lastFYActualExpense = rawLastFYActual !== undefined && rawLastFYActual !== null && rawLastFYActual !== ''
+            ? safeFloat(rawLastFYActual, 0)
             : 0;
 
           // 驗證必填欄位
@@ -713,6 +715,7 @@ export default function DataImportPage() {
         opCoName: item.opCoName,
         endDate: item.endDate,
         lastFYActualExpense: item.lastFYActualExpense,
+        isOngoing: item.isOngoing ?? false, // CHANGE-011: 持續進行中標記
       })),
     });
   }, [parseResult, financialYear, importMutation, toast, t]);
