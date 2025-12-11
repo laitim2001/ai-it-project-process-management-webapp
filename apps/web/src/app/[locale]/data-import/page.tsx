@@ -142,17 +142,30 @@ interface ParseResult {
 // 頁面狀態
 type ImportStep = 'upload' | 'preview' | 'result';
 
-// Excel 欄位映射配置
+// Excel 欄位映射配置 (基於 OM Expense and Detail import data - v5.xlsx)
+// A(0): #
+// B(1): OM Expense Header
+// C(2): OM Expense Description
+// D(3): OM Expense Item Details
+// E(4): OM Expense Item Details Description
+// F(5): Expense Category
+// G(6): FY26 OM Expense Budget Amount (USD)
+// H(7): FY26 OM Expense Budget Amount (HKD)
+// I(8): Increment (%) Compare to FY25
+// J(9): Charge to OpCos
+// K(10): FY25 Actual OM Expense Charges
+// L(11): FY26 Actual OM Expense Charges
+// M(12): OM Expense End Date
 const EXCEL_COLUMN_MAP = {
-  headerName: 1,      // Column B
-  headerDescription: 2, // Column C
-  itemName: 3,        // Column D
-  itemDescription: 4, // Column E
-  category: 5,        // Column F
-  budgetAmount: 6,    // Column G (USD)
-  opCoName: 9,        // Column J
-  endDate: 12,        // Column M
-  lastFYActualExpense: 13, // Column N (if exists)
+  headerName: 1,           // Column B: OM Expense Header
+  headerDescription: 2,    // Column C: OM Expense Description
+  itemName: 3,             // Column D: OM Expense Item Details
+  itemDescription: 4,      // Column E: OM Expense Item Details Description
+  category: 5,             // Column F: Expense Category
+  budgetAmount: 6,         // Column G: FY26 OM Expense Budget Amount (USD)
+  opCoName: 9,             // Column J: Charge to OpCos
+  lastFYActualExpense: 10, // Column K: FY25 Actual OM Expense Charges
+  endDate: 12,             // Column M: OM Expense End Date
 };
 
 // ============================================================================
