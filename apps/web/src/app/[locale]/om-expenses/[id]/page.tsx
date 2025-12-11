@@ -304,6 +304,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       actualSpent: item.actualSpent,
       opCoId: item.opCoId,
       currencyId: item.currencyId,
+      // CHANGE-008: 包含 lastFYActualExpense 以便 Edit Item 可以正確顯示和保存
+      lastFYActualExpense: item.lastFYActualExpense,
       // Convert Date to ISO string
       startDate: item.startDate ? new Date(item.startDate).toISOString() : null,
       endDate: new Date(item.endDate).toISOString(),

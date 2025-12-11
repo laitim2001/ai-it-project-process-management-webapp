@@ -316,6 +316,7 @@ export default function OMExpenseItemForm({
         />
 
         {/* Description */}
+        {/* CHANGE-008: 改為 5 行且可調整大小 */}
         <FormField
           control={form.control}
           name="description"
@@ -325,8 +326,8 @@ export default function OMExpenseItemForm({
               <FormControl>
                 <Textarea
                   placeholder={t('form.fields.description.placeholder')}
-                  className="resize-none"
-                  rows={2}
+                  className="resize-y min-h-[120px]"
+                  rows={5}
                   {...field}
                   value={field.value || ''}
                 />
