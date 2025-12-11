@@ -500,7 +500,13 @@ export default function OMExpenseItemForm({
               <FormControl>
                 <Checkbox
                   checked={field.value}
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    // CHANGE-011: 當勾選 isOngoing 時，清空 endDate
+                    if (checked === true) {
+                      form.setValue('endDate', '');
+                    }
+                  }}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">

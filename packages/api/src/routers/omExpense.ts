@@ -1128,8 +1128,13 @@ export const omExpenseRouter = createTRPCRouter({
         }
       }
 
-      // 驗證日期邏輯
-      if (updateData.startDate || updateData.endDate) {
+      // CHANGE-011: 判斷最終的 isOngoing 狀態
+      const finalIsOngoing = updateData.isOngoing !== undefined
+        ? updateData.isOngoing
+        : existingItem.isOngoing;
+
+      // 驗證日期邏輯（僅在 isOngoing=false 時驗證 endDate）
+      if (!finalIsOngoing && (updateData.startDate || updateData.endDate)) {
         const startDate = updateData.startDate
           ? new Date(updateData.startDate)
           : existingItem.startDate;
@@ -1137,7 +1142,7 @@ export const omExpenseRouter = createTRPCRouter({
           ? new Date(updateData.endDate)
           : existingItem.endDate;
 
-        if (startDate && startDate >= endDate) {
+        if (startDate && endDate && startDate >= endDate) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: '結束日期必須晚於開始日期',
@@ -1165,8 +1170,21 @@ export const omExpenseRouter = createTRPCRouter({
         dataToUpdate.startDate = updateData.startDate
           ? new Date(updateData.startDate)
           : null;
-      if (updateData.endDate !== undefined)
-        dataToUpdate.endDate = new Date(updateData.endDate);
+
+      // CHANGE-011: 處理 isOngoing 和 endDate
+      if (updateData.isOngoing !== undefined) {
+        dataToUpdate.isOngoing = updateData.isOngoing;
+        // 當 isOngoing=true 時，清空 endDate
+        if (updateData.isOngoing === true) {
+          dataToUpdate.endDate = null;
+        }
+      }
+      // 只有在 isOngoing=false 時才更新 endDate
+      if (updateData.endDate !== undefined && !finalIsOngoing) {
+        dataToUpdate.endDate = updateData.endDate
+          ? new Date(updateData.endDate)
+          : null;
+      }
 
       // 使用 transaction 更新
       await ctx.prisma.$transaction(async (tx) => {
