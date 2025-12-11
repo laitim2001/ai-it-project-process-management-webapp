@@ -16,12 +16,17 @@
 - **變更**: Description textarea 從 2 行固定大小改為 5 行可調整大小
 - **修正**: `className="resize-none" rows={2}` → `className="resize-y min-h-[120px]" rows={5}`
 
+### 問題 2: Basic Info Description 換行未保留
+- **頁面**: `/om-expenses/{id}` → Basic Information → Description
+- **現象**: Description 中的換行符號 `\n` 沒有被渲染，文字全擠在一起
+- **修正**: 添加 `whitespace-pre-wrap` CSS 類別保留換行
+
 ## 影響範圍
 
 ### 修改文件
 | 文件 | 變更 |
 |------|------|
-| `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` | transformedItems 添加 lastFYActualExpense |
+| `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` | transformedItems 添加 lastFYActualExpense + Description whitespace-pre-wrap |
 | `apps/web/src/components/om-expense/OMExpenseItemForm.tsx` | Description textarea resize-y + rows=5 |
 
 ### API 變更
@@ -32,10 +37,12 @@
 ### Phase 1: 修正
 - [x] 問題 1: 在 transformedItems 中添加 lastFYActualExpense
 - [x] 要求 1: Description textarea 改為可調整大小 (5 行)
+- [x] 問題 2: Basic Info Description 添加 whitespace-pre-wrap
 
 ### Phase 2: 測試驗證
-- [ ] 本地測試 lastFYActualExpense 保存和讀取
-- [ ] 本地測試 Description textarea 調整大小功能
+- [x] 本地測試 lastFYActualExpense 保存和讀取
+- [x] 本地測試 Description textarea 調整大小功能
+- [x] 本地測試 Description 換行顯示
 
 ## 相關文檔
 - CHANGE-006: OM Expense UI 增強 (lastFYActualExpense 編輯欄位首次添加)

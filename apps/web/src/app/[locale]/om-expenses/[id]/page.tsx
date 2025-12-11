@@ -432,7 +432,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               {omExpense.description && (
                 <div>
                   <div className="text-sm text-muted-foreground">{t('detail.description')}</div>
-                  <div className="mt-1 text-sm">{omExpense.description}</div>
+                  {/* CHANGE-008: 添加 whitespace-pre-wrap 保留換行符號 */}
+                  <div className="mt-1 text-sm whitespace-pre-wrap">{omExpense.description}</div>
                 </div>
               )}
 
