@@ -221,6 +221,14 @@ export default function DataImportPage() {
   const formatDate = (value: unknown): string | null => {
     if (value === null || value === undefined || value === '') return null;
 
+    // Date 對象格式（Excel 解析有時會返回 Date 對象）
+    if (value instanceof Date) {
+      if (!isNaN(value.getTime())) {
+        return value.toISOString().split('T')[0] ?? null;
+      }
+      return null;
+    }
+
     // Excel 日期是數字格式
     if (typeof value === 'number') {
       const date = XLSX.SSF.parse_date_code(value);
