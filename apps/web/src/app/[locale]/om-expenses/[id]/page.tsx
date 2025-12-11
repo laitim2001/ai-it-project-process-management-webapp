@@ -448,6 +448,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               </div>
 
               {/* FEAT-007: Show default OpCo if set */}
+              {/* CHANGE-009: 只用 Badge 樣式顯示 company name */}
               {omExpense.defaultOpCo && (
                 <div>
                   <div className="text-sm text-muted-foreground">
@@ -455,22 +456,21 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                   </div>
                   <div className="mt-1">
                     <Badge variant="outline" className="font-mono">
-                      {omExpense.defaultOpCo.code}
+                      {omExpense.defaultOpCo.name}
                     </Badge>
-                    <div className="mt-1 text-sm">{omExpense.defaultOpCo.name}</div>
                   </div>
                 </div>
               )}
 
               {/* Legacy OpCo display for backward compatibility */}
+              {/* CHANGE-009: 只用 Badge 樣式顯示 company name */}
               {!omExpense.defaultOpCo && omExpense.opCo && (
                 <div>
                   <div className="text-sm text-muted-foreground">{t('detail.opCo')}</div>
                   <div className="mt-1">
                     <Badge variant="outline" className="font-mono">
-                      {omExpense.opCo.code}
+                      {omExpense.opCo.name}
                     </Badge>
-                    <div className="mt-1 text-sm">{omExpense.opCo.name}</div>
                   </div>
                 </div>
               )}

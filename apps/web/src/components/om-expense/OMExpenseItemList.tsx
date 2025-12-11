@@ -260,10 +260,16 @@ function SortableRow({
         {index + 1}
       </TableCell>
 
-      {/* Item Name */}
+      {/* Item Name - CHANGE-009: 點擊 Item Name 可直接編輯 */}
       <TableCell className="font-medium">
         <div>
-          <div>{item.name}</div>
+          <button
+            onClick={onEdit}
+            className="text-left hover:text-primary hover:underline cursor-pointer transition-colors"
+            title={t('items.clickToEdit', { defaultValue: '點擊編輯' })}
+          >
+            {item.name}
+          </button>
           {item.description && (
             <div className="text-sm text-muted-foreground truncate max-w-[200px]">
               {item.description}
@@ -272,10 +278,10 @@ function SortableRow({
         </div>
       </TableCell>
 
-      {/* OpCo */}
+      {/* OpCo - CHANGE-009: 改為顯示 company name */}
       <TableCell>
         <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-          {item.opCo?.code || '-'}
+          {item.opCo?.name || '-'}
         </span>
       </TableCell>
 
