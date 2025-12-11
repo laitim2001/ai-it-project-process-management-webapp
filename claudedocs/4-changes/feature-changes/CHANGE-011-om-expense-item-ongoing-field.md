@@ -121,11 +121,11 @@ const newItem = await tx.oMExpenseItem.create({
 - [x] 修改 endDate 驗證邏輯 (空值 → isOngoing=true)
 - [x] 保留格式錯誤報錯邏輯
 
-### Phase 5: 測試驗證
-- [ ] 測試 On-Going checkbox 功能
-- [ ] 測試空白 End Date 導入時 isOngoing = true
-- [ ] 測試有效 End Date 導入
-- [ ] 測試無效格式 End Date 報錯
+### Phase 5: 測試驗證 ✅
+- [x] 測試 On-Going checkbox 功能
+- [x] 測試空白 End Date 導入時 isOngoing = true
+- [x] 測試有效 End Date 導入
+- [x] 測試無效格式 End Date 報錯
 
 ## 實作記錄
 
@@ -144,6 +144,36 @@ const newItem = await tx.oMExpenseItem.create({
 - ✅ i18n 驗證通過 (2285 個鍵，結構一致)
 - ⚠️ TypeScript 錯誤為預先存在問題，非 CHANGE-011 引起
 
+### 2025-12-11 測試發現問題並修復
+
+**問題 1: isOngoing 保存無效**
+- 現象: 勾選 On-Going 並保存後，重新開啟 item detail 時未選中
+- 原因: `updateItem` API procedure 未處理 isOngoing 欄位
+- 修復: 更新 `omExpense.ts` updateItem 邏輯
+  - 新增 isOngoing 到 dataToUpdate
+  - 當 isOngoing=true 時自動清空 endDate
+  - 修正日期驗證邏輯考慮 isOngoing 狀態
+- Commit: `b349192`
+
+**問題 2: 日期格式解析錯誤**
+- 現象: Data import 時所有日期驗證失敗
+- 錯誤: "Invalid end date format: Thu Jul 30 2026 00:00:00 GMT+0000"
+- 原因: `formatDate` 函數未處理 JavaScript Date 對象
+- 修復: 新增 `if (value instanceof Date)` 處理
+- Commit: `9506345`
+
+**問題 3: isOngoing 未傳遞到 API**
+- 現象: Data import 時空 endDate 的項目沒有設定 isOngoing=true
+- 原因: 前端 mutation payload 未包含 isOngoing 欄位
+- 修復: 在 map 函數中新增 `isOngoing: item.isOngoing ?? false`
+- Commit: `2fec107`
+
+**問題 4: lastFYActualExpense 欄位映射錯誤**
+- 現象: FY25 Actual OM Expense Charges 數據未導入
+- 原因: EXCEL_COLUMN_MAP 映射到錯誤的欄位 (index 13 而非 10)
+- 修復: 修正 `lastFYActualExpense: 10` (Column K)
+- Commit: `c401f51`
+
 ## 相關文檔
 - CHANGE-010: Data Import 增強 (日期驗證與欄位默認值)
 - FEAT-007: OM Expense 表頭-明細架構重構
@@ -152,5 +182,15 @@ const newItem = await tx.oMExpenseItem.create({
 
 **創建日期**: 2025-12-11
 **完成日期**: 2025-12-11
-**狀態**: ✅ 實作完成 (待測試)
+**狀態**: ✅ 已完成並測試通過
 **優先級**: 高
+
+## Git Commits
+
+| Commit | 描述 |
+|--------|------|
+| `9ff6d8c` | feat(om-expense): CHANGE-011 新增 isOngoing 持續進行中欄位 |
+| `b349192` | fix(om-expense): CHANGE-011 修復 isOngoing 保存和清空 endDate |
+| `9506345` | fix(data-import): 修復 Date 對象格式的日期解析 |
+| `2fec107` | fix(data-import): CHANGE-011 修復 isOngoing 和 lastFYActualExpense 傳遞 |
+| `c401f51` | fix(data-import): 修正 EXCEL_COLUMN_MAP lastFYActualExpense 欄位映射 |

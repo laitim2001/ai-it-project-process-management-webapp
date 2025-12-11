@@ -134,11 +134,16 @@ const newItem = await tx.oMExpenseItem.create({
 - [x] 要求1: lastFYActualExpense API 默認值改為 0
 - [x] 要求2: 查詢 USD currency 並設定 currencyId
 
-### Phase 3: 測試驗證
-- [ ] 測試空白 endDate 報錯
-- [ ] 測試無效格式 endDate 報錯
-- [ ] 測試 lastFYActualExpense 空值時為 0
-- [ ] 測試 currencyId 默認為 USD
+### Phase 3: 欄位映射修正 (2025-12-11 補充)
+- [x] 修正 EXCEL_COLUMN_MAP 中 lastFYActualExpense 欄位映射
+  - 錯誤: index 13 (Column N)
+  - 正確: index 10 (Column K: "FY25 Actual OM Expense Charges")
+
+### Phase 4: 測試驗證
+- [x] 測試空白 endDate 報錯 (已改為 CHANGE-011 isOngoing=true)
+- [x] 測試無效格式 endDate 報錯
+- [x] 測試 lastFYActualExpense 空值時為 0
+- [x] 測試 currencyId 默認為 USD
 
 ## 相關文檔
 - CHANGE-008: OM Expense Item 修正 (lastFYActualExpense 保存問題)
@@ -148,5 +153,14 @@ const newItem = await tx.oMExpenseItem.create({
 ---
 
 **創建日期**: 2025-12-11
-**狀態**: ✅ 已完成（待測試驗證）
+**完成日期**: 2025-12-11
+**狀態**: ✅ 已完成並測試通過
 **優先級**: 高（數據完整性）
+
+## 實作記錄
+
+### 2025-12-11 補充修正
+- 發現 EXCEL_COLUMN_MAP 中 lastFYActualExpense 欄位映射錯誤
+- 經實際檢查 Excel 檔案，Column K (index 10) 才是 "FY25 Actual OM Expense Charges"
+- 原本錯誤映射到 index 13 (Column N)
+- 已在 commit `c401f51` 中修正

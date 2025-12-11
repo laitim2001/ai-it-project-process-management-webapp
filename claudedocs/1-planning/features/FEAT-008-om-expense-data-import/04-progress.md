@@ -1,8 +1,8 @@
 # FEAT-008: OM Expense 資料導入 - 開發進度
 
 > **建立日期**: 2025-12-09
-> **最後更新**: 2025-12-10
-> **狀態**: ✅ v1.2 開發完成
+> **最後更新**: 2025-12-11
+> **狀態**: ✅ v1.3 開發完成 (含 CHANGE-010, CHANGE-011 增強)
 
 ---
 
@@ -24,6 +24,12 @@
 - [x] Phase 8: 後端重複檢測邏輯修正 (6 欄位完整唯一鍵)
 - [x] Phase 9: 前端註解同步更新
 - [x] Phase 10: Transaction 超時修復 (5 秒 → 5 分鐘)
+
+### v1.3 CHANGE-010/011 增強 (已完成)
+- [x] Phase 11: 日期驗證增強 (CHANGE-010)
+- [x] Phase 12: isOngoing 欄位支援 (CHANGE-011)
+- [x] Phase 13: lastFYActualExpense 欄位映射修正
+- [x] Phase 14: Date 對象格式解析支援
 
 ---
 
@@ -267,3 +273,43 @@
 - [03-implementation-plan.md](./03-implementation-plan.md) - 實施計劃
 - [05-enhancements.md](./05-enhancements.md) - v1.1 改進需求 (NEW)
 - [docs/import-data-analysis.json](../../../../docs/import-data-analysis.json) - 導入資料分析結果
+- [CHANGE-010](../../../4-changes/feature-changes/CHANGE-010-data-import-enhancements.md) - Data Import 日期驗證增強
+- [CHANGE-011](../../../4-changes/feature-changes/CHANGE-011-om-expense-item-ongoing-field.md) - isOngoing 欄位支援
+
+---
+
+## 📝 v1.3 開發日誌 (2025-12-11)
+
+### CHANGE-010: Data Import 增強
+**完成項目:**
+- 日期驗證邏輯增強
+- lastFYActualExpense 默認值設定
+- currencyId 默認為 USD
+
+**補充修正:**
+- 修正 EXCEL_COLUMN_MAP 中 lastFYActualExpense 欄位映射
+  - 錯誤: index 13 (Column N)
+  - 正確: index 10 (Column K: "FY25 Actual OM Expense Charges")
+
+### CHANGE-011: isOngoing 欄位支援
+**完成項目:**
+- 新增 OMExpenseItem.isOngoing 欄位
+- 前端 Checkbox UI 和條件式驗證
+- Data import 邏輯: 空 endDate → isOngoing=true
+- updateItem API 支援 isOngoing 處理
+
+**測試發現並修復的問題:**
+1. isOngoing 保存無效 → 修復 updateItem procedure
+2. Date 對象格式解析錯誤 → 新增 instanceof Date 處理
+3. isOngoing 未傳遞到 API → 新增 mutation payload 欄位
+4. lastFYActualExpense 欄位映射錯誤 → 修正 index
+
+### Git Commits (v1.3)
+| Commit | 描述 |
+|--------|------|
+| `11cb3c4` | feat(data-import): CHANGE-010 Data Import 增強 |
+| `9ff6d8c` | feat(om-expense): CHANGE-011 新增 isOngoing 持續進行中欄位 |
+| `b349192` | fix(om-expense): CHANGE-011 修復 isOngoing 保存和清空 endDate |
+| `9506345` | fix(data-import): 修復 Date 對象格式的日期解析 |
+| `2fec107` | fix(data-import): CHANGE-011 修復 isOngoing 和 lastFYActualExpense 傳遞 |
+| `c401f51` | fix(data-import): 修正 EXCEL_COLUMN_MAP lastFYActualExpense 欄位映射 |

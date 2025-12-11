@@ -4,7 +4,7 @@
 > **更新頻率**: 每次新增/移除重要文件時立即更新
 > **維護指南**: 參考 `INDEX-MAINTENANCE-GUIDE.md`
 
-**最後更新**: 2025-12-08 (FEAT-007 OM Expense 重構 + CHANGE-004 OM Summary 完成)
+**最後更新**: 2025-12-11 (CHANGE-010/011 Data Import 增強 + isOngoing 欄位支援)
 
 ---
 
@@ -399,12 +399,13 @@
 
 > **用途**: 每週報告、每日日誌、里程碑記錄
 > **頻率**: 每週更新
-> **最新**: 2025-W47 (FEAT-001 Phase 5-6 完成 - 100% 交付)
+> **最新**: 2025-W50 (CHANGE-010/011 完成 - Data Import + isOngoing 增強)
 
 | 文件名稱 | 路徑 | 說明 | 重要性 |
 |---------|------|------|--------|
-| **本週進度** | `claudedocs/3-progress/weekly/2025-W49.md` | 2025-W49 每週進度報告（FEAT-007 OM Expense 重構 + Bug Fixes） | 🔴 極高 |
-| **上週進度** | `claudedocs/3-progress/weekly/2025-W48.md` | 2025-W48 每週進度報告（FEAT-007 Phase 1-5） | 🟡 高 |
+| **本週進度** | `claudedocs/3-progress/weekly/2025-W50.md` | 2025-W50 每週進度報告（CHANGE-010/011 Data Import + isOngoing） | 🔴 極高 |
+| **W49 進度** | `claudedocs/3-progress/weekly/2025-W49.md` | 2025-W49 每週進度報告（FEAT-007 OM Expense 重構 + Bug Fixes） | 🟡 高 |
+| **W48 進度** | `claudedocs/3-progress/weekly/2025-W48.md` | 2025-W48 每週進度報告（FEAT-007 Phase 1-5） | 🟢 中 |
 | **上次進度摘要** | `claudedocs/3-progress/daily/2025-11/2025-11-14-progress-summary.md` | 2025-11-14 進度保存摘要（SITUATION-5 完整報告） | 🟡 高 |
 
 #### 🔄 4. 變更記錄 (4-changes/)
@@ -556,6 +557,7 @@
 | **OMExpenseCategory 編輯** | `apps/web/src/app/[locale]/om-expense-categories/[id]/edit/page.tsx` | OM 費用類別編輯頁面 | 🟡 高 |
 | **OMExpenseCategory 新增** | `apps/web/src/app/[locale]/om-expense-categories/new/page.tsx` | OM 費用類別新增頁面 | 🟡 高 |
 | **OM Summary** | `apps/web/src/app/[locale]/om-summary/page.tsx` | OM Summary 報表頁面（CHANGE-004 三層階層顯示） | 🔴 極高 |
+| **Data Import** | `apps/web/src/app/[locale]/data-import/page.tsx` | 資料導入頁面（FEAT-008 Excel/JSON 導入支援） | 🔴 極高 |
 | **Operating Companies 列表** | `apps/web/src/app/[locale]/operating-companies/page.tsx` | 營運公司列表頁面 | 🟡 高 |
 | **Operating Companies 詳情** | `apps/web/src/app/[locale]/operating-companies/[id]/page.tsx` | 營運公司詳情頁面 | 🟡 高 |
 | **Operating Companies 編輯** | `apps/web/src/app/[locale]/operating-companies/[id]/edit/page.tsx` | 營運公司編輯頁面 | 🟡 高 |
