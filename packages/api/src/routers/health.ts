@@ -868,7 +868,7 @@ export const healthRouter = createTRPCRouter({
       results.push('Expense: 已添加 budgetCategoryId, vendorId, currencyId, requiresChargeOut, isOperationMaint');
 
       // 4. 添加外鍵約束（使用 DO $$ 來避免重複錯誤）
-      results.push('\n[4/4] 添加外鍵約束...');
+      results.push('\n[4/5] 添加外鍵約束...');
       await ctx.prisma.$executeRaw`
         DO $$
         BEGIN
@@ -888,6 +888,11 @@ export const healthRouter = createTRPCRouter({
         END $$
       `;
       results.push('外鍵約束: 已添加');
+
+      // 5. FEAT-008: OMExpenseItem 缺失欄位
+      results.push('\n[5/5] 修復 OMExpenseItem 表 (FEAT-008)...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
+      results.push('OMExpenseItem: 已添加 lastFYActualExpense');
 
       results.push('\n=== Schema 修復完成 ===');
 
