@@ -71,6 +71,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -126,7 +127,8 @@ export interface OMExpenseItemData {
   opCoId: string;
   currencyId?: string | null;
   startDate?: string | null;
-  endDate: string;
+  endDate?: string | null; // CHANGE-011: 當 isOngoing=true 時可為 null
+  isOngoing?: boolean; // CHANGE-011: 持續進行中標記
   // CHANGE-006: 上年度實際支出
   lastFYActualExpense?: number | null;
   // Read-only fields
@@ -172,6 +174,7 @@ export default function OMExpenseItemForm({
   const { toast } = useToast();
 
   // Zod Schema with Translations
+  // CHANGE-011: 添加 isOngoing 欄位，使 endDate 條件式必填
   const itemSchema = z.object({
     name: z.string().min(1, tValidation('required')).max(200),
     description: z.string().optional().nullable(),
@@ -179,10 +182,25 @@ export default function OMExpenseItemForm({
     opCoId: z.string().min(1, tValidation('required')),
     currencyId: z.string().optional().nullable(),
     startDate: z.string().optional().nullable(),
-    endDate: z.string().min(1, tValidation('required')),
+    endDate: z.string().optional().nullable(), // CHANGE-011: 當 isOngoing=true 時可為空
+    isOngoing: z.boolean().default(false), // CHANGE-011: 持續進行中標記
     // CHANGE-006: 上年度實際支出
     lastFYActualExpense: z.number().optional().nullable(),
-  });
+  }).refine(
+    (data) => {
+      // CHANGE-011: 如果不是 isOngoing，則 endDate 必填
+      if (!data.isOngoing) {
+        return data.endDate && data.endDate.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: t('itemFields.endDate.requiredWhenNotOngoing', {
+        defaultValue: '非持續進行的項目必須填寫結束日期',
+      }),
+      path: ['endDate'],
+    }
+  );
 
   type ItemFormData = z.infer<typeof itemSchema>;
 
@@ -242,6 +260,7 @@ export default function OMExpenseItemForm({
       currencyId: initialData?.currencyId || '',
       startDate: initialData?.startDate || '',
       endDate: initialData?.endDate || '',
+      isOngoing: initialData?.isOngoing ?? false, // CHANGE-011: 持續進行中標記
       // CHANGE-006: 上年度實際支出
       lastFYActualExpense: initialData?.lastFYActualExpense ?? null,
     },
@@ -258,6 +277,7 @@ export default function OMExpenseItemForm({
         currencyId: initialData.currencyId || '',
         startDate: initialData.startDate || '',
         endDate: initialData.endDate || '',
+        isOngoing: initialData.isOngoing ?? false, // CHANGE-011: 持續進行中標記
         // CHANGE-006: 上年度實際支出
         lastFYActualExpense: initialData.lastFYActualExpense ?? null,
       });
@@ -267,11 +287,14 @@ export default function OMExpenseItemForm({
   // Form submit
   const onSubmit = (data: ItemFormData) => {
     // Clean up optional fields
+    // CHANGE-011: 當 isOngoing=true 時，endDate 可為空
     const cleanedData = {
       ...data,
       description: data.description || undefined,
       currencyId: data.currencyId || undefined,
       startDate: data.startDate || undefined,
+      endDate: data.isOngoing ? undefined : (data.endDate || undefined), // CHANGE-011: isOngoing 時不傳 endDate
+      isOngoing: data.isOngoing, // CHANGE-011: 持續進行中標記
       // CHANGE-006: 上年度實際支出
       lastFYActualExpense: data.lastFYActualExpense ?? undefined,
     };
@@ -468,6 +491,32 @@ export default function OMExpenseItemForm({
           )}
         />
 
+        {/* CHANGE-011: Is Ongoing Checkbox */}
+        <FormField
+          control={form.control}
+          name="isOngoing"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="cursor-pointer">
+                  {t('itemFields.isOngoing.label', { defaultValue: '持續進行中' })}
+                </FormLabel>
+                <FormDescription>
+                  {t('itemFields.isOngoing.description', {
+                    defaultValue: '標記為持續進行中的維護項目（無需填寫結束日期）',
+                  })}
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+
         {/* Date Range */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Start Date */}
@@ -489,26 +538,37 @@ export default function OMExpenseItemForm({
             )}
           />
 
-          {/* End Date */}
+          {/* End Date - CHANGE-011: 當 isOngoing=true 時不顯示必填星號 */}
           <FormField
             control={form.control}
             name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('itemFields.endDate.label', { defaultValue: '結束日期' })}{' '}
-                  <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    value={formatDateForInput(field.value)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const isOngoing = form.watch('isOngoing');
+              return (
+                <FormItem>
+                  <FormLabel>
+                    {t('itemFields.endDate.label', { defaultValue: '結束日期' })}
+                    {!isOngoing && <span className="text-destructive"> *</span>}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      value={formatDateForInput(field.value)}
+                      disabled={isOngoing}
+                    />
+                  </FormControl>
+                  {isOngoing && (
+                    <FormDescription>
+                      {t('itemFields.endDate.ongoingHint', {
+                        defaultValue: '持續進行中的項目無需填寫結束日期',
+                      })}
+                    </FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
 

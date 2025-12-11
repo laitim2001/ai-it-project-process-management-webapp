@@ -68,6 +68,7 @@ const monthlyRecordSchema = z.object({
 });
 
 // ========== FEAT-007: 明細項目 Schema ==========
+// CHANGE-011: 新增 isOngoing，當 isOngoing=true 時 endDate 可為空
 const omExpenseItemSchema = z.object({
   name: z.string().min(1, '項目名稱不能為空').max(200),
   description: z.string().optional(),
@@ -77,7 +78,8 @@ const omExpenseItemSchema = z.object({
   opCoId: z.string().min(1, 'OpCo 不能為空'),
   currencyId: z.string().optional(),
   startDate: z.string().optional(),
-  endDate: z.string().min(1, '結束日期不能為空'),
+  endDate: z.string().optional().nullable(), // CHANGE-011: 當 isOngoing=true 時可為空
+  isOngoing: z.boolean().default(false), // CHANGE-011: 持續進行中標記
 });
 
 // ========== FEAT-007: 建立 OM Expense (含明細) Schema ==========
@@ -126,6 +128,7 @@ const addItemSchema = z.object({
 });
 
 // ========== FEAT-007: 更新明細項目 Schema ==========
+// CHANGE-011: 新增 isOngoing
 const updateItemSchema = z.object({
   id: z.string().min(1, 'Item ID 不能為空'),
   name: z.string().min(1).max(200).optional(),
@@ -136,7 +139,8 @@ const updateItemSchema = z.object({
   opCoId: z.string().optional(),
   currencyId: z.string().optional().nullable(),
   startDate: z.string().optional().nullable(),
-  endDate: z.string().optional(),
+  endDate: z.string().optional().nullable(), // CHANGE-011: 當 isOngoing=true 時可為空
+  isOngoing: z.boolean().optional(), // CHANGE-011: 持續進行中標記
 });
 
 // ========== FEAT-007: 調整排序 Schema ==========
@@ -180,6 +184,7 @@ const importOMExpenseItemSchema = z.object({
   opCoName: z.string().min(1, 'OpCo 名稱不能為空'),
   endDate: z.string().nullable().optional(),
   lastFYActualExpense: z.number().nullable().optional(), // 上年度實際支出
+  isOngoing: z.boolean().optional().default(false), // CHANGE-011: 持續進行中標記
 });
 
 const importOMExpenseDataSchema = z.object({
@@ -543,6 +548,7 @@ export const omExpenseRouter = createTRPCRouter({
             }
 
             // 建立 OMExpenseItem
+            // CHANGE-011: 支援 isOngoing 欄位，當 isOngoing=true 時 endDate 可為 null
             const newItem = await tx.oMExpenseItem.create({
               data: {
                 omExpenseId: header.id,
@@ -553,9 +559,10 @@ export const omExpenseRouter = createTRPCRouter({
                 lastFYActualExpense: item.lastFYActualExpense ?? 0, // CHANGE-010: 默認 0 而非 null
                 currencyId: usdCurrency?.id ?? null, // CHANGE-010: 默認 USD 幣別
                 opCoId: opCo.id,
-                endDate: item.endDate
-                  ? new Date(item.endDate)
-                  : new Date(`${financialYear}-12-31`),
+                isOngoing: item.isOngoing ?? false, // CHANGE-011: 持續進行中標記
+                endDate: item.isOngoing
+                  ? null // isOngoing=true 時 endDate 為 null
+                  : (item.endDate ? new Date(item.endDate) : null),
                 sortOrder: sortOrderCounter++,
               },
             });

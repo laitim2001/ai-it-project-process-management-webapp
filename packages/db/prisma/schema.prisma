@@ -642,7 +642,8 @@ model OMExpenseItem {
 
   // 日期範圍
   startDate DateTime?
-  endDate   DateTime
+  endDate   DateTime? // CHANGE-011: 當 isOngoing=true 時可為 null
+  isOngoing Boolean   @default(false) // CHANGE-011: 持續進行中標記
 
   // 元數據
   createdAt DateTime @default(now())

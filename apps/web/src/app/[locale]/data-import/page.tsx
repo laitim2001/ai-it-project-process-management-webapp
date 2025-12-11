@@ -75,6 +75,7 @@ interface ImportItem {
   opCoName: string;
   endDate?: string | null;
   lastFYActualExpense?: number | null;
+  isOngoing?: boolean; // CHANGE-011: 持續進行中標記
 }
 
 // 錯誤行資訊
@@ -346,33 +347,34 @@ export default function DataImportPage() {
           const itemDescription = safeString(row[EXCEL_COLUMN_MAP.itemDescription]);
           const budgetAmount = safeFloat(row[EXCEL_COLUMN_MAP.budgetAmount], 0);
 
-          // CHANGE-010: 增強 Maintenance end date 驗證
-          // 1. 檢查是否有數據
-          // 2. 如果為空就跳至錯誤狀況
-          // 3. 如果有數據但類型錯誤也是錯誤狀況
+          // CHANGE-011: 修改 Maintenance end date 驗證邏輯
+          // 1. 如果為空 → 設定 isOngoing = true，繼續處理
+          // 2. 如果有數據但格式錯誤 → 錯誤狀況
+          // 3. 如果有數據且格式正確 → 繼續處理
           const rawEndDate = row[EXCEL_COLUMN_MAP.endDate];
           const endDateIsEmpty = rawEndDate === null || rawEndDate === undefined || rawEndDate === '' ||
             (typeof rawEndDate === 'string' && rawEndDate.trim() === '');
 
-          if (endDateIsEmpty) {
-            errorRows.push({
-              rowNumber,
-              field: 'End Date',
-              reason: t('errors.missingEndDate', { row: rowNumber }),
-              rawValue: String(rawEndDate ?? ''),
-            });
-            continue;
-          }
+          let endDate: string | null = null;
+          let isOngoing = false;
 
-          const endDate = formatDate(rawEndDate);
-          if (!endDate) {
-            errorRows.push({
-              rowNumber,
-              field: 'End Date',
-              reason: t('errors.invalidEndDateFormat', { row: rowNumber, value: String(rawEndDate) }),
-              rawValue: String(rawEndDate),
-            });
-            continue;
+          if (endDateIsEmpty) {
+            // 空值 → 設定 isOngoing = true，繼續處理
+            isOngoing = true;
+            endDate = null;
+          } else {
+            // 有值 → 驗證格式
+            endDate = formatDate(rawEndDate);
+            if (!endDate) {
+              // 格式錯誤 → 報錯
+              errorRows.push({
+                rowNumber,
+                field: 'End Date',
+                reason: t('errors.invalidEndDateFormat', { row: rowNumber, value: String(rawEndDate) }),
+                rawValue: String(rawEndDate),
+              });
+              continue;
+            }
           }
 
           // CHANGE-010: lastFYActualExpense 默認值改為 0 而非 null
@@ -455,6 +457,7 @@ export default function DataImportPage() {
             opCoName,
             endDate,
             lastFYActualExpense,
+            isOngoing, // CHANGE-011: 持續進行中標記
           };
           validItems.push(item);
 

@@ -2192,7 +2192,13 @@
         "label": "Start Date"
       },
       "endDate": {
-        "label": "End Date"
+        "label": "End Date",
+        "requiredWhenNotOngoing": "End Date is required when not marked as On-Going",
+        "ongoingHint": "End date is not required for on-going items"
+      },
+      "isOngoing": {
+        "label": "On-Going",
+        "description": "Mark as ongoing maintenance (no end date required)"
       },
       "lastFYActualExpense": {
         "label": "Last Year Actual Expense",

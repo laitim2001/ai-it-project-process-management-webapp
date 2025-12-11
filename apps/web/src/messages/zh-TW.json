@@ -2192,7 +2192,13 @@
         "label": "開始日期"
       },
       "endDate": {
-        "label": "結束日期"
+        "label": "結束日期",
+        "requiredWhenNotOngoing": "非持續進行的項目必須填寫結束日期",
+        "ongoingHint": "持續進行中的項目無需填寫結束日期"
+      },
+      "isOngoing": {
+        "label": "持續進行中",
+        "description": "標記為持續進行中的維護項目（無需填寫結束日期）"
       },
       "lastFYActualExpense": {
         "label": "上年度實際支出",
