@@ -103,7 +103,48 @@
 **實際總時程**: 8.5 週
 **當前進度**: 🎉 **所有 8 個 Epic 全部完成，達成 100% MVP 目標！**
 
-### **📅 最近更新** (2025-12-08)
+### **📅 最近更新** (2025-12-11)
+
+#### **🎯 FEAT-008 + CHANGE-005~011 功能完成** ✅ (2025-12-09~12-11)
+- ✅ **FEAT-008: OM Expense 資料導入功能** (v1.0 → v1.3)
+  - Excel 檔案解析 (xlsx/SheetJS 整合)
+  - 前端 3 步驟導入流程 (選擇檔案 → 預覽確認 → 執行導入)
+  - 後端 importData API (支援 batch insert, transaction 5 分鐘超時)
+  - 6 欄位唯一鍵重複檢測 (headerName + itemName + description + category + opCoName + budget)
+  - v1.3 新增 CHANGE-010/011 增強功能
+
+- ✅ **CHANGE-005: OM Expense 批量刪除功能**
+  - 後端 deleteMany procedure
+  - 前端多選狀態管理 (卡片視圖 + 列表視圖)
+  - 批量操作工具列 + AlertDialog 確認
+
+- ✅ **CHANGE-006~009: OM Expense UI 修正與增強**
+  - OpCo/Category 顯示格式優化 (只顯示名稱)
+  - lastFYActualExpense 欄位保存問題修復
+  - 點擊編輯與顯示優化
+
+- ✅ **CHANGE-010: Data Import 日期驗證增強**
+  - endDate 空值/格式錯誤處理
+  - lastFYActualExpense 默認值 0
+  - currencyId 默認 USD
+  - EXCEL_COLUMN_MAP 欄位映射修正
+
+- ✅ **CHANGE-011: OM Expense Item isOngoing 欄位**
+  - 新增 isOngoing 持續進行中標記
+  - 當 isOngoing=true 時 endDate 變為非必填
+  - Data import 空 endDate 自動設定 isOngoing=true
+  - 4 個 bug 修復 (保存無效、日期格式解析、API 傳遞、欄位映射)
+
+- ✅ **Azure 部署版本更新**
+  - v23-feat008-import → v24-fix-feat008-column
+  - Health API 新增 FEAT-008 欄位修復
+
+**代碼統計**:
+- 新增/修改文件: 20+ 個
+- Git Commits: 12+ 個
+- Azure 部署: 2 次
+
+---
 
 #### **🎯 FEAT-007 + CHANGE-004 功能重構完成** ✅ (2025-12-08)
 - ✅ **FEAT-007: OM Expense 表頭-明細架構重構**
@@ -1433,4 +1474,4 @@ git push origin feature-branch  # 推送到遠程
 
 **🎯 記住：良好的導航系統是團隊效率的倍增器！**
 
-**最後更新**: 2025-12-08
+**最後更新**: 2025-12-11
