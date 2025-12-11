@@ -271,6 +271,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     setActiveTab('monthly'); // 自動切換到月度記錄 tab
   }, []);
 
+  // CHANGE-007: Tab 切換處理 - 切換到 items tab 時重置 selectedItemId
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+    if (value === 'items') {
+      setSelectedItemId(null); // 重置選取狀態，清除 Monthly Records tab 名稱顯示
+    }
+  }, []);
+
   const handleItemFormClose = useCallback(() => {
     setItemFormMode(null);
     setEditingItem(null);
@@ -607,8 +615,9 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               </div>
             </CardHeader>
             <CardContent>
+              {/* CHANGE-007: 使用 handleTabChange 處理 tab 切換，重置選取狀態 */}
               {transformedItems.length > 0 ? (
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="items">
                       {tItems('listTab', { defaultValue: '項目列表' })} ({transformedItems.length})

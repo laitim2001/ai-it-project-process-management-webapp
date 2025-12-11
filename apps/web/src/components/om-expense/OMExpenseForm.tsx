@@ -421,9 +421,10 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                   <FormLabel>{t('fields.description.label')}</FormLabel>
                   <FormControl>
                     {/* CHANGE-006: 增加 Textarea 預設行數為 5 */}
+                    {/* CHANGE-007: 允許用戶調整大小 (移除 resize-none，改為 resize-y) */}
                     <Textarea
                       placeholder={t('fields.description.placeholder')}
-                      className="resize-none"
+                      className="resize-y min-h-[120px]"
                       rows={5}
                       {...field}
                     />

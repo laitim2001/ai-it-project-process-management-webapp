@@ -2352,8 +2352,10 @@ export const omExpenseRouter = createTRPCRouter({
               itemCount: 0,
             };
 
+            // CHANGE-007: 優先使用 lastFYActualExpense (FEAT-008 用戶輸入欄位)
+            // 如果沒有則回退到 previousYearMap (自動查詢上年度資料)
             const prevKey = `${expenseItem.name}|${omExpense.category}|${expenseItem.opCoId}`;
-            const prevActual = previousYearMap.get(prevKey) || 0;
+            const prevActual = expenseItem.lastFYActualExpense ?? previousYearMap.get(prevKey) ?? 0;
 
             categoryMap.set(omExpense.category, {
               currentYearBudget: existing.currentYearBudget + expenseItem.budgetAmount,
@@ -2454,9 +2456,10 @@ export const omExpenseRouter = createTRPCRouter({
             }
             const headerGroup = opCoData.omExpenseHeaders.get(omExpense.id)!;
 
-            // 獲取上年度實際支出（使用 item name）
+            // CHANGE-007: 優先使用 lastFYActualExpense (FEAT-008 用戶輸入欄位)
+            // 如果沒有則回退到 previousYearMap (自動查詢上年度資料)
             const prevKey = `${expenseItem.name}|${omExpense.category}|${expenseItem.opCoId}`;
-            const previousYearActual = previousYearMap.get(prevKey) ?? null;
+            const previousYearActual = expenseItem.lastFYActualExpense ?? previousYearMap.get(prevKey) ?? null;
 
             // 添加明細項目到表頭
             headerGroup.items.push({
