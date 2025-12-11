@@ -2144,6 +2144,7 @@
       "description": "Manage OM expense line items, drag to reorder",
       "addItem": "Add Item",
       "editItem": "Edit Item",
+      "clickToEdit": "Click to edit",
       "removeItem": "Delete Item",
       "noItems": "No line items yet",
       "addFirstItem": "Click the button above to add your first item",
