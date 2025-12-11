@@ -2192,6 +2192,11 @@
       },
       "endDate": {
         "label": "結束日期"
+      },
+      "lastFYActualExpense": {
+        "label": "上年度實際支出",
+        "placeholder": "0.00",
+        "description": "可選：輸入上年度實際維護費用，用於年度比較分析"
       }
     },
     "status": {

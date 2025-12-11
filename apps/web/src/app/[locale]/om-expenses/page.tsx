@@ -90,7 +90,8 @@ export default function OMExpensesPage() {
   const currentYear = new Date().getFullYear();
 
   // 視圖模式狀態
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  // CHANGE-006: 預設為 list view
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
 
   // CHANGE-005: 批量選擇狀態
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

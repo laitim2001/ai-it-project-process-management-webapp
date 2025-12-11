@@ -420,10 +420,11 @@ export default function OMExpenseForm({ mode, initialData }: OMExpenseFormProps)
                 <FormItem>
                   <FormLabel>{t('fields.description.label')}</FormLabel>
                   <FormControl>
+                    {/* CHANGE-006: 增加 Textarea 預設行數為 5 */}
                     <Textarea
                       placeholder={t('fields.description.placeholder')}
                       className="resize-none"
-                      rows={3}
+                      rows={5}
                       {...field}
                     />
                   </FormControl>

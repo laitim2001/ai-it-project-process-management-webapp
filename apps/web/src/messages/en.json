@@ -2192,6 +2192,11 @@
       },
       "endDate": {
         "label": "End Date"
+      },
+      "lastFYActualExpense": {
+        "label": "Last Year Actual Expense",
+        "placeholder": "0.00",
+        "description": "Optional: Enter last year's actual maintenance charges for year-over-year comparison"
       }
     },
     "status": {

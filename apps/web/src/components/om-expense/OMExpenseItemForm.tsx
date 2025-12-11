@@ -127,6 +127,8 @@ export interface OMExpenseItemData {
   currencyId?: string | null;
   startDate?: string | null;
   endDate: string;
+  // CHANGE-006: 上年度實際支出
+  lastFYActualExpense?: number | null;
   // Read-only fields
   actualSpent?: number;
   opCo?: {
@@ -178,6 +180,8 @@ export default function OMExpenseItemForm({
     currencyId: z.string().optional().nullable(),
     startDate: z.string().optional().nullable(),
     endDate: z.string().min(1, tValidation('required')),
+    // CHANGE-006: 上年度實際支出
+    lastFYActualExpense: z.number().optional().nullable(),
   });
 
   type ItemFormData = z.infer<typeof itemSchema>;
@@ -238,6 +242,8 @@ export default function OMExpenseItemForm({
       currencyId: initialData?.currencyId || '',
       startDate: initialData?.startDate || '',
       endDate: initialData?.endDate || '',
+      // CHANGE-006: 上年度實際支出
+      lastFYActualExpense: initialData?.lastFYActualExpense ?? null,
     },
   });
 
@@ -252,6 +258,8 @@ export default function OMExpenseItemForm({
         currencyId: initialData.currencyId || '',
         startDate: initialData.startDate || '',
         endDate: initialData.endDate || '',
+        // CHANGE-006: 上年度實際支出
+        lastFYActualExpense: initialData.lastFYActualExpense ?? null,
       });
     }
   }, [initialData, mode, form]);
@@ -264,6 +272,8 @@ export default function OMExpenseItemForm({
       description: data.description || undefined,
       currencyId: data.currencyId || undefined,
       startDate: data.startDate || undefined,
+      // CHANGE-006: 上年度實際支出
+      lastFYActualExpense: data.lastFYActualExpense ?? undefined,
     };
 
     if (mode === 'create' && omExpenseId) {
@@ -384,6 +394,39 @@ export default function OMExpenseItemForm({
             )}
           />
         </div>
+
+        {/* CHANGE-006: Last Year Actual Expense */}
+        <FormField
+          control={form.control}
+          name="lastFYActualExpense"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('itemFields.lastFYActualExpense.label', { defaultValue: '上年度實際支出' })}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  placeholder={t('itemFields.lastFYActualExpense.placeholder', { defaultValue: '0.00' })}
+                  {...field}
+                  value={field.value ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value === '' ? null : parseFloat(value) || 0);
+                  }}
+                />
+              </FormControl>
+              <FormDescription>
+                {t('itemFields.lastFYActualExpense.description', {
+                  defaultValue: '可選：輸入上年度實際維護費用，用於年度比較分析',
+                })}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Currency */}
         <FormField

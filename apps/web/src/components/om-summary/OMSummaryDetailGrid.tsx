@@ -399,11 +399,12 @@ function OMExpenseHeaderSection({
                 <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <div className="flex-1 text-left">
                   <span className="font-medium">{header.omExpenseName}</span>
-                  {header.omExpenseDescription && (
+                  {/* CHANGE-006: 隱藏 OM Expense Header Description */}
+                  {/* {header.omExpenseDescription && (
                     <span className="text-sm text-muted-foreground ml-2">
                       - {header.omExpenseDescription}
                     </span>
-                  )}
+                  )} */}
                 </div>
                 {/* 表頭小計 */}
                 <div className="flex items-center gap-4 text-sm mr-4">
@@ -451,9 +452,10 @@ function OMExpenseHeaderSection({
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <div className="font-medium">{item.name}</div>
-                            {item.description && (
+                            {/* CHANGE-006: 隱藏 Item Description */}
+                            {/* {item.description && (
                               <div className="text-sm text-muted-foreground">{item.description}</div>
-                            )}
+                            )} */}
                           </div>
                           {isClickable && (
                             <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -550,9 +552,10 @@ function ItemTable({
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <div className="font-medium">{item.name}</div>
-                  {item.description && (
+                  {/* CHANGE-006: 隱藏 Item Description */}
+                  {/* {item.description && (
                     <div className="text-sm text-muted-foreground">{item.description}</div>
-                  )}
+                  )} */}
                 </div>
                 {isClickable && (
                   <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
