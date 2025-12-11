@@ -345,10 +345,40 @@ export default function DataImportPage() {
           const headerDescription = safeString(row[EXCEL_COLUMN_MAP.headerDescription]);
           const itemDescription = safeString(row[EXCEL_COLUMN_MAP.itemDescription]);
           const budgetAmount = safeFloat(row[EXCEL_COLUMN_MAP.budgetAmount], 0);
-          const endDate = formatDate(row[EXCEL_COLUMN_MAP.endDate]);
+
+          // CHANGE-010: 增強 Maintenance end date 驗證
+          // 1. 檢查是否有數據
+          // 2. 如果為空就跳至錯誤狀況
+          // 3. 如果有數據但類型錯誤也是錯誤狀況
+          const rawEndDate = row[EXCEL_COLUMN_MAP.endDate];
+          const endDateIsEmpty = rawEndDate === null || rawEndDate === undefined || rawEndDate === '' ||
+            (typeof rawEndDate === 'string' && rawEndDate.trim() === '');
+
+          if (endDateIsEmpty) {
+            errorRows.push({
+              rowNumber,
+              field: 'End Date',
+              reason: t('errors.missingEndDate', { row: rowNumber }),
+              rawValue: String(rawEndDate ?? ''),
+            });
+            continue;
+          }
+
+          const endDate = formatDate(rawEndDate);
+          if (!endDate) {
+            errorRows.push({
+              rowNumber,
+              field: 'End Date',
+              reason: t('errors.invalidEndDateFormat', { row: rowNumber, value: String(rawEndDate) }),
+              rawValue: String(rawEndDate),
+            });
+            continue;
+          }
+
+          // CHANGE-010: lastFYActualExpense 默認值改為 0 而非 null
           const lastFYActualExpense = row.length > EXCEL_COLUMN_MAP.lastFYActualExpense
-            ? safeFloat(row[EXCEL_COLUMN_MAP.lastFYActualExpense], 0) || null
-            : null;
+            ? safeFloat(row[EXCEL_COLUMN_MAP.lastFYActualExpense], 0)
+            : 0;
 
           // 驗證必填欄位
           if (!headerName) {

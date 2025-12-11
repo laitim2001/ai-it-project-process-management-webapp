@@ -3069,6 +3069,8 @@
       "missingCategory": "第 {row} 列: 缺少類別",
       "missingItemName": "第 {row} 列: 缺少項目名稱",
       "missingOpCo": "第 {row} 列: 缺少 OpCo 名稱",
+      "missingEndDate": "第 {row} 列: 維護截止日期為必填欄位",
+      "invalidEndDateFormat": "第 {row} 列: 日期格式無效: {value}",
       "noValidRows": "沒有有效的資料列",
       "parseError": "解析 Excel 檔案失敗: {error}",
       "readError": "讀取檔案失敗",

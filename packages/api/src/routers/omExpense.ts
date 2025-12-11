@@ -421,6 +421,11 @@ export const omExpenseRouter = createTRPCRouter({
             createdCategories.push(name);
           }
 
+          // ========== CHANGE-010: 查詢 USD 幣別作為默認值 ==========
+          const usdCurrency = await tx.currency.findFirst({
+            where: { code: 'USD' },
+          });
+
           // ========== Step 3: 收集唯一 Header (name + category + financialYear) ==========
           const headerKeys = [
             ...new Set(
@@ -545,7 +550,8 @@ export const omExpenseRouter = createTRPCRouter({
                 description: item.itemDescription ?? null,
                 budgetAmount: item.budgetAmount ?? 0,
                 actualSpent: 0,
-                lastFYActualExpense: item.lastFYActualExpense ?? null, // FEAT-008: 上年度實際支出
+                lastFYActualExpense: item.lastFYActualExpense ?? 0, // CHANGE-010: 默認 0 而非 null
+                currencyId: usdCurrency?.id ?? null, // CHANGE-010: 默認 USD 幣別
                 opCoId: opCo.id,
                 endDate: item.endDate
                   ? new Date(item.endDate)

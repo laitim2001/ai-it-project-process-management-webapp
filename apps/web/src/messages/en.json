@@ -3268,6 +3268,8 @@
       "missingCategory": "Row {row}: Missing category",
       "missingItemName": "Row {row}: Missing item name",
       "missingOpCo": "Row {row}: Missing OpCo name",
+      "missingEndDate": "Row {row}: Maintenance end date is required",
+      "invalidEndDateFormat": "Row {row}: Invalid end date format: {value}",
       "noValidRows": "No valid data rows",
       "parseError": "Failed to parse Excel file: {error}",
       "readError": "Failed to read file",
