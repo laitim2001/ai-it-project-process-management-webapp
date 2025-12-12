@@ -38,6 +38,9 @@ model User {
   approvedProposals   BudgetProposal[] @relation("ProposalApprover") // 新增：批准的提案
   confirmedChargeOuts ChargeOut[]      @relation("ChargeOutConfirmer") // 新增：確認的費用轉嫁
 
+  // FEAT-009: OpCo 數據權限
+  operatingCompanyPermissions UserOperatingCompany[]
+
   @@index([email])
   @@index([roleId])
 }
@@ -405,6 +408,9 @@ model OperatingCompany {
   omExpenseDefaults OMExpense[]     @relation("OMExpenseDefaultOpCo") // 新增：預設 OpCo 關聯
   omExpensesLegacy  OMExpense[]     @relation("OMExpenseLegacyOpCo") // 舊版關聯（向後兼容）
 
+  // FEAT-009: 用戶權限關聯
+  userPermissions UserOperatingCompany[]
+
   @@index([isActive])
 }
 
@@ -425,6 +431,28 @@ model ProjectChargeOutOpCo {
   @@unique([projectId, opCoId]) // 每個 Project-OpCo 組合只能有一條記錄
   @@index([projectId])
   @@index([opCoId])
+}
+
+// ==================================================================
+// 5.2 用戶與營運公司權限關係 (User ↔ OperatingCompany)
+// FEAT-009: Operating Company 數據權限管理
+// ==================================================================
+
+model UserOperatingCompany {
+  id                 String   @id @default(uuid())
+  userId             String
+  operatingCompanyId String
+  createdAt          DateTime @default(now())
+  createdBy          String?  // 設定此權限的管理員 ID
+
+  // 關聯
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operatingCompany OperatingCompany @relation(fields: [operatingCompanyId], references: [id], onDelete: Cascade)
+
+  // 複合唯一鍵：同一用戶不能重複分配同一 OpCo
+  @@unique([userId, operatingCompanyId])
+  @@index([userId])
+  @@index([operatingCompanyId])
 }
 
 // 預算類別

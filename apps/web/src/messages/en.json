@@ -2523,6 +2523,17 @@
       "InProgress": "In Progress",
       "Completed": "Completed",
       "Archived": "Archived"
+    },
+    "permissions": {
+      "opCoAccess": "Operating Company Access",
+      "opCoAccessDescription": "Select which Operating Companies this user can view in OM Summary",
+      "selectAll": "Select All",
+      "selectNone": "Clear All",
+      "noPermissions": "No Operating Company permissions assigned",
+      "permissionsUpdated": "Operating Company permissions updated successfully",
+      "permissionsUpdateFailed": "Failed to update Operating Company permissions",
+      "loading": "Loading permissions...",
+      "saving": "Saving permissions..."
     }
   },
   "notifications": {

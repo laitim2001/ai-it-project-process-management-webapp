@@ -20,6 +20,50 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-12 | ✨ FEAT-009: Operating Company 數據權限管理 | 完成 ✅
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+OM Summary 頁面目前顯示所有營運公司 (OpCo) 的數據，但不同用戶可能只負責特定的 OpCo。
+需要實現用戶級別的 OpCo 訪問權限控制，讓管理員可以為每個用戶指定可查看的 OpCo。
+
+**主要功能**:
+1. **數據權限模型**: UserOperatingCompany 多對多關係表
+2. **權限管理 API**: getUserPermissions, setUserPermissions, getForCurrentUser
+3. **前端權限選擇器**: OpCoPermissionSelector 組件
+4. **OM Summary 整合**: 自動根據用戶權限過濾 OpCo
+
+**技術實現**:
+- **數據模型**: UserOperatingCompany (userId, operatingCompanyId, createdBy)
+- **權限邏輯**:
+  - Admin (roleId >= 3) 自動獲得所有 OpCo
+  - 向後兼容：無權限記錄的用戶可看到所有 OpCo（寬鬆模式）
+- **前端組件**: 多選 Checkbox + 全選/清除 + 自動儲存
+- **API 設計**: Supervisor 專用權限設定，Protected 用戶權限查詢
+
+**Bug 修復 (P-002)**:
+- **問題**: 權限保存後不持久化，重新進入編輯頁面無變化
+- **原因**: mutation 成功後未 invalidate getUserPermissions 查詢緩存
+- **修復**: 在 onSuccess 中添加 `utils.operatingCompany.getUserPermissions.invalidate({ userId })`
+
+**修改的文件** (7 個):
+- `packages/db/prisma/schema.prisma` - 新增 UserOperatingCompany model
+- `packages/api/src/routers/operatingCompany.ts` - 新增 3 個 procedures
+- `apps/web/src/components/user/OpCoPermissionSelector.tsx` - 新增組件
+- `apps/web/src/app/[locale]/users/[id]/edit/page.tsx` - 新增權限設定區塊
+- `apps/web/src/app/[locale]/om-summary/page.tsx` - 改用 getForCurrentUser
+- `apps/web/src/messages/en.json` - 新增 users.permissions.* 翻譯
+- `apps/web/src/messages/zh-TW.json` - 新增 users.permissions.* 翻譯
+
+**規劃文檔** (4 個):
+- `claudedocs/1-planning/features/FEAT-009-opco-data-permission/01-requirements.md`
+- `claudedocs/1-planning/features/FEAT-009-opco-data-permission/02-technical-design.md`
+- `claudedocs/1-planning/features/FEAT-009-opco-data-permission/03-implementation-plan.md`
+- `claudedocs/1-planning/features/FEAT-009-opco-data-permission/04-progress.md`
+
+---
+
 ### 2025-12-08 | 🔧 索引維護機制優化 | 完成 ✅
 
 **類型**: 維護 + 優化 | **負責人**: AI 助手 | **狀態**: ✅ 完成

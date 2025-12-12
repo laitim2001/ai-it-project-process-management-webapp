@@ -2523,6 +2523,17 @@
       "InProgress": "進行中",
       "Completed": "已完成",
       "Archived": "已歸檔"
+    },
+    "permissions": {
+      "opCoAccess": "營運公司訪問權限",
+      "opCoAccessDescription": "選擇此用戶可以在 OM Summary 中查看的營運公司",
+      "selectAll": "全選",
+      "selectNone": "清除全部",
+      "noPermissions": "尚未分配營運公司權限",
+      "permissionsUpdated": "營運公司權限更新成功",
+      "permissionsUpdateFailed": "營運公司權限更新失敗",
+      "loading": "載入權限中...",
+      "saving": "儲存權限中..."
     }
   },
   "notifications": {

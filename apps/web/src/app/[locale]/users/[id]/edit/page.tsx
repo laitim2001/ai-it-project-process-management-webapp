@@ -55,11 +55,12 @@ import { Link } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { OpCoPermissionSelector } from '@/components/user/OpCoPermissionSelector';
 
 const UserForm = dynamic(
   () => import('@/components/user/UserForm').then((mod) => ({ default: mod.UserForm })),
@@ -71,6 +72,7 @@ const UserForm = dynamic(
 
 export default function EditUserPage() {
   const t = useTranslations('users');
+  const tPerm = useTranslations('users.permissions');
   const tNav = useTranslations('navigation');
   const params = useParams();
   const userId = params.id as string;
@@ -200,6 +202,17 @@ export default function EditUserPage() {
                 roleId: user.roleId,
               }}
             />
+          </CardContent>
+        </Card>
+
+        {/* FEAT-009: OpCo 權限設定 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{tPerm('opCoAccess')}</CardTitle>
+            <CardDescription>{tPerm('opCoAccessDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OpCoPermissionSelector userId={userId} />
           </CardContent>
         </Card>
       </div>

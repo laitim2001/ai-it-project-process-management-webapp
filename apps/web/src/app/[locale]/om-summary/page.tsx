@@ -48,7 +48,8 @@
  * @since FEAT-003 - O&M Summary Page
  * @modified FEAT-006 - Project Summary Tab (2025-12-05)
  * @modified FEAT-007 - Header-Detail Architecture (2025-12-05)
- * @lastModified 2025-12-05
+ * @modified FEAT-009 - Operating Company Data Permission (2025-12-12)
+ * @lastModified 2025-12-12
  */
 
 'use client';
@@ -117,8 +118,8 @@ export default function OMSummaryPage() {
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isProjectSummaryInitialized, setIsProjectSummaryInitialized] = React.useState(false);
 
-  // 獲取 OpCo 列表
-  const { data: opCoData, isLoading: isLoadingOpCos } = api.operatingCompany.getAll.useQuery();
+  // 獲取 OpCo 列表 (FEAT-009: 根據用戶權限過濾)
+  const { data: opCoData, isLoading: isLoadingOpCos } = api.operatingCompany.getForCurrentUser.useQuery();
 
   // 獲取 OM 類別列表
   const { data: categoryData, isLoading: isLoadingCategories } = api.omExpense.getCategories.useQuery();

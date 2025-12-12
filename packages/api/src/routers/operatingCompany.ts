@@ -23,6 +23,9 @@
  * - getAll: 查詢營運公司列表（支援啟用狀態過濾）
  * - delete: 刪除營運公司（Supervisor only，檢查關聯資料）
  * - toggleActive: 切換啟用/停用狀態（Supervisor only）
+ * - getUserPermissions: 獲取用戶的 OpCo 權限列表（FEAT-009）
+ * - setUserPermissions: 設定用戶的 OpCo 權限（FEAT-009）
+ * - getForCurrentUser: 獲取當前用戶可訪問的 OpCo（FEAT-009）
  *
  * @dependencies
  * - Prisma Client: 資料庫操作
@@ -283,5 +286,152 @@ export const operatingCompanyRouter = createTRPCRouter({
       });
 
       return updated;
+    }),
+
+  // ========== FEAT-009: Operating Company 數據權限管理 ==========
+
+  /**
+   * 獲取指定用戶的 OpCo 權限列表
+   * 權限：Supervisor only（用於管理其他用戶的權限）
+   * @param userId - 要查詢的用戶 ID
+   * @returns 用戶被授權訪問的 OpCo 列表
+   */
+  getUserPermissions: supervisorProcedure
+    .input(z.object({ userId: z.string().min(1, '用戶 ID 不能為空') }))
+    .query(async ({ ctx, input }) => {
+      const permissions = await ctx.prisma.userOperatingCompany.findMany({
+        where: { userId: input.userId },
+        include: {
+          operatingCompany: true,
+        },
+        orderBy: {
+          operatingCompany: {
+            code: 'asc',
+          },
+        },
+      });
+
+      return permissions;
+    }),
+
+  /**
+   * 設定用戶的 OpCo 權限（整批替換）
+   * 權限：Supervisor only
+   * @param userId - 要設定權限的用戶 ID
+   * @param operatingCompanyIds - 授權的 OpCo ID 列表（空陣列表示清除所有權限）
+   */
+  setUserPermissions: supervisorProcedure
+    .input(
+      z.object({
+        userId: z.string().min(1, '用戶 ID 不能為空'),
+        operatingCompanyIds: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 驗證用戶是否存在
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: input.userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '用戶不存在',
+        });
+      }
+
+      // 驗證所有 OpCo ID 都存在
+      if (input.operatingCompanyIds.length > 0) {
+        const opCos = await ctx.prisma.operatingCompany.findMany({
+          where: {
+            id: { in: input.operatingCompanyIds },
+          },
+        });
+
+        if (opCos.length !== input.operatingCompanyIds.length) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '部分營運公司 ID 無效',
+          });
+        }
+      }
+
+      // 使用 Transaction 進行整批替換
+      await ctx.prisma.$transaction(async (tx) => {
+        // 1. 刪除現有權限
+        await tx.userOperatingCompany.deleteMany({
+          where: { userId: input.userId },
+        });
+
+        // 2. 建立新權限
+        if (input.operatingCompanyIds.length > 0) {
+          await tx.userOperatingCompany.createMany({
+            data: input.operatingCompanyIds.map((opCoId) => ({
+              userId: input.userId,
+              operatingCompanyId: opCoId,
+              createdBy: ctx.session.user.id,
+            })),
+          });
+        }
+      });
+
+      return { success: true, message: '營運公司權限已更新' };
+    }),
+
+  /**
+   * 獲取當前登入用戶可訪問的 OpCo 列表
+   * 用於 OM Summary 頁面的 OpCo 下拉選單
+   *
+   * 權限邏輯：
+   * - Admin 角色（roleId >= 3）：返回所有啟用的 OpCo
+   * - 其他用戶：根據 UserOperatingCompany 表過濾
+   * - 向後兼容：無權限記錄的用戶返回所有 OpCo（寬鬆模式）
+   *
+   * @param isActive - 是否只返回啟用的 OpCo（預設 true）
+   */
+  getForCurrentUser: protectedProcedure
+    .input(
+      z
+        .object({
+          isActive: z.boolean().optional().default(true),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const user = ctx.session.user;
+      const isActiveFilter = input?.isActive ?? true;
+
+      // Admin 角色預設可以訪問所有 OpCo
+      if (user.roleId >= 3) {
+        return ctx.prisma.operatingCompany.findMany({
+          where: isActiveFilter ? { isActive: true } : {},
+          orderBy: { code: 'asc' },
+        });
+      }
+
+      // 查詢用戶的 OpCo 權限
+      const permissions = await ctx.prisma.userOperatingCompany.findMany({
+        where: { userId: user.id },
+        include: {
+          operatingCompany: true,
+        },
+      });
+
+      // 向後兼容：如果用戶沒有任何權限設定，返回所有啟用的 OpCo（寬鬆模式）
+      // 這讓管理員有時間逐步設定權限，而不會立即阻斷用戶訪問
+      if (permissions.length === 0) {
+        return ctx.prisma.operatingCompany.findMany({
+          where: isActiveFilter ? { isActive: true } : {},
+          orderBy: { code: 'asc' },
+        });
+      }
+
+      // 只返回用戶被授權且啟用的 OpCo
+      const authorizedOpCos = permissions
+        .map((p) => p.operatingCompany)
+        .filter((opCo) => (isActiveFilter ? opCo.isActive : true))
+        .sort((a, b) => a.code.localeCompare(b.code));
+
+      return authorizedOpCos;
     }),
 });
