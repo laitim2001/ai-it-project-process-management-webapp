@@ -3,7 +3,7 @@
 ## 📋 目錄用途
 此目錄包含所有用戶可訪問的頁面，使用 Next.js 14 App Router 架構，支援國際化路由。
 
-## 🏗️ 路由結構（共 19 個路由模塊，55+ 個頁面）
+## 🏗️ 路由結構（共 20 個路由模塊，56+ 個頁面）
 
 ```
 [locale]/                    # 國際化路由組（en, zh-TW）
@@ -36,6 +36,8 @@
 │   ├── page.tsx
 │   ├── new/
 │   └── [id]/, [id]/edit/
+├── data-import/             # 數據導入 - FEAT-008
+│   └── page.tsx             # Excel 數據導入頁面
 ├── om-expenses/             # OM 費用（CRUD）- FEAT-007 重構
 │   ├── page.tsx
 │   ├── new/

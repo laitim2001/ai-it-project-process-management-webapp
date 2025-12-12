@@ -2,8 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-12-08
-> **Project Status**: Post-MVP Enhancement Phase (FEAT-007 Complete)
+> **Last Updated**: 2025-12-12
+> **Project Status**: Post-MVP Enhancement Phase (FEAT-008 Complete)
 > **Total Code**: ~35,000+ lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
 > **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境 已部署
@@ -52,7 +52,7 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 
 **✅ MVP Phase 1: 100% Complete** (Epic 1-8)
 - All 8 core Epics delivered and tested
-- 55+ pages implemented (19 route modules)
+- 56+ pages implemented (20 route modules)
 - 75+ components (35+ UI + 40 business)
 - ~35,000+ lines of production code
 
@@ -62,6 +62,8 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - Environment deployment optimization
 - Quality fixes (FIX-003, FIX-004, FIX-005)
 - **FEAT-007**: OM Expense 表頭-明細架構重構 (OMExpense → OMExpenseItem → OMExpenseMonthly)
+- **FEAT-008**: OM Expense Data Import (Excel 數據導入 v1.0 → v1.3)
+- **CHANGE-005~011**: 多項功能改進 (OM Summary 欄位顯示、isOngoing 改進、lastFYActualExpense 修復等)
 
 **📋 Next Phase: Epic 9-10** (AI Assistant + External Integration)
 
@@ -99,7 +101,7 @@ This is a **Turborepo monorepo** with the following structure:
 ├── apps/
 │   └── web/              # Next.js frontend application
 │       ├── src/
-│       │   ├── app/      # App Router pages (55+ pages, 19 route modules)
+│       │   ├── app/      # App Router pages (56+ pages, 20 route modules)
 │       │   │   ├── dashboard/              ✅ PM + Supervisor
 │       │   │   ├── projects/               ✅ Full CRUD
 │       │   │   ├── proposals/              ✅ Full CRUD + Approval
@@ -109,6 +111,7 @@ This is a **Turborepo monorepo** with the following structure:
 │       │   │   ├── purchase-orders/        ✅ Full CRUD
 │       │   │   ├── expenses/               ✅ Full CRUD + Approval
 │       │   │   ├── charge-outs/            ✅ Full CRUD (FEAT-005)
+│       │   │   ├── data-import/            ✅ Excel Import (FEAT-008)
 │       │   │   ├── om-expenses/            ✅ Full CRUD (FEAT-007 重構)
 │       │   │   ├── om-expense-categories/  ✅ Full CRUD (FEAT-007)
 │       │   │   ├── om-summary/             ✅ Report (CHANGE-004)
@@ -735,6 +738,19 @@ pnpm validate:i18n
   - 新增 6 個 API procedures (createWithItems, addItem, updateItem, removeItem, reorderItems, updateItemMonthlyRecords)
   - 新增 3 個前端組件 (OMExpenseItemForm, OMExpenseItemList, OMExpenseItemMonthlyGrid)
   - 支援拖曳排序 (@dnd-kit 整合)
+- **FEAT-008**: OM Expense Data Import (Excel 數據導入)
+  - 新增 data-import 頁面 (Excel 解析、預覽、批量導入)
+  - 支援 xlsx/xls 格式解析 (xlsx 庫)
+  - 表頭-明細關聯建立
+  - 版本歷程: v1.0 → v1.1 (欄位映射優化) → v1.2 (驗證強化) → v1.3 (Bug 修復)
+- **CHANGE-005~011**: 多項功能改進
+  - CHANGE-005: i18n 翻譯更新
+  - CHANGE-006: OM Summary 欄位顯示改進
+  - CHANGE-007: Budget Pool 分類顯示修復
+  - CHANGE-008: Schema 同步修復
+  - CHANGE-009: OM Expense budgetCategoryId 驗證修復
+  - CHANGE-010: isOngoing 欄位增強
+  - CHANGE-011: lastFYActualExpense 欄位傳遞修復
 
 ### 📋 Epic 9: AI Assistant (Planned)
 - Intelligent budget suggestions during proposal phase
@@ -920,23 +936,24 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ## Project Metrics
 
-**Code Statistics** (as of 2025-12-08):
+**Code Statistics** (as of 2025-12-12):
 - Total Core Code: ~35,000+ lines
 - Indexed Files: 250+ important files
 - UI Components: 75+ (35+ design system + 40 business)
 - API Routers: 16 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, notification, omExpense, operatingCompany, project, purchaseOrder, quote, user, vendor, health)
 - Prisma Models: 27 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ExpenseCategory, ChargeOut, ChargeOutItem, OMExpense, OMExpenseItem, OMExpenseMonthly, OperatingCompany, ProjectChargeOutOpCo, Currency, Comment, History, Notification)
-- Pages: 55+ full-featured pages (19 route modules)
-- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements + FEAT-007 + CHANGE-004
+- Pages: 56+ full-featured pages (20 route modules)
+- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements + FEAT-007/008 + CHANGE-004~011
 
 **Development Timeline:**
 - Sprint 0-8: MVP Phase 1 (Epic 1-8) ✅
 - Sprint 9-10: Post-MVP Enhancements ✅
 - Sprint 11: FEAT-007 OM Expense 表頭-明細重構 ✅
-- Sprint 12+: Epic 9-10 (Planned)
+- Sprint 12: FEAT-008 OM Expense Data Import + CHANGE-005~011 ✅
+- Sprint 13+: Epic 9-10 (Planned)
 
 ---
 
-**Last Updated**: 2025-12-08
+**Last Updated**: 2025-12-12
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion

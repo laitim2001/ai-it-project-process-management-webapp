@@ -101,9 +101,14 @@ CHANGE-{NNN}-{description}.md          # 功能變更
 ## 重要文檔
 
 ### 當前活躍
-- `1-planning/features/FEAT-007-*` - OM Expense 重構
-- `3-progress/weekly/2025-W49.md` - 當前週報
-- `4-changes/feature-changes/CHANGE-004-*` - OM Summary 變更
+- `1-planning/features/FEAT-008-*` - OM Expense 數據導入 (Data Import)
+- `3-progress/weekly/2025-W50.md` - 當前週報
+- `4-changes/feature-changes/CHANGE-010-*` - isOngoing 欄位改進
+- `4-changes/feature-changes/CHANGE-011-*` - lastFYActualExpense 欄位傳遞修復
+
+### 已完成功能
+- `1-planning/features/FEAT-007-*` - OM Expense 表頭-明細架構重構 ✅
+- `4-changes/feature-changes/CHANGE-004-*` - OM Summary 變更 ✅
 
 ### 參考文檔
 - `6-ai-assistant/prompts/SITUATION-*.md` - 情境提示詞
