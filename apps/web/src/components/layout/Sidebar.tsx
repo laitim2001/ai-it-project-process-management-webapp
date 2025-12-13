@@ -72,6 +72,7 @@ import {
   BarChart3,
   Tags,
   Upload,
+  FolderUp,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -207,6 +208,12 @@ export function Sidebar() {
           href: "/data-import",
           icon: Upload,
           description: t('descriptions.dataImport')
+        },
+        {
+          name: t('menu.projectDataImport'),
+          href: "/project-data-import",
+          icon: FolderUp,
+          description: t('descriptions.projectDataImport')
         },
       ]
     },

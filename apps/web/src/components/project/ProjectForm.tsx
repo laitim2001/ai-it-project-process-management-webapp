@@ -125,6 +125,12 @@ interface ProjectFormProps {
     probability: string; // 'High' | 'Medium' | 'Low'
     team: string | null;
     personInCharge: string | null;
+    // FEAT-010: 專案導入新增欄位
+    fiscalYear: number | null;
+    isCdoReviewRequired: boolean;
+    isManagerConfirmed: boolean;
+    payForWhat: string | null;
+    payToWhom: string | null;
   };
   mode: 'create' | 'edit';
 }
@@ -164,6 +170,12 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     probability: initialData?.probability ?? 'Medium', // 預設 Medium
     team: initialData?.team ?? '',
     personInCharge: initialData?.personInCharge ?? '',
+    // FEAT-010: 專案導入新增欄位
+    fiscalYear: initialData?.fiscalYear ?? new Date().getFullYear(),
+    isCdoReviewRequired: initialData?.isCdoReviewRequired ?? false,
+    isManagerConfirmed: initialData?.isManagerConfirmed ?? false,
+    payForWhat: initialData?.payForWhat ?? '',
+    payToWhom: initialData?.payToWhom ?? '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -332,6 +344,12 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       probability: formData.probability,
       team: formData.team.trim() === '' ? undefined : formData.team,
       personInCharge: formData.personInCharge.trim() === '' ? undefined : formData.personInCharge,
+      // FEAT-010: 專案導入新增欄位
+      fiscalYear: formData.fiscalYear || undefined,
+      isCdoReviewRequired: formData.isCdoReviewRequired,
+      isManagerConfirmed: formData.isManagerConfirmed,
+      payForWhat: formData.payForWhat.trim() === '' ? undefined : formData.payForWhat,
+      payToWhom: formData.payToWhom.trim() === '' ? undefined : formData.payToWhom,
     };
 
     if (mode === 'create') {
@@ -390,6 +408,89 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         {errors.projectCode && (
           <p className="mt-1 text-sm text-red-600">{errors.projectCode}</p>
         )}
+      </div>
+
+      {/* FEAT-010: 財務年度 */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+        <div>
+          <label htmlFor="fiscalYear" className="block text-sm font-medium text-gray-700">
+            {tFields('fiscalYear.label')}
+          </label>
+          <input
+            type="number"
+            id="fiscalYear"
+            name="fiscalYear"
+            value={formData.fiscalYear || ''}
+            onChange={(e) => setFormData({ ...formData, fiscalYear: e.target.value ? parseInt(e.target.value) : null })}
+            min={2020}
+            max={2030}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('fiscalYear.placeholder')}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 pt-6">
+          <input
+            type="checkbox"
+            id="isCdoReviewRequired"
+            name="isCdoReviewRequired"
+            checked={formData.isCdoReviewRequired}
+            onChange={(e) => setFormData({ ...formData, isCdoReviewRequired: e.target.checked })}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label htmlFor="isCdoReviewRequired" className="text-sm font-medium text-gray-700">
+            {tFields('isCdoReviewRequired.label')}
+          </label>
+        </div>
+
+        <div className="flex items-center gap-3 pt-6">
+          <input
+            type="checkbox"
+            id="isManagerConfirmed"
+            name="isManagerConfirmed"
+            checked={formData.isManagerConfirmed}
+            onChange={(e) => setFormData({ ...formData, isManagerConfirmed: e.target.checked })}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label htmlFor="isManagerConfirmed" className="text-sm font-medium text-gray-700">
+            {tFields('isManagerConfirmed.label')}
+          </label>
+        </div>
+      </div>
+
+      {/* FEAT-010: 付款資訊 */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <label htmlFor="payForWhat" className="block text-sm font-medium text-gray-700">
+            {tFields('payForWhat.label')}
+          </label>
+          <input
+            type="text"
+            id="payForWhat"
+            name="payForWhat"
+            value={formData.payForWhat}
+            onChange={(e) => setFormData({ ...formData, payForWhat: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('payForWhat.placeholder')}
+            maxLength={500}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="payToWhom" className="block text-sm font-medium text-gray-700">
+            {tFields('payToWhom.label')}
+          </label>
+          <input
+            type="text"
+            id="payToWhom"
+            name="payToWhom"
+            value={formData.payToWhom}
+            onChange={(e) => setFormData({ ...formData, payToWhom: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            placeholder={tFields('payToWhom.placeholder')}
+            maxLength={500}
+          />
+        </div>
       </div>
 
       {/* FEAT-001: 全域標誌和優先權 (兩欄並排) */}

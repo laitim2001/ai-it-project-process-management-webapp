@@ -20,6 +20,51 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-13 | ✨ FEAT-010: Project Data Import | 修復完成 ✅
+
+**類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+FEAT-010 專案數據導入功能開發過程中發現多個問題需要修復：
+1. 導入頁面缺少必要的選擇器配置
+2. API/Frontend 介面不匹配
+3. Prisma Schema 缺少新欄位定義
+
+**問題診斷與修復**:
+
+1. **問題 A: Unknown argument `isOngoing` 錯誤**
+   - **根本原因**: `isOngoing` 和 `lastFYActualExpense` 欄位只定義在 OMExpenseItem 模型中，未添加到 Project 模型
+   - **修復**: 在 `schema.prisma` 的 Project 模型中添加這兩個欄位
+   ```prisma
+   isOngoing           Boolean  @default(false)
+   lastFYActualExpense Float?
+   ```
+
+2. **問題 B: budgetPool.getCategories UUID 驗證錯誤**
+   - **根本原因**: API 使用 `z.string().uuid()` 驗證，但資料庫存在非 UUID 格式的 ID (如 `bp-2025-it`)
+   - **修復**: 將驗證改為 `z.string().min(1)` 以支援任意字串 ID
+
+3. **問題 C: Prisma Client 未更新**
+   - **根本原因**: 開發服務器佔用 Prisma DLL 文件，導致無法重新生成
+   - **修復**: 終止開發服務器 → 執行 `prisma db push` → 重新生成 Prisma Client → 重啟服務器
+
+**修改的文件** (3 個):
+- `packages/db/prisma/schema.prisma` - Project 模型新增 isOngoing, lastFYActualExpense 欄位
+- `packages/api/src/routers/budgetPool.ts` - getCategories 驗證改為 min(1)
+- `packages/api/src/routers/project.ts` - importProjects 欄位處理恢復
+
+**資料庫變更**:
+- Project 表新增 `isOngoing` (BOOLEAN, DEFAULT false)
+- Project 表新增 `lastFYActualExpense` (DOUBLE PRECISION)
+
+**驗證結果**:
+- ✅ TypeScript 編譯通過
+- ✅ 開發服務器正常運行
+- ✅ 導入頁面可訪問
+- ✅ 資料庫欄位已同步
+
+---
+
 ### 2025-12-12 | ✨ FEAT-009: Operating Company 數據權限管理 | 完成 ✅
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成

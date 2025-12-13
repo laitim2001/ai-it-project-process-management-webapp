@@ -145,6 +145,15 @@ model Project {
   team             String?  // 團隊
   personInCharge   String?  // 負責人 (PIC)
 
+  // FEAT-010: Project Data Import 新增欄位 (7 個新欄位)
+  fiscalYear          Int?     // 財務年度
+  isCdoReviewRequired Boolean  @default(false) // CDO 審核需求
+  isManagerConfirmed  Boolean  @default(false) // Manager 確認狀態
+  payForWhat          String?  // 付款原因
+  payToWhom           String?  // 付款對象
+  isOngoing           Boolean  @default(false) // 持續進行中標記
+  lastFYActualExpense Float?   // 上年度實際支出
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -175,6 +184,9 @@ model Project {
   @@index([chargeBackToOpCo])
   @@index([probability])
   @@index([team])
+  // FEAT-010: 新增索引
+  @@index([fiscalYear])
+  @@index([isCdoReviewRequired])
 }
 
 model BudgetProposal {

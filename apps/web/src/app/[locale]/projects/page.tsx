@@ -105,7 +105,9 @@ export default function ProjectsPage() {
   const [globalFlagFilter, setGlobalFlagFilter] = useState<'RCL' | 'Region' | undefined>(undefined);
   const [priorityFilter, setPriorityFilter] = useState<'High' | 'Medium' | 'Low' | undefined>(undefined);
   const [currencyFilter, setCurrencyFilter] = useState<string | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt' | 'projectCode' | 'priority'>('createdAt');
+  // FEAT-010: 新增財務年度篩選器
+  const [fiscalYearFilter, setFiscalYearFilter] = useState<number | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt' | 'projectCode' | 'priority' | 'fiscalYear'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -136,6 +138,8 @@ export default function ProjectsPage() {
     globalFlag: globalFlagFilter,
     priority: priorityFilter,
     currencyId: currencyFilter,
+    // FEAT-010: 財務年度篩選
+    fiscalYear: fiscalYearFilter,
     sortBy,
     sortOrder,
   });
@@ -164,7 +168,7 @@ export default function ProjectsPage() {
   const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery({
     page: 1,
     limit: 100,
-    year: undefined,
+    financialYear: undefined,
     sortBy: 'year',
     sortOrder: 'desc',
   });
@@ -180,6 +184,13 @@ export default function ProjectsPage() {
   });
 
   const currencies = currenciesData ?? [];
+
+  /**
+   * 查詢系統中所有財務年度（用於篩選下拉選單）
+   * FEAT-010: 財務年度篩選器
+   */
+  const { data: fiscalYearsData } = api.project.getFiscalYears.useQuery();
+  const fiscalYears = fiscalYearsData?.fiscalYears ?? [];
 
   // ============================================================
   // 事件處理函數
@@ -409,6 +420,23 @@ export default function ProjectsPage() {
                   ))}
                 </select>
 
+                {/* FEAT-010: 財務年度篩選 */}
+                <select
+                  value={fiscalYearFilter ?? ''}
+                  onChange={(e) => {
+                    setFiscalYearFilter(e.target.value ? parseInt(e.target.value) : undefined);
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                >
+                  <option value="">{t('filters.fiscalYear.label')}：{t('filters.fiscalYear.all')}</option>
+                  {fiscalYears.map((fy) => (
+                    <option key={fy} value={fy}>
+                      FY {fy}
+                    </option>
+                  ))}
+                </select>
+
                 {/* FEAT-001: 全域標誌篩選 */}
                 <select
                   value={globalFlagFilter ?? ''}
@@ -508,7 +536,7 @@ export default function ProjectsPage() {
           <Card className="bg-muted">
             <CardContent className="pt-6">
               <p className="text-muted-foreground text-center">
-                {search || statusFilter || budgetPoolFilter || globalFlagFilter || priorityFilter || currencyFilter
+                {search || statusFilter || budgetPoolFilter || globalFlagFilter || priorityFilter || currencyFilter || fiscalYearFilter
                   ? t('empty.noResults')
                   : t('empty.noProjects')}
               </p>
@@ -591,6 +619,7 @@ export default function ProjectsPage() {
                   <TableRow>
                     <TableHead>{t('table.name')}</TableHead>
                     <TableHead>{t('table.projectCode')}</TableHead>
+                    <TableHead>{t('table.fiscalYear')}</TableHead>
                     <TableHead>{t('table.globalFlag')}</TableHead>
                     <TableHead>{t('table.priority')}</TableHead>
                     <TableHead>{t('table.status')}</TableHead>
@@ -616,6 +645,14 @@ export default function ProjectsPage() {
                       {/* FEAT-001: 專案編號 */}
                       <TableCell>
                         <span className="font-mono text-sm">{project.projectCode}</span>
+                      </TableCell>
+                      {/* FEAT-010: 財務年度 */}
+                      <TableCell>
+                        {project.fiscalYear ? (
+                          <Badge variant="outline">FY {project.fiscalYear}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       {/* FEAT-001: 全域標誌 */}
                       <TableCell>

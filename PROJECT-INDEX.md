@@ -558,6 +558,7 @@
 | **OMExpenseCategory 新增** | `apps/web/src/app/[locale]/om-expense-categories/new/page.tsx` | OM 費用類別新增頁面 | 🟡 高 |
 | **OM Summary** | `apps/web/src/app/[locale]/om-summary/page.tsx` | OM Summary 報表頁面（CHANGE-004 三層階層顯示） | 🔴 極高 |
 | **Data Import** | `apps/web/src/app/[locale]/data-import/page.tsx` | 資料導入頁面（FEAT-008 Excel/JSON 導入支援） | 🔴 極高 |
+| **Project Data Import** | `apps/web/src/app/[locale]/project-data-import/page.tsx` | 專案數據批量導入頁面（FEAT-010 Excel 導入） | 🔴 極高 |
 | **Operating Companies 列表** | `apps/web/src/app/[locale]/operating-companies/page.tsx` | 營運公司列表頁面 | 🟡 高 |
 | **Operating Companies 詳情** | `apps/web/src/app/[locale]/operating-companies/[id]/page.tsx` | 營運公司詳情頁面 | 🟡 高 |
 | **Operating Companies 編輯** | `apps/web/src/app/[locale]/operating-companies/[id]/edit/page.tsx` | 營運公司編輯頁面 | 🟡 高 |

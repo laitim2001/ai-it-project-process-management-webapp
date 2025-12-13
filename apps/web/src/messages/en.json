@@ -167,7 +167,8 @@
       "notifications": "Notifications",
       "settings": "Settings",
       "help": "Help Center",
-      "dataImport": "Data Import"
+      "dataImport": "Data Import",
+      "projectDataImport": "Project Import"
     },
     "descriptions": {
       "dashboard": "Project overview and key metrics",
@@ -187,7 +188,8 @@
       "currencies": "Manage system currency options",
       "settings": "System parameter configuration",
       "help": "User guide and support",
-      "dataImport": "Bulk import OM expense data"
+      "dataImport": "Bulk import OM expense data",
+      "projectDataImport": "Bulk import project data from Excel"
     },
     "search": {
       "label": "Search",
@@ -411,6 +413,10 @@
         "label": "Currency",
         "all": "All",
         "placeholder": "Select currency"
+      },
+      "fiscalYear": {
+        "label": "Fiscal Year",
+        "all": "All"
       }
     },
     "sort": {
@@ -443,6 +449,7 @@
     "table": {
       "name": "Project Name",
       "projectCode": "Project Code",
+      "fiscalYear": "FY",
       "globalFlag": "Global Flag",
       "priority": "Priority",
       "status": "Status",
@@ -679,6 +686,24 @@
         "personInCharge": {
           "label": "Person In Charge",
           "placeholder": "Enter person in charge (optional)"
+        },
+        "fiscalYear": {
+          "label": "Fiscal Year",
+          "placeholder": "e.g., 2025"
+        },
+        "isCdoReviewRequired": {
+          "label": "CDO Review Required"
+        },
+        "isManagerConfirmed": {
+          "label": "Manager Confirmed"
+        },
+        "payForWhat": {
+          "label": "Pay For What",
+          "placeholder": "Enter payment purpose"
+        },
+        "payToWhom": {
+          "label": "Pay To Whom",
+          "placeholder": "Enter payment recipient"
         }
       },
       "actions": {
@@ -3405,6 +3430,76 @@
       "upload": "Upload File",
       "preview": "Preview & Confirm",
       "result": "Import Result"
+    }
+  },
+  "projectDataImport": {
+    "title": "Project Data Import",
+    "description": "Batch import projects from Excel file",
+    "downloadTemplate": "Download Template",
+    "steps": {
+      "upload": "Upload",
+      "preview": "Preview",
+      "result": "Result"
+    },
+    "upload": {
+      "title": "Upload Excel File",
+      "description": "Upload an Excel file (.xlsx, .xls) containing project data",
+      "dropzone": "Drag and drop file here, or click to select",
+      "supportedFormats": "Supported formats: .xlsx, .xls",
+      "processing": "Processing file...",
+      "columnInfo": "Required Fields (* = Required)"
+    },
+    "preview": {
+      "title": "Preview Import Data",
+      "totalRows": "Total Rows",
+      "validRows": "Valid Rows",
+      "errorRows": "Error Rows",
+      "duplicateRows": "Duplicates",
+      "tabs": {
+        "valid": "Valid",
+        "errors": "Errors",
+        "duplicates": "Duplicates"
+      },
+      "columns": {
+        "row": "Row",
+        "fiscalYear": "FY",
+        "projectCode": "Project Code",
+        "name": "Name",
+        "category": "Category",
+        "budget": "Budget",
+        "currency": "Currency",
+        "field": "Field",
+        "error": "Error",
+        "value": "Value",
+        "existingName": "Existing Name",
+        "existingFY": "Existing FY",
+        "action": "Action"
+      },
+      "noErrors": "No validation errors",
+      "noDuplicates": "No duplicate records",
+      "duplicateWarning": "Duplicate Records Found",
+      "duplicateDescription": "These projects already exist in the system and will be updated.",
+      "willUpdate": "Will Update",
+      "showingFirst": "Showing first {count} of {total} records",
+      "importing": "Importing...",
+      "importButton": "Import {count} Projects"
+    },
+    "result": {
+      "success": "Import Completed",
+      "failed": "Import Failed",
+      "created": "Created",
+      "updated": "Updated",
+      "skipped": "Skipped",
+      "errorDetails": "Error Details",
+      "importMore": "Import More",
+      "goToProjects": "Go to Projects"
+    },
+    "errors": {
+      "requiredField": "{field} is required",
+      "invalidFiscalYear": "Fiscal Year must be between 2020 and 2030",
+      "invalidProbability": "Probability must be between 0 and 100",
+      "parseError": "Failed to parse Excel file",
+      "importFailed": "Import operation failed"
     }
   }
 }

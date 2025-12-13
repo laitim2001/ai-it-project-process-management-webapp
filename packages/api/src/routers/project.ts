@@ -141,6 +141,13 @@ export const createProjectSchema = z.object({
   probability: probabilityEnum.default('Medium'), // "High" | "Medium" | "Low"
   team: z.string().max(100).optional(), // 團隊
   personInCharge: z.string().max(100).optional(), // 負責人 (PIC)
+
+  // FEAT-010: Project Data Import 新增欄位 (5 個新欄位)
+  fiscalYear: z.number().int().min(2020).max(2030).optional(), // 財務年度
+  isCdoReviewRequired: z.boolean().default(false), // CDO 審核需求
+  isManagerConfirmed: z.boolean().default(false), // Manager 確認狀態
+  payForWhat: z.string().max(500).optional(), // 付款原因
+  payToWhom: z.string().max(500).optional(), // 付款對象
 });
 
 /**
@@ -183,6 +190,13 @@ export const updateProjectSchema = z.object({
   probability: probabilityEnum.optional(), // "High" | "Medium" | "Low"
   team: z.string().max(100).nullable().optional(), // 團隊
   personInCharge: z.string().max(100).nullable().optional(), // 負責人 (PIC)
+
+  // FEAT-010: Project Data Import 新增欄位 (5 個新欄位，所有可選)
+  fiscalYear: z.number().int().min(2020).max(2030).nullable().optional(), // 財務年度
+  isCdoReviewRequired: z.boolean().optional(), // CDO 審核需求
+  isManagerConfirmed: z.boolean().optional(), // Manager 確認狀態
+  payForWhat: z.string().max(500).nullable().optional(), // 付款原因
+  payToWhom: z.string().max(500).nullable().optional(), // 付款對象
 });
 
 // ============================================================
@@ -224,7 +238,9 @@ export const projectRouter = createTRPCRouter({
           globalFlag: globalFlagEnum.optional(),
           priority: priorityEnum.optional(),
           currencyId: z.string().uuid().optional(),
-          sortBy: z.enum(['name', 'status', 'createdAt', 'projectCode', 'priority']).default('createdAt'),
+          // FEAT-010: 財務年度過濾
+          fiscalYear: z.number().int().optional(),
+          sortBy: z.enum(['name', 'status', 'createdAt', 'projectCode', 'priority', 'fiscalYear']).default('createdAt'),
           sortOrder: z.enum(['asc', 'desc']).default('desc'),
         })
         .optional()
@@ -243,6 +259,8 @@ export const projectRouter = createTRPCRouter({
       const globalFlag = input?.globalFlag;
       const priority = input?.priority;
       const currencyId = input?.currencyId;
+      // FEAT-010: 財務年度篩選
+      const fiscalYear = input?.fiscalYear;
       const sortBy = input?.sortBy ?? 'createdAt';
       const sortOrder = input?.sortOrder ?? 'desc';
 
@@ -276,6 +294,8 @@ export const projectRouter = createTRPCRouter({
           globalFlag ? { globalFlag } : {},
           priority ? { priority } : {},
           currencyId ? { currencyId } : {},
+          // FEAT-010: 財務年度篩選條件
+          fiscalYear ? { fiscalYear } : {},
         ],
       };
 
@@ -294,6 +314,8 @@ export const projectRouter = createTRPCRouter({
               ? { projectCode: sortOrder }
               : sortBy === 'priority'
               ? { priority: sortOrder }
+              : sortBy === 'fiscalYear'
+              ? { fiscalYear: sortOrder }
               : { createdAt: sortOrder },
           include: {
             manager: {
@@ -675,6 +697,12 @@ export const projectRouter = createTRPCRouter({
             probability: projectData.probability,
             team: projectData.team,
             personInCharge: projectData.personInCharge,
+            // FEAT-010: Project Data Import 新增欄位
+            fiscalYear: projectData.fiscalYear,
+            isCdoReviewRequired: projectData.isCdoReviewRequired,
+            isManagerConfirmed: projectData.isManagerConfirmed,
+            payForWhat: projectData.payForWhat,
+            payToWhom: projectData.payToWhom,
           },
         });
 
@@ -1485,4 +1513,340 @@ export const projectRouter = createTRPCRouter({
         categories,
       };
     }),
+
+  // ============================================================
+  // FEAT-010: Project Data Import 新增 Procedures
+  // ============================================================
+
+  /**
+   * 根據 projectCode 列表查詢專案 (FEAT-010)
+   *
+   * @description
+   * 用於導入時的重複檢測。根據 projectCode 列表查詢現有專案，
+   * 回傳匹配的專案資訊，用於前端標示哪些是更新、哪些是新增。
+   *
+   * 輸入參數：
+   * - projectCodes: 專案編號陣列
+   *
+   * 回傳：
+   * - 匹配的專案列表（id, projectCode, name）
+   */
+  getByProjectCodes: protectedProcedure
+    .input(
+      z.object({
+        projectCodes: z.array(z.string().min(1)),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const projects = await ctx.prisma.project.findMany({
+        where: {
+          projectCode: {
+            in: input.projectCodes,
+          },
+        },
+        select: {
+          id: true,
+          projectCode: true,
+          name: true,
+          fiscalYear: true,
+        },
+      });
+
+      return projects;
+    }),
+
+  /**
+   * 批量導入專案 (FEAT-010)
+   *
+   * @description
+   * 從 Excel 批量導入專案資料。支援新建和更新（根據 projectCode 判斷）。
+   * 使用 Transaction 確保原子性。
+   *
+   * 輸入參數：
+   * - projects: 專案資料陣列
+   * - defaultManagerId: 預設專案經理 ID
+   * - defaultSupervisorId: 預設主管 ID
+   * - defaultBudgetPoolId: 預設預算池 ID
+   *
+   * 回傳：
+   * - success: 是否成功
+   * - totalProcessed: 處理總數
+   * - created: 新建數量
+   * - updated: 更新數量
+   * - skipped: 跳過數量
+   * - errors: 錯誤列表
+   */
+  importProjects: protectedProcedure
+    .input(
+      z.object({
+        projects: z.array(
+          z.object({
+            fiscalYear: z.number().int().optional(),
+            projectCategory: z.string().nullable().optional(),
+            name: z.string().min(1),
+            description: z.string().nullable().optional(),
+            expenseType: z.string().nullable().optional(),
+            budgetCategoryName: z.string().nullable().optional(), // 需要查找 BudgetCategory
+            projectCode: z.string().min(1),
+            globalFlag: z.string().nullable().optional(),
+            probability: z.number().nullable().optional(), // 改為 number
+            team: z.string().nullable().optional(),
+            personInCharge: z.string().nullable().optional(),
+            currencyCode: z.string().nullable().optional(), // 需要查找 Currency
+            isCdoReviewRequired: z.boolean().optional().default(false),
+            isManagerConfirmed: z.boolean().optional().default(false),
+            payForWhat: z.string().nullable().optional(),
+            payToWhom: z.string().nullable().optional(),
+            requestedBudget: z.number().nullable().optional(),
+            isOngoing: z.boolean().optional().default(false),
+            lastFYActualExpense: z.number().nullable().optional(),
+          })
+        ),
+        defaultManagerId: z.string().uuid().optional(),
+        defaultSupervisorId: z.string().uuid().optional(),
+        defaultBudgetPoolId: z.string().uuid().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const errors: Array<{
+        row: number;
+        projectCode: string;
+        message: string;
+      }> = [];
+      let created = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      // 0. 獲取預設值
+      const currentUserId = ctx.session.user.id;
+
+      // 獲取預設 Manager (使用當前用戶或第一個可用的 ProjectManager)
+      let defaultManagerId = input.defaultManagerId;
+      if (!defaultManagerId) {
+        const manager = await ctx.prisma.user.findFirst({
+          where: { role: { name: 'ProjectManager' } },
+          select: { id: true },
+        });
+        defaultManagerId = manager?.id ?? currentUserId;
+      }
+
+      // 獲取預設 Supervisor (使用第一個可用的 Supervisor)
+      let defaultSupervisorId = input.defaultSupervisorId;
+      if (!defaultSupervisorId) {
+        const supervisor = await ctx.prisma.user.findFirst({
+          where: { role: { name: 'Supervisor' } },
+          select: { id: true },
+        });
+        defaultSupervisorId = supervisor?.id ?? currentUserId;
+      }
+
+      // 獲取預設 BudgetPool (使用第一個可用的)
+      let defaultBudgetPoolId = input.defaultBudgetPoolId;
+      if (!defaultBudgetPoolId) {
+        const budgetPool = await ctx.prisma.budgetPool.findFirst({
+          select: { id: true },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (!budgetPool) {
+          return {
+            success: false,
+            totalProcessed: 0,
+            created: 0,
+            updated: 0,
+            skipped: input.projects.length,
+            errors: [{ row: 0, projectCode: 'N/A', message: 'No budget pool available' }],
+          };
+        }
+        defaultBudgetPoolId = budgetPool.id;
+      }
+
+      // 1. 查找所有 BudgetCategory 映射
+      const budgetCategories = await ctx.prisma.budgetCategory.findMany({
+        where: { budgetPoolId: defaultBudgetPoolId },
+        select: { id: true, categoryName: true },
+      });
+      const categoryMap = new Map(
+        budgetCategories.map((c) => [c.categoryName.toLowerCase(), c.id])
+      );
+
+      // 獲取預設 BudgetCategory (第一個可用的)
+      const defaultBudgetCategoryId = budgetCategories[0]?.id;
+
+      // 2. 查找所有 Currency 映射
+      const currencies = await ctx.prisma.currency.findMany({
+        where: { active: true },
+        select: { id: true, code: true },
+      });
+      const currencyMap = new Map(
+        currencies.map((c) => [c.code.toUpperCase(), c.id])
+      );
+
+      // 獲取預設 Currency (USD 或第一個可用的)
+      const defaultCurrencyId = currencyMap.get('USD') ?? currencies[0]?.id;
+
+      // 3. 查找現有專案（用於判斷更新或新建）
+      const existingProjectCodes = input.projects.map((p) => p.projectCode);
+      const existingProjects = await ctx.prisma.project.findMany({
+        where: { projectCode: { in: existingProjectCodes } },
+        select: { id: true, projectCode: true },
+      });
+      const existingMap = new Map(
+        existingProjects.map((p) => [p.projectCode, p.id])
+      );
+
+      // 4. 使用 Transaction 處理所有專案
+      await ctx.prisma.$transaction(
+        async (tx) => {
+          for (let i = 0; i < input.projects.length; i++) {
+            const row = input.projects[i];
+            const rowNumber = i + 1;
+
+            try {
+              // 查找 BudgetCategory ID (可選，使用預設值)
+              let budgetCategoryId: string | undefined;
+              if (row.budgetCategoryName) {
+                budgetCategoryId = categoryMap.get(row.budgetCategoryName.toLowerCase());
+                if (!budgetCategoryId) {
+                  // 如果找不到指定的類別，使用預設值
+                  budgetCategoryId = defaultBudgetCategoryId;
+                }
+              } else {
+                budgetCategoryId = defaultBudgetCategoryId;
+              }
+
+              // 查找 Currency ID (可選，使用預設值)
+              let currencyId: string | undefined;
+              if (row.currencyCode) {
+                currencyId = currencyMap.get(row.currencyCode.toUpperCase());
+                if (!currencyId) {
+                  // 如果找不到指定的幣別，使用預設值
+                  currencyId = defaultCurrencyId;
+                }
+              } else {
+                currencyId = defaultCurrencyId;
+              }
+
+              // 解析 probability（number -> enum string）
+              let probability: 'High' | 'Medium' | 'Low' = 'Medium';
+              if (row.probability !== null && row.probability !== undefined) {
+                if (row.probability >= 80) {
+                  probability = 'High';
+                } else if (row.probability <= 30) {
+                  probability = 'Low';
+                }
+              }
+
+              // 準備專案資料
+              const projectData = {
+                name: row.name,
+                description: row.description,
+                budgetPoolId: defaultBudgetPoolId,
+                budgetCategoryId,
+                managerId: defaultManagerId,
+                supervisorId: defaultSupervisorId,
+                startDate: new Date(),
+                status: 'Draft',
+                projectCode: row.projectCode,
+                globalFlag: row.globalFlag === 'RCL' ? 'RCL' : 'Region',
+                priority: 'Medium',
+                currencyId,
+                projectCategory: row.projectCategory,
+                projectType: 'Project' as const,
+                expenseType:
+                  row.expenseType === 'Capital'
+                    ? 'Capital'
+                    : row.expenseType === 'Collection'
+                    ? 'Collection'
+                    : 'Expense',
+                probability,
+                team: row.team,
+                personInCharge: row.personInCharge,
+                fiscalYear: row.fiscalYear,
+                isCdoReviewRequired: row.isCdoReviewRequired ?? false,
+                isManagerConfirmed: row.isManagerConfirmed ?? false,
+                payForWhat: row.payForWhat,
+                payToWhom: row.payToWhom,
+                requestedBudget: row.requestedBudget,
+                isOngoing: row.isOngoing ?? false,
+                lastFYActualExpense: row.lastFYActualExpense,
+              };
+
+              // 判斷是更新還是新建
+              const existingId = existingMap.get(row.projectCode);
+              if (existingId) {
+                // 更新現有專案
+                await tx.project.update({
+                  where: { id: existingId },
+                  data: projectData,
+                });
+                updated++;
+              } else {
+                // 新建專案
+                await tx.project.create({
+                  data: projectData,
+                });
+                created++;
+              }
+            } catch (error) {
+              errors.push({
+                row: rowNumber,
+                projectCode: row.projectCode,
+                message:
+                  error instanceof Error ? error.message : 'Unknown error',
+              });
+              skipped++;
+            }
+          }
+        },
+        {
+          maxWait: 10000, // 10 秒
+          timeout: 300000, // 5 分鐘
+        }
+      );
+
+      return {
+        success: errors.length === 0,
+        totalProcessed: input.projects.length,
+        created,
+        updated,
+        skipped,
+        errors,
+      };
+    }),
+
+  /**
+   * 獲取財務年度列表 (FEAT-010)
+   *
+   * @description
+   * 獲取所有不重複的財務年度，用於過濾器下拉選單。
+   *
+   * 回傳：
+   * - fiscalYears: 財務年度數字陣列（降序排列）
+   */
+  getFiscalYears: protectedProcedure.query(async ({ ctx }) => {
+    // 使用 findMany + distinct 獲取不重複的 fiscalYear
+    const projects = await ctx.prisma.project.findMany({
+      where: {
+        fiscalYear: {
+          not: null,
+        },
+      },
+      select: {
+        fiscalYear: true,
+      },
+      distinct: ['fiscalYear'],
+      orderBy: {
+        fiscalYear: 'desc',
+      },
+    });
+
+    // 提取並過濾掉 null 值
+    const fiscalYears = projects
+      .map((p) => p.fiscalYear)
+      .filter((fy): fy is number => fy !== null);
+
+    return {
+      fiscalYears,
+    };
+  }),
 });

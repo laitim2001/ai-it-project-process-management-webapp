@@ -522,7 +522,7 @@ export const budgetPoolRouter = createTRPCRouter({
    * 獲取預算池的所有預算類別
    */
   getCategories: protectedProcedure
-    .input(z.object({ budgetPoolId: z.string().uuid() }))
+    .input(z.object({ budgetPoolId: z.string().min(1) })) // 支援 UUID 和非 UUID 格式的 ID
     .query(async ({ ctx, input }) => {
       const categories = await ctx.prisma.budgetCategory.findMany({
         where: {
