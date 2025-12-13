@@ -69,7 +69,8 @@ interface ParsedProject {
   budgetCategoryName: string | null;
   projectCode: string;
   globalFlag: string | null;
-  probability: number | null;
+  probability: string | null; // "High" | "Medium" | "Low"
+  priority: string | null; // "High" | "Medium" | "Low"
   team: string | null;
   personInCharge: string | null;
   currencyCode: string | null;
@@ -80,6 +81,10 @@ interface ParsedProject {
   requestedBudget: number | null;
   isOngoing: boolean;
   lastFYActualExpense: number | null;
+  // 新增欄位 (v2 模版)
+  isChargeBackToOpco: boolean;
+  chargeOutOpCos: string | null; // OpCo 代碼列表，用逗號分隔
+  chargeOutMethod: string | null;
 }
 
 interface ValidationError {
@@ -133,6 +138,7 @@ const EXCEL_COLUMN_MAP: Record<string, string> = {
   projectCode: 'Project Code',
   globalFlag: 'Global Flag',
   probability: 'Probability',
+  priority: 'Priority',
   team: 'Team',
   personInCharge: 'PIC',
   currencyCode: 'Currency',
@@ -143,6 +149,10 @@ const EXCEL_COLUMN_MAP: Record<string, string> = {
   requestedBudget: 'Total Amount (USD)',
   isOngoing: 'Is Ongoing',
   lastFYActualExpense: 'Last FY Actual Expense',
+  // 新增欄位 (v2 模版)
+  isChargeBackToOpco: 'Is Charge Back to Opco',
+  chargeOutOpCos: 'Charge Out OpCos',
+  chargeOutMethod: 'Charge out Method',
 };
 
 // 必填欄位
@@ -224,6 +234,57 @@ function cleanString(value: unknown): string | null {
   return str === '' ? null : str;
 }
 
+/**
+ * 解析 Probability 欄位 (支援數字或字串 high/medium/low)
+ * 返回標準化的字串 "High" | "Medium" | "Low" 或 null
+ */
+function parseProbability(value: unknown): string | null {
+  if (value === null || value === undefined || value === '') return null;
+
+  // 如果是字串，檢查是否為 high/medium/low
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase().trim();
+    if (lower === 'high' || lower === 'h') return 'High';
+    if (lower === 'medium' || lower === 'med' || lower === 'm') return 'Medium';
+    if (lower === 'low' || lower === 'l') return 'Low';
+
+    // 嘗試解析為數字
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      if (num >= 80) return 'High';
+      if (num <= 30) return 'Low';
+      return 'Medium';
+    }
+    return null;
+  }
+
+  // 如果是數字
+  if (typeof value === 'number') {
+    if (value >= 80) return 'High';
+    if (value <= 30) return 'Low';
+    return 'Medium';
+  }
+
+  return null;
+}
+
+/**
+ * 解析 Priority 欄位 (支援字串 high/medium/low)
+ * 返回標準化的字串 "High" | "Medium" | "Low" 或 null
+ */
+function parsePriority(value: unknown): string | null {
+  if (value === null || value === undefined || value === '') return null;
+
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase().trim();
+    if (lower === 'high' || lower === 'h') return 'High';
+    if (lower === 'medium' || lower === 'med' || lower === 'm') return 'Medium';
+    if (lower === 'low' || lower === 'l') return 'Low';
+  }
+
+  return null;
+}
+
 // ============================================================
 // 主組件
 // ============================================================
@@ -273,12 +334,13 @@ export default function ProjectDataImportPage() {
           const headerRow = jsonData[0] as string[];
           const dataRows = jsonData.slice(1);
 
-          // 建立欄位索引映射
+          // 建立欄位索引映射 (使用不區分大小寫的匹配，修復問題2)
           const columnIndexMap: Record<string, number> = {};
           headerRow.forEach((header, index) => {
-            const trimmedHeader = String(header).trim();
+            const trimmedHeader = String(header || '').trim().toLowerCase();
             Object.entries(EXCEL_COLUMN_MAP).forEach(([field, excelHeader]) => {
-              if (trimmedHeader === excelHeader) {
+              // 不區分大小寫的比對
+              if (trimmedHeader === excelHeader.toLowerCase()) {
                 columnIndexMap[field] = index;
               }
             });
@@ -312,7 +374,8 @@ export default function ProjectDataImportPage() {
               budgetCategoryName: cleanString(getValue('budgetCategoryName')),
               projectCode: cleanString(getValue('projectCode')) ?? '',
               globalFlag: cleanString(getValue('globalFlag')),
-              probability: parseNumber(getValue('probability')),
+              probability: parseProbability(getValue('probability')),
+              priority: parsePriority(getValue('priority')),
               team: cleanString(getValue('team')),
               personInCharge: cleanString(getValue('personInCharge')),
               currencyCode: cleanString(getValue('currencyCode')),
@@ -323,6 +386,10 @@ export default function ProjectDataImportPage() {
               requestedBudget: parseNumber(getValue('requestedBudget')),
               isOngoing: parseBoolean(getValue('isOngoing')),
               lastFYActualExpense: parseNumber(getValue('lastFYActualExpense')),
+              // 新增欄位 (v2 模版)
+              isChargeBackToOpco: parseBoolean(getValue('isChargeBackToOpco')),
+              chargeOutOpCos: cleanString(getValue('chargeOutOpCos')),
+              chargeOutMethod: cleanString(getValue('chargeOutMethod')),
             };
 
             // 驗證必填欄位
@@ -355,17 +422,6 @@ export default function ProjectDataImportPage() {
                 field: 'fiscalYear',
                 message: t('errors.invalidFiscalYear'),
                 value: String(getValue('fiscalYear') ?? ''),
-              });
-              hasError = true;
-            }
-
-            // 驗證 probability 範圍
-            if (project.probability !== null && (project.probability < 0 || project.probability > 100)) {
-              errors.push({
-                rowNumber,
-                field: 'probability',
-                message: t('errors.invalidProbability'),
-                value: String(getValue('probability') ?? ''),
               });
               hasError = true;
             }
@@ -478,6 +534,7 @@ export default function ProjectDataImportPage() {
           projectCode: p.projectCode,
           globalFlag: p.globalFlag ?? undefined,
           probability: p.probability ?? undefined,
+          priority: p.priority ?? undefined,
           team: p.team ?? undefined,
           personInCharge: p.personInCharge ?? undefined,
           currencyCode: p.currencyCode ?? undefined,
@@ -488,6 +545,10 @@ export default function ProjectDataImportPage() {
           requestedBudget: p.requestedBudget ?? undefined,
           isOngoing: p.isOngoing,
           lastFYActualExpense: p.lastFYActualExpense ?? undefined,
+          // 新增欄位 (v2 模版)
+          isChargeBackToOpco: p.isChargeBackToOpco,
+          chargeOutOpCos: p.chargeOutOpCos ?? undefined,
+          chargeOutMethod: p.chargeOutMethod ?? undefined,
         })),
       });
 

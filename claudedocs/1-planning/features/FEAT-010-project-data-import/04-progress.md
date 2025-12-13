@@ -107,10 +107,19 @@ payToWhom           String?  // 付款對象
 ### 已解決
 - **Prisma generate 文件鎖定問題**: 多次重試後成功
 - **翻譯鍵不一致問題**: 使用 validate:i18n 腳本驗證
+- **Probability/Priority 欄位解析問題** (2025-12-13):
+  - 問題: Excel 中 probability 是字串 "high" 但代碼期望數字
+  - 解決: 添加 `parseProbability()` 和 `parsePriority()` 函數處理字串/數字轉換
+- **chargeOutMethod 欄位映射錯誤** (2025-12-13):
+  - 問題: EXCEL_COLUMN_MAP 映射錯誤 ('Charge out description' → 'Charge out Method')
+  - 解決: 修正映射名稱
+- **編輯頁面欄位未顯示問題** (2025-12-13):
+  - 問題: CDO Review Required、Manager Confirmed、Pay For What、Pay To Whom 在編輯頁面不顯示
+  - 原因: 編輯頁面的 initialData 未傳遞這些欄位給 ProjectForm
+  - 解決: 在 `projects/[id]/edit/page.tsx` 添加缺失的欄位傳遞
 
 ### 待處理
-- 實際環境測試 (100 筆資料導入)
-- Project 表單頁和列表頁新增 FY 欄位 (延後至後續迭代)
+- Project 列表頁新增 FY 欄位過濾 (延後至後續迭代)
 
 ## 變更記錄
 
@@ -121,6 +130,7 @@ payToWhom           String?  // 付款對象
 | 2025-12-13 | Phase 2 完成 | 後端 API 完成 |
 | 2025-12-13 | Phase 3 完成 | 前端頁面完成 |
 | 2025-12-13 | Phase 4 完成 | i18n 和導航完成 |
+| 2025-12-13 | Bug 修復 | 修復 probability/priority 解析、chargeOutMethod 映射、編輯頁面欄位顯示問題 |
 
 ## 交付清單
 

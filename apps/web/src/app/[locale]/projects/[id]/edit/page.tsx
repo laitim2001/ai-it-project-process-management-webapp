@@ -243,6 +243,12 @@ export default function EditProjectPage() {
                 probability: project.probability,
                 team: project.team,
                 personInCharge: project.personInCharge,
+                // FEAT-010: 專案導入欄位
+                isCdoReviewRequired: project.isCdoReviewRequired,
+                isManagerConfirmed: project.isManagerConfirmed,
+                payForWhat: project.payForWhat,
+                payToWhom: project.payToWhom,
+                fiscalYear: project.fiscalYear,
               }}
             />
           </CardContent>

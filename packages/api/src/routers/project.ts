@@ -1589,7 +1589,8 @@ export const projectRouter = createTRPCRouter({
             budgetCategoryName: z.string().nullable().optional(), // 需要查找 BudgetCategory
             projectCode: z.string().min(1),
             globalFlag: z.string().nullable().optional(),
-            probability: z.number().nullable().optional(), // 改為 number
+            probability: z.string().nullable().optional(), // "High" | "Medium" | "Low"
+            priority: z.string().nullable().optional(), // "High" | "Medium" | "Low"
             team: z.string().nullable().optional(),
             personInCharge: z.string().nullable().optional(),
             currencyCode: z.string().nullable().optional(), // 需要查找 Currency
@@ -1600,6 +1601,10 @@ export const projectRouter = createTRPCRouter({
             requestedBudget: z.number().nullable().optional(),
             isOngoing: z.boolean().optional().default(false),
             lastFYActualExpense: z.number().nullable().optional(),
+            // 新增欄位 (v2 模版)
+            isChargeBackToOpco: z.boolean().optional().default(false),
+            chargeOutOpCos: z.string().nullable().optional(), // OpCo 代碼列表，用逗號分隔
+            chargeOutMethod: z.string().nullable().optional(),
           })
         ),
         defaultManagerId: z.string().uuid().optional(),
@@ -1684,6 +1689,15 @@ export const projectRouter = createTRPCRouter({
       // 獲取預設 Currency (USD 或第一個可用的)
       const defaultCurrencyId = currencyMap.get('USD') ?? currencies[0]?.id;
 
+      // 2.5 查找所有 OperatingCompany 映射 (v2 模版: Charge Out OpCos)
+      const operatingCompanies = await ctx.prisma.operatingCompany.findMany({
+        where: { isActive: true },
+        select: { id: true, code: true },
+      });
+      const opCoMap = new Map(
+        operatingCompanies.map((o) => [o.code.toUpperCase(), o.id])
+      );
+
       // 3. 查找現有專案（用於判斷更新或新建）
       const existingProjectCodes = input.projects.map((p) => p.projectCode);
       const existingProjects = await ctx.prisma.project.findMany({
@@ -1726,13 +1740,29 @@ export const projectRouter = createTRPCRouter({
                 currencyId = defaultCurrencyId;
               }
 
-              // 解析 probability（number -> enum string）
-              let probability: 'High' | 'Medium' | 'Low' = 'Medium';
-              if (row.probability !== null && row.probability !== undefined) {
-                if (row.probability >= 80) {
-                  probability = 'High';
-                } else if (row.probability <= 30) {
-                  probability = 'Low';
+              // 解析 probability (已在前端轉換為 "High" | "Medium" | "Low")
+              const probability: 'High' | 'Medium' | 'Low' =
+                row.probability === 'High' || row.probability === 'Medium' || row.probability === 'Low'
+                  ? row.probability
+                  : 'Medium';
+
+              // 解析 priority (已在前端轉換為 "High" | "Medium" | "Low")
+              const priority: 'High' | 'Medium' | 'Low' =
+                row.priority === 'High' || row.priority === 'Medium' || row.priority === 'Low'
+                  ? row.priority
+                  : 'Medium';
+
+              // 解析 chargeOutOpCos (將 OpCo 代碼轉換為 ID)
+              const chargeOutOpCoIds: string[] = [];
+              if (row.chargeOutOpCos) {
+                const opCoCodes = row.chargeOutOpCos.split(',').map(s => s.trim().toUpperCase());
+                for (const code of opCoCodes) {
+                  if (code) {
+                    const opCoId = opCoMap.get(code);
+                    if (opCoId) {
+                      chargeOutOpCoIds.push(opCoId);
+                    }
+                  }
                 }
               }
 
@@ -1748,7 +1778,7 @@ export const projectRouter = createTRPCRouter({
                 status: 'Draft',
                 projectCode: row.projectCode,
                 globalFlag: row.globalFlag === 'RCL' ? 'RCL' : 'Region',
-                priority: 'Medium',
+                priority,
                 currencyId,
                 projectCategory: row.projectCategory,
                 projectType: 'Project' as const,
@@ -1769,23 +1799,45 @@ export const projectRouter = createTRPCRouter({
                 requestedBudget: row.requestedBudget,
                 isOngoing: row.isOngoing ?? false,
                 lastFYActualExpense: row.lastFYActualExpense,
+                // 新增欄位 (v2 模版)
+                chargeBackToOpCo: row.isChargeBackToOpco ?? false,
+                chargeOutMethod: row.chargeOutMethod,
               };
 
               // 判斷是更新還是新建
               const existingId = existingMap.get(row.projectCode);
+              let projectId: string;
+
               if (existingId) {
                 // 更新現有專案
                 await tx.project.update({
                   where: { id: existingId },
                   data: projectData,
                 });
+                projectId = existingId;
                 updated++;
               } else {
                 // 新建專案
-                await tx.project.create({
+                const newProject = await tx.project.create({
                   data: projectData,
                 });
+                projectId = newProject.id;
                 created++;
+              }
+
+              // 處理 ProjectChargeOutOpCo 關聯 (v2 模版)
+              if (chargeOutOpCoIds.length > 0) {
+                // 先刪除現有的關聯
+                await tx.projectChargeOutOpCo.deleteMany({
+                  where: { projectId },
+                });
+                // 創建新的關聯
+                await tx.projectChargeOutOpCo.createMany({
+                  data: chargeOutOpCoIds.map(opCoId => ({
+                    projectId,
+                    opCoId,
+                  })),
+                });
               }
             } catch (error) {
               errors.push({
