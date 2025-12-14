@@ -281,10 +281,46 @@ console.log('[OM-Summary] Session loaded:', { role, roleId, isAdmin });
 2. 開啟瀏覽器 DevTools Console
 3. 進入 OM Summary → Project Summary
 4. 確認 Console 日誌顯示:
-   - `roleId: 3`
+   - `roleName: 'Admin'`
    - `isAdmin: true`
-   - `role: { id: 3, name: 'Admin' }`
 5. 確認 Charge Out Method 欄位顯示完整內容
+
+## 8. 第二次修復記錄 (2025-12-14)
+
+### 8.1 問題描述
+即使套用了第一次修復，Admin 用戶仍然看不到全部內容。Console 顯示 `roleId: 1, isAdmin: false`。
+
+### 8.2 根本原因
+資料庫 Role 表的 id 映射與程式碼預期完全不一致：
+
+| Role ID | 資料庫中的 Name | 程式碼預期的 Name |
+|---------|----------------|------------------|
+| 1 | **Admin** | ProjectManager |
+| 2 | ProjectManager | Supervisor |
+| 3 | Supervisor | **Admin** |
+
+程式碼使用 `roleId >= 3` 判斷 Admin，但資料庫中 Admin 的 id 是 1。
+
+### 8.3 最終修復方案
+改用 `role.name === 'Admin'` 判斷 Admin 權限，與 `trpc.ts` 中的 `adminProcedure` 保持一致。
+
+**operatingCompany.ts**:
+```typescript
+const isAdmin = user.role?.name === 'Admin';
+if (isAdmin) {
+  // Admin 返回所有 OpCo
+}
+```
+
+**om-summary/page.tsx**:
+```typescript
+const roleName = session?.user?.role?.name ?? '';
+const isAdmin = roleName === 'Admin';
+```
+
+### 8.4 Git Commits
+- `2d403b8` - 第一次修復（Session 類型、token.role 預設值）
+- `0ba4345` - 第二次修復（改用 role.name 判斷）
 
 ---
 
