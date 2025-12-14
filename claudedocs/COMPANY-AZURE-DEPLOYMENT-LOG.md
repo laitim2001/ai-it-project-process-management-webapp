@@ -9,6 +9,46 @@
 
 ## 部署歷史
 
+### v27-fix-schema (2025-12-14)
+
+| 項目 | 內容 |
+|------|------|
+| **版本** | v27-fix-schema |
+| **日期** | 2025-12-14 |
+| **變更內容** | Schema 不同步完整修復 |
+| **狀態** | ✅ 成功 |
+
+**問題背景:**
+- v26 部署後仍有 API 500 錯誤 (project.getAll, omExpense.getById, expense.getById)
+- Schema 診斷發現：PurchaseOrder 缺少 poDate, BudgetPool 缺少 isActive
+
+**包含變更:**
+- 更新 health.fixAllSchemaIssues API (新增步驟 6, 7)
+- PurchaseOrder: 重命名 date → poDate
+- BudgetPool: 新增 isActive 欄位
+
+**執行修復:**
+```bash
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixAllSchemaIssues"
+```
+
+**修復結果:**
+- Schema 狀態: synced (完全同步)
+- 缺失欄位: 無
+
+**驗證結果:**
+- ✅ 登入頁面: 200
+- ✅ Dashboard: 200
+- ✅ 專案列表: 200
+- ✅ 用戶列表: 200
+- ✅ OM 費用: 200
+- ✅ 費用記錄: 200
+- ✅ OM 摘要: 200
+- ✅ 採購單: 200
+- ✅ 預算池: 200
+
+---
+
 ### v26-fix-permission (2025-12-14)
 
 | 項目 | 內容 |
