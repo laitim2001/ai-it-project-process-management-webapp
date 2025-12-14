@@ -117,6 +117,7 @@ declare module 'next-auth' {
       id: string;
       email: string;
       name: string | null;
+      roleId: number; // CHANGE-014: 添加 roleId 欄位以便直接訪問
       role: {
         id: number;
         name: string;
@@ -292,6 +293,7 @@ export const authOptions: any = {
 
       // Azure AD 登入時，確保用戶在資料庫中存在
       if (account?.provider === 'azure-ad' && user) {
+        console.log('🔵 Azure AD 登入處理開始', { email: user.email });
         // 從擴展的 user 對象獲取 emailVerified
         const userWithEmailVerified = user as NextAuthUser & { emailVerified?: Date | null };
         const dbUser = await prisma.user.upsert({
@@ -312,11 +314,22 @@ export const authOptions: any = {
           include: { role: true },
         });
 
+        // CHANGE-014 調試日誌：檢查 dbUser.role 是否正確加載
+        console.log('🔵 Azure AD dbUser 查詢結果:', {
+          userId: dbUser.id,
+          email: dbUser.email,
+          roleId: dbUser.roleId,
+          role: dbUser.role,
+          hasRole: !!dbUser.role,
+        });
+
         token.id = dbUser.id;
         token.email = dbUser.email;
         token.name = dbUser.name;
         token.roleId = dbUser.roleId;
-        token.role = dbUser.role;
+        // CHANGE-014: 確保 role 總是有正確的值（防止 undefined 導致前端 isAdmin 判斷失敗）
+        token.role = dbUser.role ?? { id: dbUser.roleId, name: dbUser.roleId >= 3 ? 'Admin' : dbUser.roleId >= 2 ? 'Supervisor' : 'ProjectManager' };
+        console.log('🔵 Azure AD token.role 設置為:', token.role);
       }
 
       console.log('📊 JWT callback 返回 token', { id: token.id, email: token.email });
@@ -324,7 +337,7 @@ export const authOptions: any = {
     },
 
     // Session 回調：將 JWT 信息添加到 Session
-    session({ session, token }: { session: { user?: { id?: string; email?: string; name?: string | null; role?: { id: number; name: string } } }; token: JWT }) {
+    session({ session, token }: { session: { user?: { id?: string; email?: string; name?: string | null; roleId?: number; role?: { id: number; name: string } } }; token: JWT }) {
       console.log('🔐 Session callback 執行', { hasToken: !!token, tokenId: token?.id });
 
       if (token) {
@@ -332,9 +345,10 @@ export const authOptions: any = {
           id: token.id,
           email: token.email,
           name: token.name,
+          roleId: token.roleId, // CHANGE-014: 添加 roleId 到 session
           role: token.role,
         };
-        console.log('✅ Session callback: 設置 session.user', { userId: session.user?.id });
+        console.log('✅ Session callback: 設置 session.user', { userId: session.user?.id, roleId: session.user?.roleId, role: session.user?.role });
       } else {
         console.log('⚠️ Session callback: token 不存在');
       }

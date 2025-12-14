@@ -400,9 +400,11 @@ export const operatingCompanyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const user = ctx.session.user;
       const isActiveFilter = input?.isActive ?? true;
+      // CHANGE-014: 修復 isAdmin 檢查 - 使用 role.id 而不是 roleId
+      const userRoleId = user.role?.id ?? 0;
 
       // Admin 角色預設可以訪問所有 OpCo
-      if (user.roleId >= 3) {
+      if (userRoleId >= 3) {
         return ctx.prisma.operatingCompany.findMany({
           where: isActiveFilter ? { isActive: true } : {},
           orderBy: { code: 'asc' },

@@ -94,7 +94,22 @@ export default function OMSummaryPage() {
 
   // CHANGE-014: 獲取用戶 session 以判斷權限
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role?.id === 3; // Admin roleId = 3
+  // 改進的 isAdmin 判斷：使用 >= 3 並處理 role.id 可能為 undefined 的情況
+  const roleId = session?.user?.role?.id ?? 0;
+  const isAdmin = roleId >= 3; // Admin roleId = 3
+
+  // CHANGE-014 調試日誌：檢查 session.user.role 是否正確設置
+  React.useEffect(() => {
+    if (session) {
+      console.log('[OM-Summary] Session loaded:', {
+        userId: session.user?.id,
+        email: session.user?.email,
+        role: session.user?.role,
+        roleId: roleId,
+        isAdmin: isAdmin,
+      });
+    }
+  }, [session, roleId, isAdmin]);
 
   // 當前財務年度
   const currentFY = new Date().getFullYear();

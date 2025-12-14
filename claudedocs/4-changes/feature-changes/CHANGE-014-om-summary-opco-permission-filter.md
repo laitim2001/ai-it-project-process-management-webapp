@@ -2,6 +2,7 @@
 
 > **建立日期**: 2025-12-14
 > **完成日期**: 2025-12-14
+> **修復日期**: 2025-12-14 (修復 isAdmin 判斷失敗的問題)
 > **狀態**: ✅ 已完成
 > **相關功能**: FEAT-003 (OM Summary Page), FEAT-009 (OpCo Data Permission)
 > **優先級**: High
@@ -188,6 +189,102 @@ const isAdmin = session?.user?.roleId === 3; // Admin roleId = 3
 | 非 OpCo 格式 | `Direct charge` | 原樣顯示 | ✅ |
 | 空值 | null 或 "" | 顯示 "-" | ✅ |
 | 無法識別代碼 | `123 $1,000 ;` | 保留原樣 | ✅ |
+
+## 7. 修復記錄 (2025-12-14)
+
+### 7.1 問題描述
+即使使用 Admin 帳號登入，或在用戶管理中選取所有 Operating Companies，在 OM Summary → Project Summary 中仍然看不到全部的 Charge Out Method 內容。
+
+### 7.2 根本原因分析
+
+1. **Session 類型定義不完整**:
+   - `Session.user` 中只有 `role: { id, name }` 對象
+   - 沒有直接的 `roleId` 欄位
+
+2. **後端 API 使用錯誤的屬性**:
+   - `operatingCompany.ts` 中使用 `user.roleId >= 3` 檢查 Admin
+   - 但 `user.roleId` 實際上是 `undefined`
+   - `undefined >= 3` 總是返回 `false`
+
+3. **token.role 可能為 undefined**:
+   - Azure AD 登入時，如果資料庫沒有正確的 Role 記錄
+   - `dbUser.role` 可能是 `null`/`undefined`
+   - 導致前端 `session?.user?.role?.id === 3` 檢查失敗
+
+### 7.3 修復內容
+
+**1. auth/index.ts - Session 類型定義**:
+```typescript
+// 添加 roleId 欄位到 Session.user
+interface Session {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    roleId: number; // 新增
+    role: { id: number; name: string; };
+  };
+}
+```
+
+**2. auth/index.ts - Session callback**:
+```typescript
+// 將 token.roleId 傳遞到 session.user
+session.user = {
+  id: token.id,
+  email: token.email,
+  name: token.name,
+  roleId: token.roleId, // 新增
+  role: token.role,
+};
+```
+
+**3. auth/index.ts - Azure AD 登入處理**:
+```typescript
+// 確保 token.role 總是有正確的預設值
+token.role = dbUser.role ?? {
+  id: dbUser.roleId,
+  name: dbUser.roleId >= 3 ? 'Admin' : dbUser.roleId >= 2 ? 'Supervisor' : 'ProjectManager'
+};
+```
+
+**4. operatingCompany.ts - Admin 檢查修復**:
+```typescript
+// 使用 role.id 而不是 roleId
+const userRoleId = user.role?.id ?? 0;
+if (userRoleId >= 3) {
+  // Admin 返回所有 OpCo
+}
+```
+
+**5. om-summary/page.tsx - 前端 isAdmin 檢查改進**:
+```typescript
+// 使用更穩健的檢查方式
+const roleId = session?.user?.role?.id ?? 0;
+const isAdmin = roleId >= 3;
+
+// 添加調試日誌
+console.log('[OM-Summary] Session loaded:', { role, roleId, isAdmin });
+```
+
+### 7.4 影響的檔案
+
+| 檔案 | 變更說明 |
+|------|----------|
+| `packages/auth/src/index.ts` | 修復 Session 類型、session callback、token.role 預設值 |
+| `packages/api/src/routers/operatingCompany.ts` | 改用 `role.id` 檢查 Admin |
+| `apps/web/src/app/[locale]/om-summary/page.tsx` | 改進 isAdmin 檢查、添加調試日誌 |
+
+### 7.5 驗證方法
+
+1. 登入 Admin 帳號
+2. 開啟瀏覽器 DevTools Console
+3. 進入 OM Summary → Project Summary
+4. 確認 Console 日誌顯示:
+   - `roleId: 3`
+   - `isAdmin: true`
+   - `role: { id: 3, name: 'Admin' }`
+5. 確認 Charge Out Method 欄位顯示完整內容
 
 ---
 
