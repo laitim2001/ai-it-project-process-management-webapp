@@ -1320,4 +1320,196 @@ export const healthRouter = createTRPCRouter({
       };
     }
   }),
+
+  /**
+   * FEAT-011: 修復 Permission 表架構
+   * 創建 Permission、RolePermission、UserPermission 表並植入預設權限
+   */
+  fixPermissionTables: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      results.push('=== FEAT-011: 修復 Permission 表架構 ===');
+
+      // 1. 創建 Permission 表
+      results.push('\n[1/4] 創建 Permission 表...');
+      await ctx.prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "Permission" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+          "code" TEXT NOT NULL,
+          "name" TEXT NOT NULL,
+          "category" TEXT NOT NULL,
+          "description" TEXT,
+          "isActive" BOOLEAN NOT NULL DEFAULT true,
+          "sortOrder" INTEGER NOT NULL DEFAULT 0,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "Permission_pkey" PRIMARY KEY ("id")
+        )
+      `;
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "Permission_code_key" ON "Permission"("code")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Permission_category_idx" ON "Permission"("category")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Permission_isActive_idx" ON "Permission"("isActive")`;
+      results.push('Permission 表: 已創建');
+
+      // 2. 創建 RolePermission 表
+      results.push('\n[2/4] 創建 RolePermission 表...');
+      await ctx.prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "RolePermission" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+          "roleId" INTEGER NOT NULL,
+          "permissionId" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("id")
+        )
+      `;
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "RolePermission_roleId_permissionId_key" ON "RolePermission"("roleId", "permissionId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "RolePermission_roleId_idx" ON "RolePermission"("roleId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "RolePermission_permissionId_idx" ON "RolePermission"("permissionId")`;
+
+      // 添加外鍵
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'RolePermission_roleId_fkey') THEN
+            ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_roleId_fkey"
+            FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'RolePermission_permissionId_fkey') THEN
+            ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_permissionId_fkey"
+            FOREIGN KEY ("permissionId") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('RolePermission 表: 已創建');
+
+      // 3. 創建 UserPermission 表
+      results.push('\n[3/4] 創建 UserPermission 表...');
+      await ctx.prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "UserPermission" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+          "userId" TEXT NOT NULL,
+          "permissionId" TEXT NOT NULL,
+          "granted" BOOLEAN NOT NULL DEFAULT true,
+          "createdBy" TEXT,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "UserPermission_pkey" PRIMARY KEY ("id")
+        )
+      `;
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "UserPermission_userId_permissionId_key" ON "UserPermission"("userId", "permissionId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "UserPermission_userId_idx" ON "UserPermission"("userId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "UserPermission_permissionId_idx" ON "UserPermission"("permissionId")`;
+
+      // 添加外鍵
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UserPermission_userId_fkey') THEN
+            ALTER TABLE "UserPermission" ADD CONSTRAINT "UserPermission_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UserPermission_permissionId_fkey') THEN
+            ALTER TABLE "UserPermission" ADD CONSTRAINT "UserPermission_permissionId_fkey"
+            FOREIGN KEY ("permissionId") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('UserPermission 表: 已創建');
+
+      // 4. 植入預設菜單權限
+      results.push('\n[4/4] 植入預設菜單權限...');
+
+      // 菜單權限定義
+      const menuPermissions = [
+        { code: 'menu:dashboard', name: '儀表板', category: 'menu', sortOrder: 1 },
+        { code: 'menu:projects', name: '專案管理', category: 'menu', sortOrder: 2 },
+        { code: 'menu:proposals', name: '預算提案', category: 'menu', sortOrder: 3 },
+        { code: 'menu:budget-pools', name: '預算池', category: 'menu', sortOrder: 4 },
+        { code: 'menu:vendors', name: '供應商', category: 'menu', sortOrder: 5 },
+        { code: 'menu:quotes', name: '報價單', category: 'menu', sortOrder: 6 },
+        { code: 'menu:purchase-orders', name: '採購單', category: 'menu', sortOrder: 7 },
+        { code: 'menu:expenses', name: '費用記錄', category: 'menu', sortOrder: 8 },
+        { code: 'menu:charge-outs', name: '費用分攤', category: 'menu', sortOrder: 9 },
+        { code: 'menu:om-expenses', name: 'OM 費用', category: 'menu', sortOrder: 10 },
+        { code: 'menu:om-summary', name: 'OM 摘要', category: 'menu', sortOrder: 11 },
+        { code: 'menu:data-import', name: '數據導入', category: 'menu', sortOrder: 12 },
+        { code: 'menu:project-data-import', name: '專案導入', category: 'menu', sortOrder: 13 },
+        { code: 'menu:operating-companies', name: '營運公司', category: 'menu', sortOrder: 14 },
+        { code: 'menu:users', name: '用戶管理', category: 'menu', sortOrder: 15 },
+        { code: 'menu:settings', name: '系統設定', category: 'menu', sortOrder: 16 },
+      ];
+
+      // 插入權限 (如果不存在)
+      for (const perm of menuPermissions) {
+        await ctx.prisma.$executeRaw`
+          INSERT INTO "Permission" ("id", "code", "name", "category", "sortOrder", "isActive", "createdAt", "updatedAt")
+          VALUES (gen_random_uuid()::text, ${perm.code}, ${perm.name}, ${perm.category}, ${perm.sortOrder}, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          ON CONFLICT ("code") DO NOTHING
+        `;
+      }
+      results.push(`已植入 ${menuPermissions.length} 個菜單權限`);
+
+      // 5. 為所有角色分配預設菜單權限 (Admin 獲得全部)
+      results.push('\n[5/5] 分配角色預設權限...');
+
+      // 獲取所有權限 ID
+      const permissions = await ctx.prisma.$queryRaw<{ id: string; code: string }[]>`
+        SELECT id, code FROM "Permission" WHERE category = 'menu'
+      `;
+
+      // 獲取所有角色
+      const roles = await ctx.prisma.$queryRaw<{ id: number; name: string }[]>`
+        SELECT id, name FROM "Role"
+      `;
+
+      // Admin (roleId=1 通常是 Admin) 獲得所有權限
+      for (const role of roles) {
+        for (const perm of permissions) {
+          // Admin 獲得全部，其他角色獲得基本菜單
+          const shouldGrant = role.name === 'Admin' ||
+            ['menu:dashboard', 'menu:projects', 'menu:proposals', 'menu:expenses'].includes(perm.code);
+
+          if (shouldGrant) {
+            await ctx.prisma.$executeRaw`
+              INSERT INTO "RolePermission" ("id", "roleId", "permissionId", "createdAt")
+              VALUES (gen_random_uuid()::text, ${role.id}, ${perm.id}, CURRENT_TIMESTAMP)
+              ON CONFLICT ("roleId", "permissionId") DO NOTHING
+            `;
+          }
+        }
+      }
+      results.push('已分配角色預設權限');
+
+      results.push('\n=== FEAT-011 Permission 表修復完成 ===');
+
+      // 驗證
+      const permCount = await ctx.prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "Permission"`;
+      const rolePermCount = await ctx.prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM "RolePermission"`;
+      results.push(`\n驗證: Permission ${permCount[0]?.count} 筆, RolePermission ${rolePermCount[0]?.count} 筆`);
+
+      return {
+        success: true,
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
 });
