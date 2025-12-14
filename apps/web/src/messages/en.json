@@ -314,7 +314,14 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome back! View your project progress and latest updates",
+    "welcome": {
+      "systemName": "IT Project Management Platform",
+      "greeting": "Welcome back, {name}",
+      "defaultUser": "User",
+      "defaultRole": "User",
+      "navigationHint": "Use the menu on the left to start your work"
+    },
+    "welcomeMessage": "Welcome back! View your project progress and latest updates",
     "stats": {
       "monthlyBudget": "Monthly Budget",
       "activeProjects": "Active Projects",

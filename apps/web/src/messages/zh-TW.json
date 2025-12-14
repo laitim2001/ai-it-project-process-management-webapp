@@ -314,7 +314,14 @@
   },
   "dashboard": {
     "title": "儀表板",
-    "welcome": "歡迎回來！查看您的專案進度和最新動態",
+    "welcome": {
+      "systemName": "IT 專案管理平台",
+      "greeting": "歡迎回來，{name}",
+      "defaultUser": "用戶",
+      "defaultRole": "用戶",
+      "navigationHint": "請使用左側選單開始您的工作"
+    },
+    "welcomeMessage": "歡迎回來！查看您的專案進度和最新動態",
     "stats": {
       "monthlyBudget": "本月預算額",
       "activeProjects": "進行中項目",
