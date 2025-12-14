@@ -334,6 +334,7 @@
     "quickActions": {
       "title": "Quick Actions",
       "description": "Shortcuts to frequently used features",
+      "noActions": "No quick actions available",
       "actions": {
         "newProject": {
           "name": "New Project",

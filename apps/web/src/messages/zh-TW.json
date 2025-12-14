@@ -334,6 +334,7 @@
     "quickActions": {
       "title": "快速操作",
       "description": "常用功能快捷入口",
+      "noActions": "暫無可用的快速操作",
       "actions": {
         "newProject": {
           "name": "新增專案",

@@ -11,7 +11,7 @@
  * @features
  * - 統計卡片展示：月度預算、活躍專案數、待審提案數、預算使用率
  * - 預算趨勢圖表：6個月歷史趨勢視覺化
- * - 快速操作面板：6個常用功能的快速訪問入口
+ * - 快速操作面板：6個常用功能的快速訪問入口（CHANGE-015: 權限過濾）
  * - 最近活動列表：系統活動時間線（提案批准、採購單建立、專案新增）
  * - AI 智能分析：預算優化建議和信心度評分
  * - 響應式佈局：桌面/平板/手機自適應網格
@@ -19,6 +19,8 @@
  * - 實時數據同步：Mock 數據（後續將連接 tRPC API）
  *
  * @permissions
+ * - 所有已登入用戶可訪問（CHANGE-015: 通用登陸頁面）
+ * - 快速操作根據菜單權限過濾顯示
  * - ProjectManager: 可查看（受限於自己管理的專案數據）
  * - Supervisor: 可查看（全局數據總覽）
  * - Admin: 可查看（系統級全局數據）
@@ -33,6 +35,7 @@
  * - lucide-react: 圖示庫 (Wallet, FolderKanban, FileText, TrendingUp, etc.)
  * - shadcn/ui: Card, Badge, Button UI 組件
  * - DashboardLayout: 統一的儀表板佈局容器
+ * - usePermissions: 權限檢查 Hook (CHANGE-015)
  *
  * @related
  * - apps/web/src/app/[locale]/dashboard/pm/page.tsx - PM 專用儀表板
@@ -40,19 +43,23 @@
  * - apps/web/src/components/layout/dashboard-layout.tsx - Dashboard 佈局組件
  * - apps/web/src/components/dashboard/StatsCard.tsx - 統計卡片組件
  * - packages/api/src/routers/dashboard.ts - Dashboard API Router
+ * - apps/web/src/hooks/usePermissions.ts - 權限管理 Hook
  *
  * @author IT Department
  * @since Epic 7 - Dashboard & Basic Reporting
- * @lastModified 2025-11-14
+ * @lastModified 2025-12-14
  */
 
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from '@/i18n/routing';
+import { usePermissions, MENU_PERMISSIONS } from '@/hooks/usePermissions';
 import {
   Wallet,
   FolderKanban,
@@ -65,6 +72,9 @@ import {
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
+
+  // CHANGE-015: 獲取用戶權限以過濾快速操作
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions();
 
   // Mock data - 後續會從 tRPC API 獲取真實數據
   const stats = [
@@ -124,14 +134,60 @@ export default function DashboardPage() {
     },
   ];
 
-  const quickActions = [
-    { name: '新增專案', description: '建立新的 IT 專案', icon: '📁' },
-    { name: '建立提案', description: '提交預算提案申請', icon: '📋' },
-    { name: '新增預算池', description: '創建財政年度預算池', icon: '💰' },
-    { name: '供應商管理', description: '管理供應商資料', icon: '🏢' },
-    { name: '查看採購單', description: '檢視採購訂單狀態', icon: '📄' },
-    { name: '費用記錄', description: '記錄專案費用支出', icon: '💸' },
+  // CHANGE-015: 快速操作定義（含權限代碼）
+  // 使用現有翻譯結構: quickActions.actions.[key].name/.description
+  const allQuickActions = [
+    {
+      name: t('quickActions.actions.newProject.name'),
+      description: t('quickActions.actions.newProject.description'),
+      icon: '📁',
+      href: '/projects/new',
+      permission: MENU_PERMISSIONS.PROJECTS,
+    },
+    {
+      name: t('quickActions.actions.newProposal.name'),
+      description: t('quickActions.actions.newProposal.description'),
+      icon: '📋',
+      href: '/proposals/new',
+      permission: MENU_PERMISSIONS.PROPOSALS,
+    },
+    {
+      name: t('quickActions.actions.newBudgetPool.name'),
+      description: t('quickActions.actions.newBudgetPool.description'),
+      icon: '💰',
+      href: '/budget-pools/new',
+      permission: MENU_PERMISSIONS.BUDGET_POOLS,
+    },
+    {
+      name: t('quickActions.actions.manageVendors.name'),
+      description: t('quickActions.actions.manageVendors.description'),
+      icon: '🏢',
+      href: '/vendors',
+      permission: MENU_PERMISSIONS.VENDORS,
+    },
+    {
+      name: t('quickActions.actions.viewPurchaseOrders.name'),
+      description: t('quickActions.actions.viewPurchaseOrders.description'),
+      icon: '📄',
+      href: '/purchase-orders',
+      permission: MENU_PERMISSIONS.PURCHASE_ORDERS,
+    },
+    {
+      name: t('quickActions.actions.recordExpense.name'),
+      description: t('quickActions.actions.recordExpense.description'),
+      icon: '💸',
+      href: '/expenses/new',
+      permission: MENU_PERMISSIONS.EXPENSES,
+    },
   ];
+
+  // CHANGE-015: 根據權限過濾快速操作
+  const quickActions = useMemo(() => {
+    if (permissionsLoading) return [];
+    return allQuickActions.filter(
+      (action) => !action.permission || hasPermission(action.permission)
+    );
+  }, [permissionsLoading, hasPermission, t]);
 
   return (
     <DashboardLayout>
@@ -234,7 +290,7 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Quick Actions */}
+          {/* Quick Actions - CHANGE-015: 權限過濾 */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -243,22 +299,43 @@ export default function DashboardPage() {
               </div>
               <CardDescription>{t('quickActions.description')}</CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-2.5">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="flex flex-col h-auto items-center gap-2 p-3"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-xl flex-shrink-0">
-                    {action.icon}
-                  </div>
-                  <div className="w-full">
-                    <p className="text-xs font-medium text-foreground leading-tight">{action.name}</p>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{action.description}</p>
-                  </div>
-                </Button>
-              ))}
+            <CardContent>
+              {permissionsLoading ? (
+                // 載入中狀態
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-24 animate-pulse rounded-md bg-muted" />
+                  ))}
+                </div>
+              ) : quickActions.length === 0 ? (
+                // 無權限時顯示提示訊息
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <span className="text-3xl mb-2">🔒</span>
+                  <p className="text-sm text-muted-foreground">
+                    {t('quickActions.noActions')}
+                  </p>
+                </div>
+              ) : (
+                // 正常顯示快速操作
+                <div className="grid grid-cols-2 gap-2.5">
+                  {quickActions.map((action, index) => (
+                    <Link key={index} href={action.href}>
+                      <Button
+                        variant="outline"
+                        className="flex flex-col h-auto items-center gap-2 p-3 w-full"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-xl flex-shrink-0">
+                          {action.icon}
+                        </div>
+                        <div className="w-full">
+                          <p className="text-xs font-medium text-foreground leading-tight">{action.name}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{action.description}</p>
+                        </div>
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
