@@ -9,6 +9,48 @@
 
 ## 部署歷史
 
+### v26-fix-permission (2025-12-14)
+
+| 項目 | 內容 |
+|------|------|
+| **版本** | v26-fix-permission |
+| **日期** | 2025-12-14 |
+| **變更內容** | FEAT-011 Permission 表修復 |
+| **狀態** | ✅ 成功 |
+
+**問題背景:**
+- v25 部署後發現 sidebar 消失，所有角色都看不到菜單
+- permission.getMyPermissions API 返回 500 錯誤
+- 根本原因：Permission、RolePermission、UserPermission 表不存在
+
+**包含變更:**
+- 新增 migration: `20251214100000_feat011_permission_tables`
+- 新增 health.ts `fixPermissionTables` API
+- 創建 Permission、RolePermission、UserPermission 表
+- 植入 16 個預設菜單權限
+- 分配角色預設權限 (Admin 獲得全部權限)
+
+**執行修復:**
+```bash
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixPermissionTables"
+```
+
+**修復結果:**
+- Permission 表: 16 筆權限記錄
+- RolePermission 表: 24 筆角色權限關聯
+
+**驗證結果:**
+- ✅ 登入頁面: 200
+- ✅ Dashboard: 200
+- ✅ 專案列表: 200
+- ✅ 用戶列表: 200
+- ✅ OM 費用: 200
+- ✅ OM 摘要: 200
+- ✅ 費用分攤: 200
+- ✅ 數據導入: 200
+
+---
+
 ### v25-change015-change016 (2025-12-14)
 
 | 項目 | 內容 |
