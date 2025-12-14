@@ -103,6 +103,10 @@ interface ProjectSummaryTableProps {
   categorySummary: CategorySummary[];
   financialYear: number;
   isLoading?: boolean;
+  /** 用戶有權限訪問的 OpCo 代碼列表（CHANGE-014: OpCo 權限過濾） */
+  userOpCoCodes?: string[];
+  /** 用戶是否為 Admin（Admin 可查看全部數據） */
+  isAdmin?: boolean;
 }
 
 /**
@@ -149,11 +153,69 @@ function getExpenseTypeBadgeVariant(expenseType: string): 'default' | 'secondary
   }
 }
 
+/**
+ * 根據用戶 OpCo 權限過濾 Charge Out Method 欄位 (CHANGE-014)
+ *
+ * @description
+ * 輸入格式範例：
+ * RA     $     2,269 ;
+ * RAPO     $     2,370 ;
+ * RBS     $     4,110 ;
+ *
+ * @param chargeOutMethod - 原始 Charge Out Method 值
+ * @param userOpCoCodes - 用戶有權限的 OpCo 代碼列表
+ * @param isAdmin - 是否為 Admin 用戶
+ * @returns 過濾後的字串，或 null 表示無權限
+ */
+function filterChargeOutMethodByPermission(
+  chargeOutMethod: string | null,
+  userOpCoCodes: string[],
+  isAdmin: boolean
+): string | null {
+  // Admin 用戶顯示全部
+  if (isAdmin) {
+    return chargeOutMethod;
+  }
+
+  // 空值直接返回
+  if (!chargeOutMethod || chargeOutMethod.trim() === '') {
+    return chargeOutMethod;
+  }
+
+  // 檢查是否包含分號（OpCo 分攤格式）
+  if (!chargeOutMethod.includes(';')) {
+    return chargeOutMethod; // 不是 OpCo 格式，原樣返回
+  }
+
+  // 解析分號分隔的條目
+  const entries = chargeOutMethod.split(';').map(e => e.trim()).filter(e => e.length > 0);
+
+  // 過濾有權限的條目
+  const filteredEntries = entries.filter(entry => {
+    // 提取 OpCo 代碼（條目開頭的字母部分）
+    const match = entry.match(/^([A-Z]+)/);
+    if (!match || !match[1]) return true; // 無法識別，保留
+
+    const opCoCode = match[1];
+    return userOpCoCodes.includes(opCoCode);
+  });
+
+  // 如果沒有任何有權限的條目
+  if (filteredEntries.length === 0) {
+    return null; // 返回 null 表示無權限
+  }
+
+  // 重新組合（保持原格式，使用分號分隔）
+  return filteredEntries.join(' ; ');
+}
+
 export function ProjectSummaryTable({
   projects,
   categorySummary,
   financialYear,
   isLoading = false,
+  userOpCoCodes = [],
+  isAdmin = false,
 }: ProjectSummaryTableProps) {
   const t = useTranslations('projectSummary');
 
@@ -326,17 +388,43 @@ export function ProjectSummaryTable({
                               )}
                             </TableCell>
                             <TableCell className="overflow-hidden">
-                              {project.chargeOutOpCos.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
-                                  {project.chargeOutOpCos.map((co) => (
-                                    <Badge key={co.opCo.id} variant="outline" className="text-xs">
-                                      {co.opCo.code}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
+                              {(() => {
+                                // CHANGE-014: 優先顯示 chargeOutMethod（經過權限過濾）
+                                if (project.chargeOutMethod) {
+                                  const filteredMethod = filterChargeOutMethodByPermission(
+                                    project.chargeOutMethod,
+                                    userOpCoCodes,
+                                    isAdmin
+                                  );
+                                  if (filteredMethod === null) {
+                                    // 無權限查看
+                                    return (
+                                      <span className="text-muted-foreground italic text-sm">
+                                        {t('table.noAccess')}
+                                      </span>
+                                    );
+                                  }
+                                  // 顯示過濾後的分攤信息（保持原格式，換行顯示）
+                                  return (
+                                    <div className="text-xs whitespace-pre-wrap">
+                                      {filteredMethod}
+                                    </div>
+                                  );
+                                }
+                                // 回退：顯示 chargeOutOpCos Badge
+                                if (project.chargeOutOpCos.length > 0) {
+                                  return (
+                                    <div className="flex flex-wrap gap-1">
+                                      {project.chargeOutOpCos.map((co) => (
+                                        <Badge key={co.opCo.id} variant="outline" className="text-xs">
+                                          {co.opCo.code}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                                return <span className="text-muted-foreground">-</span>;
+                              })()}
                             </TableCell>
                             <TableCell className="truncate">{project.team || '-'}</TableCell>
                             <TableCell className="truncate">{project.personInCharge || '-'}</TableCell>

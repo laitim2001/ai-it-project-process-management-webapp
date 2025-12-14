@@ -20,6 +20,49 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-14 | 🔧 CHANGE-013 + CHANGE-014: OpCo 解析修復 + 權限過濾 | 完成 ✅
+
+**類型**: Bug 修復 + 功能增強 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+1. CHANGE-013: 專案導入 Charge Out OpCos 欄位解析使用 code 匹配，但用戶輸入的是 company name
+2. CHANGE-014: OM Summary 頁面的 Charge Out Method 欄位需要根據用戶 OpCo 權限過濾顯示
+3. en.json 發現大量中文內容需要修復
+
+**修復內容**:
+
+1. **CHANGE-013: OpCo 匹配邏輯修復**
+   - 優先使用 company name 匹配（大小寫不敏感）
+   - 備用使用 company code 匹配（大小寫不敏感）
+   - 建立 opCoNameMap (主要) 和 opCoCodeMap (備用) 兩個映射表
+
+2. **CHANGE-014: OpCo 權限過濾**
+   - 新增 `filterChargeOutMethodByPermission` 函數
+   - ProjectSummaryTable 新增 props: `userOpCoCodes`, `isAdmin`
+   - Admin 用戶可查看全部數據
+   - 無權限時顯示 "無權限" 提示
+
+3. **en.json 翻譯修復 (60+ 處)**
+   - 修復 auth, projects, proposals, budgetPools, notifications, settings, validation 等區段
+   - 通過 `pnpm validate:i18n` 驗證
+
+**修改的文件** (8 個):
+- `packages/api/src/routers/project.ts` - OpCo 匹配邏輯修復
+- `apps/web/src/components/project-summary/ProjectSummaryTable.tsx` - 新增權限過濾函數
+- `apps/web/src/app/[locale]/om-summary/page.tsx` - 傳遞權限參數
+- `apps/web/src/app/[locale]/project-data-import/page.tsx` - CHANGE-013 前端調整
+- `apps/web/src/messages/en.json` - 60+ 處中文修復為英文
+- `apps/web/src/messages/zh-TW.json` - 新增 noAccess 翻譯
+- `claudedocs/4-changes/feature-changes/CHANGE-013-*.md` - 變更文檔
+- `claudedocs/4-changes/feature-changes/CHANGE-014-*.md` - 變更文檔
+
+**驗證結果**:
+- ✅ `pnpm validate:i18n` 通過
+- ✅ en.json 無中文字符
+- ✅ 兩個翻譯檔案結構一致 (2364 個鍵)
+
+---
+
 ### 2025-12-13 | ✨ FEAT-010: Project Data Import | 修復完成 ✅
 
 **類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成

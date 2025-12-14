@@ -1618,6 +1618,12 @@ export const projectRouter = createTRPCRouter({
         projectCode: string;
         message: string;
       }> = [];
+      // CHANGE-013: 添加 warnings 數組記錄無效的 OpCo 代碼
+      const warnings: Array<{
+        row: number;
+        projectCode: string;
+        message: string;
+      }> = [];
       let created = 0;
       let updated = 0;
       let skipped = 0;
@@ -1690,11 +1696,17 @@ export const projectRouter = createTRPCRouter({
       const defaultCurrencyId = currencyMap.get('USD') ?? currencies[0]?.id;
 
       // 2.5 查找所有 OperatingCompany 映射 (v2 模版: Charge Out OpCos)
+      // FIX: 改為使用 company name 進行匹配（而非 code）
       const operatingCompanies = await ctx.prisma.operatingCompany.findMany({
         where: { isActive: true },
-        select: { id: true, code: true },
+        select: { id: true, code: true, name: true },
       });
-      const opCoMap = new Map(
+      // 建立基於 name 的映射（大小寫不敏感）
+      const opCoNameMap = new Map(
+        operatingCompanies.map((o) => [o.name.toUpperCase(), o.id])
+      );
+      // 同時保留基於 code 的映射作為備用
+      const opCoCodeMap = new Map(
         operatingCompanies.map((o) => [o.code.toUpperCase(), o.id])
       );
 
@@ -1752,18 +1764,38 @@ export const projectRouter = createTRPCRouter({
                   ? row.priority
                   : 'Medium';
 
-              // 解析 chargeOutOpCos (將 OpCo 代碼轉換為 ID)
+              // CHANGE-013: 解析 chargeOutOpCos (將 OpCo name 轉換為 ID)
+              // FIX: 優先使用 company name 匹配，備用使用 code
+              // 並記錄無效的 OpCo name 作為警告
               const chargeOutOpCoIds: string[] = [];
+              const invalidOpCoNames: string[] = [];
               if (row.chargeOutOpCos) {
-                const opCoCodes = row.chargeOutOpCos.split(',').map(s => s.trim().toUpperCase());
-                for (const code of opCoCodes) {
-                  if (code) {
-                    const opCoId = opCoMap.get(code);
+                const opCoNames = row.chargeOutOpCos.split(',').map(s => s.trim());
+                for (const name of opCoNames) {
+                  if (name) {
+                    // 優先使用 name 匹配（大小寫不敏感）
+                    let opCoId = opCoNameMap.get(name.toUpperCase());
+                    // 備用：嘗試使用 code 匹配
+                    if (!opCoId) {
+                      opCoId = opCoCodeMap.get(name.toUpperCase());
+                    }
                     if (opCoId) {
                       chargeOutOpCoIds.push(opCoId);
+                    } else {
+                      // CHANGE-013: 記錄無效的 OpCo name
+                      invalidOpCoNames.push(name);
                     }
                   }
                 }
+              }
+
+              // CHANGE-013: 如果有無效的 OpCo name，添加警告
+              if (invalidOpCoNames.length > 0) {
+                warnings.push({
+                  row: rowNumber,
+                  projectCode: row.projectCode,
+                  message: `Invalid OpCo names skipped: ${invalidOpCoNames.join(', ')}`,
+                });
               }
 
               // 準備專案資料
@@ -1863,6 +1895,8 @@ export const projectRouter = createTRPCRouter({
         updated,
         skipped,
         errors,
+        // CHANGE-013: 返回無效 OpCo 代碼的警告
+        warnings,
       };
     }),
 

@@ -298,12 +298,12 @@
     },
     "forgotPassword": {
       "title": "Forgot Password",
-      "subtitle": "輸入您的電子郵件以重設密碼",
+      "subtitle": "Enter your email to reset your password",
       "email": "Email",
-      "sendResetLink": "發送重設連結",
-      "backToLogin": "返回登入",
-      "sending": "發送中...",
-      "success": "重設連結已發送至您的信箱"
+      "sendResetLink": "Send Reset Link",
+      "backToLogin": "Back to Login",
+      "sending": "Sending...",
+      "success": "Reset link has been sent to your email"
     }
   },
   "dashboard": {
@@ -460,28 +460,28 @@
       "purchaseOrders": "Purchase Orders"
     },
     "list": {
-      "title": "專案列表",
-      "subtitle": "管理所有 IT 專案",
-      "newProject": "新增專案",
-      "search": "搜尋專案...",
+      "title": "Project List",
+      "subtitle": "Manage all IT projects",
+      "newProject": "New Project",
+      "search": "Search projects...",
       "filter": {
         "all": "All",
         "active": "Active",
         "completed": "Completed",
-        "onHold": "暫停"
+        "onHold": "On Hold"
       },
       "table": {
-        "name": "專案名稱",
+        "name": "Project Name",
         "budgetPool": "Budget Pools",
-        "manager": "專案經理",
-        "supervisor": "主管",
+        "manager": "Project Manager",
+        "supervisor": "Supervisor",
         "startDate": "Start Date",
         "endDate": "End Date",
-        "budget": "預算",
-        "status": "狀態",
-        "actions": "操作"
+        "budget": "Budget",
+        "status": "Status",
+        "actions": "Actions"
       },
-      "empty": "尚無專案資料"
+      "empty": "No projects yet"
     },
     "detail": {
       "title": "Project Details",
@@ -567,12 +567,12 @@
     },
     "form": {
       "create": {
-        "title": "新增專案",
-        "subtitle": "建立新的 IT 專案"
+        "title": "Create Project",
+        "subtitle": "Create a new IT project"
       },
       "edit": {
-        "title": "編輯專案",
-        "subtitle": "更新專案資訊"
+        "title": "Edit Project",
+        "subtitle": "Update project information"
       },
       "entityName": "project",
       "fields": {
@@ -773,10 +773,10 @@
       "approvedAt": "Approved At"
     },
     "list": {
-      "title": "預算提案列表",
-      "subtitle": "管理所有預算提案",
-      "newProposal": "新增提案",
-      "search": "搜尋提案...",
+      "title": "Budget Proposals",
+      "subtitle": "Manage all budget proposals",
+      "newProposal": "New Proposal",
+      "search": "Search proposals...",
       "filter": {
         "all": "All",
         "draft": "Draft",
@@ -785,15 +785,15 @@
         "rejected": "Rejected"
       },
       "table": {
-        "id": "提案編號",
-        "project": "所屬專案",
-        "amount": "申請金額",
-        "status": "狀態",
-        "submittedBy": "提交人",
-        "submittedAt": "提交時間",
-        "approvedBy": "審批人",
-        "approvedAt": "審批時間",
-        "actions": "操作"
+        "id": "Proposal ID",
+        "project": "Project",
+        "amount": "Amount",
+        "status": "Status",
+        "submittedBy": "Submitted By",
+        "submittedAt": "Submitted At",
+        "approvedBy": "Approved By",
+        "approvedAt": "Approved At",
+        "actions": "Actions"
       }
     },
     "new": {
@@ -829,12 +829,12 @@
     },
     "form": {
       "create": {
-        "title": "新增預算提案",
-        "subtitle": "建立新的預算申請"
+        "title": "Create Budget Proposal",
+        "subtitle": "Create a new budget request"
       },
       "edit": {
-        "title": "編輯預算提案",
-        "subtitle": "更新提案資訊"
+        "title": "Edit Budget Proposal",
+        "subtitle": "Update proposal information"
       },
       "title": {
         "label": "Proposal Title",
@@ -850,20 +850,20 @@
       },
       "fields": {
         "project": {
-          "label": "所屬專案",
-          "placeholder": "選擇專案"
+          "label": "Project",
+          "placeholder": "Select project"
         },
         "amount": {
-          "label": "申請金額",
+          "label": "Requested Amount",
           "placeholder": "0.00"
         },
         "description": {
-          "label": "提案說明",
-          "placeholder": "詳細描述預算需求..."
+          "label": "Proposal Description",
+          "placeholder": "Describe budget requirements in detail..."
         },
         "justification": {
-          "label": "申請理由",
-          "placeholder": "說明為何需要此預算..."
+          "label": "Justification",
+          "placeholder": "Explain why this budget is needed..."
         }
       }
     },
@@ -1005,26 +1005,26 @@
       "subtitle": "Update budget pool information"
     },
     "list": {
-      "title": "預算池列表",
-      "subtitle": "管理財政年度預算分配",
-      "newBudgetPool": "新增預算池",
-      "search": "搜尋預算池...",
+      "title": "Budget Pools",
+      "subtitle": "Manage fiscal year budget allocations",
+      "newBudgetPool": "New Budget Pool",
+      "search": "Search budget pools...",
       "filter": {
-        "all": "所有年度",
-        "current": "當前年度",
-        "previous": "過往年度"
+        "all": "All Years",
+        "current": "Current Year",
+        "previous": "Previous Years"
       },
       "table": {
-        "name": "預算池名稱",
-        "financialYear": "財政年度",
-        "totalAmount": "總金額",
-        "usedAmount": "已使用",
-        "remainingAmount": "剩餘",
-        "utilization": "使用率",
+        "name": "Budget Pool Name",
+        "financialYear": "Fiscal Year",
+        "totalAmount": "Total Amount",
+        "usedAmount": "Used",
+        "remainingAmount": "Remaining",
+        "utilization": "Utilization",
         "categoryCount": "Categories",
-        "categories": "預算類別",
-        "projects": "專案數",
-        "actions": "操作"
+        "categories": "Categories",
+        "projects": "Projects",
+        "actions": "Actions"
       },
       "total": "Total",
       "showing": "Showing {start} - {end} / {total} budget pools",
@@ -1033,7 +1033,7 @@
       "noResults": "No budget pools match the criteria"
     },
     "detail": {
-      "title": "預算池詳情",
+      "title": "Budget Pool Details",
       "overview": "Overview",
       "basicInfo": "Basic Information",
       "categories": {
@@ -1061,13 +1061,13 @@
         "empty": "No related projects",
         "emptyHint": "This budget pool has no associated projects yet"
       },
-      "utilization": "使用情況",
+      "utilization": "Utilization",
       "fiscalYearLabel": "Fiscal Year"
     },
     "form": {
       "create": {
-        "title": "新增預算池",
-        "subtitle": "建立新的財政年度預算池"
+        "title": "Create Budget Pool",
+        "subtitle": "Create a new fiscal year budget pool"
       },
       "edit": {
         "title": "Edit Budget Pool",
@@ -1088,20 +1088,20 @@
       },
       "fields": {
         "name": {
-          "label": "預算池名稱",
-          "placeholder": "例如：2024 財政年度 IT 預算"
+          "label": "Budget Pool Name",
+          "placeholder": "e.g., FY2024 IT Budget"
         },
         "financialYear": {
-          "label": "財政年度",
-          "placeholder": "選擇年度"
+          "label": "Fiscal Year",
+          "placeholder": "Select year"
         },
         "totalAmount": {
-          "label": "總預算金額",
+          "label": "Total Budget Amount",
           "placeholder": "0.00"
         },
         "description": {
-          "label": "描述",
-          "placeholder": "預算池描述..."
+          "label": "Description",
+          "placeholder": "Budget pool description..."
         }
       },
       "categories": {
@@ -1109,21 +1109,21 @@
         "subtitle": "Manage budget allocation by category",
         "totalBudget": "Total Budget",
         "addCategory": "Add Category",
-        "add": "新增類別",
-        "remove": "移除",
+        "add": "Add Category",
+        "remove": "Remove",
         "nameRequired": "Category name is required",
         "nameDuplicate": "Category name must be unique",
         "amountNegative": "Budget amount cannot be negative",
         "sortOrderInteger": "Sort order must be an integer",
         "fields": {
-          "name": "類別名稱",
-          "amount": "分配金額",
-          "description": "說明"
+          "name": "Category Name",
+          "amount": "Allocated Amount",
+          "description": "Description"
         },
         "placeholder": {
-          "name": "例如：硬體設備",
+          "name": "e.g., Hardware Equipment",
           "amount": "0.00",
-          "description": "類別說明..."
+          "description": "Category description..."
         }
       },
       "category": {
@@ -1153,14 +1153,14 @@
       }
     },
     "utilization": {
-      "total": "總預算",
-      "used": "已使用",
-      "remaining": "剩餘",
-      "percentage": "使用率",
+      "total": "Total Budget",
+      "used": "Used",
+      "remaining": "Remaining",
+      "percentage": "Utilization",
       "health": {
-        "good": "良好",
-        "warning": "警告",
-        "critical": "超支"
+        "good": "Good",
+        "warning": "Warning",
+        "critical": "Critical"
       }
     },
     "subtitle": "Manage fiscal year budget allocation",
@@ -2595,17 +2595,17 @@
       "notifications": "Notifications"
     },
     "list": {
-      "title": "通知中心",
-      "markAllRead": "全部標記為已讀",
-      "empty": "目前沒有通知"
+      "title": "Notification Center",
+      "markAllRead": "Mark all as read",
+      "empty": "No notifications"
     },
     "types": {
-      "proposalSubmitted": "提案已提交",
-      "proposalApproved": "提案已批准",
-      "proposalRejected": "提案已駁回",
-      "expenseSubmitted": "費用已提交",
-      "expenseApproved": "費用已批准",
-      "expenseRejected": "費用已駁回"
+      "proposalSubmitted": "Proposal Submitted",
+      "proposalApproved": "Proposal Approved",
+      "proposalRejected": "Proposal Rejected",
+      "expenseSubmitted": "Expense Submitted",
+      "expenseApproved": "Expense Approved",
+      "expenseRejected": "Expense Rejected"
     }
   },
   "settings": {
@@ -2664,12 +2664,12 @@
       "notificationsUpdated": "Notification settings updated",
       "preferencesUpdated": "Preferences updated"
     },
-    "subtitle": "個人設定和偏好",
+    "subtitle": "Personal settings and preferences",
     "sections": {
       "profile": "Profile",
-      "preferences": "偏好設定",
-      "security": "安全設定",
-      "notifications": "通知設定"
+      "preferences": "Preferences",
+      "security": "Security",
+      "notifications": "Notifications"
     }
   },
   "currencies": {
@@ -2745,21 +2745,21 @@
     }
   },
   "validation": {
-    "required": "此欄位為必填",
-    "email": "請輸入有效的電子郵件地址",
-    "minLength": "至少需要 {min} 個字元",
-    "maxLength": "不能超過 {max} 個字元",
-    "min": "最小值為 {min}",
-    "max": "最大值為 {max}",
-    "passwordMismatch": "密碼不一致",
-    "invalidDate": "無效的日期",
-    "endDateBeforeStart": "結束日期必須晚於開始日期",
-    "invalidAmount": "請輸入有效的金額",
-    "positiveNumber": "必須為正數",
-    "duplicateEntry": "此項目已存在",
-    "invalidFileType": "不支援的檔案類型",
-    "fileTooLarge": "檔案大小不能超過 {size}MB",
-    "invalidUrl": "請輸入有效的網址"
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "minLength": "At least {min} characters required",
+    "maxLength": "Cannot exceed {max} characters",
+    "min": "Minimum value is {min}",
+    "max": "Maximum value is {max}",
+    "passwordMismatch": "Passwords do not match",
+    "invalidDate": "Invalid date",
+    "endDateBeforeStart": "End date must be after start date",
+    "invalidAmount": "Please enter a valid amount",
+    "positiveNumber": "Must be a positive number",
+    "duplicateEntry": "This entry already exists",
+    "invalidFileType": "Unsupported file type",
+    "fileTooLarge": "File size cannot exceed {size}MB",
+    "invalidUrl": "Please enter a valid URL"
   },
   "toast": {
     "success": {
@@ -3192,7 +3192,8 @@
       "chargeBack": "Charge to OpCo",
       "chargeToOpCo": "Charge Out OpCo",
       "team": "Team",
-      "pic": "Person In Charge"
+      "pic": "Person In Charge",
+      "noAccess": "No access"
     }
   },
   "dataImport": {
@@ -3491,6 +3492,7 @@
       "updated": "Updated",
       "skipped": "Skipped",
       "errorDetails": "Error Details",
+      "warningDetails": "Warnings",
       "importMore": "Import More",
       "goToProjects": "Go to Projects"
     },
@@ -3498,6 +3500,7 @@
       "requiredField": "{field} is required",
       "invalidFiscalYear": "Fiscal Year must be between 2020 and 2030",
       "invalidProbability": "Probability must be between 0 and 100",
+      "invalidOpCoFormat": "Invalid OpCo format: use comma (,) to separate codes, not semicolon (;)",
       "parseError": "Failed to parse Excel file",
       "importFailed": "Import operation failed"
     }

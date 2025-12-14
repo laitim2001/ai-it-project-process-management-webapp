@@ -56,6 +56,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { Link } from '@/i18n/routing';
 
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -90,6 +91,10 @@ export default function OMSummaryPage() {
   const t = useTranslations('omSummary');
   const tProjectSummary = useTranslations('projectSummary');
   const tCommon = useTranslations('common');
+
+  // CHANGE-014: 獲取用戶 session 以判斷權限
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role?.id === 3; // Admin roleId = 3
 
   // 當前財務年度
   const currentFY = new Date().getFullYear();
@@ -329,11 +334,14 @@ export default function OMSummaryPage() {
           />
 
           {/* 專案摘要表格 */}
+          {/* CHANGE-014: 傳遞用戶 OpCo 權限用於 chargeOutMethod 過濾 */}
           <ProjectSummaryTable
             projects={projectSummaryData?.projects || []}
             categorySummary={projectSummaryData?.summary || []}
             financialYear={projectFilters.financialYear}
             isLoading={isProjectLoading}
+            userOpCoCodes={opCoData?.map((o) => o.code) || []}
+            isAdmin={isAdmin}
           />
         </TabsContent>
       </Tabs>

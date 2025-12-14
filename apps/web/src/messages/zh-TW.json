@@ -3429,7 +3429,8 @@
       "chargeBack": "向OpCo收費",
       "chargeToOpCo": "轉嫁OpCo",
       "team": "團隊",
-      "pic": "負責人"
+      "pic": "負責人",
+      "noAccess": "無權限"
     }
   },
   "projectDataImport": {
@@ -3491,6 +3492,7 @@
       "updated": "更新",
       "skipped": "跳過",
       "errorDetails": "錯誤詳情",
+      "warningDetails": "警告",
       "importMore": "繼續導入",
       "goToProjects": "前往專案列表"
     },
@@ -3498,6 +3500,7 @@
       "requiredField": "{field} 為必填欄位",
       "invalidFiscalYear": "財務年度必須介於 2020 到 2030 之間",
       "invalidProbability": "機率必須介於 0 到 100 之間",
+      "invalidOpCoFormat": "OpCo 格式無效：請使用逗號 (,) 分隔代碼，而非分號 (;)",
       "parseError": "無法解析 Excel 檔案",
       "importFailed": "導入作業失敗"
     }

@@ -120,6 +120,12 @@ interface ImportResult {
     projectCode: string;
     message: string;
   }>;
+  // CHANGE-013: 添加警告（無效 OpCo 代碼等）
+  warnings?: Array<{
+    row: number;
+    projectCode: string;
+    message: string;
+  }>;
 }
 
 type ImportStep = 'upload' | 'preview' | 'result';
@@ -285,6 +291,56 @@ function parsePriority(value: unknown): string | null {
   return null;
 }
 
+/**
+ * CHANGE-013: 解析 Charge Out OpCos 欄位
+ * 支援逗號分隔的 OpCo 代碼格式（如 "RAP,RAPO,RHK"）
+ *
+ * @returns 解析結果包含：
+ *   - value: 清理後的字串（null 表示空值）
+ *   - isValid: 格式是否有效
+ *   - error: 錯誤訊息（格式無效時）
+ */
+interface ChargeOutOpCosParseResult {
+  value: string | null;
+  isValid: boolean;
+  error?: string;
+}
+
+function parseChargeOutOpCos(value: unknown): ChargeOutOpCosParseResult {
+  // 空值處理
+  if (value === null || value === undefined || value === '') {
+    return { value: null, isValid: true };
+  }
+
+  const strValue = String(value).trim();
+
+  // NA / N/A 視為空值
+  if (strValue.toUpperCase() === 'NA' || strValue.toUpperCase() === 'N/A') {
+    return { value: null, isValid: true };
+  }
+
+  // 檢查是否使用了錯誤的分隔符（分號）
+  if (strValue.includes(';')) {
+    return {
+      value: null,
+      isValid: false,
+      error: 'Invalid format: use comma (,) to separate OpCo codes, not semicolon (;)',
+    };
+  }
+
+  // 解析逗號分隔的代碼並標準化（轉大寫、去空白）
+  const codes = strValue.split(',')
+    .map(s => s.trim().toUpperCase())
+    .filter(s => s.length > 0);
+
+  if (codes.length === 0) {
+    return { value: null, isValid: true };
+  }
+
+  // 返回標準化後的字串（逗號分隔）
+  return { value: codes.join(','), isValid: true };
+}
+
 // ============================================================
 // 主組件
 // ============================================================
@@ -363,6 +419,9 @@ export default function ProjectDataImportPage() {
               return colIndex !== undefined ? row[colIndex] : undefined;
             };
 
+            // CHANGE-013: 先解析 chargeOutOpCos 以便驗證格式
+            const chargeOutOpCosResult = parseChargeOutOpCos(getValue('chargeOutOpCos'));
+
             // 解析專案資料
             const project: ParsedProject = {
               rowNumber,
@@ -388,7 +447,7 @@ export default function ProjectDataImportPage() {
               lastFYActualExpense: parseNumber(getValue('lastFYActualExpense')),
               // 新增欄位 (v2 模版)
               isChargeBackToOpco: parseBoolean(getValue('isChargeBackToOpco')),
-              chargeOutOpCos: cleanString(getValue('chargeOutOpCos')),
+              chargeOutOpCos: chargeOutOpCosResult.value, // CHANGE-013: 使用解析結果
               chargeOutMethod: cleanString(getValue('chargeOutMethod')),
             };
 
@@ -422,6 +481,17 @@ export default function ProjectDataImportPage() {
                 field: 'fiscalYear',
                 message: t('errors.invalidFiscalYear'),
                 value: String(getValue('fiscalYear') ?? ''),
+              });
+              hasError = true;
+            }
+
+            // CHANGE-013: 驗證 chargeOutOpCos 格式
+            if (!chargeOutOpCosResult.isValid) {
+              errors.push({
+                rowNumber,
+                field: 'chargeOutOpCos',
+                message: t('errors.invalidOpCoFormat'),
+                value: String(getValue('chargeOutOpCos') ?? ''),
               });
               hasError = true;
             }
@@ -961,6 +1031,24 @@ export default function ProjectDataImportPage() {
                         <li key={index}>
                           {err.row > 0 && <span className="text-muted-foreground">[Row {err.row}] </span>}
                           <span className="font-mono">{err.projectCode}</span>: {err.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* CHANGE-013: 警告列表 (無效 OpCo 代碼等) */}
+              {importResult.warnings && importResult.warnings.length > 0 && (
+                <Alert variant="default" className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <AlertTitle className="text-yellow-700 dark:text-yellow-500">{t('result.warningDetails')}</AlertTitle>
+                  <AlertDescription>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      {importResult.warnings.map((warn, index) => (
+                        <li key={index}>
+                          {warn.row > 0 && <span className="text-muted-foreground">[Row {warn.row}] </span>}
+                          <span className="font-mono">{warn.projectCode}</span>: {warn.message}
                         </li>
                       ))}
                     </ul>
