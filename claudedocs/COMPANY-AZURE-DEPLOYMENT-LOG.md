@@ -9,6 +9,74 @@
 
 ## 部署歷史
 
+### v28-fix-complete (2025-12-14)
+
+| 項目 | 內容 |
+|------|------|
+| **版本** | v28-fix-complete |
+| **日期** | 2025-12-14 |
+| **變更內容** | 完整 Schema 修復 + Permission 權限補齊 |
+| **狀態** | ✅ 成功 |
+
+**問題背景:**
+- v27 部署後仍有多個 API 500 錯誤
+- project.getAll, project.getFiscalYears 因缺少 FEAT-001/006/010 欄位失敗
+- budgetProposal.getAll, expense.getAll 因缺少欄位失敗
+- omExpense.getById, omExpense.getSummary 500 錯誤
+- Sidebar 缺少 Expense Categories, Currencies 選項
+
+**根本原因分析:**
+- schemaCompare API 只檢查部分欄位，遺漏 FEAT-001/006/010 新增的 19 個 Project 欄位
+- Project 表缺少: projectCode, globalFlag, priority, currencyId, projectCategory,
+  projectType, expenseType, chargeBackToOpCo, chargeOutMethod, probability, team,
+  personInCharge, fiscalYear, isCdoReviewRequired, isManagerConfirmed, payForWhat,
+  payToWhom, isOngoing, lastFYActualExpense
+- Permission 表缺少 menu:om-expense-categories, menu:currencies 權限
+
+**包含變更:**
+- 新增 health.fixProjectSchema API (修復 Project 所有欄位)
+- 新增 health.fixAllSchemaComplete API (一次性修復所有表格)
+  - Project: 19 個 FEAT-001/006/010 欄位
+  - BudgetProposal: budgetCategoryId, currencyId
+  - PurchaseOrder: poDate
+  - BudgetPool: isActive
+  - OMExpense: categoryId, sourceExpenseId, hasItems, totalBudgetAmount, totalActualSpent, defaultOpCoId
+  - OMExpenseItem: lastFYActualExpense, isOngoing
+  - Expense: budgetCategoryId, vendorId, currencyId, requiresChargeOut, isOperationMaint
+  - ExpenseItem: chargeOutOpCoId, categoryId
+  - UserOperatingCompany, ProjectChargeOutOpCo: 創建表格
+- 更新 fixPermissionTables API (新增 2 個權限)
+  - menu:om-expense-categories (費用類別)
+  - menu:currencies (幣別管理)
+
+**執行修復:**
+```bash
+# 1. Schema 完整修復
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixAllSchemaComplete"
+
+# 2. Permission 權限修復 (18 個菜單權限)
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixPermissionTables"
+```
+
+**修復結果:**
+- Schema 狀態: synced (完全同步)
+- Permission: 18 筆權限記錄
+- RolePermission: 26 筆角色權限關聯
+
+**驗證結果:**
+- ✅ 登入頁面: 200
+- ✅ Dashboard: 200
+- ✅ 專案列表: 200
+- ✅ 提案列表: 200
+- ✅ 採購單: 200
+- ✅ 費用記錄: 200
+- ✅ OM 費用: 200
+- ✅ OM 摘要: 200
+- ✅ 費用類別: 200
+- ✅ 幣別管理: 200
+
+---
+
 ### v27-fix-schema (2025-12-14)
 
 | 項目 | 內容 |
