@@ -61,6 +61,29 @@
 - ✅ en.json 無中文字符
 - ✅ 兩個翻譯檔案結構一致 (2364 個鍵)
 
+**⚠️ CHANGE-014 Bug 修復 (12/14 下午)**:
+
+1. **第一次修復嘗試**:
+   - 問題：Admin 用戶的 `session.user.roleId` 為 undefined
+   - 修復：在 `auth/index.ts` 中添加 `roleId` 到 Session type 和 session callback
+   - 結果：部分修復，但問題仍存在
+
+2. **第二次修復 (最終)**:
+   - 問題：`roleId: 1, isAdmin: false`，即使 Admin 帳號也顯示非 Admin
+   - 根因：資料庫 Role 表 ID 映射與程式碼預期完全相反
+     - 資料庫: id=1→Admin, id=2→ProjectManager, id=3→Supervisor
+     - 程式碼預期: id=1→PM, id=2→Supervisor, id=3→Admin
+   - 修復：改用 `role.name === 'Admin'` 判斷（與 trpc.ts adminProcedure 一致）
+   - 影響檔案：
+     - `packages/auth/src/index.ts` - 添加 roleId 到 Session
+     - `packages/api/src/routers/operatingCompany.ts` - 改用 role.name 判斷
+     - `apps/web/src/app/[locale]/om-summary/page.tsx` - 改用 role.name 判斷
+
+**Git Commits**:
+- `2d403b8` - 第一次修復（Session 類型、token.role 預設值）
+- `0ba4345` - 第二次修復（改用 role.name 判斷）
+- `42f57ee` - 更新 CHANGE-014 文檔
+
 ---
 
 ### 2025-12-13 | ✨ FEAT-010: Project Data Import | 修復完成 ✅
