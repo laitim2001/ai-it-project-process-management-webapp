@@ -8,6 +8,8 @@
  * 提供編輯操作和查看使用者管理的專案、監督的專案列表。
  * 整合專案關聯資料，提供完整的使用者檔案視圖。
  *
+ * FEAT-011: 新增權限配置區段，允許管理員配置用戶菜單權限。
+ *
  * @page /[locale]/users/[id]
  *
  * @features
@@ -19,9 +21,10 @@
  * - 編輯操作按鈕（導向編輯頁）
  * - 麵包屑導航支援
  * - 國際化標籤和訊息
+ * - FEAT-011: 菜單權限配置（Admin 專屬）
  *
  * @permissions
- * - Admin: 查看所有使用者詳情
+ * - Admin: 查看所有使用者詳情，配置用戶權限
  * - 其他角色: 無權訪問（或僅查看自己的資料）
  *
  * @routing
@@ -36,14 +39,16 @@
  *
  * @related
  * - packages/api/src/routers/user.ts - 使用者 API Router (getById)
+ * - packages/api/src/routers/permission.ts - 權限 API Router (FEAT-011)
  * - apps/web/src/app/[locale]/users/page.tsx - 使用者列表頁面
  * - apps/web/src/app/[locale]/users/[id]/edit/page.tsx - 編輯頁面
  * - apps/web/src/app/[locale]/projects/[id]/page.tsx - 專案詳情頁面
+ * - apps/web/src/components/user/UserPermissionsConfig.tsx - 權限配置組件 (FEAT-011)
  * - packages/db/prisma/schema.prisma - User, Role, Project 資料模型
  *
  * @author IT Department
  * @since Epic 1 - Azure AD B2C Authentication
- * @lastModified 2025-11-14
+ * @lastModified 2025-12-14
  */
 
 import { Link } from "@/i18n/routing";
@@ -57,6 +62,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { User as UserIcon, Mail, Calendar, Shield, Folder, Edit } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { UserPermissionsConfig } from '@/components/user/UserPermissionsConfig';
 
 /**
  * 角色顯示配置 - 將使用 i18n 翻譯
@@ -86,6 +93,10 @@ export default function UserDetailPage() {
   const userId = params.id as string;
 
   const { data: user, isLoading } = api.user.getById.useQuery({ id: userId });
+
+  // FEAT-011: 檢查當前用戶是否為 Admin（用於顯示權限配置區段）
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role?.name === 'Admin';
 
   if (isLoading) {
     return (
@@ -285,6 +296,11 @@ export default function UserDetailPage() {
             )}
           </div>
         </div>
+
+        {/* FEAT-011: 權限配置區段 (僅 Admin 可見) */}
+        {isAdmin && (
+          <UserPermissionsConfig userId={userId} />
+        )}
       </div>
     </DashboardLayout>
   );

@@ -16,7 +16,9 @@
       "deleting": "刪除中...",
       "exportCSV": "匯出 CSV",
       "search": "搜尋",
-      "openMenu": "開啟選單"
+      "openMenu": "開啟選單",
+      "goBack": "返回",
+      "goToDashboard": "前往首頁"
     },
     "sort": {
       "createdAtDesc": "最新優先",
@@ -132,6 +134,10 @@
     "validation": {
       "required": "{field} 為必填項目",
       "invalidEmail": "電子郵件格式不正確"
+    },
+    "errors": {
+      "accessDenied": "存取被拒絕",
+      "noPermission": "您沒有權限訪問此頁面"
     }
   },
   "navigation": {
@@ -2558,7 +2564,33 @@
       "permissionsUpdated": "營運公司權限更新成功",
       "permissionsUpdateFailed": "營運公司權限更新失敗",
       "loading": "載入權限中...",
-      "saving": "儲存權限中..."
+      "saving": "儲存權限中...",
+      "title": "菜單權限配置",
+      "description": "配置此用戶的菜單訪問權限。角色預設權限為 {role}。",
+      "loadError": "載入權限失敗",
+      "saveSuccess": "權限配置已保存",
+      "saveSuccessDesc": "用戶權限配置已成功更新。",
+      "saveError": "保存權限失敗",
+      "saveChanges": "保存變更",
+      "resetToDefault": "重置為角色預設",
+      "legend": {
+        "roleDefault": "角色預設",
+        "userGranted": "用戶新增",
+        "userRevoked": "用戶撤銷"
+      },
+      "status": {
+        "roleDefault": "預設",
+        "granted": "已授予",
+        "revoked": "已撤銷",
+        "modified": "已修改"
+      },
+      "categories": {
+        "menu": "菜單權限",
+        "project": "專案權限",
+        "proposal": "提案權限",
+        "expense": "費用權限",
+        "system": "系統權限"
+      }
     }
   },
   "notifications": {

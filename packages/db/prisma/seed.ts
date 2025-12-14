@@ -41,6 +41,122 @@ async function main() {
 
   console.log('✅ 角色創建完成');
 
+  // 1.3 FEAT-011: 創建菜單權限 (Menu Permissions)
+  console.log('🔐 創建菜單權限...');
+
+  const menuPermissions = [
+    // Overview (1)
+    { code: 'menu:dashboard', name: '儀表板', category: 'menu', sortOrder: 100, description: '訪問儀表板頁面' },
+
+    // Project Budget (3)
+    { code: 'menu:budget-pools', name: '預算池', category: 'menu', sortOrder: 200, description: '訪問預算池管理頁面' },
+    { code: 'menu:projects', name: '專案', category: 'menu', sortOrder: 210, description: '訪問專案管理頁面' },
+    { code: 'menu:proposals', name: '提案', category: 'menu', sortOrder: 220, description: '訪問預算提案頁面' },
+
+    // Procurement (7)
+    { code: 'menu:vendors', name: '供應商', category: 'menu', sortOrder: 300, description: '訪問供應商管理頁面' },
+    { code: 'menu:quotes', name: '報價單', category: 'menu', sortOrder: 310, description: '訪問報價單頁面' },
+    { code: 'menu:purchase-orders', name: '採購單', category: 'menu', sortOrder: 320, description: '訪問採購單管理頁面' },
+    { code: 'menu:expenses', name: '費用', category: 'menu', sortOrder: 330, description: '訪問費用管理頁面' },
+    { code: 'menu:om-expenses', name: 'OM 費用', category: 'menu', sortOrder: 340, description: '訪問 OM 費用管理頁面' },
+    { code: 'menu:om-summary', name: 'OM 總覽', category: 'menu', sortOrder: 350, description: '訪問 OM 總覽報表頁面' },
+    { code: 'menu:charge-outs', name: '費用轉嫁', category: 'menu', sortOrder: 360, description: '訪問費用轉嫁管理頁面' },
+
+    // System (6)
+    { code: 'menu:users', name: '用戶管理', category: 'menu', sortOrder: 400, description: '訪問用戶管理頁面' },
+    { code: 'menu:operating-companies', name: '營運公司', category: 'menu', sortOrder: 410, description: '訪問營運公司管理頁面' },
+    { code: 'menu:om-expense-categories', name: 'OM 費用類別', category: 'menu', sortOrder: 420, description: '訪問 OM 費用類別管理頁面' },
+    { code: 'menu:currencies', name: '幣別', category: 'menu', sortOrder: 430, description: '訪問幣別管理頁面' },
+    { code: 'menu:data-import', name: 'OM 數據導入', category: 'menu', sortOrder: 440, description: '訪問 OM 數據導入頁面' },
+    { code: 'menu:project-data-import', name: '專案數據導入', category: 'menu', sortOrder: 450, description: '訪問專案數據導入頁面' },
+
+    // Settings (1)
+    { code: 'menu:settings', name: '設定', category: 'menu', sortOrder: 500, description: '訪問個人設定頁面' },
+  ];
+
+  // 創建權限記錄
+  const permissionRecords: Record<string, { id: string }> = {};
+  for (const perm of menuPermissions) {
+    const permission = await prisma.permission.upsert({
+      where: { code: perm.code },
+      update: {
+        name: perm.name,
+        category: perm.category,
+        sortOrder: perm.sortOrder,
+        description: perm.description,
+      },
+      create: {
+        code: perm.code,
+        name: perm.name,
+        category: perm.category,
+        sortOrder: perm.sortOrder,
+        description: perm.description,
+        isActive: true,
+      },
+    });
+    permissionRecords[perm.code] = permission;
+  }
+
+  console.log(`✅ 菜單權限創建完成 (${menuPermissions.length} 個權限)`);
+
+  // 1.4 FEAT-011: 創建角色預設權限 (Role Default Permissions)
+  console.log('🔐 配置角色預設權限...');
+
+  // 定義角色預設權限映射
+  const rolePermissionMapping: Record<string, string[]> = {
+    // Admin: 所有權限
+    Admin: menuPermissions.map((p) => p.code),
+
+    // Supervisor: 除用戶管理外的所有權限
+    Supervisor: menuPermissions.filter((p) => p.code !== 'menu:users').map((p) => p.code),
+
+    // ProjectManager: 核心業務功能權限 (不含系統管理類)
+    ProjectManager: [
+      'menu:dashboard',
+      'menu:budget-pools',
+      'menu:projects',
+      'menu:proposals',
+      'menu:vendors',
+      'menu:quotes',
+      'menu:purchase-orders',
+      'menu:expenses',
+      'menu:om-expenses',
+      'menu:om-summary',
+      'menu:settings',
+    ],
+  };
+
+  // 獲取所有角色
+  const roles = await prisma.role.findMany();
+
+  // 為每個角色配置預設權限
+  for (const role of roles) {
+    const permCodes = rolePermissionMapping[role.name] || [];
+
+    for (const code of permCodes) {
+      const permission = permissionRecords[code];
+      if (permission) {
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: {
+              roleId: role.id,
+              permissionId: permission.id,
+            },
+          },
+          update: {},
+          create: {
+            roleId: role.id,
+            permissionId: permission.id,
+          },
+        });
+      }
+    }
+
+    console.log(`  ✅ ${role.name}: ${permCodes.length} 個權限`);
+  }
+
+  console.log('✅ 角色預設權限配置完成');
+
   // 1.5 CHANGE-003: 創建統一費用類別 (Expense Categories)
   console.log('📂 創建費用類別...');
 
@@ -733,6 +849,12 @@ async function main() {
 
   console.log('');
   console.log('🎉 資料庫種子數據完成！');
+  console.log('');
+  console.log('🔐 菜單權限 (FEAT-011):');
+  console.log('  - 18 個菜單權限已創建');
+  console.log('  - Admin: 18 個權限 (全部)');
+  console.log('  - Supervisor: 17 個權限 (除用戶管理)');
+  console.log('  - ProjectManager: 11 個權限 (核心業務)');
   console.log('');
   console.log('📂 費用類別 (CHANGE-003):');
   console.log('  - HW: 硬體');

@@ -16,7 +16,9 @@
       "deleting": "Deleting...",
       "exportCSV": "Export CSV",
       "search": "Search",
-      "openMenu": "Open menu"
+      "openMenu": "Open menu",
+      "goBack": "Go Back",
+      "goToDashboard": "Go to Dashboard"
     },
     "sort": {
       "createdAtDesc": "Newest First",
@@ -132,6 +134,10 @@
     "validation": {
       "required": "{field} is required",
       "invalidEmail": "Invalid email format"
+    },
+    "errors": {
+      "accessDenied": "Access Denied",
+      "noPermission": "You do not have permission to access this page"
     }
   },
   "navigation": {
@@ -2558,7 +2564,33 @@
       "permissionsUpdated": "Operating Company permissions updated successfully",
       "permissionsUpdateFailed": "Failed to update Operating Company permissions",
       "loading": "Loading permissions...",
-      "saving": "Saving permissions..."
+      "saving": "Saving permissions...",
+      "title": "Menu Permission Configuration",
+      "description": "Configure menu access permissions for this user. Role default is {role}.",
+      "loadError": "Failed to load permissions",
+      "saveSuccess": "Permissions saved",
+      "saveSuccessDesc": "User permissions have been updated successfully.",
+      "saveError": "Failed to save permissions",
+      "saveChanges": "Save Changes",
+      "resetToDefault": "Reset to Role Default",
+      "legend": {
+        "roleDefault": "Role Default",
+        "userGranted": "User Granted",
+        "userRevoked": "User Revoked"
+      },
+      "status": {
+        "roleDefault": "Default",
+        "granted": "Granted",
+        "revoked": "Revoked",
+        "modified": "Modified"
+      },
+      "categories": {
+        "menu": "Menu Permissions",
+        "project": "Project Permissions",
+        "proposal": "Proposal Permissions",
+        "expense": "Expense Permissions",
+        "system": "System Permissions"
+      }
     }
   },
   "notifications": {

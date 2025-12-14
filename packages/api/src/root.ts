@@ -70,6 +70,7 @@ import { operatingCompanyRouter } from './routers/operatingCompany';
 import { omExpenseRouter } from './routers/omExpense';
 import { expenseCategoryRouter } from './routers/expenseCategory'; // CHANGE-003: 統一費用類別
 import { chargeOutRouter } from './routers/chargeOut';
+import { permissionRouter } from './routers/permission'; // FEAT-011: 權限管理
 
 /**
  * tRPC 主路由器
@@ -94,6 +95,7 @@ export const appRouter = createTRPCRouter({
   omExpense: omExpenseRouter,
   expenseCategory: expenseCategoryRouter, // CHANGE-003: 統一費用類別管理
   chargeOut: chargeOutRouter,
+  permission: permissionRouter, // FEAT-011: 權限管理
 });
 
 // export type definition of API

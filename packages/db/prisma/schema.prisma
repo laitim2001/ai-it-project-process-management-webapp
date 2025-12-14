@@ -41,6 +41,9 @@ model User {
   // FEAT-009: OpCo 數據權限
   operatingCompanyPermissions UserOperatingCompany[]
 
+  // FEAT-011: 用戶菜單/功能權限
+  permissions UserPermission[]
+
   @@index([email])
   @@index([roleId])
 }
@@ -89,6 +92,70 @@ model Role {
   id    Int    @id @default(autoincrement())
   name  String @unique // "ProjectManager", "Supervisor", "Admin"
   users User[]
+
+  // FEAT-011: 角色預設權限
+  defaultPermissions RolePermission[]
+}
+
+// ==================================================================
+// 1.1 權限管理模型 (Permission Management Models)
+// FEAT-011: Permission Management System
+// ==================================================================
+
+// 權限定義表
+model Permission {
+  id          String   @id @default(uuid())
+  code        String   @unique // 權限代碼 (如 "menu:dashboard", "project:create")
+  name        String // 權限名稱 (如 "儀表板", "建立專案")
+  category    String // 權限類別 (如 "menu", "project", "proposal")
+  description String? // 權限描述
+  isActive    Boolean  @default(true) // 是否啟用
+  sortOrder   Int      @default(0) // 排序順序
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 關聯
+  rolePermissions RolePermission[] // 角色預設權限
+  userPermissions UserPermission[] // 用戶自訂權限
+
+  @@index([category])
+  @@index([code])
+  @@index([isActive])
+}
+
+// 角色預設權限（多對多中間表）
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       Int
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  // 關聯
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId]) // 每個角色-權限組合只能有一條記錄
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// 用戶自訂權限（覆蓋角色預設）
+model UserPermission {
+  id           String   @id @default(uuid())
+  userId       String
+  permissionId String
+  granted      Boolean  @default(true) // true=授予, false=撤銷（覆蓋角色預設）
+  createdBy    String? // 設定此權限的管理員 ID
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 關聯
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId]) // 每個用戶-權限組合只能有一條記錄
+  @@index([userId])
+  @@index([permissionId])
 }
 
 // ==================================================================

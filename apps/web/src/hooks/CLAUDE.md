@@ -7,8 +7,9 @@
 
 ```
 hooks/
-├── useDebounce.ts    # 防抖 Hook
-└── use-theme.ts      # 主題切換 Hook
+├── useDebounce.ts      # 防抖 Hook
+├── use-theme.ts        # 主題切換 Hook
+└── usePermissions.ts   # 權限管理 Hook (FEAT-011)
 ```
 
 ## 🎯 Hooks 模式
@@ -60,6 +61,71 @@ export function useTheme() {
 // 使用範例
 const { theme, toggleTheme } = useTheme();
 <button onClick={toggleTheme}>切換主題</button>
+```
+
+### 3. usePermissions (FEAT-011)
+```typescript
+'use client';
+import { useMemo } from 'react';
+import { api } from '@/lib/trpc';
+
+// 菜單權限代碼常量
+export const MENU_PERMISSIONS = {
+  DASHBOARD: 'menu:dashboard',
+  BUDGET_POOLS: 'menu:budget-pools',
+  PROJECTS: 'menu:projects',
+  // ... 共 18 個菜單權限
+} as const;
+
+// Hook 返回類型
+export interface UsePermissionsReturn {
+  permissionCodes: string[];          // 用戶有效權限代碼列表
+  permissions: Array<{...}>;          // 權限詳情列表
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  hasPermission: (code: string) => boolean;
+  hasAnyPermission: (codes: string[]) => boolean;
+  hasAllPermissions: (codes: string[]) => boolean;
+  refetch: () => void;
+}
+
+export function usePermissions(): UsePermissionsReturn {
+  const { data, isLoading, ... } = api.permission.getMyPermissions.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,      // 5 分鐘內視為新鮮
+    cacheTime: 30 * 60 * 1000,     // 緩存 30 分鐘
+    refetchOnWindowFocus: false,
+  });
+
+  // 使用 Set 實現 O(1) 權限查詢
+  const permissionSet = useMemo(() => new Set(data?.permissionCodes || []), [data]);
+
+  const hasPermission = (code: string) => permissionSet.has(code);
+  const hasAnyPermission = (codes: string[]) => codes.some(c => permissionSet.has(c));
+  const hasAllPermissions = (codes: string[]) => codes.every(c => permissionSet.has(c));
+
+  return { ... };
+}
+
+// 使用範例
+import { usePermissions, MENU_PERMISSIONS } from '@/hooks/usePermissions';
+
+function Sidebar() {
+  const { hasPermission, isLoading } = usePermissions();
+
+  if (isLoading) return <SidebarSkeleton />;
+
+  return (
+    <nav>
+      {hasPermission(MENU_PERMISSIONS.DASHBOARD) && (
+        <NavItem href="/dashboard">儀表板</NavItem>
+      )}
+      {hasPermission(MENU_PERMISSIONS.PROJECTS) && (
+        <NavItem href="/projects">專案</NavItem>
+      )}
+    </nav>
+  );
+}
 ```
 
 ## 📝 自定義 Hook 開發模式
