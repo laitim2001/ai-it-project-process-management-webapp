@@ -1345,6 +1345,242 @@ export const healthRouter = createTRPCRouter({
   }),
 
   /**
+   * 完整 Project 表欄位修復
+   * 修復 FEAT-001, FEAT-006, FEAT-010 新增的所有欄位
+   */
+  fixProjectSchema: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      results.push('=== 修復 Project 表 Schema (FEAT-001/006/010) ===');
+
+      // FEAT-001: 專案欄位擴展 (4 個欄位)
+      results.push('\n[1/3] FEAT-001 欄位...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCode" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "globalFlag" TEXT DEFAULT 'Region'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "priority" TEXT DEFAULT 'Medium'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "currencyId" TEXT`;
+      // 創建唯一索引 (如果不存在)
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "Project_projectCode_key" ON "Project"("projectCode")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_globalFlag_idx" ON "Project"("globalFlag")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_priority_idx" ON "Project"("priority")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_currencyId_idx" ON "Project"("currencyId")`;
+      results.push('FEAT-001: projectCode, globalFlag, priority, currencyId 已添加');
+
+      // FEAT-006: Project Summary Tab (8 個欄位)
+      results.push('\n[2/3] FEAT-006 欄位...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCategory" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectType" TEXT DEFAULT 'Project'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "expenseType" TEXT DEFAULT 'Expense'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "chargeBackToOpCo" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "chargeOutMethod" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "probability" TEXT DEFAULT 'Medium'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "team" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "personInCharge" TEXT`;
+      // 創建索引
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_projectCategory_idx" ON "Project"("projectCategory")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_projectType_idx" ON "Project"("projectType")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_expenseType_idx" ON "Project"("expenseType")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_chargeBackToOpCo_idx" ON "Project"("chargeBackToOpCo")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_probability_idx" ON "Project"("probability")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_team_idx" ON "Project"("team")`;
+      results.push('FEAT-006: projectCategory, projectType, expenseType, chargeBackToOpCo, chargeOutMethod, probability, team, personInCharge 已添加');
+
+      // FEAT-010: Project Data Import (7 個欄位)
+      results.push('\n[3/3] FEAT-010 欄位...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "fiscalYear" INTEGER`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isCdoReviewRequired" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isManagerConfirmed" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "payForWhat" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "payToWhom" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isOngoing" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
+      // 創建索引
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_fiscalYear_idx" ON "Project"("fiscalYear")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_isCdoReviewRequired_idx" ON "Project"("isCdoReviewRequired")`;
+      results.push('FEAT-010: fiscalYear, isCdoReviewRequired, isManagerConfirmed, payForWhat, payToWhom, isOngoing, lastFYActualExpense 已添加');
+
+      // 為已存在的記錄生成 projectCode (如果為 null)
+      results.push('\n[4/4] 為現有記錄生成 projectCode...');
+      await ctx.prisma.$executeRaw`
+        UPDATE "Project"
+        SET "projectCode" = 'PRJ-' || SUBSTRING(id, 1, 8)
+        WHERE "projectCode" IS NULL
+      `;
+      results.push('已為缺少 projectCode 的記錄生成預設值');
+
+      results.push('\n=== Project 表 Schema 修復完成 ===');
+
+      // 驗證
+      const columns = await ctx.prisma.$queryRaw<{ column_name: string }[]>`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'Project' ORDER BY ordinal_position
+      `;
+      results.push(`\n驗證: Project 表現有 ${columns.length} 個欄位`);
+
+      return {
+        success: true,
+        results,
+        columnCount: columns.length,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
+
+  /**
+   * 完整 Schema 修復 - 一次性修復所有已知問題
+   * 包括 Project, BudgetProposal, OMExpense, Permission 等表
+   */
+  fixAllSchemaComplete: publicProcedure.mutation(async ({ ctx }) => {
+    const results: string[] = [];
+
+    try {
+      results.push('=== 完整 Schema 修復開始 ===');
+
+      // 1. Project 表
+      results.push('\n### 1. Project 表 ###');
+      // FEAT-001
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCode" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "globalFlag" TEXT DEFAULT 'Region'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "priority" TEXT DEFAULT 'Medium'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "currencyId" TEXT`;
+      // FEAT-006
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectCategory" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "projectType" TEXT DEFAULT 'Project'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "expenseType" TEXT DEFAULT 'Expense'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "chargeBackToOpCo" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "chargeOutMethod" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "probability" TEXT DEFAULT 'Medium'`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "team" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "personInCharge" TEXT`;
+      // FEAT-010
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "fiscalYear" INTEGER`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isCdoReviewRequired" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isManagerConfirmed" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "payForWhat" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "payToWhom" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isOngoing" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
+      // 索引
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "Project_projectCode_key" ON "Project"("projectCode")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Project_fiscalYear_idx" ON "Project"("fiscalYear")`;
+      // 生成 projectCode
+      await ctx.prisma.$executeRaw`
+        UPDATE "Project" SET "projectCode" = 'PRJ-' || SUBSTRING(id, 1, 8) WHERE "projectCode" IS NULL
+      `;
+      results.push('Project: 已添加 FEAT-001/006/010 所有欄位');
+
+      // 2. BudgetProposal 表 - 檢查是否有缺失欄位
+      results.push('\n### 2. BudgetProposal 表 ###');
+      await ctx.prisma.$executeRaw`ALTER TABLE "BudgetProposal" ADD COLUMN IF NOT EXISTS "budgetCategoryId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "BudgetProposal" ADD COLUMN IF NOT EXISTS "currencyId" TEXT`;
+      results.push('BudgetProposal: 已檢查並添加缺失欄位');
+
+      // 3. PurchaseOrder 表
+      results.push('\n### 3. PurchaseOrder 表 ###');
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date')
+             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
+            ALTER TABLE "PurchaseOrder" RENAME COLUMN "date" TO "poDate";
+          ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
+            ALTER TABLE "PurchaseOrder" ADD COLUMN "poDate" TIMESTAMP(3);
+          END IF;
+        END $$
+      `;
+      results.push('PurchaseOrder: poDate 欄位已修復');
+
+      // 4. BudgetPool 表
+      results.push('\n### 4. BudgetPool 表 ###');
+      await ctx.prisma.$executeRaw`ALTER TABLE "BudgetPool" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN DEFAULT true`;
+      results.push('BudgetPool: isActive 欄位已添加');
+
+      // 5. OMExpense 表
+      results.push('\n### 5. OMExpense 表 ###');
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "categoryId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "sourceExpenseId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "hasItems" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "totalBudgetAmount" DOUBLE PRECISION`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "totalActualSpent" DOUBLE PRECISION`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpense" ADD COLUMN IF NOT EXISTS "defaultOpCoId" TEXT`;
+      results.push('OMExpense: 已添加所有 FEAT-007/008 欄位');
+
+      // 6. OMExpenseItem 表
+      results.push('\n### 6. OMExpenseItem 表 ###');
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "isOngoing" BOOLEAN DEFAULT false`;
+      results.push('OMExpenseItem: 已添加 lastFYActualExpense, isOngoing 欄位');
+
+      // 7. Expense 表
+      results.push('\n### 7. Expense 表 ###');
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "budgetCategoryId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "vendorId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "currencyId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "requiresChargeOut" BOOLEAN DEFAULT false`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "Expense" ADD COLUMN IF NOT EXISTS "isOperationMaint" BOOLEAN DEFAULT false`;
+      results.push('Expense: 已添加所有缺失欄位');
+
+      // 8. ExpenseItem 表
+      results.push('\n### 8. ExpenseItem 表 ###');
+      await ctx.prisma.$executeRaw`ALTER TABLE "ExpenseItem" ADD COLUMN IF NOT EXISTS "chargeOutOpCoId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "ExpenseItem" ADD COLUMN IF NOT EXISTS "categoryId" TEXT`;
+      results.push('ExpenseItem: 已添加 chargeOutOpCoId, categoryId 欄位');
+
+      // 9. UserOperatingCompany 表 (FEAT-009)
+      results.push('\n### 9. UserOperatingCompany 表 ###');
+      await ctx.prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "UserOperatingCompany" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+          "userId" TEXT NOT NULL,
+          "operatingCompanyId" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "createdBy" TEXT,
+          CONSTRAINT "UserOperatingCompany_pkey" PRIMARY KEY ("id")
+        )
+      `;
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "UserOperatingCompany_userId_operatingCompanyId_key" ON "UserOperatingCompany"("userId", "operatingCompanyId")`;
+      results.push('UserOperatingCompany: 表已創建');
+
+      // 10. ProjectChargeOutOpCo 表 (FEAT-006)
+      results.push('\n### 10. ProjectChargeOutOpCo 表 ###');
+      await ctx.prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "ProjectChargeOutOpCo" (
+          "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+          "projectId" TEXT NOT NULL,
+          "opCoId" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "ProjectChargeOutOpCo_pkey" PRIMARY KEY ("id")
+        )
+      `;
+      await ctx.prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "ProjectChargeOutOpCo_projectId_opCoId_key" ON "ProjectChargeOutOpCo"("projectId", "opCoId")`;
+      results.push('ProjectChargeOutOpCo: 表已創建');
+
+      results.push('\n=== 完整 Schema 修復完成 ===');
+
+      return {
+        success: true,
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        results,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }),
+
+  /**
    * FEAT-011: 修復 Permission 表架構
    * 創建 Permission、RolePermission、UserPermission 表並植入預設權限
    */
@@ -1453,7 +1689,7 @@ export const healthRouter = createTRPCRouter({
       // 4. 植入預設菜單權限
       results.push('\n[4/4] 植入預設菜單權限...');
 
-      // 菜單權限定義
+      // 菜單權限定義 (18 個菜單項目)
       const menuPermissions = [
         { code: 'menu:dashboard', name: '儀表板', category: 'menu', sortOrder: 1 },
         { code: 'menu:projects', name: '專案管理', category: 'menu', sortOrder: 2 },
@@ -1471,6 +1707,9 @@ export const healthRouter = createTRPCRouter({
         { code: 'menu:operating-companies', name: '營運公司', category: 'menu', sortOrder: 14 },
         { code: 'menu:users', name: '用戶管理', category: 'menu', sortOrder: 15 },
         { code: 'menu:settings', name: '系統設定', category: 'menu', sortOrder: 16 },
+        // 設定子菜單 (用戶報告缺失)
+        { code: 'menu:om-expense-categories', name: '費用類別', category: 'menu', sortOrder: 17 },
+        { code: 'menu:currencies', name: '幣別管理', category: 'menu', sortOrder: 18 },
       ];
 
       // 插入權限 (如果不存在)
