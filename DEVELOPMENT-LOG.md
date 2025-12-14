@@ -20,6 +20,48 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-14 | 🎨 CHANGE-015 + CHANGE-016: Dashboard 簡化版歡迎頁面 | 完成 ✅
+
+**類型**: 功能簡化 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+1. CHANGE-015: 在 FEAT-011 權限管理測試中發現，用戶登入後被重定向到 Dashboard，但可能沒有 menu:dashboard 權限
+2. CHANGE-016: Dashboard 頁面包含大量 mock 數據和未實現功能，數據敏感不宜顯示
+
+**解決方案**:
+
+1. **CHANGE-015: Dashboard 通用登陸頁面**
+   - Dashboard 作為登入後預設首頁（不需要 menu:dashboard 權限）
+   - 快速操作面板根據用戶菜單權限過濾顯示
+   - 使用 `usePermissions` hook 和 `MENU_PERMISSIONS` 常量
+   - 新增 `dashboard.quickActions.noActions` i18n 翻譯鍵
+
+2. **CHANGE-016: 簡化版專業歡迎頁面**
+   - 採用方案 C 極簡專業風格（居中卡片佈局）
+   - 顯示內容：系統名稱、歡迎訊息、用戶角色、格式化日期、導航提示
+   - 移除內容：統計數據、圖表、快速操作、活動列表、AI 建議
+   - 備份完整版為 `page-full-version.tsx.bak`
+   - 新增 `dashboard.welcome.*` i18n 翻譯鍵結構
+
+**修改的文件** (6 個):
+- `apps/web/src/app/[locale]/dashboard/page.tsx` - 簡化版歡迎頁面
+- `apps/web/src/app/[locale]/dashboard/page-full-version.tsx.bak` - 完整版備份
+- `apps/web/src/messages/en.json` - 新增翻譯鍵
+- `apps/web/src/messages/zh-TW.json` - 新增翻譯鍵
+- `claudedocs/4-changes/feature-changes/CHANGE-015-*.md` - CHANGE-015 文檔
+- `claudedocs/4-changes/feature-changes/CHANGE-016-*.md` - CHANGE-016 文檔
+
+**驗證結果**:
+- ✅ `pnpm validate:i18n` 通過 (2394 個鍵)
+- ✅ TypeScript 編譯通過
+- ✅ 響應式設計、Light/Dark 主題兼容
+
+**Git Commits**:
+- `5a30dec` - feat(dashboard): CHANGE-015 Dashboard 通用登陸頁面
+- `49d6359` - feat(dashboard): CHANGE-016 Dashboard 簡化版專業歡迎頁面
+
+---
+
 ### 2025-12-14 | 🔧 CHANGE-013 + CHANGE-014: OpCo 解析修復 + 權限過濾 | 完成 ✅
 
 **類型**: Bug 修復 + 功能增強 | **負責人**: AI 助手 | **狀態**: ✅ 完成
