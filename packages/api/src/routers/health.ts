@@ -890,9 +890,32 @@ export const healthRouter = createTRPCRouter({
       results.push('外鍵約束: 已添加');
 
       // 5. FEAT-008: OMExpenseItem 缺失欄位
-      results.push('\n[5/5] 修復 OMExpenseItem 表 (FEAT-008)...');
+      results.push('\n[5/7] 修復 OMExpenseItem 表 (FEAT-008)...');
       await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
       results.push('OMExpenseItem: 已添加 lastFYActualExpense');
+
+      // 6. PurchaseOrder 缺失 poDate 欄位
+      results.push('\n[6/7] 修復 PurchaseOrder 表...');
+      // Azure 有 date 欄位但沒有 poDate，需要重命名或添加
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          -- 如果存在 date 欄位但沒有 poDate，則重命名
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date')
+             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
+            ALTER TABLE "PurchaseOrder" RENAME COLUMN "date" TO "poDate";
+          -- 如果兩個都不存在，添加 poDate
+          ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
+            ALTER TABLE "PurchaseOrder" ADD COLUMN "poDate" TIMESTAMP(3);
+          END IF;
+        END $$
+      `;
+      results.push('PurchaseOrder: 已修復 poDate 欄位');
+
+      // 7. BudgetPool 缺失 isActive 欄位
+      results.push('\n[7/7] 修復 BudgetPool 表...');
+      await ctx.prisma.$executeRaw`ALTER TABLE "BudgetPool" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN DEFAULT true`;
+      results.push('BudgetPool: 已添加 isActive 欄位');
 
       results.push('\n=== Schema 修復完成 ===');
 
