@@ -2050,7 +2050,7 @@
       "delete": {
         "title": "Confirm Delete",
         "description": "Are you sure you want to delete this expense record? This action cannot be undone.",
-        "cannotDeleteDescription": "This expense record cannot be deleted: {reason}"
+        "cannotDeleteDescription": "Non-draft expense records cannot be deleted. Please revert to draft status first."
       },
       "bulkDelete": {
         "title": "Confirm Bulk Delete",
