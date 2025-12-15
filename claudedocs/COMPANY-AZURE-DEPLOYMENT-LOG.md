@@ -9,6 +9,65 @@
 
 ## 部署歷史
 
+### v29-fix-date (2025-12-15)
+
+| 項目 | 內容 |
+|------|------|
+| **版本** | v29-fix-date |
+| **日期** | 2025-12-15 |
+| **變更內容** | 修正 PurchaseOrder 欄位名稱錯誤 |
+| **狀態** | ✅ 成功 |
+
+**根本原因分析:**
+
+這是導致 Azure 部署一直失敗的**真正根本原因**：
+
+1. **schema.prisma 定義的是 `date` 欄位** (第 333 行)
+2. **但 schemaCompare API 錯誤地期望 `poDate`**
+3. 導致修復 API 把正確的 `date` **錯誤地重命名** 為 `poDate`
+4. 結果所有 PurchaseOrder 相關查詢失敗（quote.ts, vendor.ts）
+
+**問題表現:**
+- project.getById → 500 錯誤
+- vendor.getById → 500 錯誤 (orderBy: { date: 'desc' })
+- quote.getAll → 500 錯誤 (`PurchaseOrder.date` does not exist)
+
+**修正內容:**
+1. schemaCompare: 將期望欄位從 `poDate` 改回 `date`
+2. fixAllSchemaIssues: 修正邏輯為把 `poDate` 改回 `date`
+3. fixAllSchemaComplete: 同上修正
+
+**執行修復:**
+```bash
+curl -X POST "https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fixAllSchemaComplete"
+```
+
+**修復結果:**
+- Schema 狀態: synced (完全同步)
+- PurchaseOrder.date: ✅ 正確存在
+
+**驗證結果:**
+- ✅ Projects 列表頁: 200
+- ✅ Project 詳情頁: 200
+- ✅ Vendors 列表頁: 200
+- ✅ Vendor 詳情頁: 200
+- ✅ Quotes 頁面: 200
+- ✅ Dashboard: 200
+- ✅ Proposals: 200
+- ✅ Purchase Orders: 200
+- ✅ Expenses: 200
+- ✅ OM Expenses: 200
+- ✅ OM Summary: 200
+- ✅ OM Expense Categories: 200
+- ✅ Settings Currencies: 200
+
+**教訓學習:**
+- 在編寫診斷 API 時，必須仔細對照 schema.prisma 的實際定義
+- 不要假設欄位名稱，應該從源頭 (schema.prisma) 確認
+- 修復 API 應該有更強的驗證機制，避免做出錯誤的修改
+
+---
+
 ### v28-fix-complete (2025-12-14)
 
 | 項目 | 內容 |
