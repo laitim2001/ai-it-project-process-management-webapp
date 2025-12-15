@@ -69,6 +69,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import {
   AlertDialog,
@@ -81,7 +82,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle, RotateCcw } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 
 export default function ProjectDetailPage() {
@@ -104,6 +105,9 @@ export default function ProjectDetailPage() {
 
   // CHANGE-019: 刪除對話框狀態
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // FIX-008: 退回草稿對話框狀態
+  const [isRevertDialogOpen, setIsRevertDialogOpen] = useState(false);
+  const [revertReason, setRevertReason] = useState('');
   // 專案狀態映射
   const getProjectStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -224,6 +228,33 @@ export default function ProjectDetailPage() {
     },
   });
 
+  // FIX-008: 取得 tRPC utils 以便刷新資料
+  const utils = api.useContext();
+
+  /**
+   * FIX-008: 退回草稿 Mutation
+   * 將專案狀態從 InProgress 退回 Draft
+   */
+  const revertToDraftMutation = api.project.revertToDraft.useMutation({
+    onSuccess: () => {
+      toast({
+        title: tToast('success.title'),
+        description: t('revertToDraft.success'),
+        variant: 'success',
+      });
+      setIsRevertDialogOpen(false);
+      setRevertReason('');
+      utils.project.getById.invalidate({ id });
+    },
+    onError: (error) => {
+      toast({
+        title: tToast('error.title'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // ============================================================
   // 事件處理函數
   // ============================================================
@@ -235,6 +266,16 @@ export default function ProjectDetailPage() {
   const handleDelete = () => {
     deleteMutation.mutate({ id });
     setIsDeleteDialogOpen(false);
+  };
+
+  /**
+   * FIX-008: 處理退回草稿
+   * 使用 AlertDialog 確認，執行退回操作
+   */
+  const handleRevertToDraft = () => {
+    if (revertReason.trim()) {
+      revertToDraftMutation.mutate({ id, reason: revertReason.trim() });
+    }
   };
 
   // ============================================================
@@ -280,6 +321,26 @@ export default function ProjectDetailPage() {
 
     return null;
   };
+
+  /**
+   * FIX-008: 計算退回草稿權限
+   * - 狀態檢查：只有 InProgress 狀態可退回
+   * - 權限檢查：專案經理、主管或管理員可執行
+   */
+  const canRevertToDraft = (() => {
+    if (!project || !session?.user) return false;
+
+    // 狀態檢查：只允許 InProgress 狀態
+    const isInProgress = project.status === 'InProgress';
+
+    // 權限檢查：專案經理、主管或管理員
+    const isManager = project.managerId === session.user.id;
+    const isSupervisor = session.user.role?.name === 'Supervisor';
+    const isAdmin = session.user.role?.name === 'Admin';
+    const hasPermission = isManager || isSupervisor || isAdmin;
+
+    return isInProgress && hasPermission;
+  })();
 
   // ============================================================
   // 加載狀態渲染
@@ -388,6 +449,46 @@ export default function ProjectDetailPage() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            {/* FIX-008: 退回草稿按鈕 - 僅 InProgress 狀態顯示 */}
+            {canRevertToDraft && (
+              <AlertDialog open={isRevertDialogOpen} onOpenChange={setIsRevertDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    disabled={revertToDraftMutation.isPending}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    {revertToDraftMutation.isPending ? t('revertToDraft.reverting') : t('revertToDraft.button')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('revertToDraft.dialog.title')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('revertToDraft.dialog.description')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="py-4">
+                    <Input
+                      placeholder={t('revertToDraft.dialog.reasonPlaceholder')}
+                      value={revertReason}
+                      onChange={(e) => setRevertReason(e.target.value)}
+                    />
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setRevertReason('')}>
+                      {tCommon('actions.cancel')}
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleRevertToDraft}
+                      disabled={!revertReason.trim() || revertToDraftMutation.isPending}
+                    >
+                      {revertToDraftMutation.isPending ? t('revertToDraft.reverting') : t('revertToDraft.dialog.confirm')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
 

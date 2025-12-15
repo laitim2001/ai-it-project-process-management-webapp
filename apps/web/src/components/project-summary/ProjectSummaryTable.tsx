@@ -27,7 +27,7 @@
  *
  * @author IT Department
  * @since FEAT-006 - Project Summary Tab
- * @lastModified 2025-12-05
+ * @lastModified 2025-12-15
  */
 
 'use client';
@@ -326,10 +326,11 @@ export function ProjectSummaryTable({
                 <AccordionContent className="pt-0">
                   <div className="overflow-x-auto">
                     {/* FIX: 使用 table-fixed 和 colgroup 確保不同 category 的欄位對齊 */}
+                    {/* FIX-009: 調整欄位寬度，讓 Project Name 更寬以顯示完整內容 */}
                     <Table className="table-fixed w-full">
 {/* FIX: colgroup 內不能有空白或註釋，會導致 hydration 錯誤 */}
-                      {/* 欄位寬度: # 3%, Project Name 18%, Project Code 8%, Project Type 8%, Expense Type 8%, Probability 8%, Budget 10%, Charge Back 6%, Charge To OpCo 10%, Team 9%, Person In Charge 12% */}
-                      <colgroup><col style={{ width: '3%' }} /><col style={{ width: '18%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '10%' }} /><col style={{ width: '6%' }} /><col style={{ width: '10%' }} /><col style={{ width: '9%' }} /><col style={{ width: '12%' }} /></colgroup>
+                      {/* 欄位寬度: # 2.5%, Project Name 25%, Project Code 7%, Project Type 7%, Expense Type 7%, Probability 7%, Budget 9%, Charge Back 5%, Charge To OpCo 10%, Team 8%, Person In Charge 12.5% */}
+                      <colgroup><col style={{ width: '2.5%' }} /><col style={{ width: '25%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '5%' }} /><col style={{ width: '10%' }} /><col style={{ width: '8%' }} /><col style={{ width: '12.5%' }} /></colgroup>
                       <TableHeader>
                         <TableRow>
                           <TableHead>#</TableHead>
@@ -350,10 +351,11 @@ export function ProjectSummaryTable({
                           <TableRow key={project.id}>
                             <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                             <TableCell className="overflow-hidden">
-                              <div className="truncate">
-                                <div className="font-medium truncate">{project.name}</div>
+                              {/* FIX-009: 移除 truncate，改用 break-words 允許文字換行顯示完整內容 */}
+                              <div className="break-words">
+                                <div className="font-medium break-words">{project.name}</div>
                                 {project.description && (
-                                  <div className="text-sm text-muted-foreground truncate">
+                                  <div className="text-sm text-muted-foreground break-words line-clamp-2">
                                     {project.description}
                                   </div>
                                 )}

@@ -114,6 +114,11 @@ export default function ExpensesPage() {
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   const [revertTarget, setRevertTarget] = useState<{ id: string; name: string } | null>(null);
+  // CHANGE-026 Phase 2: 分步退回狀態
+  const [revertToApprovedDialogOpen, setRevertToApprovedDialogOpen] = useState(false);
+  const [revertToApprovedTarget, setRevertToApprovedTarget] = useState<{ id: string; name: string } | null>(null);
+  const [revertToSubmittedDialogOpen, setRevertToSubmittedDialogOpen] = useState(false);
+  const [revertToSubmittedTarget, setRevertToSubmittedTarget] = useState<{ id: string; name: string } | null>(null);
 
   const { toast } = useToast();
 
@@ -216,6 +221,48 @@ export default function ExpensesPage() {
     },
   });
 
+  // CHANGE-026 Phase 2: 退回已批准 Mutation (Paid → Approved)
+  const revertToApprovedMutation = api.expense.revertToApproved.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('messages.revertToApprovedSuccess'),
+        variant: 'default',
+      });
+      utils.expense.getAll.invalidate();
+      utils.expense.getStats.invalidate();
+      setRevertToApprovedDialogOpen(false);
+      setRevertToApprovedTarget(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('messages.revertToApprovedError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // CHANGE-026 Phase 2: 退回已提交 Mutation (Approved → Submitted)
+  const revertToSubmittedMutation = api.expense.revertToSubmitted.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('messages.revertToSubmittedSuccess'),
+        variant: 'default',
+      });
+      utils.expense.getAll.invalidate();
+      utils.expense.getStats.invalidate();
+      setRevertToSubmittedDialogOpen(false);
+      setRevertToSubmittedTarget(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('messages.revertToSubmittedError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // CHANGE-023: 選擇功能輔助函數
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -243,6 +290,16 @@ export default function ExpensesPage() {
     return expense.status !== 'Draft';
   };
 
+  // CHANGE-026 Phase 2: 判斷是否可退回已批准（僅 Paid 狀態）
+  const canRevertToApproved = (status: string) => {
+    return status === 'Paid';
+  };
+
+  // CHANGE-026 Phase 2: 判斷是否可退回已提交（僅 Approved 狀態）
+  const canRevertToSubmitted = (status: string) => {
+    return status === 'Approved';
+  };
+
   // CHANGE-023: 處理刪除點擊
   const handleDeleteClick = (expense: { id: string; status: string }, e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -258,6 +315,22 @@ export default function ExpensesPage() {
     e?.stopPropagation();
     setRevertTarget({ id: expense.id, name: expense.name });
     setRevertDialogOpen(true);
+  };
+
+  // CHANGE-026 Phase 2: 處理退回已批准點擊
+  const handleRevertToApprovedClick = (expense: { id: string; name: string }, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setRevertToApprovedTarget({ id: expense.id, name: expense.name });
+    setRevertToApprovedDialogOpen(true);
+  };
+
+  // CHANGE-026 Phase 2: 處理退回已提交點擊
+  const handleRevertToSubmittedClick = (expense: { id: string; name: string }, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setRevertToSubmittedTarget({ id: expense.id, name: expense.name });
+    setRevertToSubmittedDialogOpen(true);
   };
 
   // 載入骨架屏
@@ -646,6 +719,23 @@ export default function ExpensesPage() {
                                 {t('actions.revertToDraft')}
                               </DropdownMenuItem>
                             )}
+                            {/* CHANGE-026 Phase 2: 分步退回選項 */}
+                            {canRevertToApproved(expense.status) && (
+                              <DropdownMenuItem
+                                onClick={(e) => handleRevertToApprovedClick({ id: expense.id, name: expense.name }, e as unknown as React.MouseEvent)}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToApproved')}
+                              </DropdownMenuItem>
+                            )}
+                            {canRevertToSubmitted(expense.status) && (
+                              <DropdownMenuItem
+                                onClick={(e) => handleRevertToSubmittedClick({ id: expense.id, name: expense.name }, e as unknown as React.MouseEvent)}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToSubmitted')}
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -770,6 +860,23 @@ export default function ExpensesPage() {
                                 {t('actions.revertToDraft')}
                               </DropdownMenuItem>
                             )}
+                            {/* CHANGE-026 Phase 2: 分步退回選項 */}
+                            {canRevertToApproved(expense.status) && (
+                              <DropdownMenuItem
+                                onClick={(e) => handleRevertToApprovedClick({ id: expense.id, name: expense.name }, e as unknown as React.MouseEvent)}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToApproved')}
+                              </DropdownMenuItem>
+                            )}
+                            {canRevertToSubmitted(expense.status) && (
+                              <DropdownMenuItem
+                                onClick={(e) => handleRevertToSubmittedClick({ id: expense.id, name: expense.name }, e as unknown as React.MouseEvent)}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToSubmitted')}
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -851,6 +958,46 @@ export default function ExpensesPage() {
                 onClick={() => revertTarget && revertToDraftMutation.mutate({ id: revertTarget.id })}
               >
                 {t('actions.revertToDraft')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* CHANGE-026 Phase 2: 退回已批准確認對話框 */}
+        <AlertDialog open={revertToApprovedDialogOpen} onOpenChange={setRevertToApprovedDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('dialogs.revertToApproved.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('dialogs.revertToApproved.description', { name: revertToApprovedTarget?.name || '' })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => revertToApprovedTarget && revertToApprovedMutation.mutate({ id: revertToApprovedTarget.id })}
+              >
+                {t('actions.revertToApproved')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* CHANGE-026 Phase 2: 退回已提交確認對話框 */}
+        <AlertDialog open={revertToSubmittedDialogOpen} onOpenChange={setRevertToSubmittedDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('dialogs.revertToSubmitted.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('dialogs.revertToSubmitted.description', { name: revertToSubmittedTarget?.name || '' })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => revertToSubmittedTarget && revertToSubmittedMutation.mutate({ id: revertToSubmittedTarget.id })}
+              >
+                {t('actions.revertToSubmitted')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

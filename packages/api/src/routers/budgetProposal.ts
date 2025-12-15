@@ -912,6 +912,27 @@ export const budgetProposalRouter = createTRPCRouter({
           });
         }
 
+        // FIX-008: 檢查專案是否還有其他已批准的提案，若無則回退專案狀態
+        if (originalStatus === 'Approved') {
+          const otherApprovedProposals = await tx.budgetProposal.count({
+            where: {
+              projectId: existingProposal.projectId,
+              status: 'Approved',
+              id: { not: input.id }, // 排除當前正在回退的提案
+            },
+          });
+
+          // 如果沒有其他已批准的提案，將專案狀態回退到 Draft
+          if (otherApprovedProposals === 0) {
+            await tx.project.update({
+              where: { id: existingProposal.projectId },
+              data: {
+                status: 'Draft',
+              },
+            });
+          }
+        }
+
         return updatedProposal;
       });
 

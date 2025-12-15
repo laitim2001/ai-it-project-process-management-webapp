@@ -594,6 +594,17 @@
         "notDraft": "Only draft projects can be deleted",
         "noPermission": "Only the project manager or administrators can delete this project",
         "noAccess": "You do not have permission to perform this action"
+      },
+      "revertToDraft": {
+        "button": "Revert to Draft",
+        "reverting": "Reverting...",
+        "success": "Project has been reverted to draft status",
+        "dialog": {
+          "title": "Confirm Revert to Draft",
+          "description": "Are you sure you want to revert this project to draft status? This will allow re-editing and deletion of the project. Note: If there are approved budget proposals, they need to be reverted to draft first.",
+          "reasonPlaceholder": "Please enter the reason for reverting...",
+          "confirm": "Confirm Revert"
+        }
       }
     },
     "form": {
@@ -1752,6 +1763,7 @@
       "bulkDelete": "Bulk Delete",
       "clearSelection": "Clear Selection",
       "revertToDraft": "Revert to Draft",
+      "revertToSubmitted": "Revert to Submitted",
       "backToList": "Back to Purchase Order List",
       "title": "Actions",
       "submit": "Submit for Approval",
@@ -1795,7 +1807,9 @@
       "bulkDeleteResult": "Deleted {deleted}, skipped {skipped}",
       "selectedCount": "{count} selected",
       "revertSuccess": "Reverted to draft status",
-      "revertError": "Failed to revert to draft"
+      "revertError": "Failed to revert to draft",
+      "revertToSubmittedSuccess": "Reverted to submitted status",
+      "revertToSubmittedError": "Failed to revert to submitted"
     },
     "dialogs": {
       "cancel": "Cancel",
@@ -1812,6 +1826,10 @@
       "revert": {
         "title": "Confirm Revert to Draft",
         "description": "Are you sure you want to revert purchase order {poNumber} to draft status? After reverting, you can edit or delete it."
+      },
+      "revertToSubmitted": {
+        "title": "Confirm Revert to Submitted",
+        "description": "Are you sure you want to revert purchase order {poNumber} to submitted status? After reverting, it will need to be approved again."
       }
     }
   },
@@ -2009,7 +2027,9 @@
       "delete": "Delete",
       "bulkDelete": "Bulk Delete",
       "clearSelection": "Clear Selection",
-      "revertToDraft": "Revert to Draft"
+      "revertToDraft": "Revert to Draft",
+      "revertToApproved": "Revert to Approved",
+      "revertToSubmitted": "Revert to Submitted"
     },
     "status": {
       "draft": "Draft",
@@ -2043,7 +2063,11 @@
       "bulkDeleteResult": "Successfully deleted {deleted}, skipped {skipped}",
       "selectedCount": "{count} selected",
       "revertSuccess": "Reverted to draft status",
-      "revertError": "Failed to revert to draft"
+      "revertError": "Failed to revert to draft",
+      "revertToApprovedSuccess": "Reverted to approved status",
+      "revertToApprovedError": "Failed to revert to approved",
+      "revertToSubmittedSuccess": "Reverted to submitted status",
+      "revertToSubmittedError": "Failed to revert to submitted"
     },
     "dialogs": {
       "cancel": "Cancel",
@@ -2059,6 +2083,14 @@
       "revert": {
         "title": "Confirm Revert to Draft",
         "description": "Are you sure you want to revert \"{name}\" to draft status? The approval date and paid date will be cleared."
+      },
+      "revertToApproved": {
+        "title": "Confirm Revert to Approved",
+        "description": "Are you sure you want to revert \"{name}\" to approved status? The paid date will be cleared."
+      },
+      "revertToSubmitted": {
+        "title": "Confirm Revert to Submitted",
+        "description": "Are you sure you want to revert \"{name}\" to submitted status? The budget will be restored and it will need re-approval."
       }
     }
   },

@@ -2099,4 +2099,119 @@ export const projectRouter = createTRPCRouter({
       fiscalYears,
     };
   }),
+
+  // ============================================================
+  // FIX-008: 專案狀態回退功能
+  // ============================================================
+
+  /**
+   * 將專案狀態回退到草稿 (FIX-008)
+   *
+   * @description
+   * 允許將 InProgress 狀態的專案回退到 Draft 狀態。
+   * 僅當專案沒有已批准的預算提案時才允許回退。
+   *
+   * 前置條件：
+   * - 專案狀態必須是 InProgress
+   * - 專案不能有任何狀態為 Approved 的預算提案
+   * - 僅 Admin、Supervisor 或專案經理可執行
+   *
+   * 輸入參數：
+   * - id: 專案 ID
+   * - reason: 回退原因（必填）
+   *
+   * 回傳：
+   * - success: boolean
+   */
+  revertToDraft: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, '無效的專案ID'),
+        reason: z.string().min(1, '回退原因為必填'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const userRole = ctx.session.user.role.name;
+
+      // 1. 查詢專案和相關提案
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.id },
+        include: {
+          manager: true,
+          proposals: {
+            where: { status: 'Approved' },
+            select: { id: true, title: true },
+          },
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案',
+        });
+      }
+
+      // 2. 檢查專案狀態
+      if (project.status === 'Draft') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '專案已經是草稿狀態，無需回退',
+        });
+      }
+
+      if (project.status !== 'InProgress') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `無法將「${project.status}」狀態的專案回退到草稿。只有進行中的專案可以回退。`,
+        });
+      }
+
+      // 3. 檢查權限：Admin、Supervisor 或專案經理
+      const isAdmin = userRole === 'Admin';
+      const isSupervisor = userRole === 'Supervisor';
+      const isManager = project.managerId === userId;
+
+      if (!isAdmin && !isSupervisor && !isManager) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: '只有管理員、主管或專案經理可以執行此操作',
+        });
+      }
+
+      // 4. 檢查是否有已批准的提案
+      if (project.proposals.length > 0) {
+        const proposalTitles = project.proposals.map((p) => p.title).join(', ');
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法回退專案：專案有以下已批准的預算提案：${proposalTitles}。請先將這些提案回退到草稿狀態。`,
+        });
+      }
+
+      // 5. 執行狀態回退
+      const updatedProject = await ctx.prisma.project.update({
+        where: { id: input.id },
+        data: {
+          status: 'Draft',
+          approvedBudget: 0, // 重置已批准預算
+        },
+        include: {
+          manager: {
+            select: { id: true, name: true, email: true },
+          },
+          supervisor: {
+            select: { id: true, name: true, email: true },
+          },
+          budgetPool: {
+            select: { id: true, name: true },
+          },
+        },
+      });
+
+      return {
+        success: true,
+        project: updatedProject,
+      };
+    }),
 });

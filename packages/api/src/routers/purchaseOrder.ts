@@ -44,7 +44,10 @@
  *
  * @author IT Department
  * @since Epic 4 - Procurement and Vendor Management
- * @lastModified 2025-11-14
+ * @lastModified 2025-12-15
+ *
+ * @changelog
+ * - 2025-12-15: CHANGE-025 新增 revertToSubmitted API (Approved → Submitted)
  */
 
 import { z } from 'zod';
@@ -623,6 +626,52 @@ export const purchaseOrderRouter = createTRPCRouter({
       await ctx.prisma.purchaseOrder.update({
         where: { id: input.id },
         data: { status: 'Draft' },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * 將已批准的採購單退回已提交狀態
+   * @param id - PO ID
+   * @returns 成功訊息
+   *
+   * CHANGE-025: 新增狀態回退功能
+   * - 僅 Approved 狀態可以退回 Submitted
+   * - 清除 approvedDate
+   * - 僅 Supervisor 可執行
+   */
+  revertToSubmitted: supervisorProcedure
+    .input(z.object({
+      id: z.string().min(1, '無效的PO ID'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const po = await ctx.prisma.purchaseOrder.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!po) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該採購單',
+        });
+      }
+
+      // 僅 Approved 可以退回 Submitted
+      if (po.status !== 'Approved') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法退回已提交狀態（當前狀態：${po.status}，僅限已批准）`,
+        });
+      }
+
+      // 更新狀態為 Submitted，清除 approvedDate
+      await ctx.prisma.purchaseOrder.update({
+        where: { id: input.id },
+        data: {
+          status: 'Submitted',
+          approvedDate: null,
+        },
       });
 
       return { success: true };

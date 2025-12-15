@@ -594,6 +594,17 @@
         "notDraft": "只有草稿狀態的專案可以刪除",
         "noPermission": "只有專案經理或管理員可以刪除此專案",
         "noAccess": "您沒有權限執行此操作"
+      },
+      "revertToDraft": {
+        "button": "退回草稿",
+        "reverting": "退回中...",
+        "success": "專案已退回草稿狀態",
+        "dialog": {
+          "title": "確認退回草稿",
+          "description": "確定要將此專案退回草稿狀態嗎？這將允許重新編輯和刪除專案。請注意：如果專案有已批准的預算提案，需先將提案退回草稿。",
+          "reasonPlaceholder": "請輸入退回原因...",
+          "confirm": "確認退回"
+        }
       }
     },
     "form": {
@@ -1752,6 +1763,7 @@
       "bulkDelete": "批量刪除",
       "clearSelection": "清除選擇",
       "revertToDraft": "退回草稿",
+      "revertToSubmitted": "退回已提交",
       "backToList": "返回採購單列表",
       "title": "操作",
       "submit": "提交審批",
@@ -1795,7 +1807,9 @@
       "bulkDeleteResult": "成功刪除 {deleted} 筆，跳過 {skipped} 筆",
       "selectedCount": "已選擇 {count} 筆",
       "revertSuccess": "已退回草稿狀態",
-      "revertError": "退回草稿失敗"
+      "revertError": "退回草稿失敗",
+      "revertToSubmittedSuccess": "已退回已提交狀態",
+      "revertToSubmittedError": "退回已提交失敗"
     },
     "dialogs": {
       "cancel": "取消",
@@ -1812,6 +1826,10 @@
       "revert": {
         "title": "確認退回草稿",
         "description": "確定要將採購單 {poNumber} 退回草稿狀態嗎？退回後可重新編輯或刪除。"
+      },
+      "revertToSubmitted": {
+        "title": "確認退回已提交",
+        "description": "確定要將採購單 {poNumber} 退回已提交狀態嗎？退回後需要重新審批。"
       }
     }
   },
@@ -2009,7 +2027,9 @@
       "delete": "刪除",
       "bulkDelete": "批量刪除",
       "clearSelection": "清除選擇",
-      "revertToDraft": "退回草稿"
+      "revertToDraft": "退回草稿",
+      "revertToApproved": "退回已批准",
+      "revertToSubmitted": "退回已提交"
     },
     "status": {
       "draft": "草稿",
@@ -2043,7 +2063,11 @@
       "bulkDeleteResult": "成功刪除 {deleted} 筆，跳過 {skipped} 筆",
       "selectedCount": "已選擇 {count} 筆",
       "revertSuccess": "已退回草稿狀態",
-      "revertError": "退回草稿失敗"
+      "revertError": "退回草稿失敗",
+      "revertToApprovedSuccess": "已退回已批准狀態",
+      "revertToApprovedError": "退回已批准失敗",
+      "revertToSubmittedSuccess": "已退回已提交狀態",
+      "revertToSubmittedError": "退回已提交失敗"
     },
     "dialogs": {
       "cancel": "取消",
@@ -2059,6 +2083,14 @@
       "revert": {
         "title": "確認退回草稿",
         "description": "確定要將費用記錄 {name} 退回草稿狀態嗎？退回後可重新編輯或刪除。"
+      },
+      "revertToApproved": {
+        "title": "確認退回已批准",
+        "description": "確定要將費用記錄 {name} 退回已批准狀態嗎？支付日期將被清除。"
+      },
+      "revertToSubmitted": {
+        "title": "確認退回已提交",
+        "description": "確定要將費用記錄 {name} 退回已提交狀態嗎？預算將會回沖，需要重新審批。"
       }
     }
   },

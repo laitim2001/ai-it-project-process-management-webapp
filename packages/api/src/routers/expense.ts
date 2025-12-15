@@ -50,7 +50,10 @@
  *
  * @author IT Department
  * @since Epic 6 - Expense Recording and Approval
- * @lastModified 2025-11-14
+ * @lastModified 2025-12-15
+ *
+ * @changelog
+ * - 2025-12-15: CHANGE-026 修復 revertToDraft 預算回沖邏輯
  */
 
 import { z } from 'zod';
@@ -732,14 +735,30 @@ export const expenseRouter = createTRPCRouter({
    * CHANGE-023: 新增退回草稿功能
    * - 所有非 Draft 狀態都可退回 Draft
    * - 退回時清除 approvedDate 和 paidDate
+   *
+   * CHANGE-026: 修復預算回沖邏輯
+   * - 從 Approved/Paid 退回時，將金額加回 BudgetPool 和 BudgetCategory
+   * - 使用事務確保數據一致性
    */
   revertToDraft: protectedProcedure
     .input(z.object({
       id: z.string().min(1, '無效的費用ID'),
     }))
     .mutation(async ({ ctx, input }) => {
+      // CHANGE-026: 載入完整的關聯數據以便回沖預算
       const expense = await ctx.prisma.expense.findUnique({
         where: { id: input.id },
+        include: {
+          purchaseOrder: {
+            include: {
+              project: {
+                include: {
+                  budgetPool: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!expense) {
@@ -757,14 +776,192 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 更新狀態為 Draft，並清除相關日期
+      // CHANGE-026: 判斷是否需要回沖預算
+      // 只有 Approved 或 Paid 狀態才需要回沖（因為這些狀態已經扣過款）
+      const needsBudgetReversal = expense.status === 'Approved' || expense.status === 'Paid';
+
+      // CHANGE-026: 使用事務確保數據一致性
+      await ctx.prisma.$transaction(async (tx) => {
+        // 1. 更新費用狀態為 Draft，並清除相關日期
+        await tx.expense.update({
+          where: { id: input.id },
+          data: {
+            status: 'Draft',
+            approvedDate: null,
+            paidDate: null,
+          },
+        });
+
+        // 2. CHANGE-026: 回沖預算（如果需要）
+        if (needsBudgetReversal) {
+          const budgetPool = expense.purchaseOrder.project.budgetPool;
+
+          // 2.1 回沖 BudgetPool.usedAmount
+          // 確保 usedAmount 不會變成負數
+          const newUsedAmount = Math.max(0, budgetPool.usedAmount - expense.totalAmount);
+          await tx.budgetPool.update({
+            where: { id: budgetPool.id },
+            data: {
+              usedAmount: newUsedAmount,
+            },
+          });
+
+          // 2.2 回沖 BudgetCategory.usedAmount（如果有）
+          if (expense.budgetCategoryId) {
+            // 先取得當前 BudgetCategory 的 usedAmount
+            const budgetCategory = await tx.budgetCategory.findUnique({
+              where: { id: expense.budgetCategoryId },
+              select: { usedAmount: true },
+            });
+
+            if (budgetCategory) {
+              const newCategoryUsedAmount = Math.max(0, budgetCategory.usedAmount - expense.totalAmount);
+              await tx.budgetCategory.update({
+                where: { id: expense.budgetCategoryId },
+                data: {
+                  usedAmount: newCategoryUsedAmount,
+                },
+              });
+            }
+          }
+        }
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * 將已支付費用退回已批准狀態
+   * @param id - 費用 ID
+   * @returns 成功訊息
+   *
+   * CHANGE-026 Phase 2: 分步退回 (Paid → Approved)
+   * - 僅 Paid 狀態可退回 Approved
+   * - 無預算變動（因為 Paid 和 Approved 都已扣款）
+   * - 清除 paidDate
+   */
+  revertToApproved: protectedProcedure
+    .input(z.object({
+      id: z.string().min(1, '無效的費用ID'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const expense = await ctx.prisma.expense.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!expense) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該費用記錄',
+        });
+      }
+
+      // 僅 Paid 狀態可退回 Approved
+      if (expense.status !== 'Paid') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法退回已批准狀態（當前狀態：${expense.status}，僅限已支付）`,
+        });
+      }
+
+      // 更新狀態為 Approved，清除 paidDate
       await ctx.prisma.expense.update({
         where: { id: input.id },
         data: {
-          status: 'Draft',
-          approvedDate: null,
+          status: 'Approved',
           paidDate: null,
         },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * 將已批准費用退回已提交狀態
+   * @param id - 費用 ID
+   * @returns 成功訊息
+   *
+   * CHANGE-026 Phase 2: 分步退回 (Approved → Submitted)
+   * - 僅 Approved 狀態可退回 Submitted
+   * - 需要回沖預算（BudgetPool 和 BudgetCategory）
+   * - 清除 approvedDate
+   * - 僅 Supervisor 可執行
+   */
+  revertToSubmitted: supervisorProcedure
+    .input(z.object({
+      id: z.string().min(1, '無效的費用ID'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // 載入完整的關聯數據以便回沖預算
+      const expense = await ctx.prisma.expense.findUnique({
+        where: { id: input.id },
+        include: {
+          purchaseOrder: {
+            include: {
+              project: {
+                include: {
+                  budgetPool: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!expense) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該費用記錄',
+        });
+      }
+
+      // 僅 Approved 狀態可退回 Submitted
+      if (expense.status !== 'Approved') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法退回已提交狀態（當前狀態：${expense.status}，僅限已批准）`,
+        });
+      }
+
+      // 使用事務回沖預算 + 更新狀態
+      await ctx.prisma.$transaction(async (tx) => {
+        const budgetPool = expense.purchaseOrder.project.budgetPool;
+
+        // 1. 回沖 BudgetPool.usedAmount
+        const newUsedAmount = Math.max(0, budgetPool.usedAmount - expense.totalAmount);
+        await tx.budgetPool.update({
+          where: { id: budgetPool.id },
+          data: {
+            usedAmount: newUsedAmount,
+          },
+        });
+
+        // 2. 回沖 BudgetCategory.usedAmount（如果有）
+        if (expense.budgetCategoryId) {
+          const budgetCategory = await tx.budgetCategory.findUnique({
+            where: { id: expense.budgetCategoryId },
+            select: { usedAmount: true },
+          });
+
+          if (budgetCategory) {
+            const newCategoryUsedAmount = Math.max(0, budgetCategory.usedAmount - expense.totalAmount);
+            await tx.budgetCategory.update({
+              where: { id: expense.budgetCategoryId },
+              data: {
+                usedAmount: newCategoryUsedAmount,
+              },
+            });
+          }
+        }
+
+        // 3. 更新狀態為 Submitted，清除 approvedDate
+        await tx.expense.update({
+          where: { id: input.id },
+          data: {
+            status: 'Submitted',
+            approvedDate: null,
+          },
+        });
       });
 
       return { success: true };

@@ -91,6 +91,9 @@ export default function PurchaseOrdersPage() {
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   const [revertTarget, setRevertTarget] = useState<{ id: string; poNumber: string } | null>(null);
+  // CHANGE-025: 退回已提交狀態
+  const [revertToSubmittedDialogOpen, setRevertToSubmittedDialogOpen] = useState(false);
+  const [revertToSubmittedTarget, setRevertToSubmittedTarget] = useState<{ id: string; poNumber: string } | null>(null);
 
   // Debounce 搜尋避免過多 API 請求
   const debouncedSearch = useDebounce(search, 300);
@@ -158,6 +161,23 @@ export default function PurchaseOrdersPage() {
     },
   });
 
+  // CHANGE-025: 退回已提交狀態 mutation
+  const revertToSubmittedMutation = api.purchaseOrder.revertToSubmitted.useMutation({
+    onSuccess: () => {
+      toast({ title: t('messages.revertToSubmittedSuccess') });
+      refetch();
+      setRevertToSubmittedDialogOpen(false);
+      setRevertToSubmittedTarget(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('messages.revertToSubmittedError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // 查詢所有專案（用於篩選下拉選單）
   // 注意：API 限制最大 limit 為 100，如需更多數據請使用分頁
   const { data: projects } = api.project.getAll.useQuery({
@@ -202,6 +222,11 @@ export default function PurchaseOrdersPage() {
     return status === 'Submitted' || status === 'Cancelled';
   };
 
+  // CHANGE-025: 判斷是否可退回 Submitted（僅 Approved 可以）
+  const canRevertToSubmitted = (status: string) => {
+    return status === 'Approved';
+  };
+
   // 處理刪除點擊
   const handleDeleteClick = (po: { id: string; status: string; _count?: { expenses: number } }) => {
     setDeleteTarget({
@@ -216,6 +241,12 @@ export default function PurchaseOrdersPage() {
   const handleRevertClick = (po: { id: string; poNumber: string }) => {
     setRevertTarget(po);
     setRevertDialogOpen(true);
+  };
+
+  // CHANGE-025: 處理退回已提交點擊
+  const handleRevertToSubmittedClick = (po: { id: string; poNumber: string }) => {
+    setRevertToSubmittedTarget(po);
+    setRevertToSubmittedDialogOpen(true);
   };
 
   // 載入骨架屏
@@ -520,6 +551,13 @@ export default function PurchaseOrdersPage() {
                                 {t('actions.view')}
                               </Link>
                             </DropdownMenuItem>
+                            {/* CHANGE-025: 退回已提交選項（僅 Approved 狀態可用） */}
+                            {canRevertToSubmitted(po.status) && (
+                              <DropdownMenuItem onClick={() => handleRevertToSubmittedClick({ id: po.id, poNumber: po.poNumber })}>
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToSubmitted')}
+                              </DropdownMenuItem>
+                            )}
                             {canRevert(po.status) && (
                               <DropdownMenuItem onClick={() => handleRevertClick({ id: po.id, poNumber: po.poNumber })}>
                                 <RotateCcw className="h-4 w-4 mr-2" />
@@ -639,6 +677,13 @@ export default function PurchaseOrdersPage() {
                                 {t('actions.view')}
                               </Link>
                             </DropdownMenuItem>
+                            {/* CHANGE-025: 退回已提交選項（僅 Approved 狀態可用） */}
+                            {canRevertToSubmitted(po.status) && (
+                              <DropdownMenuItem onClick={() => handleRevertToSubmittedClick({ id: po.id, poNumber: po.poNumber })}>
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToSubmitted')}
+                              </DropdownMenuItem>
+                            )}
                             {canRevert(po.status) && (
                               <DropdownMenuItem onClick={() => handleRevertClick({ id: po.id, poNumber: po.poNumber })}>
                                 <RotateCcw className="h-4 w-4 mr-2" />
@@ -738,6 +783,26 @@ export default function PurchaseOrdersPage() {
                 onClick={() => revertTarget && revertToDraftMutation.mutate({ id: revertTarget.id })}
               >
                 {t('actions.revertToDraft')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* CHANGE-025: 退回已提交確認對話框 */}
+        <AlertDialog open={revertToSubmittedDialogOpen} onOpenChange={setRevertToSubmittedDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('dialogs.revertToSubmitted.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('dialogs.revertToSubmitted.description', { poNumber: revertToSubmittedTarget?.poNumber })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => revertToSubmittedTarget && revertToSubmittedMutation.mutate({ id: revertToSubmittedTarget.id })}
+              >
+                {t('actions.revertToSubmitted')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
