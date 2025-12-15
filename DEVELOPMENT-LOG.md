@@ -20,6 +20,60 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-15 | 🔧 完整 Schema 同步機制 | 完成 ✅
+
+**類型**: 架構設計 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+1. **問題**: 每次部署到公司 Azure 環境後，都需要逐一修復 Schema 差異
+2. **根因分析**:
+   - 本地開發使用 `pnpm db:push` (直接同步 schema.prisma 到數據庫)
+   - Azure 部署使用 `prisma migrate deploy` (只執行 migrations/ 文件夾中的 migration)
+   - migrations 不完整: FEAT-001/006/010 欄位缺失、Permission 相關表格缺失
+
+**解決方案**:
+設計並實現完整 Schema 同步機制，使用 Health API 作為唯一修改通道：
+
+1. **唯一真相來源**: `packages/api/src/lib/schemaDefinition.ts`
+   - 定義所有 27 個 Prisma 模型的預期欄位
+   - 定義欄位類型對照表 (用於生成 ALTER TABLE)
+
+2. **新增 API**:
+   - `health.fullSchemaCompare` (GET): 完整對比所有 27 個表格與實際數據庫
+   - `health.fullSchemaSync` (POST): 一鍵修復所有缺失表格和欄位
+
+3. **修復範圍 (9 個 Phase)**:
+   - Phase 1: 創建缺失表格 (Permission, RolePermission, UserPermission, ProjectChargeOutOpCo, UserOperatingCompany)
+   - Phase 2: 修復 Project 表 (FEAT-001/006/010 共 19 欄位)
+   - Phase 3: 修復 PurchaseOrder 表 (date, currencyId, approvedDate)
+   - Phase 4: 修復 BudgetPool 表 (isActive, description, currencyId)
+   - Phase 5: 修復 Expense 表 (7 欄位)
+   - Phase 6: 修復 ExpenseItem 表 (categoryId, chargeOutOpCoId)
+   - Phase 7: 修復 OMExpense 表 (FEAT-007 共 6 欄位)
+   - Phase 8: 修復 OMExpenseItem 表 (lastFYActualExpense, isOngoing)
+   - Phase 9: 創建必要索引
+
+**新增/修改的文件** (5 個):
+- `packages/api/src/lib/schemaDefinition.ts` - **新增** 唯一真相來源 (~400 行)
+- `packages/api/src/routers/health.ts` - **修改** 新增 fullSchemaCompare + fullSchemaSync API
+- `claudedocs/SCHEMA-SYNC-MECHANISM.md` - **新增** 機制說明文檔
+- `claudedocs/COMPANY-AZURE-DEPLOYMENT-LOG.md` - **修改** 部署日誌
+- `claudedocs/6-ai-assistant/prompts/SITUATION-7-AZURE-DEPLOY-COMPANY.md` - **修改** v2.2.0
+
+**部署後標準 SOP**:
+```bash
+# 1. 完整對比 Schema
+curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSchemaCompare
+
+# 2. 如有差異，執行完整同步
+curl -X POST https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSchemaSync
+
+# 3. 驗證同步結果 (應返回 "status": "synced")
+curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSchemaCompare
+```
+
+---
+
 ### 2025-12-14 | 🎨 CHANGE-015 + CHANGE-016: Dashboard 簡化版歡迎頁面 | 完成 ✅
 
 **類型**: 功能簡化 | **負責人**: AI 助手 | **狀態**: ✅ 完成

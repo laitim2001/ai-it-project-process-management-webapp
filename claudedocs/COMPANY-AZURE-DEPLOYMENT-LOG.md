@@ -7,6 +7,49 @@
 
 ---
 
+## 重要更新: 完整 Schema 同步機制 (2025-12-15)
+
+### 問題根源
+
+經過深入分析，發現 Schema 一直不同步的根本原因：
+
+| 環境 | 同步方式 | 問題 |
+|------|---------|------|
+| 本地開發 | `pnpm db:push` | 直接同步 schema.prisma，所有變更即時生效 |
+| Azure 部署 | `prisma migrate deploy` | 只執行 migrations/ 中的文件，但 migrations **不完整** |
+
+**缺失的 Migrations:**
+- FEAT-001: 只有 projectCode, globalFlag, priority (缺少 currencyId)
+- FEAT-006: 完全缺失 (8 個 Project 欄位)
+- FEAT-010: 部分缺失 (7 個 Project 欄位)
+
+### 解決方案
+
+新增**完整 Schema 同步機制**，通過 Health API 作為執行通道：
+
+1. **schemaDefinition.ts** - 唯一真相來源，定義所有 27 個表格的預期欄位
+2. **fullSchemaCompare API** - 對比所有表格和欄位差異
+3. **fullSchemaSync API** - 一鍵修復所有差異
+
+### 新的部署流程
+
+```bash
+# 部署後必須執行 Schema 同步
+# 1. 檢查差異
+curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSchemaCompare
+
+# 2. 執行同步 (如有差異)
+curl -X POST https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSchemaSync
+
+# 3. 驗證
+curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSchemaCompare
+# 應該返回 "status": "synced"
+```
+
+**詳細說明**: 參見 `claudedocs/SCHEMA-SYNC-MECHANISM.md`
+
+---
+
 ## 部署歷史
 
 ### v29-fix-date (2025-12-15)

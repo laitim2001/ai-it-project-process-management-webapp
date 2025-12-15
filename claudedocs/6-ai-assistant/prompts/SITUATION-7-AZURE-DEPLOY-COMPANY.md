@@ -274,6 +274,45 @@ az webapp config appsettings set \
 
 部署後可使用以下端點進行診斷和修復：
 
+### ⭐ 推薦: 完整 Schema 同步機制 (2025-12-15 新增)
+
+由於本地開發使用 `db:push` 而 Azure 使用 `migrate deploy`，Schema 經常不同步。
+新增的完整 Schema 同步 API 一次性解決所有同步問題：
+
+| 端點 | 方法 | 用途 |
+|------|------|------|
+| `health.fullSchemaCompare` | GET | **⭐ 完整對比所有 27 個表格和欄位** |
+| `health.fullSchemaSync` | POST | **⭐ 一鍵修復所有缺失表格和欄位** |
+
+**部署後標準 Schema 同步流程：**
+
+```bash
+BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
+
+# 1️⃣ 完整對比 Schema (檢查所有 27 個表格)
+curl "$BASE_URL/api/trpc/health.fullSchemaCompare"
+# 返回: status ("synced" | "out_of_sync"), 缺失表格/欄位列表, SQL 修復預覽
+
+# 2️⃣ 如果有差異，執行一鍵完整同步
+curl -X POST "$BASE_URL/api/trpc/health.fullSchemaSync"
+# 自動執行 9 個修復階段:
+# - Phase 1: 創建缺失表格 (Permission, RolePermission, UserPermission, etc.)
+# - Phase 2: 修復 Project 表 (FEAT-001/006/010 共 19 欄位)
+# - Phase 3: 修復 PurchaseOrder 表 (date, currencyId, approvedDate)
+# - Phase 4: 修復 BudgetPool 表 (isActive, description, currencyId)
+# - Phase 5: 修復 Expense 表 (7 欄位)
+# - Phase 6: 修復 ExpenseItem 表 (categoryId, chargeOutOpCoId)
+# - Phase 7: 修復 OMExpense 表 (FEAT-007 共 6 欄位)
+# - Phase 8: 修復 OMExpenseItem 表 (lastFYActualExpense, isOngoing)
+# - Phase 9: 創建必要索引
+
+# 3️⃣ 驗證同步結果
+curl "$BASE_URL/api/trpc/health.fullSchemaCompare"
+# 應該返回 "status": "synced"
+```
+
+**詳細機制說明**: 請參閱 `claudedocs/SCHEMA-SYNC-MECHANISM.md`
+
 ### 診斷端點
 
 | 端點 | 方法 | 用途 |
@@ -281,11 +320,11 @@ az webapp config appsettings set \
 | `health.ping` | GET | 基礎健康檢查 |
 | `health.dbCheck` | GET | 資料庫連線檢查 |
 | `health.schemaCheck` | GET | 驗證所有表格是否存在 |
-| `health.schemaCompare` | GET | **比較 schema.prisma vs 實際資料庫欄位** |
+| `health.schemaCompare` | GET | 比較 schema.prisma vs 實際資料庫欄位 (舊版，部分表格) |
 | `health.diagOmExpense` | GET | 診斷 OMExpense 相關表格和欄位 |
 | `health.diagProjectSummary` | GET | 診斷 Project Summary 所需的表格和欄位 |
 
-### 修復端點
+### 修復端點 (舊版，保留向後兼容)
 
 | 端點 | 方法 | 用途 |
 |------|------|------|
@@ -293,11 +332,12 @@ az webapp config appsettings set \
 | `health.fixAllTables` | POST | 創建所有缺失表格 |
 | `health.fixOmExpenseSchema` | POST | 修復 OMExpense 欄位 |
 | `health.fixExpenseItemSchema` | POST | 修復 ExpenseItem 欄位 |
-| `health.fixAllSchemaIssues` | POST | **一鍵修復所有 Schema 不同步問題** |
+| `health.fixAllSchemaIssues` | POST | 修復部分 Schema 不同步問題 |
+| `health.fixAllSchemaComplete` | POST | 修復部分 Schema (保留向後兼容) |
 | `health.createOMExpenseItemTable` | POST | 創建 FEAT-007 OMExpenseItem 表格 |
-| `health.fixFeat006AndFeat007Columns` | POST | **修復 FEAT-006/007 缺失欄位和表格** |
+| `health.fixFeat006AndFeat007Columns` | POST | 修復 FEAT-006/007 缺失欄位和表格 |
 
-**使用範例：**
+**舊版使用範例（保留向後兼容）：**
 
 ```bash
 BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
@@ -306,7 +346,7 @@ BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
 curl "$BASE_URL/api/trpc/health.schemaCompare"
 # 返回：缺失欄位列表（如 ExpenseItem.chargeOutOpCoId）
 
-# 🔧 一鍵修復所有 Schema 不同步問題（推薦）
+# 🔧 一鍵修復所有 Schema 不同步問題
 curl -X POST "$BASE_URL/api/trpc/health.fixAllSchemaIssues"
 
 # 如果 schema 檢查顯示表格缺失
@@ -480,10 +520,17 @@ critical_check:
 
 ---
 
-**版本**: 2.1.0 **最後更新**: 2025-12-08 **維護者**: DevOps Team + Azure Administrator
+**版本**: 2.2.0 **最後更新**: 2025-12-15 **維護者**: DevOps Team + Azure Administrator
 
 **更新記錄**:
 
+- v2.2.0 (2025-12-15): **完整 Schema 同步機制**
+  - 🆕 新增 `health.fullSchemaCompare` API - 完整對比所有 27 個表格
+  - 🆕 新增 `health.fullSchemaSync` API - 一鍵修復所有 Schema 差異
+  - 📝 新增 "推薦: 完整 Schema 同步機制" 章節
+  - 📝 參考文檔: `claudedocs/SCHEMA-SYNC-MECHANISM.md`
+  - ⚙️ 新增 `schemaDefinition.ts` 作為唯一真相來源
+  - 🔧 9 個修復階段覆蓋所有已知 Schema 差異
 - v2.1.0 (2025-12-08): **FEAT-006/007 部署經驗更新**
   - 🚨 新增關鍵警告：db push vs migration 差異導致的 Schema 不同步問題
   - 新增診斷端點：health.diagOmExpense, health.diagProjectSummary
