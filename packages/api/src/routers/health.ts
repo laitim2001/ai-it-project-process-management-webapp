@@ -2153,6 +2153,19 @@ export const healthRouter = createTRPCRouter({
       fixedColumns += 2;
 
       // ============================================================
+      // Phase 8.5: 修復 ChargeOutItem 表欄位 (CHANGE-002)
+      // ============================================================
+      results.push('');
+      results.push('📋 Phase 8.5: 修復 ChargeOutItem 表 (CHANGE-002)...');
+
+      await ctx.prisma.$executeRaw`ALTER TABLE "ChargeOutItem" ADD COLUMN IF NOT EXISTS "expenseItemId" TEXT`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "ChargeOutItem" ADD COLUMN IF NOT EXISTS "sortOrder" INTEGER DEFAULT 0`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "ChargeOutItem" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) DEFAULT NOW()`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ChargeOutItem_expenseItemId_idx" ON "ChargeOutItem"("expenseItemId")`;
+      results.push('  ✅ expenseItemId, sortOrder, updatedAt, expenseItemId 索引');
+      fixedColumns += 3;
+
+      // ============================================================
       // Phase 9: 創建索引
       // ============================================================
       results.push('');
