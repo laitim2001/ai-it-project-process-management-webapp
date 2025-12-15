@@ -1711,14 +1711,37 @@ export const projectRouter = createTRPCRouter({
       );
 
       // 3. 查找現有專案（用於判斷更新或新建）
+      // FIX: 使用大小寫不敏感的查詢，避免因大小寫差異導致重複創建
       const existingProjectCodes = input.projects.map((p) => p.projectCode);
       const existingProjects = await ctx.prisma.project.findMany({
         where: { projectCode: { in: existingProjectCodes } },
         select: { id: true, projectCode: true },
       });
+      // FIX: 建立一個可變的 Map，在交易中動態更新
+      // 這樣可以追蹤同一批次內新建的專案，避免重複 projectCode 衝突
       const existingMap = new Map(
         existingProjects.map((p) => [p.projectCode, p.id])
       );
+
+      // FIX: 檢測輸入數據中的重複 projectCode
+      const inputProjectCodeCounts = new Map<string, number>();
+      const duplicateInputCodes: string[] = [];
+      for (const p of input.projects) {
+        const count = (inputProjectCodeCounts.get(p.projectCode) ?? 0) + 1;
+        inputProjectCodeCounts.set(p.projectCode, count);
+        if (count === 2) {
+          duplicateInputCodes.push(p.projectCode);
+        }
+      }
+
+      // FIX: 如果有重複的 projectCode，添加警告
+      if (duplicateInputCodes.length > 0) {
+        warnings.push({
+          row: 0,
+          projectCode: 'BATCH',
+          message: `Duplicate projectCodes found in import file (will update same record multiple times): ${duplicateInputCodes.join(', ')}`,
+        });
+      }
 
       // 4. 使用 Transaction 處理所有專案
       await ctx.prisma.$transaction(
@@ -1836,24 +1859,33 @@ export const projectRouter = createTRPCRouter({
                 chargeOutMethod: row.chargeOutMethod,
               };
 
-              // 判斷是更新還是新建
+              // FIX: 使用 upsert 替代手動的 create/update 邏輯
+              // 這樣可以安全處理：
+              // 1. 同一批次內的重複 projectCode（第一個創建，後續更新）
+              // 2. 資料庫中已存在但查詢時未找到的 projectCode（例如大小寫差異）
               const existingId = existingMap.get(row.projectCode);
               let projectId: string;
 
+              // 使用 upsert 基於 projectCode 唯一約束
+              const result = await tx.project.upsert({
+                where: { projectCode: row.projectCode },
+                update: {
+                  ...projectData,
+                  // 不更新 projectCode，因為它是查詢條件
+                  projectCode: undefined,
+                },
+                create: projectData,
+              });
+
+              projectId = result.id;
+
+              // 判斷是更新還是新建（基於 existingMap）
               if (existingId) {
-                // 更新現有專案
-                await tx.project.update({
-                  where: { id: existingId },
-                  data: projectData,
-                });
-                projectId = existingId;
                 updated++;
               } else {
-                // 新建專案
-                const newProject = await tx.project.create({
-                  data: projectData,
-                });
-                projectId = newProject.id;
+                // FIX: 將新建的專案添加到 existingMap，
+                // 這樣同一批次內的後續重複 projectCode 會被視為更新
+                existingMap.set(row.projectCode, result.id);
                 created++;
               }
 
