@@ -59,8 +59,9 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { notFound, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { ProposalActions } from '@/components/proposal/ProposalActions';
 import { CommentSection } from '@/components/proposal/CommentSection';
@@ -73,11 +74,12 @@ import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X } from 'lucide-react';
+import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X, Trash2 } from 'lucide-react';
 
 export default function ProposalDetailPage() {
   const t = useTranslations('proposals');
@@ -86,6 +88,34 @@ export default function ProposalDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const locale = params.locale as string;
+  const router = useRouter();
+  const { toast } = useToast();
+  const { data: session } = useSession();
+
+  // CHANGE-017: 刪除狀態管理
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // tRPC utilities for cache invalidation
+  const utils = api.useUtils();
+
+  // CHANGE-017: 刪除 mutation
+  const deleteMutation = api.budgetProposal.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('actions.deleteSuccess'),
+        variant: 'default',
+      });
+      utils.budgetProposal.getAll.invalidate();
+      router.push('/proposals');
+    },
+    onError: (error) => {
+      toast({
+        title: t('actions.deleteError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   /**
    * 提案狀態顯示配置
@@ -109,6 +139,23 @@ export default function ProposalDetailPage() {
   };
 
   const { data: proposal, isLoading } = api.budgetProposal.getById.useQuery({ id });
+
+  // CHANGE-017: 檢查刪除權限 (Draft 狀態 + 建立者或 Admin)
+  const canDelete = (proposalData: typeof proposal) => {
+    if (!proposalData || !session?.user) return false;
+    if (proposalData.status !== 'Draft') return false;
+
+    const isProjectManager = proposalData.project.managerId === session.user.id;
+    const isAdmin = session.user.role?.name === 'Admin';
+
+    return isProjectManager || isAdmin;
+  };
+
+  // CHANGE-017: 刪除處理函數
+  const handleDelete = () => {
+    if (!proposal) return;
+    deleteMutation.mutate({ id: proposal.id });
+  };
 
   if (isLoading) {
     return (
@@ -235,6 +282,35 @@ export default function ProposalDetailPage() {
               <Link href={`/proposals/${proposal.id}/edit`}>
                 <Button variant="outline">{tCommon('actions.edit')}</Button>
               </Link>
+            )}
+            {/* CHANGE-017: 刪除按鈕 */}
+            {canDelete(proposal) && (
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t('actions.delete')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('actions.delete')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('actions.confirmDelete')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={deleteMutation.isPending}
+                    >
+                      {deleteMutation.isPending ? t('actions.deleting') : t('actions.delete')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             <Link href="/proposals">
               <Button variant="outline">{tCommon('actions.back')}</Button>

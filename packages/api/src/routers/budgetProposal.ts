@@ -33,7 +33,8 @@
  * - addComment: 新增評論
  * - uploadProposalFile: 上傳提案文件
  * - updateMeetingNotes: 更新會議記錄
- * - delete: 刪除提案（Draft only）
+ * - delete: 刪除提案（Draft only，僅建立者或 Admin）
+ * - deleteMany: 批量刪除提案（CHANGE-017 新增）
  *
  * @dependencies
  * - Prisma Client: 資料庫操作
@@ -657,6 +658,7 @@ export const budgetProposalRouter = createTRPCRouter({
 
   /**
    * 刪除預算提案（僅 Draft 狀態可刪除）
+   * CHANGE-017: 新增權限檢查 - 僅建立者或 Admin 可刪除
    */
   delete: protectedProcedure
     .input(
@@ -665,10 +667,13 @@ export const budgetProposalRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // 檢查提案狀態
+      // 檢查提案和關聯專案
       const existingProposal = await ctx.prisma.budgetProposal.findUnique({
         where: {
           id: input.id,
+        },
+        include: {
+          project: true,
         },
       });
 
@@ -686,12 +691,230 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
-      await ctx.prisma.budgetProposal.delete({
-        where: {
-          id: input.id,
-        },
+      // CHANGE-017: 檢查權限 - 僅建立者（專案經理）或 Admin 可刪除
+      const userId = ctx.session.user.id;
+      const userRole = ctx.session.user.role.name;
+      const isProjectManager = existingProposal.project.managerId === userId;
+      const isAdmin = userRole === 'Admin';
+
+      if (!isProjectManager && !isAdmin) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: '您沒有權限刪除此提案（僅建立者或管理員可刪除）',
+        });
+      }
+
+      // 使用 transaction 確保原子性：先刪除相關記錄，再刪除提案
+      await ctx.prisma.$transaction(async (tx) => {
+        // Step 1: 刪除相關的 History 記錄
+        await tx.history.deleteMany({
+          where: { budgetProposalId: input.id },
+        });
+
+        // Step 2: 刪除相關的 Comment 記錄
+        await tx.comment.deleteMany({
+          where: { budgetProposalId: input.id },
+        });
+
+        // Step 3: 刪除提案
+        await tx.budgetProposal.delete({
+          where: { id: input.id },
+        });
       });
 
       return { success: true };
+    }),
+
+  /**
+   * 批量刪除預算提案（僅 Draft 狀態可刪除）
+   * CHANGE-017: 新增批量刪除功能
+   */
+  deleteMany: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string().min(1)).min(1, '請選擇要刪除的提案'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const userRole = ctx.session.user.role.name;
+      const isAdmin = userRole === 'Admin';
+
+      // 查詢所有要刪除的提案
+      const proposals = await ctx.prisma.budgetProposal.findMany({
+        where: {
+          id: { in: input.ids },
+        },
+        include: {
+          project: true,
+        },
+      });
+
+      // 檢查是否所有提案都存在
+      if (proposals.length !== input.ids.length) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '部分提案不存在',
+        });
+      }
+
+      // 檢查所有提案是否都是 Draft 狀態
+      const nonDraftProposals = proposals.filter(p => p.status !== 'Draft');
+      if (nonDraftProposals.length > 0) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `以下提案不是草稿狀態，無法刪除：${nonDraftProposals.map(p => p.title).join(', ')}`,
+        });
+      }
+
+      // 檢查權限 - 僅建立者或 Admin 可刪除
+      if (!isAdmin) {
+        const unauthorizedProposals = proposals.filter(p => p.project.managerId !== userId);
+        if (unauthorizedProposals.length > 0) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `您沒有權限刪除以下提案：${unauthorizedProposals.map(p => p.title).join(', ')}`,
+          });
+        }
+      }
+
+      // 使用 transaction 確保原子性：先刪除相關記錄，再刪除提案
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // Step 1: 刪除相關的 History 記錄
+        await tx.history.deleteMany({
+          where: { budgetProposalId: { in: input.ids } },
+        });
+
+        // Step 2: 刪除相關的 Comment 記錄
+        await tx.comment.deleteMany({
+          where: { budgetProposalId: { in: input.ids } },
+        });
+
+        // Step 3: 批量刪除提案
+        const deleteResult = await tx.budgetProposal.deleteMany({
+          where: { id: { in: input.ids } },
+        });
+
+        return deleteResult;
+      });
+
+      return { success: true, deletedCount: result.count };
+    }),
+
+  // ============================================================
+  // CHANGE-018: 狀態回退功能
+  // ============================================================
+  /**
+   * 回退提案到草稿狀態
+   * @description 將 PendingApproval/Approved/Rejected/MoreInfoRequired 狀態的提案回退到 Draft
+   * @permission Admin 或 Supervisor 可執行
+   * @param id - 提案 ID
+   * @param reason - 回退原因（必填）
+   */
+  revertToDraft: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, '無效的提案ID'),
+        reason: z.string().min(1, '回退原因為必填'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 1. 檢查權限：Admin 或 Supervisor
+      const userRole = ctx.session.user.role.name;
+      if (userRole !== 'Admin' && userRole !== 'Supervisor') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: '只有管理員或主管可以執行此操作',
+        });
+      }
+
+      // 2. 檢查提案存在
+      const existingProposal = await ctx.prisma.budgetProposal.findUnique({
+        where: { id: input.id },
+        include: {
+          project: true,
+        },
+      });
+
+      if (!existingProposal) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '提案不存在',
+        });
+      }
+
+      // 3. 檢查狀態（Draft 不需要回退）
+      if (existingProposal.status === 'Draft') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '提案已是草稿狀態，無需回退',
+        });
+      }
+
+      // 4. 記錄原狀態用於歷史記錄
+      const originalStatus = existingProposal.status;
+
+      // 5. 執行回退（使用 transaction 確保資料一致性）
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // 5a. 更新提案狀態
+        const updatedProposal = await tx.budgetProposal.update({
+          where: { id: input.id },
+          data: {
+            status: 'Draft',
+            // 清除審批相關欄位
+            approvedAmount: null,
+            approvedBy: null,
+            approvedAt: null,
+            rejectionReason: null,
+          },
+          include: {
+            project: {
+              include: {
+                manager: true,
+                supervisor: true,
+                budgetPool: true,
+              },
+            },
+            comments: {
+              include: { user: true },
+              orderBy: { createdAt: 'desc' },
+            },
+            historyItems: {
+              include: { user: true },
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+        });
+
+        // 5b. 記錄歷史
+        await tx.history.create({
+          data: {
+            action: 'REVERTED_TO_DRAFT',
+            details: `從「${originalStatus}」回退到「Draft」。原因：${input.reason}`,
+            user: {
+              connect: { id: ctx.session.user.id },
+            },
+            budgetProposal: {
+              connect: { id: input.id },
+            },
+          },
+        });
+
+        // 5c. 如果原狀態是 Approved，需要回退 Project 的 approvedBudget
+        if (originalStatus === 'Approved' && existingProposal.approvedAmount) {
+          await tx.project.update({
+            where: { id: existingProposal.projectId },
+            data: {
+              approvedBudget: {
+                decrement: existingProposal.approvedAmount,
+              },
+            },
+          });
+        }
+
+        return updatedProposal;
+      });
+
+      return result;
     }),
 });

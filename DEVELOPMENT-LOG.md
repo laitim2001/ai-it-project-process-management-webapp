@@ -20,6 +20,51 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-15 | 🗑️ CHANGE-017 + CHANGE-018: Budget Proposal 刪除與回退功能 | 完成 ✅
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+1. 用戶需要刪除不需要的預算提案（僅限 Draft 狀態）
+2. Admin/Supervisor 需要將已提交/已批准/已拒絕的提案回退到 Draft 狀態進行修改
+
+**實現內容**:
+
+1. **CHANGE-017: Budget Proposal Delete Enhancement**
+   - 單一刪除 (`delete` procedure) 和批量刪除 (`deleteMany` procedure)
+   - 僅 Draft 狀態的提案可刪除
+   - 權限檢查：僅建立者（專案經理）或 Admin 可刪除
+   - 前端 AlertDialog 確認對話框
+   - i18n 翻譯 (en + zh-TW)
+
+2. **CHANGE-018: Budget Proposal Status Revert Function**
+   - 新增 `revertToDraft` procedure (Admin/Supervisor 專用)
+   - 支援從 PendingApproval/Approved/Rejected/MoreInfoRequired 回退到 Draft
+   - 必填回退原因輸入
+   - History 記錄追蹤 (action: "REVERTED_TO_DRAFT")
+   - AlertDialog 確認對話框
+
+**Bug 修復**:
+1. **Foreign Key 約束錯誤**: 刪除提案前未刪除相關 History/Comment
+   - 解決：使用 `$transaction` 先刪除 History/Comment 再刪除提案
+2. **翻譯錯誤**: `toast.cancel` → `tCommon('actions.cancel')`
+3. **Prisma 關聯錯誤**: History.create 缺少 `user: { connect }` 和 `budgetProposal: { connect }`
+4. **Delete Dialog 翻譯錯誤**: `tCommon('actions.confirmDelete')` → `t('actions.delete')`
+
+**修改的文件** (6 個):
+- `packages/api/src/routers/budgetProposal.ts` - 新增 delete/deleteMany/revertToDraft procedures
+- `apps/web/src/app/[locale]/proposals/[id]/page.tsx` - 新增刪除按鈕和確認對話框
+- `apps/web/src/app/[locale]/proposals/page.tsx` - 新增批量刪除功能
+- `apps/web/src/components/proposal/ProposalActions.tsx` - 新增回退功能 UI
+- `apps/web/src/messages/en.json` - 新增翻譯鍵
+- `apps/web/src/messages/zh-TW.json` - 新增翻譯鍵
+
+**相關文檔**:
+- `claudedocs/4-changes/feature-changes/CHANGE-017-budget-proposal-delete-enhancement.md`
+- `claudedocs/4-changes/feature-changes/CHANGE-018-budget-proposal-status-revert.md`
+
+---
+
 ### 2025-12-15 | 🔧 完整 Schema 同步機制 | 完成 ✅
 
 **類型**: 架構設計 | **負責人**: AI 助手 | **狀態**: ✅ 完成

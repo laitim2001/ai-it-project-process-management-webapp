@@ -2239,4 +2239,118 @@ export const healthRouter = createTRPCRouter({
       };
     }
   }),
+
+  /**
+   * 診斷用戶角色和 OpCo 權限
+   * 用於排查 OM Summary 頁面的 "No Access" 問題
+   *
+   * @usage
+   * curl "https://your-app.azurewebsites.net/api/trpc/health.debugUserPermissions?input=%7B%22email%22%3A%22admin1%40example.com%22%7D"
+   */
+  debugUserPermissions: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        // 1. 查詢所有角色
+        const roles = await ctx.prisma.role.findMany({
+          orderBy: { id: 'asc' },
+        });
+
+        // 2. 查詢用戶資訊（包含角色）
+        const user = await ctx.prisma.user.findUnique({
+          where: { email: input.email },
+          include: { role: true },
+        });
+
+        if (!user) {
+          return {
+            success: false,
+            error: `User with email "${input.email}" not found`,
+            roles,
+            timestamp: new Date().toISOString(),
+          };
+        }
+
+        // 3. 查詢用戶的 OpCo 權限
+        const opCoPermissions = await ctx.prisma.userOperatingCompany.findMany({
+          where: { userId: user.id },
+          include: {
+            operatingCompany: {
+              select: { id: true, code: true, name: true, isActive: true },
+            },
+          },
+        });
+
+        // 4. 查詢所有啟用的 OpCo（用於比較）
+        const allActiveOpCos = await ctx.prisma.operatingCompany.findMany({
+          where: { isActive: true },
+          orderBy: { code: 'asc' },
+          select: { id: true, code: true, name: true },
+        });
+
+        // 5. 判斷 isAdmin
+        const isAdmin = user.role?.name === 'Admin';
+
+        // 6. 計算用戶實際可訪問的 OpCo
+        let accessibleOpCos: typeof allActiveOpCos;
+        let accessReason: string;
+
+        if (isAdmin) {
+          accessibleOpCos = allActiveOpCos;
+          accessReason = 'Admin role - can access all OpCos';
+        } else if (opCoPermissions.length === 0) {
+          accessibleOpCos = allActiveOpCos;
+          accessReason = 'No permission records - fallback to all OpCos (backward compatibility)';
+        } else {
+          accessibleOpCos = opCoPermissions
+            .filter(p => p.operatingCompany.isActive)
+            .map(p => ({
+              id: p.operatingCompany.id,
+              code: p.operatingCompany.code,
+              name: p.operatingCompany.name,
+            }));
+          accessReason = `Has ${opCoPermissions.length} permission record(s) - limited to assigned OpCos`;
+        }
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            roleId: user.roleId,
+            role: user.role,
+            isAdmin,
+          },
+          opCoPermissions: {
+            count: opCoPermissions.length,
+            records: opCoPermissions.map(p => ({
+              opCoId: p.operatingCompanyId,
+              opCoCode: p.operatingCompany.code,
+              opCoName: p.operatingCompany.name,
+              isActive: p.operatingCompany.isActive,
+            })),
+          },
+          allActiveOpCos: {
+            count: allActiveOpCos.length,
+            codes: allActiveOpCos.map(o => o.code),
+          },
+          accessibleOpCos: {
+            count: accessibleOpCos.length,
+            codes: accessibleOpCos.map(o => o.code),
+            reason: accessReason,
+          },
+          roles,
+          timestamp: new Date().toISOString(),
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }),
 });
