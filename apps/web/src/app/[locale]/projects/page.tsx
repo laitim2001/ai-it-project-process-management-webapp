@@ -52,20 +52,23 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management
- * @lastModified 2025-11-17 (FEAT-001 Phase 5: 新增全域標誌、優先權、貨幣篩選器及排序選項)
+ * @lastModified 2025-12-15 (CHANGE-019: 批量刪除功能 - 複選框選擇 + AlertDialog 確認)
  */
 
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   Breadcrumb,
@@ -76,6 +79,16 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Search,
   Plus,
   Download,
@@ -83,7 +96,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
-  List
+  List,
+  Trash2
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
@@ -94,6 +108,11 @@ export default function ProjectsPage() {
   // ============================================================
   const t = useTranslations('projects');
   const tCommon = useTranslations('common');
+  const tToast = useTranslations('toast');
+
+  // Session and Toast
+  const { data: session } = useSession();
+  const { toast } = useToast();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -110,6 +129,10 @@ export default function ProjectsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt' | 'projectCode' | 'priority' | 'fiscalYear'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
+
+  // CHANGE-019: 批量選擇和刪除狀態
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // 使用 ref 保持輸入框 focus
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -191,6 +214,88 @@ export default function ProjectsPage() {
    */
   const { data: fiscalYearsData } = api.project.getFiscalYears.useQuery();
   const fiscalYears = fiscalYearsData?.fiscalYears ?? [];
+
+  /**
+   * CHANGE-019: 批量刪除專案 Mutation
+   */
+  const deleteManyMutation = api.project.deleteMany.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: tToast('success.title'),
+        description: t('list.batchDelete.success', { count: result.deletedCount }),
+        variant: 'success',
+      });
+      setSelectedProjects([]);
+      setIsDeleteDialogOpen(false);
+      utils.project.getAll.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        title: tToast('error.title'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // ============================================================
+  // CHANGE-019: 批量選擇輔助函數
+  // ============================================================
+
+  /**
+   * 檢查專案是否可被刪除
+   * - 狀態必須為 Draft
+   * - 用戶必須是專案經理或 Admin
+   */
+  const canDeleteProject = (project: {
+    id: string;
+    status: string;
+    managerId: string;
+  }): boolean => {
+    if (!session?.user) return false;
+
+    const isDraft = project.status === 'Draft';
+    const isManager = project.managerId === session.user.id;
+    const isAdmin = session.user.role?.name === 'Admin';
+
+    return isDraft && (isManager || isAdmin);
+  };
+
+  /**
+   * 獲取可刪除的專案列表
+   */
+  const deletableProjects = (data?.items ?? []).filter(canDeleteProject);
+
+  /**
+   * 切換單個專案選擇
+   */
+  const toggleProjectSelection = (projectId: string) => {
+    setSelectedProjects(prev =>
+      prev.includes(projectId)
+        ? prev.filter(id => id !== projectId)
+        : [...prev, projectId]
+    );
+  };
+
+  /**
+   * 切換全選/取消全選（僅可刪除的專案）
+   */
+  const toggleSelectAll = () => {
+    if (selectedProjects.length === deletableProjects.length && deletableProjects.length > 0) {
+      setSelectedProjects([]);
+    } else {
+      setSelectedProjects(deletableProjects.map(p => p.id));
+    }
+  };
+
+  /**
+   * 處理批量刪除
+   */
+  const handleBatchDelete = () => {
+    if (selectedProjects.length > 0) {
+      deleteManyMutation.mutate({ ids: selectedProjects });
+    }
+  };
 
   // ============================================================
   // 事件處理函數
@@ -350,6 +455,17 @@ export default function ProjectsPage() {
               <Download className="mr-2 h-4 w-4" />
               {isExporting ? t('actions.exporting') : t('actions.exportCSV')}
             </Button>
+            {/* CHANGE-019: 批量刪除按鈕 */}
+            {selectedProjects.length > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                disabled={deleteManyMutation.isPending}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t('list.batchDelete.button', { count: selectedProjects.length })}
+              </Button>
+            )}
             <Link href="/projects/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -358,6 +474,29 @@ export default function ProjectsPage() {
             </Link>
           </div>
         </div>
+
+        {/* CHANGE-019: 批量刪除確認對話框 */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('list.batchDelete.dialogTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('list.batchDelete.dialogDescription', { count: selectedProjects.length })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleBatchDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteManyMutation.isPending
+                  ? tCommon('actions.deleting')
+                  : tCommon('actions.delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* 搜尋和篩選欄 */}
         <Card>
@@ -617,6 +756,18 @@ export default function ProjectsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {/* CHANGE-019: 批量選擇複選框 */}
+                    <TableHead className="w-[40px]">
+                      <Checkbox
+                        checked={
+                          deletableProjects.length > 0 &&
+                          selectedProjects.length === deletableProjects.length
+                        }
+                        onCheckedChange={toggleSelectAll}
+                        disabled={deletableProjects.length === 0}
+                        aria-label={t('list.batchDelete.selectAll')}
+                      />
+                    </TableHead>
                     <TableHead>{t('table.name')}</TableHead>
                     <TableHead>{t('table.projectCode')}</TableHead>
                     <TableHead>{t('table.fiscalYear')}</TableHead>
@@ -632,8 +783,20 @@ export default function ProjectsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {projects.map((project) => (
-                    <TableRow key={project.id} className="hover:bg-muted/50">
+                  {projects.map((project) => {
+                    const isDeletable = canDeleteProject(project);
+                    const isSelected = selectedProjects.includes(project.id);
+                    return (
+                    <TableRow key={project.id} className={`hover:bg-muted/50 ${isSelected ? 'bg-muted/30' : ''}`}>
+                      {/* CHANGE-019: 批量選擇複選框 */}
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleProjectSelection(project.id)}
+                          disabled={!isDeletable}
+                          aria-label={t('list.batchDelete.selectProject', { name: project.name })}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Link
                           href={`/projects/${project.id}`}
@@ -696,7 +859,8 @@ export default function ProjectsPage() {
                         </Link>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

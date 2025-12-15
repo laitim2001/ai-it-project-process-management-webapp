@@ -137,13 +137,14 @@ interface ParseResult {
   errorRows: ErrorRow[];
   duplicateRows: DuplicateRow[];
   validData: ImportItem[];
+  detectedFY: number | null; // CHANGE-020: 從 Excel 資料自動偵測的 FY
 }
 
 // 頁面狀態
 type ImportStep = 'upload' | 'preview' | 'result';
 
 // Excel 欄位映射配置 (基於 OM Expense and Detail import data - v5.xlsx)
-// A(0): #
+// A(0): FY (財務年度) - CHANGE-020: 新增 FY 欄位
 // B(1): OM Expense Header
 // C(2): OM Expense Description
 // D(3): OM Expense Item Details
@@ -157,6 +158,7 @@ type ImportStep = 'upload' | 'preview' | 'result';
 // L(11): FY26 Actual OM Expense Charges
 // M(12): OM Expense End Date
 const EXCEL_COLUMN_MAP = {
+  financialYear: 0,        // Column A: FY (財務年度) - CHANGE-020
   headerName: 1,           // Column B: OM Expense Header
   headerDescription: 2,    // Column C: OM Expense Description
   itemName: 3,             // Column D: OM Expense Item Details
@@ -229,6 +231,47 @@ export default function DataImportPage() {
   // ============================================================================
   // Helper Functions
   // ============================================================================
+
+  // CHANGE-020: 解析 FY 值（支援多種格式）
+  // 支援格式：2026, "2026", FY26, FY2026, "FY 26", 26
+  const parseFY = (value: unknown): number | null => {
+    if (value === null || value === undefined || value === '') return null;
+
+    const str = String(value).trim().toUpperCase();
+
+    // 直接是 4 位數年份（如 2026）
+    if (/^\d{4}$/.test(str)) {
+      return parseInt(str, 10);
+    }
+
+    // FY + 2 位數（如 FY26, FY 26）→ 轉換為 2026
+    const fyMatch = str.match(/^FY\s*(\d{2})$/);
+    if (fyMatch && fyMatch[1]) {
+      const year = parseInt(fyMatch[1], 10);
+      return year < 50 ? 2000 + year : 1900 + year; // FY26 → 2026, FY99 → 1999
+    }
+
+    // FY + 4 位數（如 FY2026）
+    const fy4Match = str.match(/^FY\s*(\d{4})$/);
+    if (fy4Match && fy4Match[1]) {
+      return parseInt(fy4Match[1], 10);
+    }
+
+    // 只有 2 位數（如 26）
+    if (/^\d{2}$/.test(str)) {
+      const year = parseInt(str, 10);
+      return year < 50 ? 2000 + year : 1900 + year;
+    }
+
+    // 數字類型
+    if (typeof value === 'number') {
+      if (value >= 1900 && value <= 2100) return value;
+      if (value >= 0 && value < 50) return 2000 + value;
+      if (value >= 50 && value < 100) return 1900 + value;
+    }
+
+    return null;
+  };
 
   // 格式化日期
   const formatDate = (value: unknown): string | null => {
@@ -342,6 +385,7 @@ export default function DataImportPage() {
         const errorRows: ErrorRow[] = [];
         const duplicateRows: DuplicateRow[] = [];
         const seenItems = new Map<string, number[]>(); // key -> row numbers
+        const fyValues: number[] = []; // CHANGE-020: 追蹤所有 FY 值
         let skippedRows = 0;
 
         // 從第二列開始 (跳過標題列)
@@ -358,6 +402,12 @@ export default function DataImportPage() {
           if (row.every(cell => cell === null || cell === undefined || cell === '')) {
             skippedRows++;
             continue;
+          }
+
+          // CHANGE-020: 讀取 FY 欄位 (Column A)
+          const rowFY = parseFY(row[EXCEL_COLUMN_MAP.financialYear]);
+          if (rowFY) {
+            fyValues.push(rowFY);
           }
 
           const headerName = safeString(row[EXCEL_COLUMN_MAP.headerName]);
@@ -528,6 +578,23 @@ export default function DataImportPage() {
         const uniqueOpCos = [...new Set(validItems.map(i => i.opCoName))];
         const uniqueCategories = [...new Set(validItems.map(i => i.category))];
 
+        // CHANGE-020: 計算最常見的 FY 值
+        let detectedFY: number | null = null;
+        if (fyValues.length > 0) {
+          const fyCount = new Map<number, number>();
+          for (const fy of fyValues) {
+            fyCount.set(fy, (fyCount.get(fy) || 0) + 1);
+          }
+          // 找出出現最多次的 FY
+          let maxCount = 0;
+          for (const [fy, count] of fyCount.entries()) {
+            if (count > maxCount) {
+              maxCount = count;
+              detectedFY = fy;
+            }
+          }
+        }
+
         const result: ParseResult = {
           statistics: {
             totalRows: rows.length - 1, // 排除標題列
@@ -544,11 +611,17 @@ export default function DataImportPage() {
           errorRows,
           duplicateRows,
           validData: validItems,
+          detectedFY, // CHANGE-020: 從 Excel 偵測的 FY
         };
 
         setParseResult(result);
         setUploadedFileName(file.name);
         setCurrentStep('preview');
+
+        // CHANGE-020: 如果偵測到 FY，自動設定 financialYear
+        if (detectedFY) {
+          setFinancialYear(detectedFY);
+        }
 
         toast({
           title: tCommon('messages.success'),
@@ -690,6 +763,7 @@ export default function DataImportPage() {
         errorRows,
         duplicateRows,
         validData: validItems,
+        detectedFY: null, // JSON 導入不自動偵測 FY
       };
 
       setParseResult(result);
@@ -1000,6 +1074,7 @@ export default function DataImportPage() {
                       </tr>
                     </thead>
                     <tbody>
+                      <tr className="border-b bg-primary/5"><td className="py-2 px-4">{t('excelFormat.fields.financialYear')}</td><td className="py-2 px-4 font-mono">A</td><td className="py-2 px-4">{t('excelFormat.desc.financialYear')}</td><td className="py-2 px-4 text-blue-500">{t('excelFormat.required.recommended')}</td></tr>
                       <tr className="border-b"><td className="py-2 px-4">{t('excelFormat.fields.headerName')}</td><td className="py-2 px-4 font-mono">B</td><td className="py-2 px-4">{t('excelFormat.desc.headerName')}</td><td className="py-2 px-4 text-red-500">{t('excelFormat.required.yes')}</td></tr>
                       <tr className="border-b"><td className="py-2 px-4">{t('excelFormat.fields.headerDesc')}</td><td className="py-2 px-4 font-mono">C</td><td className="py-2 px-4">{t('excelFormat.desc.headerDesc')}</td><td className="py-2 px-4">{t('excelFormat.required.no')}</td></tr>
                       <tr className="border-b"><td className="py-2 px-4">{t('excelFormat.fields.itemName')}</td><td className="py-2 px-4 font-mono">D</td><td className="py-2 px-4">{t('excelFormat.desc.itemName')}</td><td className="py-2 px-4 text-red-500">{t('excelFormat.required.yes')}</td></tr>
@@ -1030,6 +1105,55 @@ export default function DataImportPage() {
         {/* Step 2: 預覽確認 */}
         {currentStep === 'preview' && parseResult && (
           <div className="space-y-6">
+            {/* CHANGE-020: 偵測到的 FY 顯示 */}
+            {parseResult.detectedFY ? (
+              <Alert className="border-primary/50 bg-primary/5">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                <AlertTitle>{t('detectedFY.title')}</AlertTitle>
+                <AlertDescription className="flex items-center gap-4">
+                  <span>{t('detectedFY.message', { fy: parseResult.detectedFY })}</span>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="fyOverride" className="text-sm">{t('detectedFY.override')}</Label>
+                    <NativeSelect
+                      id="fyOverride"
+                      value={financialYear.toString()}
+                      onChange={(e) => setFinancialYear(parseInt(e.target.value))}
+                      className="w-32"
+                    >
+                      {yearOptions.map((year) => (
+                        <option key={year} value={year}>
+                          FY{year}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-500/5">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                <AlertTitle className="text-yellow-600">{t('detectedFY.notFound.title')}</AlertTitle>
+                <AlertDescription className="flex items-center gap-4">
+                  <span className="text-yellow-600">{t('detectedFY.notFound.message')}</span>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="fyManual" className="text-sm">{t('detectedFY.selectFY')}</Label>
+                    <NativeSelect
+                      id="fyManual"
+                      value={financialYear.toString()}
+                      onChange={(e) => setFinancialYear(parseInt(e.target.value))}
+                      className="w-32"
+                    >
+                      {yearOptions.map((year) => (
+                        <option key={year} value={year}>
+                          FY{year}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* 統計摘要 */}
             <Card>
               <CardHeader>

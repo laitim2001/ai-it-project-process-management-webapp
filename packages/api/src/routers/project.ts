@@ -929,6 +929,7 @@ export const projectRouter = createTRPCRouter({
 
   /**
    * 刪除專案
+   * CHANGE-019: 新增狀態檢查和權限檢查
    *
    * 輸入參數：
    * - id: 專案 ID（UUID 格式）
@@ -937,19 +938,24 @@ export const projectRouter = createTRPCRouter({
    * - 被刪除的專案資訊
    *
    * 業務邏輯：
+   * - 只允許刪除 Draft 狀態的專案
+   * - 只有專案經理 (manager) 或 Admin 可以刪除
    * - 刪除前檢查是否有關聯的提案、採購單、報價單或費用轉嫁
    * - 如果有任何關聯資料，拋出錯誤並列出所有關聯，禁止刪除
    *
    * 錯誤處理：
    * - 專案不存在：拋出錯誤
-   * - 有關聯提案：拋出錯誤
-   * - 有關聯採購單：拋出錯誤
-   * - 有關聯報價單：拋出錯誤
-   * - 有關聯費用轉嫁：拋出錯誤
+   * - 非 Draft 狀態：拋出錯誤
+   * - 無權限：拋出錯誤
+   * - 有關聯資料：拋出錯誤
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const userRole = ctx.session.user.role.name;
+      const isAdmin = userRole === 'Admin';
+
       // 檢查專案是否存在，並查詢關聯資料數量
       const project = await ctx.prisma.project.findUnique({
         where: { id: input.id },
@@ -969,6 +975,23 @@ export const projectRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: '找不到該專案',
+        });
+      }
+
+      // CHANGE-019: 狀態檢查 - 只允許刪除 Draft 狀態的專案
+      if (project.status !== 'Draft') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: '只有草稿狀態的專案可以刪除',
+        });
+      }
+
+      // CHANGE-019: 權限檢查 - 僅專案經理或 Admin 可刪除
+      const isManager = project.managerId === userId;
+      if (!isManager && !isAdmin) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: '您沒有權限刪除此專案（僅專案經理或管理員可刪除）',
         });
       }
 
@@ -998,10 +1021,119 @@ export const projectRouter = createTRPCRouter({
         });
       }
 
-      // 執行刪除
-      return ctx.prisma.project.delete({
-        where: { id: input.id },
+      // 使用 Transaction 刪除 (確保原子性)
+      return ctx.prisma.$transaction(async (tx) => {
+        // 刪除 ProjectChargeOutOpCo (雖有 Cascade，但明確刪除更安全)
+        await tx.projectChargeOutOpCo.deleteMany({
+          where: { projectId: input.id },
+        });
+
+        // 刪除專案
+        return tx.project.delete({
+          where: { id: input.id },
+        });
       });
+    }),
+
+  /**
+   * 批量刪除專案
+   * CHANGE-019: 新增批量刪除功能
+   *
+   * 輸入參數：
+   * - ids: 專案 ID 陣列
+   *
+   * 回傳：
+   * - success: 是否成功
+   * - deletedCount: 刪除數量
+   *
+   * 業務邏輯：
+   * - 只允許刪除 Draft 狀態的專案
+   * - 只有專案經理 (manager) 或 Admin 可以刪除
+   * - 刪除前檢查是否有關聯的提案、採購單、報價單或費用轉嫁
+   */
+  deleteMany: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string().uuid()).min(1, '請選擇要刪除的專案'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const userRole = ctx.session.user.role.name;
+      const isAdmin = userRole === 'Admin';
+
+      // 查詢所有要刪除的專案
+      const projects = await ctx.prisma.project.findMany({
+        where: { id: { in: input.ids } },
+        include: {
+          _count: {
+            select: {
+              proposals: true,
+              purchaseOrders: true,
+              quotes: true,
+              chargeOuts: true,
+            },
+          },
+        },
+      });
+
+      // 檢查是否所有專案都存在
+      if (projects.length !== input.ids.length) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '部分專案不存在',
+        });
+      }
+
+      // 檢查狀態 - 只允許刪除 Draft 狀態
+      const nonDraftProjects = projects.filter(p => p.status !== 'Draft');
+      if (nonDraftProjects.length > 0) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `以下專案不是草稿狀態，無法刪除：${nonDraftProjects.map(p => p.name).join(', ')}`,
+        });
+      }
+
+      // 檢查權限 - 僅專案經理或 Admin 可刪除
+      if (!isAdmin) {
+        const unauthorizedProjects = projects.filter(p => p.managerId !== userId);
+        if (unauthorizedProjects.length > 0) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `您沒有權限刪除以下專案：${unauthorizedProjects.map(p => p.name).join(', ')}`,
+          });
+        }
+      }
+
+      // 檢查關聯資料
+      const projectsWithRelations = projects.filter(
+        p =>
+          p._count.proposals > 0 ||
+          p._count.purchaseOrders > 0 ||
+          p._count.quotes > 0 ||
+          p._count.chargeOuts > 0
+      );
+      if (projectsWithRelations.length > 0) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `以下專案有關聯資料，無法刪除：${projectsWithRelations.map(p => p.name).join(', ')}`,
+        });
+      }
+
+      // 使用 Transaction 批量刪除
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // 刪除 ProjectChargeOutOpCo
+        await tx.projectChargeOutOpCo.deleteMany({
+          where: { projectId: { in: input.ids } },
+        });
+
+        // 批量刪除專案
+        return tx.project.deleteMany({
+          where: { id: { in: input.ids } },
+        });
+      });
+
+      return { success: true, deletedCount: result.count };
     }),
 
   /**

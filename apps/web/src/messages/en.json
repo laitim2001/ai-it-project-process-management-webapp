@@ -495,7 +495,15 @@
         "status": "Status",
         "actions": "Actions"
       },
-      "empty": "No projects yet"
+      "empty": "No projects yet",
+      "batchDelete": {
+        "button": "Delete Selected ({count})",
+        "dialogTitle": "Confirm Batch Delete",
+        "dialogDescription": "Are you sure you want to delete {count} selected projects? This action cannot be undone.",
+        "success": "Successfully deleted {count} projects",
+        "selectAll": "Select All",
+        "selectProject": "Select project {name}"
+      }
     },
     "detail": {
       "title": "Project Details",
@@ -577,6 +585,15 @@
         "quotes": "Quotes",
         "purchaseOrders": "Purchase Orders",
         "expenses": "Expenses"
+      },
+      "deleteDialog": {
+        "title": "Confirm Delete Project",
+        "description": "Are you sure you want to delete this project? This action cannot be undone. Projects with associated proposals, purchase orders, or expense records cannot be deleted."
+      },
+      "deleteDisabled": {
+        "notDraft": "Only draft projects can be deleted",
+        "noPermission": "Only the project manager or administrators can delete this project",
+        "noAccess": "You do not have permission to perform this action"
       }
     },
     "form": {
@@ -3312,6 +3329,16 @@
       "uniqueOpCos": "OpCos",
       "uniqueCategories": "Categories"
     },
+    "detectedFY": {
+      "title": "Financial Year Detected",
+      "message": "Detected financial year from Excel data: FY{fy}",
+      "override": "Change Year:",
+      "selectFY": "Select Year:",
+      "notFound": {
+        "title": "Financial Year Not Detected",
+        "message": "Unable to detect FY from data, please select manually"
+      }
+    },
     "headersPreview": {
       "title": "OM Expense Headers",
       "name": "Header Name",
@@ -3452,6 +3479,7 @@
         "required": "Required"
       },
       "fields": {
+        "financialYear": "Financial Year",
         "headerName": "Header Name",
         "headerDesc": "Header Description",
         "itemName": "Item Name",
@@ -3463,6 +3491,7 @@
         "lastFYActual": "Last FY Actual Expense"
       },
       "desc": {
+        "financialYear": "Financial year (e.g., 2026, FY26)",
         "headerName": "OM expense header name",
         "headerDesc": "Header description",
         "itemName": "Detail item name",
@@ -3476,7 +3505,8 @@
       "required": {
         "yes": "Yes",
         "no": "No",
-        "default0": "No (default 0)"
+        "default0": "No (default 0)",
+        "recommended": "Recommended"
       },
       "notes": {
         "title": "Notes:",

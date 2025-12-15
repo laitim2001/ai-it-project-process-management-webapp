@@ -53,14 +53,16 @@
  *
  * @author IT Department
  * @since Epic 2 - Project Management (Module 2: 預算使用情況追蹤)
- * @lastModified 2025-11-16 (FEAT-001: 專案資訊新增專案編號、全域標誌、優先權、貨幣欄位)
+ * @lastModified 2025-12-15 (CHANGE-019: 專案刪除功能增強 - 狀態/權限檢查 + AlertDialog)
  */
 
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { useToast } from '@/components/ui/use-toast';
@@ -68,6 +70,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 
@@ -85,8 +98,12 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { data: session } = useSession();
   const id = params.id as string;
   const locale = params.locale as string;
+
+  // CHANGE-019: 刪除對話框狀態
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   // 專案狀態映射
   const getProjectStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -212,13 +229,56 @@ export default function ProjectDetailPage() {
   // ============================================================
 
   /**
-   * 處理刪除專案
-   * 顯示確認對話框，確認後執行刪除操作
+   * CHANGE-019: 處理刪除專案
+   * 使用 AlertDialog 確認，執行刪除操作
    */
   const handleDelete = () => {
-    if (confirm(t('confirmDelete'))) {
-      deleteMutation.mutate({ id });
+    deleteMutation.mutate({ id });
+    setIsDeleteDialogOpen(false);
+  };
+
+  // ============================================================
+  // CHANGE-019: 權限和狀態檢查
+  // ============================================================
+
+  /**
+   * 計算刪除權限
+   * - 狀態檢查：只有 Draft 狀態可刪除
+   * - 權限檢查：只有專案經理 (Manager) 或管理員 (Admin) 可刪除
+   */
+  const canDelete = (() => {
+    if (!project || !session?.user) return false;
+
+    // 狀態檢查：只允許 Draft 狀態
+    const isDraft = project.status === 'Draft';
+
+    // 權限檢查：專案經理或管理員
+    const isManager = project.managerId === session.user.id;
+    const isAdmin = session.user.role?.name === 'Admin';
+    const hasPermission = isManager || isAdmin;
+
+    return isDraft && hasPermission;
+  })();
+
+  /**
+   * 獲取刪除按鈕禁用原因
+   */
+  const getDeleteDisabledReason = (): string | null => {
+    if (!project || !session?.user) return t('deleteDisabled.noAccess');
+
+    // 檢查狀態
+    if (project.status !== 'Draft') {
+      return t('deleteDisabled.notDraft');
     }
+
+    // 檢查權限
+    const isManager = project.managerId === session.user.id;
+    const isAdmin = session.user.role?.name === 'Admin';
+    if (!isManager && !isAdmin) {
+      return t('deleteDisabled.noPermission');
+    }
+
+    return null;
   };
 
   // ============================================================
@@ -298,14 +358,36 @@ export default function ProjectDetailPage() {
                 {t('editProject')}
               </Button>
             </Link>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isLoading}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {deleteMutation.isLoading ? t('deleting') : t('deleteProject')}
-            </Button>
+            {/* CHANGE-019: 刪除按鈕使用 AlertDialog 確認 */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={!canDelete || deleteMutation.isPending}
+                  title={getDeleteDisabledReason() || undefined}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deleteMutation.isPending ? t('deleting') : t('deleteProject')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('deleteDialog.description')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleteMutation.isPending ? t('deleting') : tCommon('actions.delete')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
