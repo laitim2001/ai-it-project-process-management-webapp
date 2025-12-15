@@ -14,6 +14,8 @@
 
 **故障排查**: 如遇到部署問題，請參閱 **SITUATION-9-AZURE-TROUBLESHOOT-COMPANY.md**
 
+**Schema 同步**: 如需了解 Schema 同步機制詳情，請參閱 **SITUATION-10-SCHEMA-SYNC-COMPANY.md**
+
 ---
 
 ## 📋 快速開始檢查清單

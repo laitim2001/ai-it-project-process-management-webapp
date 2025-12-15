@@ -2,19 +2,29 @@
  * @fileoverview Complete Schema Definition - 完整的資料庫 Schema 定義
  *
  * @description
- * 此檔案從 schema.prisma 提取所有表格和欄位定義，作為 Schema 同步的唯一真相來源。
- * 當 schema.prisma 有任何變更時，此檔案必須同步更新。
+ * 此檔案提供 Schema 同步的唯一真相來源。
+ *
+ * **方案 C: 完全自動化**
+ * - 欄位列表: 自動從 Prisma.dmmf 讀取 (無需手動維護)
+ * - SQL 類型: 自動從 Prisma 類型推斷 + 手動覆蓋特殊情況
+ *
+ * **維護說明**:
+ * 1. 修改 schema.prisma 後，只需執行 `pnpm db:generate`
+ * 2. 欄位列表會自動更新 (從 Prisma.dmmf 讀取)
+ * 3. 只有特殊默認值需要在 COLUMN_TYPE_OVERRIDES 中手動定義
  *
  * @usage
  * - fullSchemaCompare API 使用此定義對比實際資料庫結構
  * - fullSchemaSync API 使用此定義自動修復差異
  *
  * @lastUpdated 2025-12-15
- * @syncedWith schema.prisma
+ * @version 2.0.0 (方案 C 自動化版本)
  */
 
+import { Prisma } from '@prisma/client';
+
 // ============================================================
-// 欄位類型定義
+// 類型定義
 // ============================================================
 
 export interface ColumnDefinition {
@@ -30,10 +40,267 @@ export interface TableDefinition {
   columns: ColumnDefinition[];
 }
 
+export interface ColumnTypeInfo {
+  type: string;
+  default?: string;
+  nullable?: boolean;
+}
+
 // ============================================================
-// 完整的 Schema 定義 (從 schema.prisma 提取)
+// Prisma 類型 → SQL 類型 自動映射
 // ============================================================
 
+const PRISMA_TO_SQL_TYPE_MAP: Record<string, string> = {
+  'String': 'TEXT',
+  'Int': 'INTEGER',
+  'Float': 'DOUBLE PRECISION',
+  'Boolean': 'BOOLEAN',
+  'DateTime': 'TIMESTAMP(3)',
+  'BigInt': 'BIGINT',
+  'Decimal': 'DECIMAL',
+  'Json': 'JSONB',
+  'Bytes': 'BYTEA',
+};
+
+// ============================================================
+// 特殊欄位類型覆蓋 (只需定義有特殊默認值的欄位)
+// ============================================================
+
+/**
+ * 手動覆蓋: 只需定義有特殊默認值的欄位
+ * 其他欄位會自動從 Prisma.dmmf 推斷
+ */
+export const COLUMN_TYPE_OVERRIDES: Record<string, Record<string, ColumnTypeInfo>> = {
+  Project: {
+    // FEAT-001: 有特殊默認值
+    projectCode: { type: 'TEXT', default: "''" },
+    globalFlag: { type: 'TEXT', default: "'Region'" },
+    priority: { type: 'TEXT', default: "'Medium'" },
+    // FEAT-006
+    projectType: { type: 'TEXT', default: "'Project'" },
+    expenseType: { type: 'TEXT', default: "'Expense'" },
+    chargeBackToOpCo: { type: 'BOOLEAN', default: 'false' },
+    probability: { type: 'TEXT', default: "'Medium'" },
+    // FEAT-010
+    isCdoReviewRequired: { type: 'BOOLEAN', default: 'false' },
+    isManagerConfirmed: { type: 'BOOLEAN', default: 'false' },
+    isOngoing: { type: 'BOOLEAN', default: 'false' },
+  },
+  PurchaseOrder: {
+    date: { type: 'TIMESTAMP(3)', default: 'NOW()' },
+  },
+  BudgetPool: {
+    isActive: { type: 'BOOLEAN', default: 'true' },
+  },
+  Expense: {
+    requiresChargeOut: { type: 'BOOLEAN', default: 'false' },
+    isOperationMaint: { type: 'BOOLEAN', default: 'false' },
+  },
+  OMExpense: {
+    totalBudgetAmount: { type: 'DOUBLE PRECISION', default: '0' },
+    totalActualSpent: { type: 'DOUBLE PRECISION', default: '0' },
+    hasItems: { type: 'BOOLEAN', default: 'false' },
+  },
+  OMExpenseItem: {
+    isOngoing: { type: 'BOOLEAN', default: 'false' },
+    sortOrder: { type: 'INTEGER', default: '0' },
+    actualSpent: { type: 'DOUBLE PRECISION', default: '0' },
+  },
+  Permission: {
+    isActive: { type: 'BOOLEAN', default: 'true' },
+    sortOrder: { type: 'INTEGER', default: '0' },
+  },
+  RolePermission: {
+    createdAt: { type: 'TIMESTAMP(3)', default: 'NOW()' },
+  },
+  UserPermission: {
+    granted: { type: 'BOOLEAN', default: 'true' },
+  },
+};
+
+// ============================================================
+// 完整欄位類型定義 (用於新表格創建)
+// ============================================================
+
+export const COMPLETE_COLUMN_TYPES: Record<string, Record<string, { type: string; nullable: boolean; default?: string }>> = {
+  Permission: {
+    id: { type: 'TEXT', nullable: false },
+    code: { type: 'TEXT', nullable: false },
+    name: { type: 'TEXT', nullable: false },
+    category: { type: 'TEXT', nullable: false },
+    description: { type: 'TEXT', nullable: true },
+    isActive: { type: 'BOOLEAN', nullable: false, default: 'true' },
+    sortOrder: { type: 'INTEGER', nullable: false, default: '0' },
+    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+    updatedAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+  },
+  RolePermission: {
+    id: { type: 'TEXT', nullable: false },
+    roleId: { type: 'INTEGER', nullable: false },
+    permissionId: { type: 'TEXT', nullable: false },
+    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+  },
+  UserPermission: {
+    id: { type: 'TEXT', nullable: false },
+    userId: { type: 'TEXT', nullable: false },
+    permissionId: { type: 'TEXT', nullable: false },
+    granted: { type: 'BOOLEAN', nullable: false, default: 'true' },
+    createdBy: { type: 'TEXT', nullable: true },
+    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+    updatedAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+  },
+  ProjectChargeOutOpCo: {
+    id: { type: 'TEXT', nullable: false },
+    projectId: { type: 'TEXT', nullable: false },
+    opCoId: { type: 'TEXT', nullable: false },
+    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+  },
+  UserOperatingCompany: {
+    id: { type: 'TEXT', nullable: false },
+    userId: { type: 'TEXT', nullable: false },
+    operatingCompanyId: { type: 'TEXT', nullable: false },
+    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+    createdBy: { type: 'TEXT', nullable: true },
+  },
+  OMExpenseItem: {
+    id: { type: 'TEXT', nullable: false },
+    omExpenseId: { type: 'TEXT', nullable: false },
+    name: { type: 'TEXT', nullable: false },
+    description: { type: 'TEXT', nullable: true },
+    sortOrder: { type: 'INTEGER', nullable: false, default: '0' },
+    budgetAmount: { type: 'DOUBLE PRECISION', nullable: false },
+    actualSpent: { type: 'DOUBLE PRECISION', nullable: false, default: '0' },
+    lastFYActualExpense: { type: 'DOUBLE PRECISION', nullable: true },
+    currencyId: { type: 'TEXT', nullable: true },
+    opCoId: { type: 'TEXT', nullable: false },
+    startDate: { type: 'TIMESTAMP(3)', nullable: true },
+    endDate: { type: 'TIMESTAMP(3)', nullable: true },
+    isOngoing: { type: 'BOOLEAN', nullable: false, default: 'false' },
+    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+    updatedAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
+  },
+};
+
+// ============================================================
+// 自動化函數 - 從 Prisma.dmmf 讀取 Schema 定義
+// ============================================================
+
+/**
+ * 從 Prisma.dmmf 自動獲取所有表格的欄位列表
+ * 這是方案 C 的核心 - 無需手動維護欄位列表
+ */
+export function getSchemaDefinitionFromDMMF(): Record<string, string[]> {
+  const definition: Record<string, string[]> = {};
+
+  try {
+    // 從 Prisma DMMF 讀取所有模型定義
+    for (const model of Prisma.dmmf.datamodel.models) {
+      // 過濾掉關聯欄位 (只保留實際的數據庫欄位)
+      const columns = model.fields
+        .filter(field => field.kind === 'scalar' || field.kind === 'enum')
+        .map(field => field.name);
+
+      definition[model.name] = columns;
+    }
+  } catch (error) {
+    console.error('[schemaDefinition] 從 Prisma.dmmf 讀取失敗:', error);
+    // 返回空對象，讓調用方處理
+  }
+
+  return definition;
+}
+
+/**
+ * 從 Prisma.dmmf 獲取欄位的詳細信息
+ */
+export function getFieldInfoFromDMMF(tableName: string, fieldName: string): {
+  type: string;
+  isRequired: boolean;
+  hasDefaultValue: boolean;
+  default?: unknown;
+} | null {
+  try {
+    const model = Prisma.dmmf.datamodel.models.find(m => m.name === tableName);
+    if (!model) return null;
+
+    const field = model.fields.find(f => f.name === fieldName);
+    if (!field) return null;
+
+    return {
+      type: field.type,
+      isRequired: field.isRequired,
+      hasDefaultValue: field.hasDefaultValue,
+      default: field.default,
+    };
+  } catch (error) {
+    console.error(`[schemaDefinition] 獲取欄位信息失敗: ${tableName}.${fieldName}`, error);
+    return null;
+  }
+}
+
+/**
+ * 將 Prisma 類型轉換為 SQL 類型
+ */
+export function prismaTypeToSqlType(prismaType: string): string {
+  return PRISMA_TO_SQL_TYPE_MAP[prismaType] || 'TEXT';
+}
+
+/**
+ * 生成 ALTER TABLE ADD COLUMN 語句
+ * 自動從 Prisma.dmmf 推斷類型，支援手動覆蓋
+ */
+export function generateAddColumnSQL(tableName: string, columnName: string): string | null {
+  // 1. 檢查是否有手動覆蓋
+  const override = COLUMN_TYPE_OVERRIDES[tableName]?.[columnName];
+  if (override) {
+    const defaultClause = override.default ? ` DEFAULT ${override.default}` : '';
+    return `ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${columnName}" ${override.type}${defaultClause}`;
+  }
+
+  // 2. 從 Prisma.dmmf 自動推斷
+  const fieldInfo = getFieldInfoFromDMMF(tableName, columnName);
+  if (!fieldInfo) {
+    console.warn(`[schemaDefinition] 找不到欄位定義: ${tableName}.${columnName}`);
+    return null;
+  }
+
+  const sqlType = prismaTypeToSqlType(fieldInfo.type);
+  let defaultClause = '';
+
+  // 處理默認值
+  if (fieldInfo.hasDefaultValue && fieldInfo.default !== undefined) {
+    const defaultVal = fieldInfo.default;
+    if (typeof defaultVal === 'object' && defaultVal !== null) {
+      // Prisma 默認值對象 (如 { name: 'now', args: [] })
+      const defaultObj = defaultVal as { name?: string };
+      if (defaultObj.name === 'now') {
+        defaultClause = ' DEFAULT NOW()';
+      } else if (defaultObj.name === 'uuid') {
+        defaultClause = ' DEFAULT gen_random_uuid()';
+      } else if (defaultObj.name === 'autoincrement') {
+        // autoincrement 通常用於 SERIAL 類型，不需要 DEFAULT
+      }
+    } else if (typeof defaultVal === 'string') {
+      defaultClause = ` DEFAULT '${defaultVal}'`;
+    } else if (typeof defaultVal === 'number') {
+      defaultClause = ` DEFAULT ${defaultVal}`;
+    } else if (typeof defaultVal === 'boolean') {
+      defaultClause = ` DEFAULT ${defaultVal}`;
+    }
+  }
+
+  return `ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${columnName}" ${sqlType}${defaultClause}`;
+}
+
+// ============================================================
+// 向後兼容的靜態定義 (作為 DMMF 的備份)
+// ============================================================
+
+/**
+ * 靜態 Schema 定義 - 作為 DMMF 讀取失敗時的備份
+ *
+ * @deprecated 優先使用 getSchemaDefinitionFromDMMF()
+ */
 export const FULL_SCHEMA_DEFINITION: Record<string, string[]> = {
   // ==================================================================
   // 1. 核心使用者與權限模型 (Core User & Auth Models)
@@ -82,7 +349,6 @@ export const FULL_SCHEMA_DEFINITION: Record<string, string[]> = {
   BudgetPool: [
     'id', 'name', 'totalAmount', 'usedAmount', 'financialYear',
     'description', 'currencyId', 'createdAt', 'updatedAt',
-    // Post-MVP 可能需要的欄位
     'isActive'
   ],
 
@@ -90,12 +356,12 @@ export const FULL_SCHEMA_DEFINITION: Record<string, string[]> = {
     'id', 'name', 'description', 'status', 'managerId', 'supervisorId',
     'budgetPoolId', 'budgetCategoryId', 'requestedBudget', 'approvedBudget',
     'startDate', 'endDate', 'chargeOutDate', 'createdAt', 'updatedAt',
-    // FEAT-001: 專案欄位擴展 (4 個新欄位)
+    // FEAT-001
     'projectCode', 'globalFlag', 'priority', 'currencyId',
-    // FEAT-006: Project Summary Tab 新增欄位 (8 個新欄位)
+    // FEAT-006
     'projectCategory', 'projectType', 'expenseType', 'chargeBackToOpCo',
     'chargeOutMethod', 'probability', 'team', 'personInCharge',
-    // FEAT-010: Project Data Import 新增欄位 (7 個新欄位)
+    // FEAT-010
     'fiscalYear', 'isCdoReviewRequired', 'isManagerConfirmed',
     'payForWhat', 'payToWhom', 'isOngoing', 'lastFYActualExpense'
   ],
@@ -200,25 +466,16 @@ export const FULL_SCHEMA_DEFINITION: Record<string, string[]> = {
 
   OMExpense: [
     'id', 'name', 'description', 'financialYear', 'category', 'categoryId',
-    // FEAT-007: 新增匯總欄位
     'totalBudgetAmount', 'totalActualSpent', 'defaultOpCoId',
-    // 舊版欄位 (DEPRECATED)
     'opCoId', 'budgetAmount', 'actualSpent', 'startDate', 'endDate',
     'yoyGrowthRate', 'vendorId', 'sourceExpenseId',
-    'createdAt', 'updatedAt',
-    // FEAT-007: hasItems 標記 (可能需要)
-    'hasItems'
+    'createdAt', 'updatedAt', 'hasItems'
   ],
 
-  // FEAT-007: OM費用明細項目
   OMExpenseItem: [
     'id', 'omExpenseId', 'name', 'description', 'sortOrder',
-    'budgetAmount', 'actualSpent',
-    // FEAT-008: 上年度實際支出
-    'lastFYActualExpense',
-    'currencyId', 'opCoId', 'startDate', 'endDate',
-    // CHANGE-011: 持續進行中標記
-    'isOngoing',
+    'budgetAmount', 'actualSpent', 'lastFYActualExpense',
+    'currencyId', 'opCoId', 'startDate', 'endDate', 'isOngoing',
     'createdAt', 'updatedAt'
   ],
 
@@ -253,133 +510,11 @@ export const FULL_SCHEMA_DEFINITION: Record<string, string[]> = {
 };
 
 // ============================================================
-// 欄位類型對照表 (用於生成 ALTER TABLE 語句)
+// 向後兼容別名
 // ============================================================
 
-export const COLUMN_TYPE_MAP: Record<string, Record<string, { type: string; default?: string }>> = {
-  Project: {
-    // FEAT-001
-    projectCode: { type: 'TEXT', default: "''" },
-    globalFlag: { type: 'TEXT', default: "'Region'" },
-    priority: { type: 'TEXT', default: "'Medium'" },
-    currencyId: { type: 'TEXT' },
-    // FEAT-006
-    projectCategory: { type: 'TEXT' },
-    projectType: { type: 'TEXT', default: "'Project'" },
-    expenseType: { type: 'TEXT', default: "'Expense'" },
-    chargeBackToOpCo: { type: 'BOOLEAN', default: 'false' },
-    chargeOutMethod: { type: 'TEXT' },
-    probability: { type: 'TEXT', default: "'Medium'" },
-    team: { type: 'TEXT' },
-    personInCharge: { type: 'TEXT' },
-    // FEAT-010
-    fiscalYear: { type: 'INTEGER' },
-    isCdoReviewRequired: { type: 'BOOLEAN', default: 'false' },
-    isManagerConfirmed: { type: 'BOOLEAN', default: 'false' },
-    payForWhat: { type: 'TEXT' },
-    payToWhom: { type: 'TEXT' },
-    isOngoing: { type: 'BOOLEAN', default: 'false' },
-    lastFYActualExpense: { type: 'FLOAT' },
-  },
-  PurchaseOrder: {
-    date: { type: 'TIMESTAMP(3)', default: 'NOW()' },
-    currencyId: { type: 'TEXT' },
-    approvedDate: { type: 'TIMESTAMP(3)' },
-  },
-  BudgetPool: {
-    isActive: { type: 'BOOLEAN', default: 'true' },
-    description: { type: 'TEXT' },
-    currencyId: { type: 'TEXT' },
-  },
-  Expense: {
-    budgetCategoryId: { type: 'TEXT' },
-    vendorId: { type: 'TEXT' },
-    currencyId: { type: 'TEXT' },
-    requiresChargeOut: { type: 'BOOLEAN', default: 'false' },
-    isOperationMaint: { type: 'BOOLEAN', default: 'false' },
-    approvedDate: { type: 'TIMESTAMP(3)' },
-    paidDate: { type: 'TIMESTAMP(3)' },
-  },
-  ExpenseItem: {
-    categoryId: { type: 'TEXT' },
-    chargeOutOpCoId: { type: 'TEXT' },
-  },
-  OMExpense: {
-    categoryId: { type: 'TEXT' },
-    sourceExpenseId: { type: 'TEXT' },
-    totalBudgetAmount: { type: 'FLOAT', default: '0' },
-    totalActualSpent: { type: 'FLOAT', default: '0' },
-    defaultOpCoId: { type: 'TEXT' },
-    hasItems: { type: 'BOOLEAN', default: 'false' },
-  },
-  OMExpenseItem: {
-    lastFYActualExpense: { type: 'FLOAT' },
-    isOngoing: { type: 'BOOLEAN', default: 'false' },
-  },
-};
-
-// ============================================================
-// 完整欄位類型對照 (用於新表格創建)
-// ============================================================
-
-export const COMPLETE_COLUMN_TYPES: Record<string, Record<string, { type: string; nullable: boolean; default?: string }>> = {
-  Permission: {
-    id: { type: 'TEXT', nullable: false },
-    code: { type: 'TEXT', nullable: false },
-    name: { type: 'TEXT', nullable: false },
-    category: { type: 'TEXT', nullable: false },
-    description: { type: 'TEXT', nullable: true },
-    isActive: { type: 'BOOLEAN', nullable: false, default: 'true' },
-    sortOrder: { type: 'INTEGER', nullable: false, default: '0' },
-    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-    updatedAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-  },
-  RolePermission: {
-    id: { type: 'TEXT', nullable: false },
-    roleId: { type: 'INTEGER', nullable: false },
-    permissionId: { type: 'TEXT', nullable: false },
-    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-  },
-  UserPermission: {
-    id: { type: 'TEXT', nullable: false },
-    userId: { type: 'TEXT', nullable: false },
-    permissionId: { type: 'TEXT', nullable: false },
-    granted: { type: 'BOOLEAN', nullable: false, default: 'true' },
-    createdBy: { type: 'TEXT', nullable: true },
-    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-    updatedAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-  },
-  ProjectChargeOutOpCo: {
-    id: { type: 'TEXT', nullable: false },
-    projectId: { type: 'TEXT', nullable: false },
-    opCoId: { type: 'TEXT', nullable: false },
-    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-  },
-  UserOperatingCompany: {
-    id: { type: 'TEXT', nullable: false },
-    userId: { type: 'TEXT', nullable: false },
-    operatingCompanyId: { type: 'TEXT', nullable: false },
-    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-    createdBy: { type: 'TEXT', nullable: true },
-  },
-  OMExpenseItem: {
-    id: { type: 'TEXT', nullable: false },
-    omExpenseId: { type: 'TEXT', nullable: false },
-    name: { type: 'TEXT', nullable: false },
-    description: { type: 'TEXT', nullable: true },
-    sortOrder: { type: 'INTEGER', nullable: false, default: '0' },
-    budgetAmount: { type: 'FLOAT', nullable: false },
-    actualSpent: { type: 'FLOAT', nullable: false, default: '0' },
-    lastFYActualExpense: { type: 'FLOAT', nullable: true },
-    currencyId: { type: 'TEXT', nullable: true },
-    opCoId: { type: 'TEXT', nullable: false },
-    startDate: { type: 'TIMESTAMP(3)', nullable: true },
-    endDate: { type: 'TIMESTAMP(3)', nullable: true },
-    isOngoing: { type: 'BOOLEAN', nullable: false, default: 'false' },
-    createdAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-    updatedAt: { type: 'TIMESTAMP(3)', nullable: false, default: 'NOW()' },
-  },
-};
+/** @deprecated 使用 COLUMN_TYPE_OVERRIDES */
+export const COLUMN_TYPE_MAP = COLUMN_TYPE_OVERRIDES;
 
 // ============================================================
 // 輔助函數
@@ -387,21 +522,78 @@ export const COMPLETE_COLUMN_TYPES: Record<string, Record<string, { type: string
 
 /**
  * 獲取某個表格的所有預期欄位
+ * 優先從 DMMF 讀取，失敗則使用靜態定義
  */
 export function getExpectedColumns(tableName: string): string[] {
+  // 優先嘗試從 DMMF 獲取
+  try {
+    const dmmfDefinition = getSchemaDefinitionFromDMMF();
+    if (dmmfDefinition[tableName] && dmmfDefinition[tableName].length > 0) {
+      return dmmfDefinition[tableName];
+    }
+  } catch (error) {
+    console.warn(`[schemaDefinition] DMMF 讀取失敗，使用靜態定義: ${tableName}`);
+  }
+
+  // 備份: 使用靜態定義
   return FULL_SCHEMA_DEFINITION[tableName] || [];
 }
 
 /**
  * 獲取所有表格名稱
+ * 優先從 DMMF 讀取，失敗則使用靜態定義
  */
 export function getAllTableNames(): string[] {
+  try {
+    const dmmfDefinition = getSchemaDefinitionFromDMMF();
+    const dmmfTables = Object.keys(dmmfDefinition);
+    if (dmmfTables.length > 0) {
+      return dmmfTables;
+    }
+  } catch (error) {
+    console.warn('[schemaDefinition] DMMF 讀取失敗，使用靜態定義');
+  }
+
   return Object.keys(FULL_SCHEMA_DEFINITION);
 }
 
 /**
  * 獲取欄位的 SQL 類型和預設值
+ * 優先使用手動覆蓋，否則自動推斷
  */
-export function getColumnTypeInfo(tableName: string, columnName: string): { type: string; default?: string } | null {
-  return COLUMN_TYPE_MAP[tableName]?.[columnName] || null;
+export function getColumnTypeInfo(tableName: string, columnName: string): ColumnTypeInfo | null {
+  // 1. 檢查手動覆蓋
+  const override = COLUMN_TYPE_OVERRIDES[tableName]?.[columnName];
+  if (override) {
+    return override;
+  }
+
+  // 2. 從 DMMF 自動推斷
+  const fieldInfo = getFieldInfoFromDMMF(tableName, columnName);
+  if (fieldInfo) {
+    return {
+      type: prismaTypeToSqlType(fieldInfo.type),
+      nullable: !fieldInfo.isRequired,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * 獲取完整的 Schema 定義（用於 fullSchemaCompare）
+ * 優先從 DMMF 讀取
+ */
+export function getFullSchemaDefinition(): Record<string, string[]> {
+  try {
+    const dmmfDefinition = getSchemaDefinitionFromDMMF();
+    if (Object.keys(dmmfDefinition).length > 0) {
+      console.log(`[schemaDefinition] 從 DMMF 讀取成功: ${Object.keys(dmmfDefinition).length} 個表格`);
+      return dmmfDefinition;
+    }
+  } catch (error) {
+    console.warn('[schemaDefinition] DMMF 讀取失敗，使用靜態定義');
+  }
+
+  return FULL_SCHEMA_DEFINITION;
 }
