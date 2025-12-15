@@ -671,7 +671,7 @@ export const healthRouter = createTRPCRouter({
       ],
       PurchaseOrder: [
         'id', 'projectId', 'vendorId', 'quoteId', 'poNumber', 'name',
-        'description', 'totalAmount', 'poDate', 'status', 'currencyId',
+        'description', 'totalAmount', 'date', 'status', 'currencyId',
         'approvedDate', 'createdAt', 'updatedAt'
       ],
       BudgetPool: [
@@ -894,23 +894,24 @@ export const healthRouter = createTRPCRouter({
       await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
       results.push('OMExpenseItem: 已添加 lastFYActualExpense');
 
-      // 6. PurchaseOrder 缺失 poDate 欄位
+      // 6. PurchaseOrder - 確保 date 欄位存在 (schema.prisma 定義的是 date)
       results.push('\n[6/7] 修復 PurchaseOrder 表...');
-      // Azure 有 date 欄位但沒有 poDate，需要重命名或添加
+      // 注意：schema.prisma 定義的是 "date" 欄位，不是 "poDate"
+      // 如果之前錯誤地重命名為 poDate，需要改回 date
       await ctx.prisma.$executeRaw`
         DO $$
         BEGIN
-          -- 如果存在 date 欄位但沒有 poDate，則重命名
-          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date')
-             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
-            ALTER TABLE "PurchaseOrder" RENAME COLUMN "date" TO "poDate";
-          -- 如果兩個都不存在，添加 poDate
-          ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
-            ALTER TABLE "PurchaseOrder" ADD COLUMN "poDate" TIMESTAMP(3);
+          -- 如果存在 poDate 但沒有 date（之前錯誤的修復），則重命名回 date
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate')
+             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date') THEN
+            ALTER TABLE "PurchaseOrder" RENAME COLUMN "poDate" TO "date";
+          -- 如果兩個都不存在，添加 date
+          ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date') THEN
+            ALTER TABLE "PurchaseOrder" ADD COLUMN "date" TIMESTAMP(3) DEFAULT NOW();
           END IF;
         END $$
       `;
-      results.push('PurchaseOrder: 已修復 poDate 欄位');
+      results.push('PurchaseOrder: 已修復 date 欄位');
 
       // 7. BudgetPool 缺失 isActive 欄位
       results.push('\n[7/7] 修復 BudgetPool 表...');
@@ -1483,20 +1484,23 @@ export const healthRouter = createTRPCRouter({
       await ctx.prisma.$executeRaw`ALTER TABLE "BudgetProposal" ADD COLUMN IF NOT EXISTS "currencyId" TEXT`;
       results.push('BudgetProposal: 已檢查並添加缺失欄位');
 
-      // 3. PurchaseOrder 表
+      // 3. PurchaseOrder 表 - 確保 date 欄位存在 (schema.prisma 定義的是 date)
       results.push('\n### 3. PurchaseOrder 表 ###');
+      // 注意：schema.prisma 定義的是 "date" 欄位，不是 "poDate"
       await ctx.prisma.$executeRaw`
         DO $$
         BEGIN
-          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date')
-             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
-            ALTER TABLE "PurchaseOrder" RENAME COLUMN "date" TO "poDate";
-          ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate') THEN
-            ALTER TABLE "PurchaseOrder" ADD COLUMN "poDate" TIMESTAMP(3);
+          -- 如果存在 poDate 但沒有 date（之前錯誤的修復），則重命名回 date
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'poDate')
+             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date') THEN
+            ALTER TABLE "PurchaseOrder" RENAME COLUMN "poDate" TO "date";
+          -- 如果兩個都不存在，添加 date
+          ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PurchaseOrder' AND column_name = 'date') THEN
+            ALTER TABLE "PurchaseOrder" ADD COLUMN "date" TIMESTAMP(3) DEFAULT NOW();
           END IF;
         END $$
       `;
-      results.push('PurchaseOrder: poDate 欄位已修復');
+      results.push('PurchaseOrder: date 欄位已修復');
 
       // 4. BudgetPool 表
       results.push('\n### 4. BudgetPool 表 ###');
