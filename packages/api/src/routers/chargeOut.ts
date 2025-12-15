@@ -864,6 +864,101 @@ export const chargeOutRouter = createTRPCRouter({
     }),
 
   /**
+   * 10.1 deleteMany - 批量刪除 ChargeOut
+   * CHANGE-024: 新增批量刪除功能
+   *
+   * 業務邏輯：
+   * - 僅 Draft 或 Rejected 狀態可刪除
+   * - 返回刪除結果統計
+   */
+  deleteMany: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string().min(1)).min(1, '至少選擇一筆費用轉嫁'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const results = {
+        deleted: 0,
+        skipped: 0,
+        errors: [] as { id: string; reason: string }[],
+      };
+
+      for (const id of input.ids) {
+        const chargeOut = await ctx.prisma.chargeOut.findUnique({
+          where: { id },
+        });
+
+        if (!chargeOut) {
+          results.errors.push({ id, reason: 'NOT_FOUND' });
+          continue;
+        }
+
+        // 狀態檢查：僅 Draft 或 Rejected 可刪除
+        if (chargeOut.status !== 'Draft' && chargeOut.status !== 'Rejected') {
+          results.skipped++;
+          results.errors.push({ id, reason: `INVALID_STATUS: ${chargeOut.status}` });
+          continue;
+        }
+
+        // 刪除（items 會自動刪除，因為 onDelete: Cascade）
+        await ctx.prisma.chargeOut.delete({ where: { id } });
+        results.deleted++;
+      }
+
+      return results;
+    }),
+
+  /**
+   * 10.2 revertToDraft - 退回草稿狀態
+   * CHANGE-024: 新增狀態回退功能
+   *
+   * 業務邏輯：
+   * - 適用於 Submitted、Confirmed、Paid 狀態
+   * - 清除 confirmedBy、confirmedAt、paymentDate
+   * - 不適用於 Draft 或 Rejected（這兩個狀態可直接刪除）
+   */
+  revertToDraft: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, '無效的費用轉嫁ID'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const chargeOut = await ctx.prisma.chargeOut.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!chargeOut) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '費用轉嫁不存在',
+        });
+      }
+
+      // Draft 或 Rejected 不需要退回（可直接刪除）
+      if (chargeOut.status === 'Draft' || chargeOut.status === 'Rejected') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `費用轉嫁已經是${chargeOut.status === 'Draft' ? '草稿' : '已拒絕'}狀態，可直接刪除`,
+        });
+      }
+
+      // 更新狀態為 Draft，清除確認和支付相關資訊
+      await ctx.prisma.chargeOut.update({
+        where: { id: input.id },
+        data: {
+          status: 'Draft',
+          confirmedBy: null,
+          confirmedAt: null,
+          paymentDate: null,
+        },
+      });
+
+      return { success: true };
+    }),
+
+  /**
    * 11. getEligibleExpenses - 獲取可用於 ChargeOut 的費用
    *
    * 業務邏輯：

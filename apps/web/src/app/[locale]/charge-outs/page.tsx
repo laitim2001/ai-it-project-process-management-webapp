@@ -56,10 +56,28 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
-import { Plus } from 'lucide-react';
+import { Plus, Trash2, RotateCcw, MoreHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import {
   Breadcrumb,
@@ -76,6 +94,7 @@ export default function ChargeOutsPage() {
   const tNav = useTranslations('navigation');
   const tCommon = useTranslations('common');
   const router = useRouter();
+  const { toast } = useToast();
 
   // 過濾狀態
   const [selectedStatus, setSelectedStatus] = useState<string>('');
@@ -83,6 +102,14 @@ export default function ChargeOutsPage() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  // CHANGE-024: 選擇和對話框狀態
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; status: string } | null>(null);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [revertDialogOpen, setRevertDialogOpen] = useState(false);
+  const [revertTarget, setRevertTarget] = useState<{ id: string; name: string } | null>(null);
 
   // 獲取 OpCo 列表（用於過濾器）
   const { data: opCos } = api.operatingCompany.getAll.useQuery();
@@ -94,13 +121,86 @@ export default function ChargeOutsPage() {
   });
 
   // 獲取 ChargeOut 列表
-  const { data: chargeOuts, isLoading } = api.chargeOut.getAll.useQuery({
+  const { data: chargeOuts, isLoading, refetch } = api.chargeOut.getAll.useQuery({
     status: selectedStatus || undefined,
     opCoId: selectedOpCo || undefined,
     projectId: selectedProject || undefined,
     page,
     limit,
   });
+
+  // CHANGE-024: Mutations
+  const deleteMutation = api.chargeOut.delete.useMutation({
+    onSuccess: () => {
+      toast({ title: t('messages.deleteSuccess') });
+      refetch();
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+      setSelectedIds((prev) => prev.filter((id) => id !== deleteTarget?.id));
+    },
+    onError: (error) => {
+      toast({ title: t('messages.deleteError'), description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteManyMutation = api.chargeOut.deleteMany.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: t('messages.bulkDeleteSuccess'),
+        description: t('messages.bulkDeleteResult', { deleted: result.deleted, skipped: result.skipped }),
+      });
+      refetch();
+      setBulkDeleteDialogOpen(false);
+      setSelectedIds([]);
+    },
+    onError: (error) => {
+      toast({ title: t('messages.deleteError'), description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const revertToDraftMutation = api.chargeOut.revertToDraft.useMutation({
+    onSuccess: () => {
+      toast({ title: t('messages.revertSuccess') });
+      refetch();
+      setRevertDialogOpen(false);
+      setRevertTarget(null);
+    },
+    onError: (error) => {
+      toast({ title: t('messages.revertError'), description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // CHANGE-024: Helper functions
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && chargeOuts?.items) {
+      setSelectedIds(chargeOuts.items.map((item) => item.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((i) => i !== id));
+    }
+  };
+
+  const canDelete = (status: string) => status === 'Draft' || status === 'Rejected';
+  const canRevert = (status: string) => status === 'Submitted' || status === 'Confirmed' || status === 'Paid';
+
+  const handleDeleteClick = (e: React.MouseEvent, item: { id: string; name: string; status: string }) => {
+    e.stopPropagation();
+    setDeleteTarget(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleRevertClick = (e: React.MouseEvent, item: { id: string; name: string }) => {
+    e.stopPropagation();
+    setRevertTarget(item);
+    setRevertDialogOpen(true);
+  };
 
   // 格式化金額
   const formatCurrency = (amount: number) => {
@@ -184,6 +284,39 @@ export default function ChargeOutsPage() {
         </div>
       </div>
 
+      {/* CHANGE-024: 批量操作工具列 */}
+      {selectedIds.length > 0 && (
+        <div className="mb-4 flex items-center gap-4 rounded-lg border bg-muted/50 p-3">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={chargeOuts?.items?.length === selectedIds.length}
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-sm font-medium">
+              {t('messages.selectedCount', { count: selectedIds.length })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('actions.bulkDelete')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+            >
+              <X className="mr-2 h-4 w-4" />
+              {t('actions.clearSelection')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* 過濾器 */}
       <Card className="mb-6">
         <CardContent className="pt-6">
@@ -265,15 +398,51 @@ export default function ChargeOutsPage() {
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
+                    {/* CHANGE-024: Checkbox */}
+                    <div className="mr-3" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.includes(chargeOut.id)}
+                        onCheckedChange={(checked) => handleSelectOne(chargeOut.id, !!checked)}
+                      />
+                    </div>
                     <div className="flex-1">
                       <CardTitle className="text-lg">{chargeOut.name}</CardTitle>
                       <CardDescription className="mt-1">
                         {chargeOut.description || t('list.noDescription')}
                       </CardDescription>
                     </div>
-                    <Badge className={getStatusColor(chargeOut.status)}>
-                      {getStatusText(chargeOut.status)}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(chargeOut.status)}>
+                        {getStatusText(chargeOut.status)}
+                      </Badge>
+                      {/* CHANGE-024: DropdownMenu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {canDelete(chargeOut.status) && (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={(e) => handleDeleteClick(e, { id: chargeOut.id, name: chargeOut.name, status: chargeOut.status })}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              {t('actions.delete')}
+                            </DropdownMenuItem>
+                          )}
+                          {canRevert(chargeOut.status) && (
+                            <DropdownMenuItem
+                              onClick={(e) => handleRevertClick(e, { id: chargeOut.id, name: chargeOut.name })}
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              {t('actions.revertToDraft')}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -361,6 +530,72 @@ export default function ChargeOutsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* CHANGE-024: 單一刪除確認對話框 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dialogs.delete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {canDelete(deleteTarget?.status || '')
+                ? t('dialogs.delete.description')
+                : t('dialogs.delete.cannotDeleteDescription', { reason: deleteTarget?.status })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+            {canDelete(deleteTarget?.status || '') && (
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => deleteTarget && deleteMutation.mutate({ id: deleteTarget.id })}
+              >
+                {t('actions.delete')}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* CHANGE-024: 批量刪除確認對話框 */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dialogs.bulkDelete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dialogs.bulkDelete.description', { count: selectedIds.length })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteManyMutation.mutate({ ids: selectedIds })}
+            >
+              {t('actions.bulkDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* CHANGE-024: 退回草稿確認對話框 */}
+      <AlertDialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dialogs.revert.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dialogs.revert.description', { name: revertTarget?.name })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revertTarget && revertToDraftMutation.mutate({ id: revertTarget.id })}
+            >
+              {t('actions.revertToDraft')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

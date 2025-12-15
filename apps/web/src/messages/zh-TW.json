@@ -1438,7 +1438,11 @@
       "create": "新增報價單",
       "upload": "上傳報價單",
       "processing": "處理中...",
-      "selectVendor": "選擇此供應商"
+      "selectVendor": "選擇此供應商",
+      "delete": "刪除",
+      "forceDelete": "強制刪除",
+      "bulkDelete": "批量刪除",
+      "unlink": "解除關聯"
     },
     "new": {
       "description": "上傳供應商報價文件並記錄報價資訊"
@@ -1524,7 +1528,32 @@
       "confirmSelectQuote": "確定選擇此報價並生成採購單嗎？",
       "confirmSelectQuoteDescription": "此操作將創建一張新的採購單記錄，採購單將基於此報價的金額和供應商信息。",
       "quoteSelected": "此報價已被選用",
-      "viewPO": "查看採購單 #{poNumber}"
+      "viewPO": "查看採購單 #{poNumber}",
+      "deleteSuccess": "報價單已成功刪除",
+      "deleteError": "刪除報價單失敗",
+      "bulkDeleteSuccess": "批量刪除完成",
+      "bulkDeleteResult": "成功刪除 {deleted} 筆，跳過 {skipped} 筆",
+      "unlinkSuccess": "解除關聯成功",
+      "unlinkResult": "已解除 {count} 筆採購單的關聯",
+      "unlinkError": "解除關聯失敗",
+      "selectedCount": "已選擇 {count} 筆",
+      "cannotDelete": "此報價單有關聯的採購單，無法刪除"
+    },
+    "dialogs": {
+      "delete": {
+        "title": "確認刪除報價單",
+        "description": "您確定要刪除此報價單嗎？此操作無法復原。",
+        "forceDescription": "此報價單有關聯的採購單（皆為草稿狀態）。刪除報價單將會解除這些關聯。您確定要繼續嗎？",
+        "cannotDeleteDescription": "此報價單有關聯的採購單，且部分採購單不是草稿狀態。請先處理這些採購單後再刪除報價單。"
+      },
+      "bulkDelete": {
+        "title": "確認批量刪除",
+        "description": "您確定要刪除所選的 {count} 筆報價單嗎？只有沒有關聯採購單的報價單會被刪除。"
+      },
+      "unlink": {
+        "title": "確認解除關聯",
+        "description": "您確定要解除此報價單與 {count} 筆採購單的關聯嗎？解除後，這些採購單將不再關聯此報價單。"
+      }
     },
     "stats": {
       "totalQuotes": "報價數量",
@@ -1632,7 +1661,9 @@
     "status": {
       "draft": "草稿",
       "submitted": "已提交",
-      "approved": "已批准"
+      "approved": "已批准",
+      "completed": "已完成",
+      "cancelled": "已取消"
     },
     "expenseStatus": {
       "draft": "草稿",
@@ -1718,6 +1749,9 @@
       "view": "查看",
       "viewDocument": "查看文件",
       "delete": "刪除",
+      "bulkDelete": "批量刪除",
+      "clearSelection": "清除選擇",
+      "revertToDraft": "退回草稿",
       "backToList": "返回採購單列表",
       "title": "操作",
       "submit": "提交審批",
@@ -1754,7 +1788,31 @@
       "createSuccess": "採購單已成功創建",
       "updateSuccess": "採購單已成功更新",
       "submitSuccess": "採購單已提交，等待主管審批",
-      "approveSuccess": "採購單已批准"
+      "approveSuccess": "採購單已批准",
+      "deleteSuccess": "採購單已成功刪除",
+      "deleteError": "刪除採購單失敗",
+      "bulkDeleteSuccess": "批量刪除完成",
+      "bulkDeleteResult": "成功刪除 {deleted} 筆，跳過 {skipped} 筆",
+      "selectedCount": "已選擇 {count} 筆",
+      "revertSuccess": "已退回草稿狀態",
+      "revertError": "退回草稿失敗"
+    },
+    "dialogs": {
+      "cancel": "取消",
+      "delete": {
+        "title": "確認刪除",
+        "description": "確定要刪除此採購單嗎？此操作無法復原。",
+        "cannotDeleteDescription": "無法刪除狀態為「{status}」的採購單，請先將其退回草稿狀態。",
+        "hasExpensesDescription": "無法刪除此採購單，因為有關聯的費用記錄。"
+      },
+      "bulkDelete": {
+        "title": "確認批量刪除",
+        "description": "確定要刪除選中的 {count} 筆採購單嗎？此操作無法復原。僅草稿狀態且無費用記錄的採購單會被刪除。"
+      },
+      "revert": {
+        "title": "確認退回草稿",
+        "description": "確定要將採購單 {poNumber} 退回草稿狀態嗎？退回後可重新編輯或刪除。"
+      }
     }
   },
   "expenses": {
@@ -1948,7 +2006,10 @@
       "needItems": "請至少添加一個費用項目才能提交",
       "waitingApproval": "等待主管審批",
       "edit": "編輯",
-      "delete": "刪除"
+      "delete": "刪除",
+      "bulkDelete": "批量刪除",
+      "clearSelection": "清除選擇",
+      "revertToDraft": "退回草稿"
     },
     "status": {
       "draft": "草稿",
@@ -1969,6 +2030,7 @@
       "createSuccess": "費用記錄 {name} 已成功創建",
       "updateSuccess": "費用記錄 {name} 已成功更新",
       "deleteSuccess": "費用記錄已成功刪除",
+      "deleteError": "刪除費用記錄失敗",
       "submitSuccess": "費用記錄已提交，等待主管審批",
       "approveSuccess": "費用記錄已批准",
       "createError": "創建失敗",
@@ -1976,7 +2038,28 @@
       "submitError": "提交失敗",
       "approveError": "批准失敗",
       "loadError": "載入費用失敗",
-      "onlyDraftCanEdit": "只有草稿狀態的費用記錄才能編輯。當前狀態："
+      "onlyDraftCanEdit": "只有草稿狀態的費用記錄才能編輯。當前狀態：",
+      "bulkDeleteSuccess": "批量刪除完成",
+      "bulkDeleteResult": "成功刪除 {deleted} 筆，跳過 {skipped} 筆",
+      "selectedCount": "已選擇 {count} 筆",
+      "revertSuccess": "已退回草稿狀態",
+      "revertError": "退回草稿失敗"
+    },
+    "dialogs": {
+      "cancel": "取消",
+      "delete": {
+        "title": "確認刪除",
+        "description": "確定要刪除此費用記錄嗎？此操作無法復原。",
+        "cannotDeleteDescription": "無法刪除非草稿狀態的費用記錄，請先將其退回草稿狀態。"
+      },
+      "bulkDelete": {
+        "title": "確認批量刪除",
+        "description": "確定要刪除選中的 {count} 筆費用記錄嗎？此操作無法復原。僅草稿狀態且無費用轉嫁記錄的費用會被刪除。"
+      },
+      "revert": {
+        "title": "確認退回草稿",
+        "description": "確定要將費用記錄 {name} 退回草稿狀態嗎？退回後可重新編輯或刪除。"
+      }
     }
   },
   "omExpenses": {
@@ -2498,6 +2581,34 @@
         "deleteSuccess": "刪除成功",
         "deleteSuccessDesc": "ChargeOut {name} 已刪除",
         "deleteError": "刪除失敗"
+      },
+      "bulkDelete": "批量刪除",
+      "clearSelection": "清除選擇",
+      "revertToDraft": "退回草稿"
+    },
+    "messages": {
+      "deleteSuccess": "費用轉嫁記錄已成功刪除",
+      "deleteError": "刪除費用轉嫁記錄失敗",
+      "bulkDeleteSuccess": "批量刪除完成",
+      "bulkDeleteResult": "成功刪除 {deleted} 筆，跳過 {skipped} 筆",
+      "selectedCount": "已選擇 {count} 筆",
+      "revertSuccess": "已退回草稿狀態",
+      "revertError": "退回草稿失敗"
+    },
+    "dialogs": {
+      "cancel": "取消",
+      "delete": {
+        "title": "確認刪除",
+        "description": "確定要刪除此費用轉嫁記錄嗎？此操作無法撤銷。",
+        "cannotDeleteDescription": "此費用轉嫁記錄無法刪除：{reason}"
+      },
+      "bulkDelete": {
+        "title": "確認批量刪除",
+        "description": "您已選擇 {count} 筆費用轉嫁記錄。只有草稿和已拒絕狀態的記錄會被刪除，是否繼續？"
+      },
+      "revert": {
+        "title": "確認退回草稿",
+        "description": "確定要將「{name}」退回草稿狀態嗎？確認日期和付款日期將被清除。"
       }
     }
   },

@@ -64,29 +64,134 @@ import { PaginationControls } from '@/components/ui';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileCheck, Building2, FolderKanban, DollarSign, Calendar, AlertCircle, LayoutGrid, List, Plus } from 'lucide-react';
+import { FileCheck, Building2, FolderKanban, DollarSign, Calendar, AlertCircle, LayoutGrid, List, Plus, Trash2, Link2Off, MoreHorizontal } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function QuotesPage() {
   const t = useTranslations('quotes');
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
+  const { toast } = useToast();
+
   // 狀態管理
   const [page, setPage] = useState(1);
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
   const [vendorId, setVendorId] = useState<string | undefined>(undefined);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
+  // CHANGE-021: 刪除功能狀態
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; hasPO: boolean; allPODraft: boolean } | null>(null);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false);
+  const [unlinkTarget, setUnlinkTarget] = useState<{ id: string; poCount: number } | null>(null);
+
   // 查詢報價列表
-  const { data, isLoading, error } = api.quote.getAll.useQuery({
+  const { data, isLoading, error, refetch } = api.quote.getAll.useQuery({
     page,
     limit: 10,
     projectId,
     vendorId,
   });
+
+  // CHANGE-021: 刪除 Mutations
+  const deleteMutation = api.quote.delete.useMutation({
+    onSuccess: () => {
+      toast({ title: t('messages.deleteSuccess') });
+      refetch();
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+    },
+    onError: (error) => {
+      toast({ title: t('messages.deleteError'), description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteManyMutation = api.quote.deleteMany.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: t('messages.bulkDeleteSuccess'),
+        description: t('messages.bulkDeleteResult', { deleted: result.deleted, skipped: result.skipped }),
+      });
+      refetch();
+      setBulkDeleteDialogOpen(false);
+      setSelectedIds([]);
+    },
+    onError: (error) => {
+      toast({ title: t('messages.deleteError'), description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const revertToDraftMutation = api.quote.revertToDraft.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: t('messages.unlinkSuccess'),
+        description: t('messages.unlinkResult', { count: result.unlinkedCount }),
+      });
+      refetch();
+      setUnlinkDialogOpen(false);
+      setUnlinkTarget(null);
+    },
+    onError: (error) => {
+      toast({ title: t('messages.unlinkError'), description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // CHANGE-021: 選擇處理函數
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(quotes.map(q => q.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter(i => i !== id));
+    }
+  };
+
+  // 判斷報價單是否可刪除
+  const canDelete = (quote: typeof quotes[0]) => {
+    return !quote.purchaseOrders || quote.purchaseOrders.length === 0;
+  };
+
+  // 判斷報價單是否可強制刪除（所有 PO 為 Draft）
+  const canForceDelete = (quote: typeof quotes[0]) => {
+    if (!quote.purchaseOrders || quote.purchaseOrders.length === 0) return false;
+    return quote.purchaseOrders.every((po: any) => po.status === 'Draft');
+  };
+
+  // 判斷報價單是否可解除關聯
+  const canUnlink = (quote: typeof quotes[0]) => {
+    if (!quote.purchaseOrders || quote.purchaseOrders.length === 0) return false;
+    return quote.purchaseOrders.every((po: any) => po.status === 'Draft');
+  };
+
+  // 處理刪除按鈕點擊
+  const handleDeleteClick = (quote: typeof quotes[0]) => {
+    const hasPO = quote.purchaseOrders && quote.purchaseOrders.length > 0;
+    const allPODraft = hasPO ? quote.purchaseOrders.every((po: any) => po.status === 'Draft') : false;
+    setDeleteTarget({ id: quote.id, hasPO, allPODraft });
+    setDeleteDialogOpen(true);
+  };
+
+  // 處理解除關聯按鈕點擊
+  const handleUnlinkClick = (quote: typeof quotes[0]) => {
+    setUnlinkTarget({ id: quote.id, poCount: quote.purchaseOrders?.length || 0 });
+    setUnlinkDialogOpen(true);
+  };
 
   // 查詢所有專案（用於篩選下拉選單）
   const { data: projects } = api.project.getAll.useQuery({
@@ -260,6 +365,30 @@ export default function QuotesPage() {
           </div>
         )}
 
+        {/* CHANGE-021: 批量操作工具列 */}
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+            <span className="text-sm font-medium">
+              {t('messages.selectedCount', { count: selectedIds.length })}
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t('actions.bulkDelete')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+            >
+              {tCommon('actions.cancel')}
+            </Button>
+          </div>
+        )}
+
         {/* 報價單顯示 - 根據視圖模式切換 */}
         {quotes.length === 0 ? (
           <Card>
@@ -278,69 +407,121 @@ export default function QuotesPage() {
             {/* 卡片視圖 */}
             <div className="space-y-4">
               {quotes.map((quote) => (
-                <Link
-                  key={quote.id}
-                  href={`/projects/${quote.projectId}/quotes`}
-                  className="block"
-                >
-                  <Card className="hover:border-primary hover:shadow-md transition cursor-pointer">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        {/* 左側：主要資訊 */}
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-3">
-                            <FileCheck className="h-6 w-6 text-primary" />
+                <Card key={quote.id} className="hover:border-primary hover:shadow-md transition">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      {/* CHANGE-021: Checkbox */}
+                      <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(quote.id)}
+                          onCheckedChange={(checked) => handleSelectOne(quote.id, !!checked)}
+                        />
+                      </div>
+
+                      {/* 主要內容區域 */}
+                      <Link
+                        href={`/projects/${quote.projectId}/quotes`}
+                        className="flex-1 cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between">
+                          {/* 左側：主要資訊 */}
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center gap-3">
+                              <FileCheck className="h-6 w-6 text-primary" />
+                              <div>
+                                <h3 className="text-lg font-semibold text-foreground">
+                                  {quote.vendor.name}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
+                              {/* 專案 */}
+                              <div className="flex items-center gap-2">
+                                <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">{t('fields.project')}</p>
+                                  <p className="text-sm font-medium text-foreground">
+                                    {quote.project.name}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* 供應商 */}
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">{t('fields.vendor')}</p>
+                                  <p className="text-sm font-medium text-foreground">
+                                    {quote.vendor.name}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 右側：金額 */}
+                          <div className="text-right space-y-2">
                             <div>
-                              <h3 className="text-lg font-semibold text-foreground">
-                                {quote.vendor.name}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
+                              <p className="text-xs text-muted-foreground">{t('fields.amount')}</p>
+                              <p className="text-2xl font-bold text-primary">
+                                <CurrencyDisplay
+                                  amount={quote.amount}
+                                  currency={quote.project.currency}
+                                />
                               </p>
                             </div>
                           </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
-                            {/* 專案 */}
-                            <div className="flex items-center gap-2">
-                              <FolderKanban className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">{t('fields.project')}</p>
-                                <p className="text-sm font-medium text-foreground">
-                                  {quote.project.name}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* 供應商 */}
-                            <div className="flex items-center gap-2">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">{t('fields.vendor')}</p>
-                                <p className="text-sm font-medium text-foreground">
-                                  {quote.vendor.name}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
                         </div>
+                      </Link>
 
-                        {/* 右側：金額 */}
-                        <div className="text-right space-y-2">
-                          <div>
-                            <p className="text-xs text-muted-foreground">{t('fields.amount')}</p>
-                            <p className="text-2xl font-bold text-primary">
-                              <CurrencyDisplay
-                                amount={quote.amount}
-                                currency={quote.project.currency}
-                              />
-                            </p>
-                          </div>
-                        </div>
+                      {/* CHANGE-021: 操作按鈕 */}
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {canDelete(quote) && (
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(quote)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('actions.delete')}
+                              </DropdownMenuItem>
+                            )}
+                            {canForceDelete(quote) && (
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(quote)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('actions.forceDelete')}
+                              </DropdownMenuItem>
+                            )}
+                            {canUnlink(quote) && (
+                              <DropdownMenuItem onClick={() => handleUnlinkClick(quote)}>
+                                <Link2Off className="h-4 w-4 mr-2" />
+                                {t('actions.unlink')}
+                              </DropdownMenuItem>
+                            )}
+                            {!canDelete(quote) && !canForceDelete(quote) && !canUnlink(quote) && (
+                              <DropdownMenuItem disabled>
+                                {t('messages.cannotDelete')}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
@@ -360,6 +541,13 @@ export default function QuotesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {/* CHANGE-021: 全選 Checkbox */}
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={quotes.length > 0 && selectedIds.length === quotes.length}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>{t('fields.vendor')}</TableHead>
                     <TableHead>{t('fields.project')}</TableHead>
                     <TableHead className="text-right">{t('fields.amount')}</TableHead>
@@ -370,6 +558,13 @@ export default function QuotesPage() {
                 <TableBody>
                   {quotes.map((quote) => (
                     <TableRow key={quote.id} className="hover:bg-muted/50">
+                      {/* CHANGE-021: 單選 Checkbox */}
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(quote.id)}
+                          onCheckedChange={(checked) => handleSelectOne(quote.id, !!checked)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Link
                           href={`/projects/${quote.projectId}/quotes`}
@@ -390,12 +585,45 @@ export default function QuotesPage() {
                         {new Date(quote.uploadDate).toLocaleDateString('zh-TW')}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link
-                          href={`/projects/${quote.projectId}/quotes`}
-                          className="text-primary hover:underline"
-                        >
-                          {tCommon('actions.view')}
-                        </Link>
+                        {/* CHANGE-021: 操作按鈕 */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/projects/${quote.projectId}/quotes`}>
+                                {tCommon('actions.view')}
+                              </Link>
+                            </DropdownMenuItem>
+                            {canDelete(quote) && (
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(quote)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('actions.delete')}
+                              </DropdownMenuItem>
+                            )}
+                            {canForceDelete(quote) && (
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(quote)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('actions.forceDelete')}
+                              </DropdownMenuItem>
+                            )}
+                            {canUnlink(quote) && (
+                              <DropdownMenuItem onClick={() => handleUnlinkClick(quote)}>
+                                <Link2Off className="h-4 w-4 mr-2" />
+                                {t('actions.unlink')}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -414,6 +642,85 @@ export default function QuotesPage() {
           </>
         )}
       </div>
+
+      {/* CHANGE-021: 刪除確認對話框 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dialogs.delete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.hasPO
+                ? deleteTarget?.allPODraft
+                  ? t('dialogs.delete.forceDescription')
+                  : t('dialogs.delete.cannotDeleteDescription')
+                : t('dialogs.delete.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+            {deleteTarget && (deleteTarget.allPODraft || !deleteTarget.hasPO) && (
+              <AlertDialogAction
+                onClick={() => {
+                  if (deleteTarget) {
+                    deleteMutation.mutate({
+                      id: deleteTarget.id,
+                      force: deleteTarget.hasPO && deleteTarget.allPODraft,
+                    });
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {t('actions.delete')}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* CHANGE-021: 批量刪除確認對話框 */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dialogs.bulkDelete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dialogs.bulkDelete.description', { count: selectedIds.length })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteManyMutation.mutate({ ids: selectedIds })}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('actions.bulkDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* CHANGE-021: 解除關聯確認對話框 */}
+      <AlertDialog open={unlinkDialogOpen} onOpenChange={setUnlinkDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dialogs.unlink.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dialogs.unlink.description', { count: unlinkTarget?.poCount || 0 })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (unlinkTarget) {
+                  revertToDraftMutation.mutate({ id: unlinkTarget.id });
+                }
+              }}
+            >
+              {t('actions.unlink')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

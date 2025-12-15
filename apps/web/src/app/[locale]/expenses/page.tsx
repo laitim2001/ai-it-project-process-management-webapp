@@ -69,10 +69,14 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { Plus, Receipt, Calendar, DollarSign, FileText, ShoppingCart, AlertCircle, LayoutGrid, List, Trash2, RotateCcw, MoreHorizontal } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/components/ui/use-toast';
 import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay'; // FEAT-002
 
 export default function ExpensesPage() {
@@ -102,6 +106,16 @@ export default function ExpensesPage() {
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [purchaseOrderId, setPurchaseOrderId] = useState<string | undefined>(undefined);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+
+  // CHANGE-023: 刪除功能狀態管理
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; status: string; hasChargeOuts: boolean } | null>(null);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [revertDialogOpen, setRevertDialogOpen] = useState(false);
+  const [revertTarget, setRevertTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const { toast } = useToast();
 
   // 查詢費用列表
   // FIX-039-REVISED: 添加 refetch 配置避免 HotReload 期間的競態條件
@@ -136,6 +150,115 @@ export default function ExpensesPage() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+
+  // CHANGE-023: 刪除 Mutation
+  const utils = api.useUtils();
+  const deleteMutation = api.expense.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('messages.deleteSuccess'),
+        variant: 'default',
+      });
+      utils.expense.getAll.invalidate();
+      utils.expense.getStats.invalidate();
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('messages.deleteError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // CHANGE-023: 批量刪除 Mutation
+  const deleteManyMutation = api.expense.deleteMany.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: t('messages.bulkDeleteSuccess'),
+        description: t('messages.bulkDeleteResult', { deleted: result.deleted, skipped: result.skipped }),
+        variant: 'default',
+      });
+      utils.expense.getAll.invalidate();
+      utils.expense.getStats.invalidate();
+      setBulkDeleteDialogOpen(false);
+      setSelectedIds([]);
+    },
+    onError: (error) => {
+      toast({
+        title: t('messages.deleteError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // CHANGE-023: 退回草稿 Mutation
+  const revertToDraftMutation = api.expense.revertToDraft.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('messages.revertSuccess'),
+        variant: 'default',
+      });
+      utils.expense.getAll.invalidate();
+      utils.expense.getStats.invalidate();
+      setRevertDialogOpen(false);
+      setRevertTarget(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('messages.revertError'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // CHANGE-023: 選擇功能輔助函數
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(expenses.map(e => e.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id));
+    }
+  };
+
+  // CHANGE-023: 判斷是否可刪除（僅 Draft 且無 ChargeOut 關聯）
+  const canDelete = (expense: { status: string }) => {
+    return expense.status === 'Draft';
+  };
+
+  // CHANGE-023: 判斷是否可退回草稿（所有非 Draft 狀態）
+  const canRevert = (expense: { status: string }) => {
+    return expense.status !== 'Draft';
+  };
+
+  // CHANGE-023: 處理刪除點擊
+  const handleDeleteClick = (expense: { id: string; status: string }, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    // 前端無法直接知道 chargeOutItems 數量，API 會做檢查
+    setDeleteTarget({ id: expense.id, status: expense.status, hasChargeOuts: false });
+    setDeleteDialogOpen(true);
+  };
+
+  // CHANGE-023: 處理退回草稿點擊
+  const handleRevertClick = (expense: { id: string; name: string }, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setRevertTarget({ id: expense.id, name: expense.name });
+    setRevertDialogOpen(true);
+  };
 
   // 載入骨架屏
   if (isLoading) {
@@ -255,6 +378,30 @@ export default function ExpensesPage() {
             </Link>
           </div>
         </div>
+
+        {/* CHANGE-023: 批量操作工具欄 */}
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+            <span className="text-sm text-muted-foreground">
+              {t('messages.selectedCount', { count: selectedIds.length })}
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t('actions.bulkDelete')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+            >
+              {t('actions.clearSelection')}
+            </Button>
+          </div>
+        )}
 
         {/* 統計卡片 */}
         {stats && (
@@ -384,14 +531,22 @@ export default function ExpensesPage() {
             {/* 卡片視圖 */}
             <div className="space-y-4">
               {expenses.map((expense) => (
-                <Link key={expense.id} href={`/expenses/${expense.id}`} className="block">
-                  <Card className="hover:border-primary hover:shadow-md transition cursor-pointer">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
+                <Card key={expense.id} className="hover:border-primary hover:shadow-md transition">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      {/* CHANGE-023: Checkbox */}
+                      <div className="flex items-start gap-4">
+                        <Checkbox
+                          checked={selectedIds.includes(expense.id)}
+                          onCheckedChange={(checked) => handleSelectOne(expense.id, checked as boolean)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1"
+                        />
                         {/* 左側：主要資訊 */}
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-3">
-                            <Receipt className="h-6 w-6 text-primary" />
+                        <Link href={`/expenses/${expense.id}`} className="flex-1 cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <Receipt className="h-6 w-6 text-primary" />
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="text-lg font-semibold text-foreground">
@@ -438,24 +593,65 @@ export default function ExpensesPage() {
                             </div>
                           </div>
 
-                          {/* 發票 */}
-                          {expense.invoiceFilePath && (
-                            <div className="flex items-center gap-2 pl-9 text-sm text-muted-foreground">
-                              <FileText className="h-4 w-4" />
-                              <span>{expense.invoiceFilePath.split('/').pop()}</span>
-                            </div>
-                          )}
-                        </div>
+                            {/* 發票 */}
+                            {expense.invoiceFilePath && (
+                              <div className="flex items-center gap-2 pl-9 text-sm text-muted-foreground">
+                                <FileText className="h-4 w-4" />
+                                <span>{expense.invoiceFilePath.split('/').pop()}</span>
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      </div>
 
-                        {/* 右側：日期 */}
+                      {/* CHANGE-023: 右側操作按鈕 */}
+                      <div className="flex items-start gap-2">
                         <div className="text-right text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4 inline mr-1" />
                           {new Date(expense.createdAt).toLocaleDateString('zh-TW')}
                         </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/expenses/${expense.id}`}>
+                                {tCommon('actions.view')}
+                              </Link>
+                            </DropdownMenuItem>
+                            {expense.status === 'Draft' && (
+                              <DropdownMenuItem asChild>
+                                <Link href={`/expenses/${expense.id}/edit`}>
+                                  {tCommon('actions.edit')}
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete(expense) && (
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={(e) => handleDeleteClick(expense, e as unknown as React.MouseEvent)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {tCommon('actions.delete')}
+                              </DropdownMenuItem>
+                            )}
+                            {canRevert(expense) && (
+                              <DropdownMenuItem
+                                onClick={(e) => handleRevertClick({ id: expense.id, name: expense.name }, e as unknown as React.MouseEvent)}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToDraft')}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
@@ -475,6 +671,13 @@ export default function ExpensesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {/* CHANGE-023: 全選 Checkbox */}
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={expenses.length > 0 && selectedIds.length === expenses.length}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead className="text-right">{t('list.table.amount')}</TableHead>
                     <TableHead>{t('list.table.status')}</TableHead>
                     <TableHead>{t('list.table.purchaseOrder')}</TableHead>
@@ -487,6 +690,13 @@ export default function ExpensesPage() {
                 <TableBody>
                   {expenses.map((expense) => (
                     <TableRow key={expense.id} className="hover:bg-muted/50">
+                      {/* CHANGE-023: 行選擇 Checkbox */}
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(expense.id)}
+                          onCheckedChange={(checked) => handleSelectOne(expense.id, checked as boolean)}
+                        />
+                      </TableCell>
                       <TableCell className="text-right font-medium">
                         <Link
                           href={`/expenses/${expense.id}`}
@@ -522,13 +732,46 @@ export default function ExpensesPage() {
                           '-'
                         )}
                       </TableCell>
+                      {/* CHANGE-023: 操作下拉選單 */}
                       <TableCell className="text-right">
-                        <Link
-                          href={`/expenses/${expense.id}`}
-                          className="text-primary hover:underline"
-                        >
-                          {tCommon('actions.view')}
-                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/expenses/${expense.id}`}>
+                                {tCommon('actions.view')}
+                              </Link>
+                            </DropdownMenuItem>
+                            {expense.status === 'Draft' && (
+                              <DropdownMenuItem asChild>
+                                <Link href={`/expenses/${expense.id}/edit`}>
+                                  {tCommon('actions.edit')}
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete(expense) && (
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={(e) => handleDeleteClick(expense, e as unknown as React.MouseEvent)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {tCommon('actions.delete')}
+                              </DropdownMenuItem>
+                            )}
+                            {canRevert(expense) && (
+                              <DropdownMenuItem
+                                onClick={(e) => handleRevertClick({ id: expense.id, name: expense.name }, e as unknown as React.MouseEvent)}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                {t('actions.revertToDraft')}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -546,6 +789,72 @@ export default function ExpensesPage() {
             )}
           </>
         )}
+
+        {/* CHANGE-023: 刪除確認對話框 */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('dialogs.delete.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {deleteTarget?.status !== 'Draft'
+                  ? t('dialogs.delete.cannotDeleteDescription')
+                  : t('dialogs.delete.description')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+              {deleteTarget?.status === 'Draft' && (
+                <AlertDialogAction
+                  onClick={() => deleteTarget && deleteMutation.mutate({ id: deleteTarget.id })}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {tCommon('actions.delete')}
+                </AlertDialogAction>
+              )}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* CHANGE-023: 批量刪除確認對話框 */}
+        <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('dialogs.bulkDelete.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('dialogs.bulkDelete.description', { count: selectedIds.length })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteManyMutation.mutate({ ids: selectedIds })}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {t('actions.bulkDelete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* CHANGE-023: 退回草稿確認對話框 */}
+        <AlertDialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('dialogs.revert.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('dialogs.revert.description', { name: revertTarget?.name || '' })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => revertTarget && revertToDraftMutation.mutate({ id: revertTarget.id })}
+              >
+                {t('actions.revertToDraft')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

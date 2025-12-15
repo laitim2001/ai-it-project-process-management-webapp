@@ -419,18 +419,28 @@ export const quoteRouter = createTRPCRouter({
   /**
    * 刪除報價單
    * @param id - 報價單 ID
+   * @param force - 強制刪除（僅當關聯 PO 都是 Draft 狀態時有效）
    * @returns 成功訊息
    *
-   * 注意：如果報價單已被選為採購單，將拒絕刪除
+   * CHANGE-021: 增加 force 選項，僅當 PO 為 Draft 時允許強制刪除
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().uuid('報價單ID必須是有效的UUID格式') }))
+    .input(z.object({
+      id: z.string().uuid('報價單ID必須是有效的UUID格式'),
+      force: z.boolean().optional().default(false),
+    }))
     .mutation(async ({ ctx, input }) => {
       // 檢查報價單是否存在
       const quote = await ctx.prisma.quote.findUnique({
         where: { id: input.id },
         include: {
-          purchaseOrders: true,
+          purchaseOrders: {
+            select: {
+              id: true,
+              status: true,
+              poNumber: true,
+            },
+          },
         },
       });
 
@@ -441,11 +451,28 @@ export const quoteRouter = createTRPCRouter({
         });
       }
 
-      // 如果報價單已被選為採購單，不允許刪除
+      // 有 PO 關聯時的處理
       if (quote.purchaseOrders && quote.purchaseOrders.length > 0) {
-        throw new TRPCError({
-          code: 'PRECONDITION_FAILED',
-          message: '該報價單已被選為採購單，無法刪除',
+        if (!input.force) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: '該報價單已被選為採購單，無法刪除',
+          });
+        }
+
+        // 強制刪除：檢查所有 PO 是否都是 Draft 狀態
+        const nonDraftPOs = quote.purchaseOrders.filter(po => po.status !== 'Draft');
+        if (nonDraftPOs.length > 0) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: `無法強制刪除：有 ${nonDraftPOs.length} 個關聯的採購單不是草稿狀態（${nonDraftPOs.map(po => po.poNumber).join(', ')}）`,
+          });
+        }
+
+        // 解除所有 Draft PO 的關聯
+        await ctx.prisma.purchaseOrder.updateMany({
+          where: { quoteId: input.id },
+          data: { quoteId: null },
         });
       }
 
@@ -458,6 +485,138 @@ export const quoteRouter = createTRPCRouter({
       });
 
       return { success: true, message: '報價單已成功刪除' };
+    }),
+
+  /**
+   * 批量刪除報價單
+   * @param ids - 報價單 ID 陣列
+   * @param force - 強制刪除（僅當關聯 PO 都是 Draft 狀態時有效）
+   * @returns 刪除結果統計
+   *
+   * CHANGE-021: 新增批量刪除功能
+   */
+  deleteMany: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1, '至少需要一個報價單ID'),
+      force: z.boolean().optional().default(false),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const results = {
+        deleted: 0,
+        skipped: 0,
+        errors: [] as { id: string; reason: string }[],
+      };
+
+      for (const id of input.ids) {
+        const quote = await ctx.prisma.quote.findUnique({
+          where: { id },
+          include: {
+            purchaseOrders: {
+              select: {
+                id: true,
+                status: true,
+                poNumber: true,
+              },
+            },
+          },
+        });
+
+        if (!quote) {
+          results.errors.push({ id, reason: 'NOT_FOUND' });
+          continue;
+        }
+
+        // 有 PO 關聯時的處理
+        if (quote.purchaseOrders && quote.purchaseOrders.length > 0) {
+          if (!input.force) {
+            results.skipped++;
+            results.errors.push({ id, reason: 'HAS_PO' });
+            continue;
+          }
+
+          // 強制刪除：檢查所有 PO 是否都是 Draft 狀態
+          const nonDraftPOs = quote.purchaseOrders.filter(po => po.status !== 'Draft');
+          if (nonDraftPOs.length > 0) {
+            results.skipped++;
+            results.errors.push({ id, reason: `HAS_NON_DRAFT_PO: ${nonDraftPOs.length}` });
+            continue;
+          }
+
+          // 解除所有 Draft PO 的關聯
+          await ctx.prisma.purchaseOrder.updateMany({
+            where: { quoteId: id },
+            data: { quoteId: null },
+          });
+        }
+
+        // 刪除報價單
+        await ctx.prisma.quote.delete({ where: { id } });
+        results.deleted++;
+      }
+
+      return results;
+    }),
+
+  /**
+   * 解除報價單與採購單的關聯（退回可刪除狀態）
+   * @param id - 報價單 ID
+   * @returns 成功訊息和解除關聯的數量
+   *
+   * CHANGE-021: 新增退回草稿功能，僅當 PO 為 Draft 時允許
+   */
+  revertToDraft: protectedProcedure
+    .input(z.object({
+      id: z.string().uuid('報價單ID必須是有效的UUID格式'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const quote = await ctx.prisma.quote.findUnique({
+        where: { id: input.id },
+        include: {
+          purchaseOrders: {
+            select: {
+              id: true,
+              status: true,
+              poNumber: true,
+            },
+          },
+        },
+      });
+
+      if (!quote) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該報價單',
+        });
+      }
+
+      // 沒有關聯的 PO
+      if (!quote.purchaseOrders || quote.purchaseOrders.length === 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '該報價單沒有關聯的採購單，無需解除關聯',
+        });
+      }
+
+      // 檢查所有關聯 PO 是否為 Draft 狀態
+      const nonDraftPOs = quote.purchaseOrders.filter(po => po.status !== 'Draft');
+      if (nonDraftPOs.length > 0) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法解除關聯：有 ${nonDraftPOs.length} 個採購單不是草稿狀態（${nonDraftPOs.map(po => po.poNumber).join(', ')}）`,
+        });
+      }
+
+      // 解除所有 PO 關聯
+      await ctx.prisma.purchaseOrder.updateMany({
+        where: { quoteId: input.id },
+        data: { quoteId: null },
+      });
+
+      return {
+        success: true,
+        unlinkedCount: quote.purchaseOrders.length,
+        message: `已解除 ${quote.purchaseOrders.length} 個採購單的關聯`,
+      };
     }),
 
   /**

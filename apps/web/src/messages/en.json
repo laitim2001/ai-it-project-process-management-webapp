@@ -1438,7 +1438,11 @@
       "create": "Create Quote",
       "upload": "Upload Quote",
       "processing": "Processing...",
-      "selectVendor": "Select This Vendor"
+      "selectVendor": "Select This Vendor",
+      "delete": "Delete",
+      "forceDelete": "Force Delete",
+      "bulkDelete": "Bulk Delete",
+      "unlink": "Unlink"
     },
     "new": {
       "description": "Upload vendor quote documents and record quote information"
@@ -1524,7 +1528,32 @@
       "confirmSelectQuote": "Confirm selecting this quote and generating a purchase order?",
       "confirmSelectQuoteDescription": "This will create a new purchase order record based on this quote's amount and vendor information.",
       "quoteSelected": "This quote has been selected",
-      "viewPO": "View Purchase Order #{poNumber}"
+      "viewPO": "View Purchase Order #{poNumber}",
+      "deleteSuccess": "Quote deleted successfully",
+      "deleteError": "Failed to delete quote",
+      "bulkDeleteSuccess": "Bulk deletion completed",
+      "bulkDeleteResult": "Successfully deleted {deleted}, skipped {skipped}",
+      "unlinkSuccess": "Successfully unlinked",
+      "unlinkResult": "Unlinked {count} purchase order(s)",
+      "unlinkError": "Failed to unlink",
+      "selectedCount": "{count} selected",
+      "cannotDelete": "This quote has associated purchase orders and cannot be deleted"
+    },
+    "dialogs": {
+      "delete": {
+        "title": "Confirm Delete Quote",
+        "description": "Are you sure you want to delete this quote? This action cannot be undone.",
+        "forceDescription": "This quote has associated purchase orders (all in Draft status). Deleting the quote will unlink these associations. Are you sure you want to continue?",
+        "cannotDeleteDescription": "This quote has associated purchase orders, and some of them are not in Draft status. Please handle those purchase orders first before deleting this quote."
+      },
+      "bulkDelete": {
+        "title": "Confirm Bulk Delete",
+        "description": "Are you sure you want to delete the selected {count} quotes? Only quotes without associated purchase orders will be deleted."
+      },
+      "unlink": {
+        "title": "Confirm Unlink",
+        "description": "Are you sure you want to unlink this quote from {count} purchase order(s)? Once unlinked, these purchase orders will no longer be associated with this quote."
+      }
     },
     "stats": {
       "totalQuotes": "Total Quotes",
@@ -1632,7 +1661,9 @@
     "status": {
       "draft": "Draft",
       "submitted": "Submitted",
-      "approved": "Approved"
+      "approved": "Approved",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "expenseStatus": {
       "draft": "Draft",
@@ -1718,6 +1749,9 @@
       "view": "View",
       "viewDocument": "View Document",
       "delete": "Delete",
+      "bulkDelete": "Bulk Delete",
+      "clearSelection": "Clear Selection",
+      "revertToDraft": "Revert to Draft",
       "backToList": "Back to Purchase Order List",
       "title": "Actions",
       "submit": "Submit for Approval",
@@ -1754,7 +1788,31 @@
       "createSuccess": "Purchase order created successfully",
       "updateSuccess": "Purchase order updated successfully",
       "submitSuccess": "Purchase order submitted, awaiting approval",
-      "approveSuccess": "Purchase order approved"
+      "approveSuccess": "Purchase order approved",
+      "deleteSuccess": "Purchase order deleted successfully",
+      "deleteError": "Failed to delete purchase order",
+      "bulkDeleteSuccess": "Bulk delete completed",
+      "bulkDeleteResult": "Deleted {deleted}, skipped {skipped}",
+      "selectedCount": "{count} selected",
+      "revertSuccess": "Reverted to draft status",
+      "revertError": "Failed to revert to draft"
+    },
+    "dialogs": {
+      "cancel": "Cancel",
+      "delete": {
+        "title": "Confirm Delete",
+        "description": "Are you sure you want to delete this purchase order? This action cannot be undone.",
+        "cannotDeleteDescription": "Cannot delete purchase order with status '{status}'. Please revert to draft first.",
+        "hasExpensesDescription": "Cannot delete this purchase order because it has associated expense records."
+      },
+      "bulkDelete": {
+        "title": "Confirm Bulk Delete",
+        "description": "Are you sure you want to delete {count} selected purchase order(s)? This action cannot be undone. Only draft purchase orders without expense records will be deleted."
+      },
+      "revert": {
+        "title": "Confirm Revert to Draft",
+        "description": "Are you sure you want to revert purchase order {poNumber} to draft status? After reverting, you can edit or delete it."
+      }
     }
   },
   "expenses": {
@@ -1948,7 +2006,10 @@
       "needItems": "Please add at least one expense item before submitting",
       "waitingApproval": "Awaiting supervisor approval",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "bulkDelete": "Bulk Delete",
+      "clearSelection": "Clear Selection",
+      "revertToDraft": "Revert to Draft"
     },
     "status": {
       "draft": "Draft",
@@ -1976,7 +2037,29 @@
       "submitError": "Submit failed",
       "approveError": "Approve failed",
       "loadError": "Failed to load expenses",
-      "onlyDraftCanEdit": "Only draft expenses can be edited. Current status:"
+      "onlyDraftCanEdit": "Only draft expenses can be edited. Current status:",
+      "deleteError": "Failed to delete expense record",
+      "bulkDeleteSuccess": "Bulk delete completed",
+      "bulkDeleteResult": "Successfully deleted {deleted}, skipped {skipped}",
+      "selectedCount": "{count} selected",
+      "revertSuccess": "Reverted to draft status",
+      "revertError": "Failed to revert to draft"
+    },
+    "dialogs": {
+      "cancel": "Cancel",
+      "delete": {
+        "title": "Confirm Delete",
+        "description": "Are you sure you want to delete this expense record? This action cannot be undone.",
+        "cannotDeleteDescription": "This expense record cannot be deleted: {reason}"
+      },
+      "bulkDelete": {
+        "title": "Confirm Bulk Delete",
+        "description": "You have selected {count} expense records. Only draft records without charge-out associations will be deleted. Continue?"
+      },
+      "revert": {
+        "title": "Confirm Revert to Draft",
+        "description": "Are you sure you want to revert \"{name}\" to draft status? The approval date and paid date will be cleared."
+      }
     }
   },
   "omExpenses": {
@@ -2498,6 +2581,34 @@
         "deleteSuccess": "Deleted Successfully",
         "deleteSuccessDesc": "ChargeOut {name} has been deleted",
         "deleteError": "Deletion Failed"
+      },
+      "bulkDelete": "Bulk Delete",
+      "clearSelection": "Clear Selection",
+      "revertToDraft": "Revert to Draft"
+    },
+    "messages": {
+      "deleteSuccess": "Charge out record deleted successfully",
+      "deleteError": "Failed to delete charge out record",
+      "bulkDeleteSuccess": "Bulk delete completed",
+      "bulkDeleteResult": "Successfully deleted {deleted}, skipped {skipped}",
+      "selectedCount": "{count} selected",
+      "revertSuccess": "Reverted to draft status",
+      "revertError": "Failed to revert to draft"
+    },
+    "dialogs": {
+      "cancel": "Cancel",
+      "delete": {
+        "title": "Confirm Delete",
+        "description": "Are you sure you want to delete this charge out record? This action cannot be undone.",
+        "cannotDeleteDescription": "This charge out record cannot be deleted: {reason}"
+      },
+      "bulkDelete": {
+        "title": "Confirm Bulk Delete",
+        "description": "You have selected {count} charge out records. Only draft and rejected records will be deleted. Continue?"
+      },
+      "revert": {
+        "title": "Confirm Revert to Draft",
+        "description": "Are you sure you want to revert \"{name}\" to draft status? The confirmation date and payment date will be cleared."
       }
     }
   },

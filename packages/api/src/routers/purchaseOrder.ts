@@ -475,6 +475,7 @@ export const purchaseOrderRouter = createTRPCRouter({
    * @param id - PO ID
    * @returns 成功訊息
    *
+   * CHANGE-022: 增加狀態檢查，僅 Draft 狀態可刪除
    * 注意：如果 PO 有關聯的 Expense，將拒絕刪除
    */
   delete: protectedProcedure
@@ -500,6 +501,14 @@ export const purchaseOrderRouter = createTRPCRouter({
         });
       }
 
+      // CHANGE-022: 狀態檢查 - 僅 Draft 可刪除
+      if (purchaseOrder.status !== 'Draft') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `只有草稿狀態的採購單可以刪除（當前狀態：${purchaseOrder.status}）`,
+        });
+      }
+
       // 如果 PO 有關聯的 Expense，不允許刪除
       if (purchaseOrder._count.expenses > 0) {
         throw new TRPCError({
@@ -522,6 +531,101 @@ export const purchaseOrderRouter = createTRPCRouter({
       });
 
       return { success: true, message: '採購單已成功刪除' };
+    }),
+
+  /**
+   * 批量刪除採購單
+   * @param ids - PO ID 陣列
+   * @returns 刪除結果 { deleted, skipped, errors }
+   *
+   * CHANGE-022: 新增批量刪除功能
+   * 注意：僅 Draft 狀態且無 Expense 關聯的 PO 可刪除
+   */
+  deleteMany: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().min(1)).min(1, '至少選擇一筆採購單'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const results = { deleted: 0, skipped: 0, errors: [] as { id: string; reason: string }[] };
+
+      for (const id of input.ids) {
+        const po = await ctx.prisma.purchaseOrder.findUnique({
+          where: { id },
+          include: {
+            _count: { select: { expenses: true } },
+          },
+        });
+
+        if (!po) {
+          results.errors.push({ id, reason: 'NOT_FOUND' });
+          continue;
+        }
+
+        // 狀態檢查：僅 Draft 可刪除
+        if (po.status !== 'Draft') {
+          results.skipped++;
+          results.errors.push({ id, reason: `INVALID_STATUS: ${po.status}` });
+          continue;
+        }
+
+        // 關聯檢查
+        if (po._count.expenses > 0) {
+          results.skipped++;
+          results.errors.push({ id, reason: `HAS_EXPENSES: ${po._count.expenses}` });
+          continue;
+        }
+
+        // 刪除
+        await ctx.prisma.$transaction(async (tx) => {
+          await tx.purchaseOrderItem.deleteMany({ where: { purchaseOrderId: id } });
+          await tx.purchaseOrder.delete({ where: { id } });
+        });
+        results.deleted++;
+      }
+
+      return results;
+    }),
+
+  /**
+   * 將採購單狀態退回 Draft
+   * @param id - PO ID
+   * @returns 成功訊息
+   *
+   * CHANGE-022: 新增狀態回退功能
+   * 僅 Submitted 和 Cancelled 狀態可以退回 Draft
+   */
+  revertToDraft: protectedProcedure
+    .input(z.object({
+      id: z.string().min(1, '無效的PO ID'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const po = await ctx.prisma.purchaseOrder.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!po) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該採購單',
+        });
+      }
+
+      // 只有 Submitted 和 Cancelled 可以退回 Draft
+      const revertableStatuses = ['Submitted', 'Cancelled'];
+      if (!revertableStatuses.includes(po.status)) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法退回草稿狀態（當前狀態：${po.status}，僅限已提交或已取消）`,
+        });
+      }
+
+      // 更新狀態為 Draft
+      await ctx.prisma.purchaseOrder.update({
+        where: { id: input.id },
+        data: { status: 'Draft' },
+      });
+
+      return { success: true };
     }),
 
   /**

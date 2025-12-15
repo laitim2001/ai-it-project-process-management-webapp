@@ -623,12 +623,121 @@ export const expenseRouter = createTRPCRouter({
    * @param id - 費用 ID
    * @returns 成功訊息
    *
-   * 注意：只有 Draft 狀態的費用才能刪除
+   * CHANGE-023: 刪除增強
+   * - 只有 Draft 狀態的費用才能刪除
+   * - 有 ChargeOut 關聯時不可刪除
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string().min(1, '無效的費用ID') }))
     .mutation(async ({ ctx, input }) => {
-      // 檢查費用是否存在
+      // 檢查費用是否存在，並載入關聯資料
+      const expense = await ctx.prisma.expense.findUnique({
+        where: { id: input.id },
+        include: {
+          _count: {
+            select: { chargeOutItems: true },
+          },
+        },
+      });
+
+      if (!expense) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該費用記錄',
+        });
+      }
+
+      // CHANGE-023: 狀態檢查 - 僅 Draft 可刪除
+      if (expense.status !== 'Draft') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `只有草稿狀態的費用才能刪除（當前狀態：${expense.status}）`,
+        });
+      }
+
+      // CHANGE-023: ChargeOut 關聯檢查
+      if (expense._count.chargeOutItems > 0) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `無法刪除費用，有 ${expense._count.chargeOutItems} 筆費用轉嫁記錄關聯`,
+        });
+      }
+
+      // 刪除費用（ExpenseItem 會 Cascade 刪除）
+      await ctx.prisma.expense.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true, message: '費用記錄已成功刪除' };
+    }),
+
+  /**
+   * 批量刪除費用記錄
+   * @param ids - 費用 ID 陣列
+   * @returns 刪除結果 { deleted, skipped, errors }
+   *
+   * CHANGE-023: 新增批量刪除
+   * - 僅 Draft 狀態可刪除
+   * - 有 ChargeOut 關聯時跳過
+   */
+  deleteMany: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().min(1)).min(1, '至少選擇一筆費用'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const results = { deleted: 0, skipped: 0, errors: [] as { id: string; reason: string }[] };
+
+      for (const id of input.ids) {
+        const expense = await ctx.prisma.expense.findUnique({
+          where: { id },
+          include: {
+            _count: {
+              select: { chargeOutItems: true },
+            },
+          },
+        });
+
+        if (!expense) {
+          results.errors.push({ id, reason: 'NOT_FOUND' });
+          continue;
+        }
+
+        // 狀態檢查：僅 Draft 可刪除
+        if (expense.status !== 'Draft') {
+          results.skipped++;
+          results.errors.push({ id, reason: `INVALID_STATUS: ${expense.status}` });
+          continue;
+        }
+
+        // ChargeOut 關聯檢查
+        if (expense._count.chargeOutItems > 0) {
+          results.skipped++;
+          results.errors.push({ id, reason: `HAS_CHARGEOUTS: ${expense._count.chargeOutItems}` });
+          continue;
+        }
+
+        // 刪除（ExpenseItem 會 Cascade 刪除）
+        await ctx.prisma.expense.delete({ where: { id } });
+        results.deleted++;
+      }
+
+      return results;
+    }),
+
+  /**
+   * 退回草稿狀態
+   * @param id - 費用 ID
+   * @returns 成功訊息
+   *
+   * CHANGE-023: 新增退回草稿功能
+   * - 所有非 Draft 狀態都可退回 Draft
+   * - 退回時清除 approvedDate 和 paidDate
+   */
+  revertToDraft: protectedProcedure
+    .input(z.object({
+      id: z.string().min(1, '無效的費用ID'),
+    }))
+    .mutation(async ({ ctx, input }) => {
       const expense = await ctx.prisma.expense.findUnique({
         where: { id: input.id },
       });
@@ -640,20 +749,25 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      // 只有 Draft 狀態才能刪除
-      if (expense.status !== 'Draft') {
+      // 如果已經是 Draft，不需要操作
+      if (expense.status === 'Draft') {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: '只有草稿狀態的費用才能刪除',
+          message: '費用已經是草稿狀態',
         });
       }
 
-      // 刪除費用
-      await ctx.prisma.expense.delete({
+      // 更新狀態為 Draft，並清除相關日期
+      await ctx.prisma.expense.update({
         where: { id: input.id },
+        data: {
+          status: 'Draft',
+          approvedDate: null,
+          paidDate: null,
+        },
       });
 
-      return { success: true, message: '費用記錄已成功刪除' };
+      return { success: true };
     }),
 
   /**
