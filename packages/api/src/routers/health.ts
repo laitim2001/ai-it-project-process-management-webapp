@@ -2149,7 +2149,10 @@ export const healthRouter = createTRPCRouter({
 
       await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "lastFYActualExpense" DOUBLE PRECISION`;
       await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ADD COLUMN IF NOT EXISTS "isOngoing" BOOLEAN DEFAULT false`;
-      results.push('  ✅ lastFYActualExpense, isOngoing');
+      // CHANGE-011: 移除 endDate 和 startDate 的 NOT NULL 約束（支援 isOngoing=true 時 endDate 可為 null）
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ALTER COLUMN "endDate" DROP NOT NULL`;
+      await ctx.prisma.$executeRaw`ALTER TABLE "OMExpenseItem" ALTER COLUMN "startDate" DROP NOT NULL`;
+      results.push('  ✅ lastFYActualExpense, isOngoing, endDate/startDate 允許 NULL');
       fixedColumns += 2;
 
       // ============================================================
