@@ -3212,6 +3212,12 @@
       "noFiltered": "該篩選條件下沒有數據",
       "tryAdjust": "請嘗試調整篩選條件"
     },
+    "search": {
+      "label": "搜尋",
+      "placeholder": "搜尋 OM Expense 名稱...",
+      "noResults": "找不到符合的結果",
+      "clear": "清除"
+    },
     "table": {
       "noResults": "沒有找到結果"
     }
@@ -3244,6 +3250,19 @@
         "label": "JSON 資料",
         "placeholder": "在此貼上 JSON 資料，或上傳檔案",
         "hint": "支援直接輸入 JSON 陣列資料"
+      },
+      "importMode": {
+        "label": "導入模式",
+        "options": {
+          "skip": "跳過已存在",
+          "update": "更新已存在",
+          "replace": "全部取代"
+        },
+        "descriptions": {
+          "skip": "跳過資料庫中已存在的項目（預設）",
+          "update": "以 Excel 的新資料更新已存在的項目",
+          "replace": "先刪除該財年的所有記錄，再重新導入"
+        }
       }
     },
     "preview": {
@@ -3376,8 +3395,11 @@
         "createdHeaders": "新建表頭",
         "createdItems": "新建項目",
         "createdMonthlyRecords": "月度記錄",
+        "updatedItems": "更新項目",
+        "deletedBeforeReplace": "取代前刪除",
         "skippedDuplicates": "跳過 (已存在)"
       },
+      "importModeUsed": "使用的導入模式",
       "details": {
         "title": "導入詳情",
         "opCos": "建立的營運公司",
@@ -3640,6 +3662,12 @@
       "searchCategories": "搜尋預算類別...",
       "noCategoryFound": "未找到預算類別",
       "reset": "重置"
+    },
+    "search": {
+      "label": "搜尋",
+      "placeholder": "搜尋專案名稱或代碼...",
+      "noResults": "找不到符合的結果",
+      "clear": "清除"
     },
     "summary": {
       "title": "預算類別統計",

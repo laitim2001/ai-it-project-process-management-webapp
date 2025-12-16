@@ -40,11 +40,12 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { RotateCcw, Check, ChevronsUpDown } from 'lucide-react';
+import { RotateCcw, Check, ChevronsUpDown, Search, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
@@ -72,6 +73,10 @@ interface OMSummaryFiltersProps {
   opCoOptions: OpCoOption[];
   categoryOptions: string[];
   isLoading?: boolean;
+  /** CHANGE-030: 搜索詞 */
+  searchTerm?: string;
+  /** CHANGE-030: 搜索詞變更回調 */
+  onSearchChange?: (term: string) => void;
 }
 
 /**
@@ -216,6 +221,8 @@ export function OMSummaryFilters({
   opCoOptions,
   categoryOptions,
   isLoading = false,
+  searchTerm = '',
+  onSearchChange,
 }: OMSummaryFiltersProps) {
   const t = useTranslations('omSummary');
 
@@ -278,7 +285,7 @@ export function OMSummaryFilters({
 
   return (
     <div className="bg-card rounded-lg border p-4 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         {/* 財務年度 */}
         <div className="space-y-2">
           <Label htmlFor="financialYear">{t('filters.financialYear')}</Label>
@@ -335,6 +342,34 @@ export function OMSummaryFilters({
             <RotateCcw className="mr-2 h-4 w-4" />
             {t('filters.reset')}
           </Button>
+        </div>
+      </div>
+
+      {/* CHANGE-030: 搜索輸入框 */}
+      <div className="space-y-2">
+        <Label htmlFor="search">{t('search.label')}</Label>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="search"
+            type="text"
+            placeholder={t('search.placeholder')}
+            value={searchTerm}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            className="pl-10 pr-10"
+            disabled={isLoading}
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+              onClick={() => onSearchChange?.('')}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">{t('search.clear')}</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>

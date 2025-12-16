@@ -143,6 +143,9 @@ interface ParseResult {
 // 頁面狀態
 type ImportStep = 'upload' | 'preview' | 'result';
 
+// CHANGE-027: 導入模式
+type ImportMode = 'skip' | 'update' | 'replace';
+
 // Excel 欄位映射配置 (基於 OM Expense and Detail import data - v5.xlsx)
 // A(0): FY (財務年度) - CHANGE-020: 新增 FY 欄位
 // B(1): OM Expense Header
@@ -188,6 +191,8 @@ export default function DataImportPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('excel');
+  // CHANGE-027: 導入模式狀態
+  const [importMode, setImportMode] = useState<ImportMode>('skip');
 
   // 展開/收合狀態
   const [showAllHeaders, setShowAllHeaders] = useState(false);
@@ -346,6 +351,7 @@ export default function DataImportPage() {
     setCurrentStep('upload');
     setShowAllHeaders(false);
     setShowAllItems(false);
+    setImportMode('skip'); // CHANGE-027: 重置導入模式
     importMutation.reset();
   }, [importMutation]);
 
@@ -792,6 +798,7 @@ export default function DataImportPage() {
 
     importMutation.mutate({
       financialYear,
+      importMode, // CHANGE-027: 傳遞導入模式
       items: parseResult.validData.map(item => ({
         headerName: item.headerName,
         headerDescription: item.headerDescription,
@@ -805,7 +812,7 @@ export default function DataImportPage() {
         isOngoing: item.isOngoing ?? false, // CHANGE-011: 持續進行中標記
       })),
     });
-  }, [parseResult, financialYear, importMutation, toast, t]);
+  }, [parseResult, financialYear, importMode, importMutation, toast, t]);
 
   // 處理 Excel 檔案上傳
   const handleExcelUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -958,6 +965,25 @@ export default function DataImportPage() {
                       </option>
                     ))}
                   </NativeSelect>
+                </div>
+
+                {/* CHANGE-027: 導入模式選擇 */}
+                <div className="space-y-2">
+                  <Label htmlFor="importMode">{t('form.importMode.label')}</Label>
+                  <NativeSelect
+                    id="importMode"
+                    value={importMode}
+                    onChange={(e) => setImportMode(e.target.value as ImportMode)}
+                  >
+                    <option value="skip">{t('form.importMode.options.skip')}</option>
+                    <option value="update">{t('form.importMode.options.update')}</option>
+                    <option value="replace">{t('form.importMode.options.replace')}</option>
+                  </NativeSelect>
+                  <p className="text-xs text-muted-foreground">
+                    {importMode === 'skip' && t('form.importMode.descriptions.skip')}
+                    {importMode === 'update' && t('form.importMode.descriptions.update')}
+                    {importMode === 'replace' && t('form.importMode.descriptions.replace')}
+                  </p>
                 </div>
 
                 {/* 上傳方式切換 */}
@@ -1443,7 +1469,13 @@ export default function DataImportPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-muted-foreground">{t('result.success.message')}</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {/* CHANGE-027: 顯示使用的導入模式 */}
+                  {importMutation.data.importMode && (
+                    <div className="text-sm text-muted-foreground">
+                      {t('result.importModeUsed')}: <span className="font-medium">{t(`form.importMode.options.${importMutation.data.importMode}`)}</span>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                     <div className="rounded-lg bg-muted p-4 text-center">
                       <div className="text-2xl font-bold">{importMutation.data.statistics.createdOpCos}</div>
                       <div className="text-sm text-muted-foreground">{t('result.statistics.createdOpCos')}</div>
@@ -1473,6 +1505,36 @@ export default function DataImportPage() {
                     <div className="rounded-lg bg-muted p-4 text-center">
                       <div className="text-2xl font-bold">{importMutation.data.statistics.createdMonthlyRecords}</div>
                       <div className="text-sm text-muted-foreground">{t('result.statistics.createdMonthlyRecords')}</div>
+                    </div>
+                    {/* CHANGE-027: 更新項目數量（僅 update 模式有值） */}
+                    <div className={`rounded-lg p-4 text-center ${
+                      (importMutation.data.statistics.updatedItems ?? 0) > 0
+                        ? 'bg-blue-100 dark:bg-blue-900/30'
+                        : 'bg-muted'
+                    }`}>
+                      <div className={`text-2xl font-bold ${
+                        (importMutation.data.statistics.updatedItems ?? 0) > 0
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : ''
+                      }`}>
+                        {importMutation.data.statistics.updatedItems ?? 0}
+                      </div>
+                      <div className="text-sm text-muted-foreground">{t('result.statistics.updatedItems')}</div>
+                    </div>
+                    {/* CHANGE-027: 刪除的記錄數量（僅 replace 模式有值） */}
+                    <div className={`rounded-lg p-4 text-center ${
+                      (importMutation.data.statistics.deletedBeforeReplace ?? 0) > 0
+                        ? 'bg-red-100 dark:bg-red-900/30'
+                        : 'bg-muted'
+                    }`}>
+                      <div className={`text-2xl font-bold ${
+                        (importMutation.data.statistics.deletedBeforeReplace ?? 0) > 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : ''
+                      }`}>
+                        {importMutation.data.statistics.deletedBeforeReplace ?? 0}
+                      </div>
+                      <div className="text-sm text-muted-foreground">{t('result.statistics.deletedBeforeReplace')}</div>
                     </div>
                     <div className={`rounded-lg p-4 text-center ${
                       (importMutation.data.statistics.skippedDuplicates ?? 0) > 0

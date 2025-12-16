@@ -107,6 +107,8 @@ interface ProjectSummaryTableProps {
   userOpCoCodes?: string[];
   /** 用戶是否為 Admin（Admin 可查看全部數據） */
   isAdmin?: boolean;
+  /** CHANGE-030: 搜索詞（用於過濾 Project Name 和 Project Code） */
+  searchTerm?: string;
 }
 
 /**
@@ -151,6 +153,32 @@ function getExpenseTypeBadgeVariant(expenseType: string): 'default' | 'secondary
     default:
       return 'secondary';
   }
+}
+
+/**
+ * CHANGE-030: 高亮匹配文字的組件
+ */
+function HighlightText({ text, searchTerm }: { text: string; searchTerm?: string }) {
+  if (!searchTerm || !text) {
+    return <>{text}</>;
+  }
+
+  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, index) =>
+        regex.test(part) ? (
+          <mark key={index} className="bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
 }
 
 /**
@@ -216,14 +244,28 @@ export function ProjectSummaryTable({
   isLoading = false,
   userOpCoCodes = [],
   isAdmin = false,
+  searchTerm = '',
 }: ProjectSummaryTableProps) {
   const t = useTranslations('projectSummary');
+
+  // CHANGE-030: 過濾專案（按 Project Name 和 Project Code）
+  const filteredProjects = React.useMemo(() => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return projects;
+    }
+    const lowerSearch = searchTerm.toLowerCase();
+    return projects.filter(
+      (project) =>
+        project.name.toLowerCase().includes(lowerSearch) ||
+        project.projectCode.toLowerCase().includes(lowerSearch)
+    );
+  }, [projects, searchTerm]);
 
   // 按類別分組專案
   const projectsByCategory = React.useMemo(() => {
     const grouped: Record<string, ProjectSummaryItem[]> = {};
 
-    projects.forEach((project) => {
+    filteredProjects.forEach((project) => {
       const categoryKey = project.budgetCategory?.categoryName || 'Uncategorized';
       if (!grouped[categoryKey]) {
         grouped[categoryKey] = [];
@@ -232,7 +274,7 @@ export function ProjectSummaryTable({
     });
 
     return grouped;
-  }, [projects]);
+  }, [filteredProjects]);
 
   if (isLoading) {
     return (
@@ -259,37 +301,51 @@ export function ProjectSummaryTable({
     );
   }
 
+  // CHANGE-030: 搜索無結果提示
+  if (filteredProjects.length === 0 && searchTerm) {
+    return (
+      <div className="bg-card rounded-lg border p-4">
+        <h2 className="text-lg font-semibold mb-4">{t('table.title')}</h2>
+        <div className="text-center py-8 text-muted-foreground">
+          {t('search.noResults')}
+        </div>
+      </div>
+    );
+  }
+
   // 預設展開所有類別
   const defaultExpandedCategories = Object.keys(projectsByCategory);
 
   return (
     <div className="space-y-6">
-      {/* 類別統計表格 */}
-      <div className="bg-card rounded-lg border p-4">
-        <h2 className="text-lg font-semibold mb-4">{t('summary.title')} - FY{financialYear}</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('summary.category')}</TableHead>
-              <TableHead className="text-center">{t('summary.projectCount')}</TableHead>
-              <TableHead className="text-right">{t('summary.requestedBudget')}</TableHead>
-              <TableHead className="text-right">{t('summary.approvedBudget')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categorySummary.map((category) => (
-              <TableRow key={category.categoryId}>
-                <TableCell className="font-medium">
-                  {category.categoryCode} - {category.categoryName}
-                </TableCell>
-                <TableCell className="text-center">{category.projectCount}</TableCell>
-                <TableCell className="text-right">{formatCurrency(category.totalRequestedBudget)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(category.totalApprovedBudget)}</TableCell>
+      {/* 類別統計表格 - CHANGE-029: 只有 Admin 可見 */}
+      {isAdmin && (
+        <div className="bg-card rounded-lg border p-4">
+          <h2 className="text-lg font-semibold mb-4">{t('summary.title')} - FY{financialYear}</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('summary.category')}</TableHead>
+                <TableHead className="text-center">{t('summary.projectCount')}</TableHead>
+                <TableHead className="text-right">{t('summary.requestedBudget')}</TableHead>
+                <TableHead className="text-right">{t('summary.approvedBudget')}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {categorySummary.map((category) => (
+                <TableRow key={category.categoryId}>
+                  <TableCell className="font-medium">
+                    {category.categoryCode} - {category.categoryName}
+                  </TableCell>
+                  <TableCell className="text-center">{category.projectCount}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(category.totalRequestedBudget)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(category.totalApprovedBudget)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* 明細表格 */}
       <div className="bg-card rounded-lg border p-4">
@@ -353,7 +409,9 @@ export function ProjectSummaryTable({
                             <TableCell className="overflow-hidden">
                               {/* FIX-009: 移除 truncate，改用 break-words 允許文字換行顯示完整內容 */}
                               <div className="break-words">
-                                <div className="font-medium break-words">{project.name}</div>
+                                <div className="font-medium break-words">
+                                  <HighlightText text={project.name} searchTerm={searchTerm} />
+                                </div>
                                 {project.description && (
                                   <div className="text-sm text-muted-foreground break-words line-clamp-2">
                                     {project.description}
@@ -362,7 +420,9 @@ export function ProjectSummaryTable({
                               </div>
                             </TableCell>
                             <TableCell className="overflow-hidden">
-                              <Badge variant="outline" className="truncate max-w-full">{project.projectCode}</Badge>
+                              <Badge variant="outline" className="truncate max-w-full">
+                                <HighlightText text={project.projectCode} searchTerm={searchTerm} />
+                              </Badge>
                             </TableCell>
                             <TableCell>
                               <Badge variant={project.projectType === 'Project' ? 'default' : 'secondary'}>

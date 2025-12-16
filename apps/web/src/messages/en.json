@@ -3212,6 +3212,12 @@
       "noFiltered": "No data matches the current filters",
       "tryAdjust": "Try adjusting your filter criteria"
     },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search OM Expense name...",
+      "noResults": "No matching results found",
+      "clear": "Clear"
+    },
     "table": {
       "noResults": "No results found"
     }
@@ -3391,6 +3397,12 @@
       "noCategoryFound": "No budget category found",
       "reset": "Reset"
     },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search project name or code...",
+      "noResults": "No matching results found",
+      "clear": "Clear"
+    },
     "summary": {
       "title": "Budget Category Statistics",
       "category": "Budget Category",
@@ -3444,6 +3456,19 @@
         "label": "JSON Data",
         "placeholder": "Paste JSON data here, or upload a file",
         "hint": "Supports direct input of JSON array data"
+      },
+      "importMode": {
+        "label": "Import Mode",
+        "options": {
+          "skip": "Skip Existing",
+          "update": "Update Existing",
+          "replace": "Replace All"
+        },
+        "descriptions": {
+          "skip": "Skip items that already exist in the database (default)",
+          "update": "Update existing items with new data from Excel",
+          "replace": "Delete all records for this fiscal year first, then import"
+        }
       }
     },
     "preview": {
@@ -3576,8 +3601,11 @@
         "createdHeaders": "New Headers",
         "createdItems": "New Items",
         "createdMonthlyRecords": "Monthly Records",
+        "updatedItems": "Updated Items",
+        "deletedBeforeReplace": "Deleted Before Replace",
         "skippedDuplicates": "Skipped (Existing)"
       },
+      "importModeUsed": "Import Mode Used",
       "details": {
         "title": "Import Details",
         "opCos": "Created Operating Companies",

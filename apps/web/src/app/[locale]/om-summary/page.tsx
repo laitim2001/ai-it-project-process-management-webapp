@@ -92,46 +92,60 @@ export default function OMSummaryPage() {
   const tProjectSummary = useTranslations('projectSummary');
   const tCommon = useTranslations('common');
 
-  // CHANGE-014: 獲取用戶 session 以判斷權限
-  const { data: session } = useSession();
-  // 修復的 isAdmin 判斷：使用 role.name === 'Admin'（與後端 adminProcedure 保持一致）
-  // 資料庫中 Role 表的 id 可能與預期不同，使用 name 更可靠
-  const roleName = session?.user?.role?.name ?? '';
-  const isAdmin = roleName === 'Admin';
+  // CHANGE-014/CHANGE-029: 獲取用戶 session 以判斷權限
+  const { data: session, status: sessionStatus } = useSession();
 
-  // CHANGE-014 調試日誌：檢查 session.user.role 是否正確設置
+  // CHANGE-029 FIX: 使用多重條件判斷 Admin 身份，確保可靠性
+  // 使用 role.name 和 role.id 雙重判斷
+  const roleName = session?.user?.role?.name ?? '';
+  const roleIdFromRole = session?.user?.role?.id ?? 0;
+  // Admin 判斷：role.name === 'Admin' OR role.id === 3
+  const isAdmin = roleName === 'Admin' || roleIdFromRole === 3;
+
+  // CHANGE-029 調試日誌：檢查 session.user.role 是否正確設置
   React.useEffect(() => {
-    if (session) {
-      console.log('[OM-Summary] Session loaded:', {
-        userId: session.user?.id,
-        email: session.user?.email,
-        role: session.user?.role,
+    if (sessionStatus !== 'loading') {
+      console.log('[OM-Summary] Session check:', {
+        sessionStatus,
+        userId: session?.user?.id,
+        email: session?.user?.email,
+        role: session?.user?.role,
         roleName: roleName,
+        roleIdFromRole: roleIdFromRole,
         isAdmin: isAdmin,
       });
     }
-  }, [session, roleName, isAdmin]);
+  }, [session, sessionStatus, roleName, roleIdFromRole, isAdmin]);
 
   // 當前財務年度
   const currentFY = new Date().getFullYear();
+  // CHANGE-028: 預設選取下一年度
+  const defaultFY = currentFY + 1;
 
   // Tab 狀態
   const [activeTab, setActiveTab] = React.useState<'om-summary' | 'project-summary'>('om-summary');
 
+  // CHANGE-030: O&M Summary 搜索狀態
+  const [omSearchTerm, setOmSearchTerm] = React.useState('');
+  // CHANGE-030: Project Summary 搜索狀態
+  const [projectSearchTerm, setProjectSearchTerm] = React.useState('');
+
   // O&M Summary 過濾器狀態
+  // CHANGE-028: 使用 defaultFY (下一年度) 作為預設值
   const [filters, setFilters] = React.useState<FilterState>({
-    currentYear: currentFY,
-    previousYear: currentFY - 1,
+    currentYear: defaultFY,
+    previousYear: defaultFY - 1,
     opCoIds: [],
     categories: [],
   });
 
   // Project Summary 過濾器狀態
+  // CHANGE-028: 使用 defaultFY (下一年度) 作為預設值
   const [projectFilters, setProjectFilters] = React.useState<{
     financialYear: number;
     budgetCategoryIds: string[];
   }>({
-    financialYear: currentFY,
+    financialYear: defaultFY,
     budgetCategoryIds: [],
   });
 
@@ -312,6 +326,8 @@ export default function OMSummaryPage() {
             opCoOptions={opCoData || []}
             categoryOptions={categoryData || []}
             isLoading={isLoading}
+            searchTerm={omSearchTerm}
+            onSearchChange={setOmSearchTerm}
           />
 
           {/* 類別匯總表格 */}
@@ -335,6 +351,7 @@ export default function OMSummaryPage() {
             previousYear={filters.previousYear}
             isLoading={isLoading}
             showOpCoGroups={showOpCoGroups}
+            searchTerm={omSearchTerm}
           />
         </TabsContent>
 
@@ -347,6 +364,8 @@ export default function OMSummaryPage() {
             availableYears={availableYears}
             budgetCategoryOptions={budgetCategoryOptions}
             isLoading={isProjectLoading}
+            searchTerm={projectSearchTerm}
+            onSearchChange={setProjectSearchTerm}
           />
 
           {/* 專案摘要表格 */}
@@ -358,6 +377,7 @@ export default function OMSummaryPage() {
             isLoading={isProjectLoading}
             userOpCoCodes={opCoData?.map((o) => o.code) || []}
             isAdmin={isAdmin}
+            searchTerm={projectSearchTerm}
           />
         </TabsContent>
       </Tabs>

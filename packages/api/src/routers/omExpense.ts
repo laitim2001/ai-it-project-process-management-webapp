@@ -187,9 +187,19 @@ const importOMExpenseItemSchema = z.object({
   isOngoing: z.boolean().optional().default(false), // CHANGE-011: 持續進行中標記
 });
 
+/**
+ * CHANGE-027: 導入模式枚舉
+ * - skip: 跳過已存在的項目（預設）
+ * - update: 更新已存在的項目
+ * - replace: 刪除該財年所有記錄後重新導入
+ */
+const importModeSchema = z.enum(['skip', 'update', 'replace']).default('skip');
+
 const importOMExpenseDataSchema = z.object({
   financialYear: z.number().int().min(2000).max(2100),
   items: z.array(importOMExpenseItemSchema).min(1, '至少需要一筆導入資料'),
+  /** CHANGE-027: 導入模式 */
+  importMode: importModeSchema.optional().default('skip'),
 });
 
 // ========== FEAT-008: Import Result Type ==========
@@ -203,6 +213,8 @@ export interface ImportResult {
     createdItems: number;
     createdMonthlyRecords: number;
     skippedDuplicates: number; // 跳過的重複項目數量
+    updatedItems: number; // CHANGE-027: 更新的項目數量
+    deletedBeforeReplace: number; // CHANGE-027: 替換模式下刪除的記錄數量
   };
   details: {
     opCos: string[];
@@ -210,6 +222,8 @@ export interface ImportResult {
     headers: string[];
     skippedItems?: Array<{ headerName: string; itemName: string; opCoName: string }>; // 被跳過的項目清單
   };
+  /** CHANGE-027: 導入模式 */
+  importMode?: 'skip' | 'update' | 'replace';
   error?: {
     message: string;
     duplicateItem?: {
@@ -370,12 +384,26 @@ export const omExpenseRouter = createTRPCRouter({
   importData: protectedProcedure
     .input(importOMExpenseDataSchema)
     .mutation(async ({ ctx, input }): Promise<ImportResult> => {
-      const { financialYear, items } = input;
+      // CHANGE-027: 解構導入模式
+      const { financialYear, items, importMode = 'skip' } = input;
 
       try {
         // 使用 Prisma Transaction - 全部成功或全部回滾
         // 增加超時時間：預設 5 秒太短，導入大量資料需要更長時間
         const result = await ctx.prisma.$transaction(async (tx) => {
+          // CHANGE-027: 追蹤更新和刪除的數量
+          let updatedItemsCount = 0;
+          let deletedBeforeReplaceCount = 0;
+
+          // ========== CHANGE-027: Step 0 - 替換模式前置處理 ==========
+          if (importMode === 'replace') {
+            // 刪除該財年所有現有的 OMExpense 記錄（cascade 會自動刪除 Items 和 Monthly）
+            const deleteResult = await tx.oMExpense.deleteMany({
+              where: { financialYear },
+            });
+            deletedBeforeReplaceCount = deleteResult.count;
+          }
+
           // ========== Step 1: 收集所有唯一的 OpCo 名稱 ==========
           const opCoNames = [...new Set(items.map((i) => i.opCoName))];
 
@@ -522,14 +550,33 @@ export const omExpenseRouter = createTRPCRouter({
             });
 
             if (existingItem) {
-              // 發現重複資料，跳過該筆並記錄
-              skippedDuplicatesCount++;
-              skippedItems.push({
-                headerName: item.headerName,
-                itemName: item.itemName,
-                opCoName: item.opCoName,
-              });
-              continue; // 跳過此項目，處理下一筆
+              // CHANGE-027: 根據導入模式處理重複項目
+              if (importMode === 'update') {
+                // 更新模式：更新現有項目的數據
+                await tx.oMExpenseItem.update({
+                  where: { id: existingItem.id },
+                  data: {
+                    description: item.itemDescription ?? existingItem.description,
+                    budgetAmount: item.budgetAmount ?? existingItem.budgetAmount,
+                    lastFYActualExpense: item.lastFYActualExpense ?? existingItem.lastFYActualExpense,
+                    isOngoing: item.isOngoing ?? existingItem.isOngoing,
+                    endDate: item.isOngoing
+                      ? null
+                      : (item.endDate ? new Date(item.endDate) : existingItem.endDate),
+                  },
+                });
+                updatedItemsCount++;
+                continue; // 繼續處理下一筆
+              } else {
+                // skip 模式（預設）：跳過該筆並記錄
+                skippedDuplicatesCount++;
+                skippedItems.push({
+                  headerName: item.headerName,
+                  itemName: item.itemName,
+                  opCoName: item.opCoName,
+                });
+                continue; // 跳過此項目，處理下一筆
+              }
             }
 
             // 追蹤每個 header 的 items 用於計算 sortOrder
@@ -618,6 +665,8 @@ export const omExpenseRouter = createTRPCRouter({
               createdItems: createdItemsCount,
               createdMonthlyRecords: createdMonthlyRecordsCount,
               skippedDuplicates: skippedDuplicatesCount,
+              updatedItems: updatedItemsCount, // CHANGE-027: 更新的項目數量
+              deletedBeforeReplace: deletedBeforeReplaceCount, // CHANGE-027: 替換模式下刪除的記錄數量
             },
             details: {
               opCos: createdOpCos,
@@ -625,6 +674,7 @@ export const omExpenseRouter = createTRPCRouter({
               headers: createdHeaders,
               skippedItems: skippedItems.length > 0 ? skippedItems : undefined,
             },
+            importMode, // CHANGE-027: 導入模式
           };
         }, {
           // 增加 transaction 超時時間：導入大量資料需要更長時間
@@ -650,12 +700,15 @@ export const omExpenseRouter = createTRPCRouter({
               createdItems: 0,
               createdMonthlyRecords: 0,
               skippedDuplicates: 0,
+              updatedItems: 0, // CHANGE-027
+              deletedBeforeReplace: 0, // CHANGE-027
             },
             details: {
               opCos: [],
               categories: [],
               headers: [],
             },
+            importMode, // CHANGE-027
             error: {
               message: error.message,
               duplicateItem: cause
@@ -680,12 +733,15 @@ export const omExpenseRouter = createTRPCRouter({
             createdItems: 0,
             createdMonthlyRecords: 0,
             skippedDuplicates: 0,
+            updatedItems: 0, // CHANGE-027
+            deletedBeforeReplace: 0, // CHANGE-027
           },
           details: {
             opCos: [],
             categories: [],
             headers: [],
           },
+          importMode, // CHANGE-027
           error: {
             message: error instanceof Error ? error.message : '導入失敗，所有資料已回滾',
           },
