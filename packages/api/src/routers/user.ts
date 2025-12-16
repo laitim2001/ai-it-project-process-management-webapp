@@ -19,9 +19,10 @@
  * - 獲取所有主管列表（用於專案監督）
  * - 刪除用戶（檢查專案關聯保護）
  * - 獲取所有角色列表（用於下拉選單）
+ * - 設定/更改用戶密碼（CHANGE-032）
  *
  * @procedures
- * - create: 建立新用戶（驗證 Email 和角色）
+ * - create: 建立新用戶（驗證 Email 和角色，可選設定密碼）
  * - update: 更新用戶資訊（支援部分更新）
  * - delete: 刪除用戶（檢查專案關聯）
  * - getAll: 查詢所有用戶列表（包含角色）
@@ -30,11 +31,14 @@
  * - getManagers: 獲取所有專案經理
  * - getSupervisors: 獲取所有主管
  * - getRoles: 獲取所有角色列表
+ * - setPassword: 設定/更改用戶密碼（Admin only）
+ * - hasPassword: 檢查用戶是否已設定密碼
  *
  * @dependencies
  * - Prisma Client: 資料庫操作
  * - Zod: 輸入驗證和類型推斷
  * - tRPC: API 框架和類型安全
+ * - bcryptjs: 密碼加密
  *
  * @related
  * - packages/db/prisma/schema.prisma - User 和 Role 資料模型
@@ -44,11 +48,13 @@
  *
  * @author IT Department
  * @since Epic 1 - Azure AD B2C Authentication
- * @lastModified 2025-11-14
+ * @lastModified 2025-12-16
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc';
+import bcrypt from 'bcryptjs';
+import { createTRPCRouter, publicProcedure, adminProcedure } from '../trpc';
+import { validatePasswordStrength } from '../lib/passwordValidation';
 
 /**
  * User 輸入驗證 Schema
@@ -57,6 +63,15 @@ const userCreateInputSchema = z.object({
   email: z.string().email('請輸入有效的電子郵件地址'),
   name: z.string().min(1, '姓名為必填欄位').optional(),
   roleId: z.number().int().positive('角色ID必須為正整數'),
+  password: z.string().optional(), // 可選的密碼，如果提供則驗證強度
+});
+
+/**
+ * 密碼設定 Schema
+ */
+const setPasswordInputSchema = z.object({
+  userId: z.string().uuid('無效的使用者ID'),
+  password: z.string().min(1, '密碼為必填'),
 });
 
 const userUpdateInputSchema = z.object({
@@ -194,6 +209,7 @@ export const userRouter = createTRPCRouter({
 
   /**
    * 建立使用者
+   * 支援可選的密碼設定，密碼會經過驗證和 bcrypt 加密
    */
   create: publicProcedure
     .input(userCreateInputSchema)
@@ -220,11 +236,22 @@ export const userRouter = createTRPCRouter({
         throw new Error('無效的角色ID');
       }
 
+      // 如果提供了密碼，驗證密碼強度並加密
+      let hashedPassword: string | undefined;
+      if (input.password) {
+        const passwordValidation = validatePasswordStrength(input.password);
+        if (!passwordValidation.isValid) {
+          throw new Error(passwordValidation.errors.join('；'));
+        }
+        hashedPassword = await bcrypt.hash(input.password, 12);
+      }
+
       const user = await ctx.prisma.user.create({
         data: {
           email: input.email,
           name: input.name,
           roleId: input.roleId,
+          ...(hashedPassword && { password: hashedPassword }),
         },
         include: {
           role: true,
@@ -334,4 +361,69 @@ export const userRouter = createTRPCRouter({
 
     return roles;
   }),
+
+  /**
+   * 設定/更改使用者密碼 (CHANGE-032)
+   * 僅限 Admin 角色使用
+   * 密碼驗證要求：
+   * - 最小長度：12 個字符
+   * - 複雜度：至少 6 個字符為大寫字母、數字或符號
+   */
+  setPassword: adminProcedure
+    .input(setPasswordInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      // 檢查使用者是否存在
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: input.userId },
+      });
+
+      if (!user) {
+        throw new Error('找不到該使用者');
+      }
+
+      // 驗證密碼強度
+      const passwordValidation = validatePasswordStrength(input.password);
+      if (!passwordValidation.isValid) {
+        throw new Error(passwordValidation.errors.join('；'));
+      }
+
+      // 加密密碼
+      const hashedPassword = await bcrypt.hash(input.password, 12);
+
+      // 更新使用者密碼
+      await ctx.prisma.user.update({
+        where: { id: input.userId },
+        data: { password: hashedPassword },
+      });
+
+      return {
+        success: true,
+        message: '密碼設定成功',
+      };
+    }),
+
+  /**
+   * 檢查使用者是否已設定密碼 (CHANGE-032)
+   * 用於前端顯示「設定密碼」或「更改密碼」
+   */
+  hasPassword: publicProcedure
+    .input(
+      z.object({
+        userId: z.string().uuid('無效的使用者ID'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: input.userId },
+        select: { password: true },
+      });
+
+      if (!user) {
+        throw new Error('找不到該使用者');
+      }
+
+      return {
+        hasPassword: !!user.password,
+      };
+    }),
 });

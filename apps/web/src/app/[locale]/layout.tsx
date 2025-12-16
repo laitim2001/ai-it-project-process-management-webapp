@@ -75,8 +75,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '../globals.css';
+import { Suspense } from 'react';
 import { TRPCProvider } from '@/lib/trpc-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { GlobalProgress } from '@/components/ui/loading';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -117,6 +119,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body className={inter.className}>
+        {/* FEAT-012: 全局導航進度條 - 需要 Suspense 包裹以支援 useSearchParams */}
+        <Suspense fallback={null}>
+          <GlobalProgress />
+        </Suspense>
+
         <SessionProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <TRPCProvider>

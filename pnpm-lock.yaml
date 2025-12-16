@@ -262,6 +262,9 @@ importers:
       '@trpc/server':
         specifier: ^10.45.1
         version: 10.45.2
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
       next-auth:
         specifier: 5.0.0-beta.30
         version: 5.0.0-beta.30(next@14.2.33)(nodemailer@7.0.7)(react@18.3.1)
@@ -275,6 +278,9 @@ importers:
       '@itpm/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/node':
         specifier: ^20.11.19
         version: 20.19.19

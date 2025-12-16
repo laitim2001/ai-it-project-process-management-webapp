@@ -245,3 +245,13 @@ export {
   AccordionTrigger,
   AccordionContent,
 } from "./accordion";
+
+// CHANGE-032 - Password Components
+export { PasswordInput } from "./password-input";
+export type { PasswordInputProps } from "./password-input";
+export { PasswordStrengthIndicator } from "./password-strength-indicator";
+export type { PasswordStrengthIndicatorProps } from "./password-strength-indicator";
+
+// FEAT-012 - Loading Components
+export { Spinner, LoadingButton, LoadingOverlay, GlobalProgress } from "./loading";
+export type { SpinnerProps, LoadingButtonProps, LoadingOverlayProps, GlobalProgressProps } from "./loading";

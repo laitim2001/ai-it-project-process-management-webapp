@@ -13,12 +13,14 @@
     "@itpm/auth": "workspace:*",
     "@itpm/db": "workspace:*",
     "@trpc/server": "^10.45.1",
+    "bcryptjs": "^2.4.3",
     "next-auth": "5.0.0-beta.30",
     "nodemailer": "^7.0.7",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@itpm/tsconfig": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.11.19",
     "@types/nodemailer": "^7.0.2",
     "typescript": "^5.3.3"

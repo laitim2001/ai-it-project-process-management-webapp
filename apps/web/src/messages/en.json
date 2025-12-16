@@ -2721,7 +2721,8 @@
       "validation": {
         "emailRequired": "Email is required",
         "emailInvalid": "Please enter a valid email format",
-        "roleRequired": "Role is required"
+        "roleRequired": "Role is required",
+        "passwordRequired": "Password is required"
       },
       "messages": {
         "createSuccess": "User created successfully!",
@@ -2779,6 +2780,41 @@
         "expense": "Expense Permissions",
         "system": "System Permissions"
       }
+    },
+    "password": {
+      "title": "Password Settings",
+      "setPassword": "Set Password",
+      "changePassword": "Change Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "currentPassword": "Current Password",
+      "placeholder": "Enter password",
+      "placeholderConfirm": "Enter password again",
+      "strength": "Password Strength",
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong",
+      "requirements": {
+        "title": "Password Requirements",
+        "length": "At least {count} characters",
+        "complexity": "At least {count} uppercase letters, numbers, or symbols"
+      },
+      "details": {
+        "breakdown": "Contains:",
+        "uppercase": "{count} uppercase",
+        "digits": "{count} digits",
+        "symbols": "{count} symbols"
+      },
+      "messages": {
+        "setSuccess": "Password set successfully",
+        "changeSuccess": "Password changed successfully",
+        "setError": "Failed to set password",
+        "mismatch": "Passwords do not match",
+        "tooWeak": "Password is too weak"
+      },
+      "optional": "(Optional)",
+      "hint": "Without a password, users can only sign in via Azure SSO"
     }
   },
   "notifications": {
@@ -3765,5 +3801,17 @@
       "parseError": "Failed to parse Excel file",
       "importFailed": "Import operation failed"
     }
+  },
+  "loading": {
+    "loading": "Loading...",
+    "submitting": "Submitting...",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "processing": "Processing...",
+    "pleaseWait": "Please wait...",
+    "creatingRecord": "Creating record...",
+    "updatingRecord": "Updating record...",
+    "loadingData": "Loading data...",
+    "refreshing": "Refreshing..."
   }
 }

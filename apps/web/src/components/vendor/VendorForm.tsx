@@ -67,7 +67,8 @@ import { useState } from 'react';
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
-import { useToast } from '@/components/ui';
+import { useToast, Button } from '@/components/ui';
+import { LoadingButton } from '@/components/ui/loading';
 
 interface VendorFormProps {
   initialData?: {
@@ -190,8 +191,8 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
     }
   };
 
-  // 提交狀態
-  const isSubmitting = createMutation.isLoading || updateMutation.isLoading;
+  // 提交狀態 (FEAT-012: 統一載入狀態)
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -269,27 +270,23 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
         />
       </div>
 
-      {/* 操作按鈕 */}
+      {/* 操作按鈕 (FEAT-012: 使用 LoadingButton 統一載入狀態) */}
       <div className="flex gap-4">
-        <button
+        <LoadingButton
           type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          isLoading={isSubmitting}
+          loadingText={tCommon('actions.saving')}
         >
-          {isSubmitting
-            ? tCommon('actions.saving')
-            : mode === 'create'
-            ? t('actions.create')
-            : tCommon('actions.update')}
-        </button>
-        <button
+          {mode === 'create' ? t('actions.create') : tCommon('actions.update')}
+        </LoadingButton>
+        <Button
           type="button"
+          variant="outline"
           onClick={() => router.back()}
           disabled={isSubmitting}
-          className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
         >
           {tCommon('actions.cancel')}
-        </button>
+        </Button>
       </div>
     </form>
   );
