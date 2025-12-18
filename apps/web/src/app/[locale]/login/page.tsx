@@ -15,8 +15,9 @@
  * - 客戶端和伺服器端雙重驗證
  * - 詳細錯誤訊息處理（區分配置錯誤、憑證錯誤等）
  * - 自動重定向到回調 URL
- * - 忘記密碼和註冊頁面連結
- * - 使用條款提示
+ *
+ * @changelog
+ * - CHANGE-033 (2025-12-18): 簡化登入頁面，移除忘記密碼、註冊連結和使用條款提示
  *
  * @permissions
  * - Public: 所有用戶可訪問
@@ -58,14 +59,14 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useRouter, Link } from '@/i18n/routing';
+import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -252,15 +253,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between text-sm">
-              <a
-                href="/forgot-password"
-                className="text-primary hover:underline"
-              >
-                {t('forgotPassword')}
-              </a>
-            </div>
-
             <Button
               type="submit"
               disabled={isLoading}
@@ -271,20 +263,6 @@ export default function LoginPage() {
           </form>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">{t('noAccount')}</span>{' '}
-            <Link
-              href="/register"
-              className="text-primary font-medium hover:underline"
-            >
-              {t('register')}
-            </Link>
-          </div>
-          <p className="text-center text-xs text-muted-foreground w-full">
-            {t('termsAgreement')}
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

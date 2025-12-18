@@ -54,7 +54,8 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, Link } from "@/i18n/routing";
-import { Plus, LayoutGrid, List, Trash2 } from 'lucide-react';
+import { Plus, LayoutGrid, List, Trash2, Search } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -101,6 +102,9 @@ export default function OMExpensesPage() {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedOpCo, setSelectedOpCo] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  // CHANGE-035: 新增搜尋狀態
+  const [search, setSearch] = useState<string>('');
+  const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const limit = 12;
 
@@ -115,6 +119,8 @@ export default function OMExpensesPage() {
     financialYear: selectedYear,
     opCoId: selectedOpCo || undefined,
     category: selectedCategory || undefined,
+    // CHANGE-035: 新增搜尋參數
+    search: debouncedSearch || undefined,
     page,
     limit,
   });
@@ -256,10 +262,28 @@ export default function OMExpensesPage() {
         </div>
       </div>
 
-      {/* 過濾器 */}
+      {/* 過濾器 - CHANGE-035: 新增搜尋功能 */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* CHANGE-035: 搜尋輸入框 */}
+            <div>
+              <label className="mb-2 block text-sm font-medium">{t('list.filters.search')}</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder={t('list.filters.searchPlaceholder')}
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            </div>
+
             {/* 年度選擇 */}
             <div>
               <label className="mb-2 block text-sm font-medium">{t('list.filters.financialYear')}</label>

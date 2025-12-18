@@ -240,6 +240,8 @@ export const projectRouter = createTRPCRouter({
           currencyId: z.string().uuid().optional(),
           // FEAT-010: 財務年度過濾
           fiscalYear: z.number().int().optional(),
+          // CHANGE-034: 專案類別過濾
+          projectCategory: z.string().optional(),
           sortBy: z.enum(['name', 'status', 'createdAt', 'projectCode', 'priority', 'fiscalYear']).default('createdAt'),
           sortOrder: z.enum(['asc', 'desc']).default('desc'),
         })
@@ -261,6 +263,8 @@ export const projectRouter = createTRPCRouter({
       const currencyId = input?.currencyId;
       // FEAT-010: 財務年度篩選
       const fiscalYear = input?.fiscalYear;
+      // CHANGE-034: 專案類別篩選
+      const projectCategory = input?.projectCategory;
       const sortBy = input?.sortBy ?? 'createdAt';
       const sortOrder = input?.sortOrder ?? 'desc';
 
@@ -296,6 +300,8 @@ export const projectRouter = createTRPCRouter({
           currencyId ? { currencyId } : {},
           // FEAT-010: 財務年度篩選條件
           fiscalYear ? { fiscalYear } : {},
+          // CHANGE-034: 專案類別篩選條件
+          projectCategory ? { projectCategory } : {},
         ],
       };
 
@@ -2097,6 +2103,42 @@ export const projectRouter = createTRPCRouter({
 
     return {
       fiscalYears,
+    };
+  }),
+
+  /**
+   * CHANGE-034: 取得所有不重複的專案類別
+   *
+   * @description
+   * 從資料庫中取得所有專案的不重複 projectCategory 值，
+   * 用於專案列表頁面的過濾下拉選單。
+   *
+   * @returns {string[]} projectCategories - 不重複的專案類別列表
+   */
+  getProjectCategories: protectedProcedure.query(async ({ ctx }) => {
+    // 使用 findMany + distinct 獲取不重複的 projectCategory
+    const projects = await ctx.prisma.project.findMany({
+      where: {
+        projectCategory: {
+          not: null,
+        },
+      },
+      select: {
+        projectCategory: true,
+      },
+      distinct: ['projectCategory'],
+      orderBy: {
+        projectCategory: 'asc',
+      },
+    });
+
+    // 提取並過濾掉 null 值
+    const projectCategories = projects
+      .map((p) => p.projectCategory)
+      .filter((cat): cat is string => cat !== null);
+
+    return {
+      projectCategories,
     };
   }),
 

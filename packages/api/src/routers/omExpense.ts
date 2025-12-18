@@ -2093,6 +2093,8 @@ export const omExpenseRouter = createTRPCRouter({
           financialYear: z.number().int().optional(),
           opCoId: z.string().optional(),
           category: z.string().optional(),
+          // CHANGE-035: 新增搜尋功能
+          search: z.string().optional(),
           page: z.number().int().min(1).optional().default(1),
           limit: z.number().int().min(1).max(100).optional().default(20),
         })
@@ -2115,6 +2117,11 @@ export const omExpenseRouter = createTRPCRouter({
 
       if (input?.category) {
         where.category = input.category;
+      }
+
+      // CHANGE-035: 名稱搜尋條件
+      if (input?.search) {
+        where.name = { contains: input.search, mode: 'insensitive' };
       }
 
       // 獲取總數

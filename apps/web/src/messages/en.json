@@ -431,6 +431,16 @@
       "fiscalYear": {
         "label": "Fiscal Year",
         "all": "All"
+      },
+      "projectCode": {
+        "placeholder": "Project Code"
+      },
+      "projectCategory": {
+        "label": "Project Category",
+        "all": "All Categories"
+      },
+      "advanced": {
+        "toggle": "Advanced Filters"
       }
     },
     "sort": {
@@ -2108,6 +2118,8 @@
       "newOMExpense": "New OM Expense",
       "search": "Search OM expenses...",
       "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Search expense name...",
         "financialYear": "Financial Year",
         "opCo": "Operating Company (OpCo)",
         "allOpCos": "All OpCos",

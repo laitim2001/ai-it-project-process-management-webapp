@@ -431,6 +431,16 @@
       "fiscalYear": {
         "label": "財務年度",
         "all": "全部"
+      },
+      "projectCode": {
+        "placeholder": "專案編號"
+      },
+      "projectCategory": {
+        "label": "專案類別",
+        "all": "所有類別"
+      },
+      "advanced": {
+        "toggle": "進階篩選"
       }
     },
     "sort": {
@@ -2108,6 +2118,8 @@
       "newOMExpense": "新增 OM 費用",
       "search": "搜尋 OM 費用...",
       "filters": {
+        "search": "搜尋",
+        "searchPlaceholder": "搜尋費用名稱...",
         "financialYear": "財務年度",
         "opCo": "營運公司 (OpCo)",
         "allOpCos": "所有 OpCo",

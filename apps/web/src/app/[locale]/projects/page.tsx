@@ -126,7 +126,8 @@ export default function ProjectsPage() {
   const [currencyFilter, setCurrencyFilter] = useState<string | undefined>(undefined);
   // FEAT-010: 新增財務年度篩選器
   const [fiscalYearFilter, setFiscalYearFilter] = useState<number | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt' | 'projectCode' | 'priority' | 'fiscalYear'>('createdAt');
+  // CHANGE-034: 預設按 projectCode 排序
+  const [sortBy, setSortBy] = useState<'name' | 'status' | 'createdAt' | 'projectCode' | 'priority' | 'fiscalYear'>('projectCode');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -136,12 +137,20 @@ export default function ProjectsPage() {
 
   // 使用 ref 保持輸入框 focus
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  // CHANGE-034: 預設為列表視圖
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
+
+  // CHANGE-034: 新增過濾器狀態
+  const [projectCodeFilter, setProjectCodeFilter] = useState('');
+  const [projectCategoryFilter, setProjectCategoryFilter] = useState<string | undefined>(undefined);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const utils = api.useContext();
 
   // Debounce 搜尋，避免過多 API 請求
   const debouncedSearch = useDebounce(search, 300);
+  // CHANGE-034: Debounce project code 搜尋
+  const debouncedProjectCodeFilter = useDebounce(projectCodeFilter, 300);
 
   // ============================================================
   // API 查詢
@@ -163,6 +172,9 @@ export default function ProjectsPage() {
     currencyId: currencyFilter,
     // FEAT-010: 財務年度篩選
     fiscalYear: fiscalYearFilter,
+    // CHANGE-034: 新增過濾器
+    projectCode: debouncedProjectCodeFilter || undefined,
+    projectCategory: projectCategoryFilter,
     sortBy,
     sortOrder,
   });
@@ -214,6 +226,12 @@ export default function ProjectsPage() {
    */
   const { data: fiscalYearsData } = api.project.getFiscalYears.useQuery();
   const fiscalYears = fiscalYearsData?.fiscalYears ?? [];
+
+  /**
+   * CHANGE-034: 查詢系統中所有專案類別（用於篩選下拉選單）
+   */
+  const { data: projectCategoriesData } = api.project.getProjectCategories.useQuery();
+  const projectCategories = projectCategoriesData?.projectCategories ?? [];
 
   /**
    * CHANGE-019: 批量刪除專案 Mutation
@@ -498,75 +516,20 @@ export default function ProjectsPage() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* 搜尋和篩選欄 */}
+        {/* CHANGE-034: 重新組織的搜尋和篩選欄 */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              {/* 搜尋框 */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder={t('search.placeholder')}
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(1); // 搜索時重置到第一頁
-                    }}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              {/* 篩選選項 */}
-              <div className="flex flex-wrap gap-2">
-                {/* 狀態篩選 */}
-                <select
-                  value={statusFilter ?? ''}
-                  onChange={(e) => {
-                    setStatusFilter(
-                      e.target.value
-                        ? (e.target.value as 'Draft' | 'InProgress' | 'Completed' | 'Archived')
-                        : undefined
-                    );
-                    setPage(1);
-                  }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
-                >
-                  <option value="">{t('filters.allStatuses')}</option>
-                  <option value="Draft">{tCommon('status.draft')}</option>
-                  <option value="InProgress">{tCommon('status.inProgress')}</option>
-                  <option value="Completed">{tCommon('status.completed')}</option>
-                  <option value="Archived">{tCommon('status.archived')}</option>
-                </select>
-
-                {/* 預算池篩選 */}
-                <select
-                  value={budgetPoolFilter ?? ''}
-                  onChange={(e) => {
-                    setBudgetPoolFilter(e.target.value || undefined);
-                    setPage(1);
-                  }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
-                >
-                  <option value="">{t('filters.allBudgetPools')}</option>
-                  {budgetPools.map((pool) => (
-                    <option key={pool.id} value={pool.id}>
-                      {pool.name} (FY {pool.financialYear})
-                    </option>
-                  ))}
-                </select>
-
-                {/* FEAT-010: 財務年度篩選 */}
+            <div className="flex flex-col gap-4">
+              {/* 主要篩選器 - 始終顯示 */}
+              <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                {/* CHANGE-034: 財務年度篩選 (優先顯示) */}
                 <select
                   value={fiscalYearFilter ?? ''}
                   onChange={(e) => {
                     setFiscalYearFilter(e.target.value ? parseInt(e.target.value) : undefined);
                     setPage(1);
                   }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  className="h-10 w-full md:w-auto rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                 >
                   <option value="">{t('filters.fiscalYear.label')}：{t('filters.fiscalYear.all')}</option>
                   {fiscalYears.map((fy) => (
@@ -576,85 +539,181 @@ export default function ProjectsPage() {
                   ))}
                 </select>
 
-                {/* FEAT-001: 全域標誌篩選 */}
-                <select
-                  value={globalFlagFilter ?? ''}
-                  onChange={(e) => {
-                    setGlobalFlagFilter(
-                      e.target.value ? (e.target.value as 'RCL' | 'Region') : undefined
-                    );
-                    setPage(1);
-                  }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
-                >
-                  <option value="">{t('filters.globalFlag.label')}：{t('filters.globalFlag.all')}</option>
-                  <option value="RCL">{t('filters.globalFlag.rcl')}</option>
-                  <option value="Region">{t('filters.globalFlag.region')}</option>
-                </select>
+                {/* 專案名稱搜尋框 */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder={t('search.placeholder')}
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
+                      }}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
 
-                {/* FEAT-001: 優先權篩選 */}
-                <select
-                  value={priorityFilter ?? ''}
-                  onChange={(e) => {
-                    setPriorityFilter(
-                      e.target.value ? (e.target.value as 'High' | 'Medium' | 'Low') : undefined
-                    );
-                    setPage(1);
-                  }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
-                >
-                  <option value="">{t('filters.priority.label')}：{t('filters.priority.all')}</option>
-                  <option value="High">{t('filters.priority.high')}</option>
-                  <option value="Medium">{t('filters.priority.medium')}</option>
-                  <option value="Low">{t('filters.priority.low')}</option>
-                </select>
+                {/* CHANGE-034: 專案編號搜尋 */}
+                <div className="w-full md:w-48">
+                  <Input
+                    type="text"
+                    placeholder={t('filters.projectCode.placeholder')}
+                    value={projectCodeFilter}
+                    onChange={(e) => {
+                      setProjectCodeFilter(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
 
-                {/* FEAT-001: 貨幣篩選 */}
+                {/* CHANGE-034: 專案類別篩選 */}
                 <select
-                  value={currencyFilter ?? ''}
+                  value={projectCategoryFilter ?? ''}
                   onChange={(e) => {
-                    setCurrencyFilter(e.target.value || undefined);
+                    setProjectCategoryFilter(e.target.value || undefined);
                     setPage(1);
                   }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  className="h-10 w-full md:w-auto rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                 >
-                  <option value="">{t('filters.currency.label')}：{t('filters.currency.all')}</option>
-                  {currencies.map((currency) => (
-                    <option key={currency.id} value={currency.id}>
-                      {currency.code} - {currency.name}
+                  <option value="">{t('filters.projectCategory.all')}</option>
+                  {projectCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
                     </option>
                   ))}
                 </select>
 
-                {/* 排序選項 (FEAT-001: 新增 projectCode 和 priority 排序) */}
+                {/* 預算池篩選 */}
                 <select
-                  value={`${sortBy}-${sortOrder}`}
+                  value={budgetPoolFilter ?? ''}
                   onChange={(e) => {
-                    const [newSortBy, newSortOrder] = e.target.value.split('-') as [
-                      'name' | 'status' | 'createdAt' | 'projectCode' | 'priority',
-                      'asc' | 'desc'
-                    ];
-                    setSortBy(newSortBy);
-                    setSortOrder(newSortOrder);
+                    setBudgetPoolFilter(e.target.value || undefined);
+                    setPage(1);
                   }}
-                  className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  className="h-10 w-full md:w-auto rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
                 >
-                  <option value="createdAt-desc">{t('sort.createdAtDesc')}</option>
-                  <option value="createdAt-asc">{t('sort.createdAtAsc')}</option>
-                  <option value="name-asc">{t('sort.nameAsc')}</option>
-                  <option value="name-desc">{t('sort.nameDesc')}</option>
-                  <option value="projectCode-asc">{t('sort.projectCodeAsc')}</option>
-                  <option value="projectCode-desc">{t('sort.projectCodeDesc')}</option>
-                  <option value="priority-asc">{t('sort.priorityAsc')}</option>
-                  <option value="priority-desc">{t('sort.priorityDesc')}</option>
-                  <option value="status-asc">{t('sort.statusAsc')}</option>
-                  <option value="status-desc">{t('sort.statusDesc')}</option>
+                  <option value="">{t('filters.allBudgetPools')}</option>
+                  {budgetPools.map((pool) => (
+                    <option key={pool.id} value={pool.id}>
+                      {pool.name} (FY {pool.financialYear})
+                    </option>
+                  ))}
                 </select>
 
-                <Button variant="outline" size="icon">
+                {/* CHANGE-034: 進階篩選切換按鈕 */}
+                <Button
+                  variant={showAdvancedFilters ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  title={t('filters.advanced.toggle')}
+                >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* CHANGE-034: 進階篩選器 - 可收合 */}
+              {showAdvancedFilters && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t">
+                  {/* 狀態篩選 */}
+                  <select
+                    value={statusFilter ?? ''}
+                    onChange={(e) => {
+                      setStatusFilter(
+                        e.target.value
+                          ? (e.target.value as 'Draft' | 'InProgress' | 'Completed' | 'Archived')
+                          : undefined
+                      );
+                      setPage(1);
+                    }}
+                    className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  >
+                    <option value="">{t('filters.allStatuses')}</option>
+                    <option value="Draft">{tCommon('status.draft')}</option>
+                    <option value="InProgress">{tCommon('status.inProgress')}</option>
+                    <option value="Completed">{tCommon('status.completed')}</option>
+                    <option value="Archived">{tCommon('status.archived')}</option>
+                  </select>
+
+                  {/* 全域標誌篩選 */}
+                  <select
+                    value={globalFlagFilter ?? ''}
+                    onChange={(e) => {
+                      setGlobalFlagFilter(
+                        e.target.value ? (e.target.value as 'RCL' | 'Region') : undefined
+                      );
+                      setPage(1);
+                    }}
+                    className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  >
+                    <option value="">{t('filters.globalFlag.label')}：{t('filters.globalFlag.all')}</option>
+                    <option value="RCL">{t('filters.globalFlag.rcl')}</option>
+                    <option value="Region">{t('filters.globalFlag.region')}</option>
+                  </select>
+
+                  {/* 優先權篩選 */}
+                  <select
+                    value={priorityFilter ?? ''}
+                    onChange={(e) => {
+                      setPriorityFilter(
+                        e.target.value ? (e.target.value as 'High' | 'Medium' | 'Low') : undefined
+                      );
+                      setPage(1);
+                    }}
+                    className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  >
+                    <option value="">{t('filters.priority.label')}：{t('filters.priority.all')}</option>
+                    <option value="High">{t('filters.priority.high')}</option>
+                    <option value="Medium">{t('filters.priority.medium')}</option>
+                    <option value="Low">{t('filters.priority.low')}</option>
+                  </select>
+
+                  {/* 貨幣篩選 */}
+                  <select
+                    value={currencyFilter ?? ''}
+                    onChange={(e) => {
+                      setCurrencyFilter(e.target.value || undefined);
+                      setPage(1);
+                    }}
+                    className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  >
+                    <option value="">{t('filters.currency.label')}：{t('filters.currency.all')}</option>
+                    {currencies.map((currency) => (
+                      <option key={currency.id} value={currency.id}>
+                        {currency.code} - {currency.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* 排序選項 */}
+                  <select
+                    value={`${sortBy}-${sortOrder}`}
+                    onChange={(e) => {
+                      const [newSortBy, newSortOrder] = e.target.value.split('-') as [
+                        'name' | 'status' | 'createdAt' | 'projectCode' | 'priority',
+                        'asc' | 'desc'
+                      ];
+                      setSortBy(newSortBy);
+                      setSortOrder(newSortOrder);
+                    }}
+                    className="h-10 rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/20"
+                  >
+                    <option value="projectCode-desc">{t('sort.projectCodeDesc')}</option>
+                    <option value="projectCode-asc">{t('sort.projectCodeAsc')}</option>
+                    <option value="createdAt-desc">{t('sort.createdAtDesc')}</option>
+                    <option value="createdAt-asc">{t('sort.createdAtAsc')}</option>
+                    <option value="name-asc">{t('sort.nameAsc')}</option>
+                    <option value="name-desc">{t('sort.nameDesc')}</option>
+                    <option value="priority-asc">{t('sort.priorityAsc')}</option>
+                    <option value="priority-desc">{t('sort.priorityDesc')}</option>
+                    <option value="status-asc">{t('sort.statusAsc')}</option>
+                    <option value="status-desc">{t('sort.statusDesc')}</option>
+                  </select>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
