@@ -283,7 +283,7 @@ az webapp config appsettings set \
 
 | 端點 | 方法 | 用途 |
 |------|------|------|
-| `health.fullSchemaCompare` | GET | **⭐ 完整對比所有 27 個表格和欄位** |
+| `health.fullSchemaCompare` | GET | **⭐ 完整對比所有 31 個表格和欄位** |
 | `health.fullSchemaSync` | POST | **⭐ 一鍵修復所有缺失表格和欄位** |
 
 **部署後標準 Schema 同步流程：**
@@ -291,7 +291,7 @@ az webapp config appsettings set \
 ```bash
 BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
 
-# 1️⃣ 完整對比 Schema (檢查所有 27 個表格)
+# 1️⃣ 完整對比 Schema (檢查所有 31 個表格)
 curl "$BASE_URL/api/trpc/health.fullSchemaCompare"
 # 返回: status ("synced" | "out_of_sync"), 缺失表格/欄位列表, SQL 修復預覽
 
@@ -527,7 +527,7 @@ critical_check:
 **更新記錄**:
 
 - v2.2.0 (2025-12-15): **完整 Schema 同步機制**
-  - 🆕 新增 `health.fullSchemaCompare` API - 完整對比所有 27 個表格
+  - 🆕 新增 `health.fullSchemaCompare` API - 完整對比所有 31 個表格
   - 🆕 新增 `health.fullSchemaSync` API - 一鍵修復所有 Schema 差異
   - 📝 新增 "推薦: 完整 Schema 同步機制" 章節
   - 📝 參考文檔: `claudedocs/SCHEMA-SYNC-MECHANISM.md`

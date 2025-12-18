@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-12-12
+> **Last Updated**: 2025-12-18
 > **Project Status**: Post-MVP Enhancement Phase (FEAT-008 Complete)
 > **Total Code**: ~35,000+ lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
@@ -41,6 +41,31 @@ function 計算預算使用率(預算池: BudgetPool): number {
   return (預算池.已使用金額 / 預算池.總金額) * 100;
 }
 ```
+
+---
+
+## 📋 Code Standards & Rules
+
+專案代碼規範位於 `.claude/rules/` 目錄，為 AI 助手提供詳細的編碼指引：
+
+| 規則文件 | 適用路徑 | 主要內容 |
+|----------|----------|----------|
+| `frontend.md` | `apps/web/src/app/**` | Next.js 頁面、路由、Metadata |
+| `components.md` | `apps/web/src/components/**` | React 組件模式、Props、狀態管理 |
+| `ui-design-system.md` | `apps/web/src/components/ui/**` | shadcn/ui 組件使用規範 |
+| `backend-api.md` | `packages/api/src/**` | tRPC Router、Zod Schema、權限控制 |
+| `database.md` | `packages/db/prisma/**` | Prisma Schema、遷移、查詢模式 |
+| `i18n.md` | `apps/web/src/messages/**` | 翻譯 Key 命名、驗證流程 |
+| `typescript.md` | `**/*.ts`, `**/*.tsx` | 類型定義、命名約定、泛型使用 |
+| `scripts.md` | `scripts/**` | 腳本命名、輸出格式、錯誤處理 |
+| `documentation.md` | `claudedocs/**`, `docs/**` | 文檔結構、格式範本 |
+
+**AI 助手使用指南**：
+1. 處理特定路徑檔案時，參考對應的規則文件
+2. 遵循規則中的代碼模式和約定
+3. 避免「禁止事項」中列出的做法
+
+詳細索引：`.claude/rules/index.md`
 
 ---
 
@@ -158,7 +183,7 @@ This is a **Turborepo monorepo** with the following structure:
 │   │       │   └── vendor.ts
 │   │       └── lib/
 │   │           └── email.ts          # EmailService (Epic 8)
-│   ├── db/               # Prisma schema (27 models)
+│   ├── db/               # Prisma schema (31 models)
 │   │   └── prisma/schema.prisma
 │   ├── auth/             # NextAuth.js + Azure AD B2C
 │   ├── eslint-config/    # Shared ESLint configuration

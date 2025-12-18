@@ -104,7 +104,7 @@ pnpm dev
 ```bash
 BASE_URL="https://app-itpm-company-dev-001.azurewebsites.net"
 
-# 1️⃣ 完整對比 Schema（檢查所有 27 個表格）
+# 1️⃣ 完整對比 Schema（檢查所有 31 個表格）
 curl "$BASE_URL/api/trpc/health.fullSchemaCompare"
 ```
 
@@ -115,7 +115,7 @@ curl "$BASE_URL/api/trpc/health.fullSchemaCompare"
 {
   "status": "synced",
   "summary": {
-    "totalTablesChecked": 27,
+    "totalTablesChecked": 31,
     "missingTables": [],
     "tablesWithMissingColumns": [],
     "allMissingColumns": []
@@ -126,7 +126,7 @@ curl "$BASE_URL/api/trpc/health.fullSchemaCompare"
 {
   "status": "out_of_sync",
   "summary": {
-    "totalTablesChecked": 27,
+    "totalTablesChecked": 31,
     "missingTables": ["Permission"],
     "tablesWithMissingColumns": [
       { "table": "Project", "missing": ["projectCode", "globalFlag"] }
@@ -305,7 +305,7 @@ export const COLUMN_TYPE_OVERRIDES: Record<string, Record<string, ColumnTypeInfo
 
 | API | 方法 | 用途 |
 |-----|------|------|
-| `health.fullSchemaCompare` | GET | **⭐ 完整對比所有 27 個表格** |
+| `health.fullSchemaCompare` | GET | **⭐ 完整對比所有 31 個表格** |
 | `health.schemaCompare` | GET | 舊版對比（部分表格） |
 | `health.schemaCheck` | GET | 檢查表格是否存在 |
 | `health.dbCheck` | GET | 數據庫連線檢查 |
@@ -377,6 +377,18 @@ A:
 
 ---
 
-**版本**: 1.0.0
-**最後更新**: 2025-12-15
+**版本**: 1.1.0
+**最後更新**: 2025-12-16
 **維護者**: AI 助手 + DevOps Team
+
+---
+
+## 📝 變更記錄
+
+### v1.1.0 (2025-12-16)
+- 更新表格數量: 27 → 31 個表格
+- 新增表格: Permission, RolePermission, UserPermission, UserOperatingCompany (FEAT-011 權限管理系統)
+
+### v1.0.0 (2025-12-15)
+- 初始版本
+- 方案 C 完全自動化機制說明

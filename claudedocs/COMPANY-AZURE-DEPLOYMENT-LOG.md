@@ -27,7 +27,7 @@
 
 新增**完整 Schema 同步機制**，通過 Health API 作為執行通道：
 
-1. **schemaDefinition.ts** - 唯一真相來源，定義所有 27 個表格的預期欄位
+1. **schemaDefinition.ts** - 唯一真相來源，定義所有 31 個表格的預期欄位
 2. **fullSchemaCompare API** - 對比所有表格和欄位差異
 3. **fullSchemaSync API** - 一鍵修復所有差異
 

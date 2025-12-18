@@ -112,6 +112,55 @@ const { auth } = NextAuth(authConfig);
  * ```
  */
 export default auth((req) => {
+  const { pathname } = req.nextUrl;
+  const isLoggedIn = !!req.auth?.user;
+
+  // FIX-095: 手動處理未登入用戶訪問受保護路由的重定向
+  // 因為 authorized callback 返回 false 後，NextAuth v5 可能不會自動重定向
+  const locales = ['en', 'zh-TW'];
+  let pathnameWithoutLocale = pathname;
+  for (const locale of locales) {
+    if (pathname.startsWith(`/${locale}/`)) {
+      pathnameWithoutLocale = pathname.slice(locale.length + 1);
+      break;
+    } else if (pathname === `/${locale}`) {
+      pathnameWithoutLocale = '/';
+      break;
+    }
+  }
+
+  const protectedRoutes = [
+    '/dashboard',
+    '/projects',
+    '/budget-pools',
+    '/budget-proposals',
+    '/vendors',
+    '/purchase-orders',
+    '/expenses',
+    '/users',
+    '/om-expenses',
+    '/om-summary',
+    '/charge-outs',
+    '/quotes',
+    '/notifications',
+    '/settings',
+    '/data-import',
+    '/operating-companies',
+    '/om-expense-categories',
+  ];
+
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathnameWithoutLocale.startsWith(route),
+  );
+
+  // FIX-095: 未登入 + 受保護路由 → 手動重定向到登入頁面
+  if (isProtectedRoute && !isLoggedIn) {
+    const loginUrl = new URL('/zh-TW/login', req.nextUrl.origin);
+    // 保存原始 URL 以便登入後返回
+    loginUrl.searchParams.set('callbackUrl', req.nextUrl.href);
+    return Response.redirect(loginUrl);
+  }
+
   return handleI18nRouting(req);
 });
 
@@ -155,14 +204,17 @@ export default auth((req) => {
  * @see {@link https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher|Next.js Middleware Matcher}
  */
 export const config = {
+  // FIX-095: 使用通用 matcher 匹配所有 locale 路由
+  // 排除 API、靜態文件、登入頁面等
   matcher: [
-    '/dashboard/:path*',
-    '/projects/:path*',
-    '/budget-pools/:path*',
-    '/budget-proposals/:path*',
-    '/vendors/:path*',
-    '/purchase-orders/:path*',
-    '/expenses/:path*',
-    '/users/:path*',
+    /*
+     * 匹配所有路徑除了:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico (favicon)
+     * - login, register, forgot-password (auth pages)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|login|register|forgot-password).*)',
   ],
 };

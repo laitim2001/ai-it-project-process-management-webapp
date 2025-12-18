@@ -439,7 +439,7 @@ export default function ProposalDetailPage() {
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">{t('fields.budgetPool')}：</span>
                       <Link
-                        href="/budget-pools/${proposal.project.budgetPool.id}"
+                        href={`/budget-pools/${proposal.project.budgetPool.id}`}
                         className="ml-2 text-primary hover:text-primary font-medium"
                       >
                         {proposal.project.budgetPool.name}

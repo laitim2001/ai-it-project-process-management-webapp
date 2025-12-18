@@ -162,7 +162,7 @@
 
 - ✅ **項目統計更新**
   - API Routers: 16 個 (新增 expenseCategory)
-  - Prisma Models: 27 個 (新增 OMExpenseItem, ExpenseCategory, ProjectChargeOutOpCo)
+  - Prisma Models: 31 個 (含 Permission 權限系統, OMExpenseItem, ExpenseCategory 等)
   - 頁面路由: 19 個模塊, 55+ 頁面
   - 組件: 75+ 個 (35+ UI + 40 業務)
 

@@ -89,8 +89,25 @@ export const authConfig: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = request.nextUrl;
 
+      // FIX-095: 支援的 locale 列表
+      const locales = ['en', 'zh-TW'];
+
+      // FIX-095: 從 pathname 中移除 locale 前綴以進行路由匹配
+      // 例如: /en/projects → /projects, /zh-TW/dashboard → /dashboard
+      let pathnameWithoutLocale = pathname;
+      for (const locale of locales) {
+        if (pathname.startsWith(`/${locale}/`)) {
+          pathnameWithoutLocale = pathname.slice(locale.length + 1);
+          break;
+        } else if (pathname === `/${locale}`) {
+          pathnameWithoutLocale = '/';
+          break;
+        }
+      }
+
       // 受保護的路由
       const protectedRoutes = [
+        // ===== 現有路由 (8 個) =====
         '/dashboard',
         '/projects',
         '/budget-pools',
@@ -99,10 +116,21 @@ export const authConfig: NextAuthConfig = {
         '/purchase-orders',
         '/expenses',
         '/users',
+        // ===== FIX-095: 新增缺失的受保護路由 (9 個) =====
+        '/om-expenses',
+        '/om-summary',
+        '/charge-outs',
+        '/quotes',
+        '/notifications',
+        '/settings',
+        '/data-import',
+        '/operating-companies',
+        '/om-expense-categories',
       ];
 
+      // FIX-095: 使用移除 locale 後的 pathname 進行匹配
       const isProtectedRoute = protectedRoutes.some((route) =>
-        pathname.startsWith(route),
+        pathnameWithoutLocale.startsWith(route),
       );
 
       if (isProtectedRoute && !isLoggedIn) {

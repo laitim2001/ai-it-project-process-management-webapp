@@ -941,7 +941,7 @@
 **核心文件統計**:
 - Next.js 頁面: 55+ 個（19 個路由模組，完整 CRUD + OM Summary + Operating Companies）
 - API 路由: 16 個 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, notification, omExpense, operatingCompany, project, purchaseOrder, quote, seed, user, vendor, health)
-- Prisma Models: 27 個（含 OMExpenseItem, ExpenseCategory, ProjectChargeOutOpCo）
+- Prisma Models: 31 個（含 Permission 權限系統, OMExpenseItem, ExpenseCategory 等）
 - UI 組件: 71 個（35 個設計系統組件 + 36 個業務組件）
   - P1 核心元件: 7 個
   - P2 表單元件: 7 個

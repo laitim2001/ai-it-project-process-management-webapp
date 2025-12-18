@@ -194,7 +194,7 @@ export default function EditProjectPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/projects/${projectId}">{project.name}</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href={`/projects/${projectId}`}>{project.name}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

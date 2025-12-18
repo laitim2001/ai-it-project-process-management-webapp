@@ -39,14 +39,14 @@ Azure 部署: migrate deploy →  只執行 migrations/ 文件夾中的 migratio
 
 | 文件 | 用途 |
 |------|------|
-| `packages/api/src/lib/schemaDefinition.ts` | **唯一真相來源** - 定義所有 27 個表格的預期欄位 |
+| `packages/api/src/lib/schemaDefinition.ts` | **唯一真相來源** - 定義所有 31 個表格的預期欄位 |
 | `packages/api/src/routers/health.ts` | Schema 同步 API 實現 |
 
 ### 新增 API
 
 #### 1. `fullSchemaCompare` - 完整對比
 
-**用途**: 對比所有 27 個 Prisma 模型的預期欄位與實際欄位
+**用途**: 對比所有 31 個 Prisma 模型的預期欄位與實際欄位
 
 ```bash
 # 調用方式
@@ -56,7 +56,7 @@ curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSche
 {
   "status": "synced" | "out_of_sync" | "error",
   "summary": {
-    "totalTablesChecked": 27,
+    "totalTablesChecked": 31,
     "missingTables": ["Permission", ...],
     "tablesWithMissingColumns": [{ "table": "Project", "missing": [...] }],
     "allMissingColumns": ["Project.projectCode", ...],
@@ -69,7 +69,7 @@ curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSche
 ```
 
 **優點**:
-- 對比所有 27 個表格（不只是部分）
+- 對比所有 31 個表格（不只是部分）
 - 使用 `schemaDefinition.ts` 作為唯一真相來源
 - 提供 SQL 修復預覽
 

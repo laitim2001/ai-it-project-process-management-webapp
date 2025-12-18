@@ -1,284 +1,679 @@
 # Prisma Database Layer - 資料模型定義層
 
+> **相關規則**: 請參閱 `.claude/rules/database.md` 獲取 Prisma 資料庫完整開發規範
+
 ## 📋 目錄用途
+
 此目錄包含 Prisma Schema 定義和資料庫遷移歷史，是整個應用的資料模型單一真相來源（Single Source of Truth）。
 
 ## 🏗️ 檔案結構
 
 ```
 prisma/
-├── schema.prisma           # 資料模型定義（核心檔案）
+├── schema.prisma           # 資料模型定義（核心檔案，919 行）
+├── seed.ts                 # 完整種子資料
+├── seed-minimal.ts         # 最小種子資料
+├── CLAUDE.md               # 本文件
 └── migrations/             # 資料庫遷移歷史
-    └── [timestamp]_[name]/ # 每次遷移的 SQL 檔案
+    ├── migration_lock.toml
+    ├── 20251126100000_add_currency/
+    ├── 20251202100000_add_feat001_project_fields/
+    ├── 20251202110000_add_postmvp_tables/
+    ├── 20251208100000_feat007_om_expense_item/
+    ├── 20251210100000_feat008_lastfy_actual_expense/
+    └── 20251214100000_feat011_permission_tables/
 ```
+
+---
 
 ## 🎯 Schema 組織結構
 
-### 1. schema.prisma 分區（共 27 個 Models）
+### 總覽：31 個 Prisma Models，分為 9 個區塊
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    IT 專案管理平台 - 資料模型架構                    │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 1. 核心使用者與權限 (5 + 3 個)                               │   │
+│  │    User, Account, Session, VerificationToken, Role          │   │
+│  │    Permission, RolePermission, UserPermission (FEAT-011)    │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 2. 核心業務流程 (7 個)                                       │   │
+│  │    BudgetPool → BudgetCategory → Project → BudgetProposal   │   │
+│  │    Vendor → Quote → PurchaseOrder → Expense                 │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 3. 輔助模型 (3 個)                                           │   │
+│  │    Comment, History, Notification                            │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 4-5. 營運公司與預算類別 (4 個)                                │   │
+│  │    OperatingCompany, ProjectChargeOutOpCo                    │   │
+│  │    UserOperatingCompany (FEAT-009), BudgetCategory           │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 6. 採購單與費用明細 (2 個)                                    │   │
+│  │    PurchaseOrderItem, ExpenseItem                            │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 7. OM 費用模型 (4 個) - FEAT-007 重構                        │   │
+│  │    ExpenseCategory, OMExpense (表頭)                         │   │
+│  │    OMExpenseItem (明細), OMExpenseMonthly (月份)             │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 8. 費用轉嫁模型 (2 個)                                       │   │
+│  │    ChargeOut (表頭), ChargeOutItem (明細)                    │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 9. 貨幣管理 (1 個) - FEAT-001                                │   │
+│  │    Currency                                                  │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Model 詳細分區
+
+### Section 1: 核心使用者與權限模型 (8 個)
+
 ```prisma
-// 1. 核心使用者與權限模型 (5 個)
-model User { ... }
-model Account { ... }              // NextAuth OAuth
-model Session { ... }              // NextAuth Session
-model VerificationToken { ... }    // NextAuth Email 驗證
-model Role { ... }
+// NextAuth.js 整合
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String?   // bcrypt hash，Azure AD B2C 用戶為 null
+  roleId        Int       @default(1)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-// 2. 預算管理模型 (4 個)
-model BudgetPool { ... }
-model BudgetCategory { ... }
-model Project { ... }
+  // 關聯
+  role          Role
+  projects      Project[]  @relation("ProjectManager")
+  approvals     Project[]  @relation("Supervisor")
+  notifications Notification[]
+  accounts      Account[]
+  sessions      Session[]
+  permissions   UserPermission[]  // FEAT-011
+  operatingCompanyPermissions UserOperatingCompany[]  // FEAT-009
+}
+
+model Account { ... }           // NextAuth OAuth
+model Session { ... }           // NextAuth Session
+model VerificationToken { ... } // NextAuth Email 驗證
+model Role { id, name }         // 角色：ProjectManager, Supervisor, Admin
+
+// FEAT-011: 權限管理系統
+model Permission {
+  id          String   @id @default(uuid())
+  code        String   @unique  // 如 "menu:dashboard", "project:create"
+  name        String
+  category    String             // 如 "menu", "project", "proposal"
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RolePermission { ... }    // 角色預設權限（多對多）
+model UserPermission { ... }    // 用戶自訂權限（覆蓋角色預設）
+```
+
+### Section 2: 核心業務流程模型 (7 個)
+
+```prisma
+model BudgetPool {
+  id            String   @id @default(uuid())
+  name          String
+  totalAmount   Float    // DEPRECATED: 改由 categories 計算
+  usedAmount    Float    @default(0)
+  financialYear Int
+  description   String?
+  currencyId    String?  // FEAT-002
+  isActive      Boolean  @default(true)
+  // ...關聯
+}
+
+model Project {
+  id               String    @id @default(uuid())
+  name             String
+  description      String?
+  status           String    @default("Draft")
+  managerId        String
+  supervisorId     String
+  budgetPoolId     String
+  budgetCategoryId String?
+  requestedBudget  Float?
+  approvedBudget   Float?
+  startDate        DateTime
+  endDate          DateTime?
+  chargeOutDate    DateTime?
+
+  // FEAT-001: 專案欄位擴展
+  projectCode      String   @unique
+  globalFlag       String   @default("Region")
+  priority         String   @default("Medium")
+  currencyId       String?
+
+  // FEAT-006: Project Summary Tab
+  projectCategory  String?
+  projectType      String   @default("Project")
+  expenseType      String   @default("Expense")
+  chargeBackToOpCo Boolean  @default(false)
+  chargeOutMethod  String?  @db.Text
+  probability      String   @default("Medium")
+  team             String?
+  personInCharge   String?
+
+  // FEAT-010: Project Data Import
+  fiscalYear          Int?
+  isCdoReviewRequired Boolean @default(false)
+  isManagerConfirmed  Boolean @default(false)
+  payForWhat          String?
+  payToWhom           String?
+  isOngoing           Boolean @default(false)
+  lastFYActualExpense Float?
+  // ... 27+ 欄位
+}
+
 model BudgetProposal { ... }
-
-// 3. 採購與供應商模型 (4 個)
 model Vendor { ... }
 model Quote { ... }
 model PurchaseOrder { ... }
-model PurchaseOrderItem { ... }
-
-// 4. 費用管理模型 (9 個) - FEAT-007 重構後
 model Expense { ... }
-model ExpenseItem { ... }
-model ExpenseCategory { ... }      // 費用類別 (FEAT-007)
-model ChargeOut { ... }
-model ChargeOutItem { ... }
-model OMExpense { ... }            // OM 費用表頭 (FEAT-007 重構)
-model OMExpenseItem { ... }        // OM 費用明細 (FEAT-007 新增)
-model OMExpenseMonthly { ... }     // OM 費用月份金額
-
-// 5. 系統與輔助模型 (5 個)
-model OperatingCompany { ... }
-model ProjectChargeOutOpCo { ... } // 專案-轉嫁-營運公司關聯
-model Currency { ... }             // 幣別管理 (FEAT-001)
-model Comment { ... }
-model History { ... }
-model Notification { ... }
 ```
+
+### Section 3: 輔助模型 (3 個)
+
+```prisma
+model Comment {
+  id               String   @id @default(uuid())
+  content          String
+  userId           String
+  budgetProposalId String
+  createdAt        DateTime @default(now())
+  // 關聯
+}
+
+model History {
+  id               String   @id @default(uuid())
+  action           String   // "SUBMITTED", "APPROVED", "REJECTED", "MORE_INFO_REQUIRED"
+  details          String?
+  userId           String
+  budgetProposalId String
+  createdAt        DateTime @default(now())
+}
+
+// Epic 8
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  type       String   // "PROPOSAL_SUBMITTED", "EXPENSE_APPROVED", etc.
+  title      String
+  message    String
+  link       String?
+  isRead     Boolean  @default(false)
+  emailSent  Boolean  @default(false)
+  entityType String?
+  entityId   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+```
+
+### Section 4-5: 營運公司與預算類別 (4 個)
+
+```prisma
+model OperatingCompany {
+  id          String   @id @default(uuid())
+  code        String   @unique  // 如 "OpCo-HK"
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // 多個關聯...
+}
+
+// FEAT-006: 專案與 OpCo 多對多
+model ProjectChargeOutOpCo {
+  id        String   @id @default(uuid())
+  projectId String
+  opCoId    String
+  createdAt DateTime @default(now())
+  @@unique([projectId, opCoId])
+}
+
+// FEAT-009: 用戶 OpCo 數據權限
+model UserOperatingCompany {
+  id                 String   @id @default(uuid())
+  userId             String
+  operatingCompanyId String
+  createdAt          DateTime @default(now())
+  createdBy          String?
+  @@unique([userId, operatingCompanyId])
+}
+
+model BudgetCategory {
+  id           String @id @default(uuid())
+  budgetPoolId String
+  categoryName String
+  categoryCode String?
+  description  String?
+  totalAmount  Float
+  usedAmount   Float  @default(0)
+  sortOrder    Int    @default(0)
+  isActive     Boolean @default(true)
+  @@unique([budgetPoolId, categoryName])
+}
+```
+
+### Section 6: 採購單與費用明細 (2 個)
+
+```prisma
+// 表頭-明細模式 (Header-Detail Pattern)
+model PurchaseOrderItem {
+  id              String @id @default(uuid())
+  purchaseOrderId String
+  itemName        String
+  description     String? @db.Text
+  quantity        Int
+  unitPrice       Float
+  subtotal        Float   // quantity * unitPrice
+  sortOrder       Int     @default(0)
+}
+
+model ExpenseItem {
+  id              String  @id @default(uuid())
+  expenseId       String
+  itemName        String
+  description     String? @db.Text
+  amount          Float
+  category        String? // 舊欄位
+  categoryId      String? // CHANGE-003: FK 到 ExpenseCategory
+  chargeOutOpCoId String? // CHANGE-002: 費用轉嫁目標
+  sortOrder       Int     @default(0)
+}
+```
+
+### Section 7: OM 費用模型 (4 個) - FEAT-007 重構
+
+```prisma
+// 統一費用類別
+model ExpenseCategory {
+  id          String   @id @default(uuid())
+  code        String   @unique  // HW, SW, MAINT, LICENSE
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+}
+
+// OM 費用表頭
+model OMExpense {
+  id String @id @default(uuid())
+
+  // 基本信息
+  name          String
+  description   String?   @db.Text
+  financialYear Int
+  category      String    // 舊欄位
+  categoryId    String?
+
+  // FEAT-007: 匯總欄位
+  totalBudgetAmount Float @default(0)  // = SUM(items.budgetAmount)
+  totalActualSpent  Float @default(0)  // = SUM(items.actualSpent)
+  defaultOpCoId     String?
+
+  // @deprecated 欄位 (保留向後兼容)
+  opCoId       String?
+  budgetAmount Float?
+  actualSpent  Float @default(0)
+  startDate    DateTime?
+  endDate      DateTime?
+  hasItems     Boolean @default(false)
+
+  // 關聯
+  items           OMExpenseItem[]
+  monthlyRecords  OMExpenseMonthly[] @relation("LegacyOMExpenseMonthly")
+}
+
+// FEAT-007: OM 費用明細項目
+model OMExpenseItem {
+  id          String  @id @default(uuid())
+  omExpenseId String
+  name        String
+  description String? @db.Text
+  sortOrder   Int     @default(0)
+
+  // 財務欄位
+  budgetAmount        Float
+  actualSpent         Float   @default(0)
+  lastFYActualExpense Float?  // FEAT-008
+
+  // 其他欄位
+  currencyId String?
+  opCoId     String
+  startDate  DateTime?
+  endDate    DateTime?
+  isOngoing  Boolean  @default(false)  // CHANGE-011
+
+  // 關聯
+  monthlyRecords OMExpenseMonthly[]
+}
+
+// OM 費用月度記錄
+model OMExpenseMonthly {
+  id              String  @id @default(uuid())
+  omExpenseItemId String? // FEAT-007 新增
+  omExpenseId     String? // @deprecated
+  month           Int     // 1-12
+  actualAmount    Float
+  opCoId          String
+
+  @@unique([omExpenseItemId, month])
+  @@unique([omExpenseId, month])  // 向後兼容
+}
+```
+
+### Section 8: 費用轉嫁模型 (2 個)
+
+```prisma
+model ChargeOut {
+  id String @id @default(uuid())
+
+  name        String
+  description String? @db.Text
+  projectId   String
+  opCoId      String
+  totalAmount Float   // 由明細自動計算
+  status      String  @default("Draft")  // Draft, Submitted, Confirmed, Paid, Rejected
+
+  debitNoteNumber String?   @unique
+  issueDate       DateTime?
+  paymentDate     DateTime?
+  confirmedBy     String?
+  confirmedAt     DateTime?
+
+  // 關聯
+  items ChargeOutItem[]
+}
+
+model ChargeOutItem {
+  id          String  @id @default(uuid())
+  chargeOutId String
+  expenseItemId String?  // CHANGE-002: 關聯費用明細
+  expenseId     String?  // 向後兼容
+  amount        Float
+  description   String?  @db.Text
+  sortOrder     Int      @default(0)
+}
+```
+
+### Section 9: 貨幣管理 (1 個)
+
+```prisma
+// FEAT-001
+model Currency {
+  id           String   @id @default(uuid())
+  code         String   @unique  // ISO 4217: TWD, USD, EUR
+  name         String
+  symbol       String   // NT$, $, €
+  exchangeRate Float?
+  active       Boolean  @default(true)
+
+  // 關聯到多個模型
+  projects       Project[]
+  budgetPools    BudgetPool[]
+  purchaseOrders PurchaseOrder[]
+  expenses       Expense[]
+  omExpenseItems OMExpenseItem[]
+}
+```
+
+---
+
+## 🔄 Feature 與 Model 對照表
+
+| Feature | 影響的 Models | 說明 |
+|---------|---------------|------|
+| **FEAT-001** | Project, Currency | 專案欄位擴展 + 多幣別支援 |
+| **FEAT-002** | BudgetPool, PurchaseOrder, Expense | 貨幣 ID 關聯 |
+| **FEAT-006** | Project, ProjectChargeOutOpCo | Project Summary Tab |
+| **FEAT-007** | OMExpense, OMExpenseItem, OMExpenseMonthly | OM 費用表頭-明細重構 |
+| **FEAT-008** | OMExpenseItem | lastFYActualExpense 欄位 |
+| **FEAT-009** | UserOperatingCompany | OpCo 數據權限 |
+| **FEAT-010** | Project | Data Import 欄位 |
+| **FEAT-011** | Permission, RolePermission, UserPermission | 權限管理系統 |
+| **CHANGE-002** | ExpenseItem, ChargeOutItem | 費用明細轉嫁 |
+| **CHANGE-003** | ExpenseItem, ExpenseCategory | 統一費用類別 |
+| **CHANGE-011** | OMExpenseItem | isOngoing 欄位增強 |
+
+---
 
 ## 🎯 核心模式與約定
 
-### 1. 欄位命名約定
+### 1. ID 與時間戳約定
+
 ```prisma
 model Example {
-  // ID 欄位：統一使用 UUID
-  id String @id @default(uuid())
+  // ID：統一使用 UUID
+  id        String   @id @default(uuid())
 
-  // 時間戳：統一命名和預設值
+  // 時間戳：統一命名
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 狀態欄位：使用 String 枚舉
-  status String // 'Draft' | 'Active' | 'Completed'
-
-  // 金額欄位：使用 Float 或 Decimal
-  amount Float
-
-  // 外鍵：統一後綴 Id
-  budgetPoolId String
-  managerId String
-
-  // 關係：使用描述性名稱
-  budgetPool BudgetPool @relation(fields: [budgetPoolId], references: [id])
-  manager User @relation("ProjectManager", fields: [managerId], references: [id])
+  updatedAt DateTime @updatedAt  // 自動更新
 }
 ```
 
-### 2. 關係定義模式
+### 2. 狀態欄位約定
 
-#### One-to-Many
 ```prisma
-model BudgetPool {
-  id       String    @id @default(uuid())
-  projects Project[] // 一個預算池有多個專案
+// ✅ 使用 String + API 層 Zod enum
+model Project {
+  status String @default("Draft")
+  // 可能值: 'Draft' | 'InProgress' | 'Completed' | 'Archived'
 }
 
+// API Router 中定義
+// const projectStatusEnum = z.enum(['Draft', 'InProgress', 'Completed', 'Archived']);
+
+// ❌ 不使用 Prisma enum（不夠靈活，遷移困難）
+// enum ProjectStatus { DRAFT, IN_PROGRESS }
+```
+
+### 3. 外鍵命名約定
+
+```prisma
+// 外鍵：統一使用 [modelName]Id 格式
 model Project {
-  id           String     @id @default(uuid())
-  budgetPoolId String
-  budgetPool   BudgetPool @relation(fields: [budgetPoolId], references: [id])
+  budgetPoolId     String
+  managerId        String
+  supervisorId     String
+  budgetCategoryId String?
+
+  budgetPool     BudgetPool     @relation(fields: [budgetPoolId], references: [id])
+  manager        User           @relation("ProjectManager", fields: [managerId], references: [id])
+  supervisor     User           @relation("Supervisor", fields: [supervisorId], references: [id])
+  budgetCategory BudgetCategory? @relation(fields: [budgetCategoryId], references: [id])
 }
 ```
 
-#### Many-to-One (同一 Model 多個關係)
+### 4. 關係命名（同一 Model 多個關係）
+
 ```prisma
-model Project {
-  managerId    String
-  supervisorId String
-
-  manager    User @relation("ProjectManager", fields: [managerId], references: [id])
-  supervisor User @relation("Supervisor", fields: [supervisorId], references: [id])
-}
-
 model User {
+  // 使用具名關係區分
   projects  Project[] @relation("ProjectManager")
   approvals Project[] @relation("Supervisor")
 }
-```
-
-#### One-to-One (可選)
-```prisma
-model User {
-  id      String   @id @default(uuid())
-  profile Profile?
-}
-
-model Profile {
-  id     String @id @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-}
-```
-
-### 3. 索引策略
-```prisma
-model User {
-  email String @unique  // 唯一索引（自動）
-
-  @@index([email])      // 額外索引（查詢優化）
-  @@index([roleId])
-}
 
 model Project {
+  manager    User @relation("ProjectManager", fields: [managerId], references: [id])
+  supervisor User @relation("Supervisor", fields: [supervisorId], references: [id])
+}
+```
+
+### 5. 索引策略
+
+```prisma
+model Project {
+  // 唯一索引
+  projectCode String @unique
+
+  // 複合索引
   @@index([budgetPoolId])
   @@index([managerId])
+  @@index([supervisorId])
   @@index([status])
+  @@index([projectCode])
+  @@index([globalFlag])
+  @@index([priority])
+  @@index([fiscalYear])
+}
+
+model ProjectChargeOutOpCo {
+  // 複合唯一約束
+  @@unique([projectId, opCoId])
 }
 ```
 
-### 4. 級聯刪除策略
-```prisma
-model User {
-  accounts Account[] // Cascade: 刪除用戶時刪除關聯帳號
-}
+### 6. 級聯刪除策略
 
+```prisma
+// Cascade: 主記錄刪除時一同刪除
 model Account {
-  userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 其他選項：
-// onDelete: Restrict  - 禁止刪除（有關聯資料時）
-// onDelete: SetNull   - 設為 null（外鍵欄位必須可選）
-// onDelete: NoAction  - 不處理（資料庫預設行為）
-```
-
-### 5. 枚舉值約定
-```prisma
-// ❌ 不使用 Prisma enum（不夠靈活）
-// enum ProjectStatus {
-//   DRAFT
-//   IN_PROGRESS
-//   COMPLETED
-// }
-
-// ✅ 使用 String + API 層 Zod enum
+// SetNull: 主記錄刪除時設為 null（外鍵必須可選）
 model Project {
-  status String // 'Draft' | 'InProgress' | 'Completed' | 'Archived'
+  currency Currency? @relation(fields: [currencyId], references: [id], onDelete: SetNull)
 }
 
-// 在 API Router 中定義
-// export const projectStatusEnum = z.enum(['Draft', 'InProgress', 'Completed', 'Archived']);
+// Restrict: 有關聯資料時禁止刪除（預設行為）
+// NoAction: 不處理（資料庫預設）
 ```
+
+### 7. 長文本欄位
+
+```prisma
+model Example {
+  // 短文本: String (varchar)
+  name String
+
+  // 長文本: @db.Text (text)
+  description String? @db.Text
+  notes       String? @db.Text
+}
+```
+
+---
 
 ## 🔄 資料庫遷移流程
 
 ### 開發環境
+
 ```bash
 # 1. 修改 schema.prisma
 
-# 2. 創建遷移（會生成 SQL）
+# 2. 創建並應用遷移
 pnpm db:migrate
+# 這會：
+# - 生成 SQL 遷移檔案
+# - 應用到開發資料庫
+# - 重新生成 Prisma Client
 
-# 3. 重新生成 Prisma Client
-pnpm db:generate
+# 3. 或快速同步（不創建遷移，僅開發用）
+pnpm db:push
 
-# 4. 應用遷移到資料庫
-# （db:migrate 已自動應用）
+# 4. 查看當前狀態
+pnpm prisma migrate status
 ```
 
 ### 生產環境
+
 ```bash
-# 1. 部署前運行
+# 1. CI/CD 中運行
 pnpm prisma migrate deploy
 
-# 2. 確保 Prisma Client 已生成
+# 2. 確保 Client 已生成
 pnpm db:generate
 ```
 
 ### 重置資料庫（僅開發）
+
 ```bash
-# 警告：會刪除所有資料
-pnpm db:push    # 快速同步（不創建遷移）
-pnpm db:reset   # 重置 + 重新應用所有遷移 + seed
+# 警告：會刪除所有資料！
+pnpm db:reset   # 重置 + 重新應用所有遷移 + 執行 seed
 ```
 
-## 📝 常見操作模式
+### 遷移歷史
 
-### 新增欄位
-```prisma
-model Project {
-  // 新增可選欄位（安全）
-  newField String?
+| 日期 | 遷移名稱 | 說明 |
+|------|----------|------|
+| 2025-11-26 | add_currency | FEAT-001 貨幣支援 |
+| 2025-12-02 | add_feat001_project_fields | Project 欄位擴展 |
+| 2025-12-02 | add_postmvp_tables | Post-MVP 表格 |
+| 2025-12-08 | feat007_om_expense_item | FEAT-007 OM Expense 重構 |
+| 2025-12-10 | feat008_lastfy_actual_expense | FEAT-008 上年度支出欄位 |
+| 2025-12-14 | feat011_permission_tables | FEAT-011 權限系統 |
 
-  // 新增必填欄位（需要預設值或遷移腳本）
-  requiredField String @default("default_value")
-}
-```
-
-### 重命名欄位
-```bash
-# Prisma 會自動檢測並提示
-pnpm db:migrate
-# 選擇 "Yes" 當提示是否為重命名
-```
-
-### 修改關係
-```prisma
-// 舊版本
-model Project {
-  budgetPoolId String?  // 可選
-
-// 新版本（遷移需處理現有 null 值）
-model Project {
-  budgetPoolId String   // 必填
-```
-
-## ⚠️ 重要約定
-
-1. **永不直接修改 migrations/**（遷移是不可變的）
-2. **生產環境遷移必須可回滾**（設計時考慮向後兼容）
-3. **外鍵關係必須有索引**（性能優化）
-4. **敏感資料欄位考慮加密**（如 password）
-5. **大型文字欄位使用 @db.Text**（如 description）
-6. **金額欄位考慮精度**（Float vs Decimal）
-7. **時區統一使用 UTC**（應用層轉換顯示）
+---
 
 ## 🔍 Prisma Client 使用模式
 
 ### 基本查詢
+
 ```typescript
 // 查詢所有
 const projects = await prisma.project.findMany();
 
-// 查詢單一
-const project = await prisma.project.findUnique({ where: { id } });
-
-// 查詢第一筆
-const project = await prisma.project.findFirst({ where: { status: 'Draft' } });
-
-// 查詢並包含關聯
+// 查詢單一（唯一欄位）
 const project = await prisma.project.findUnique({
   where: { id },
-  include: { budgetPool: true, manager: true },
+});
+
+// 查詢第一筆
+const project = await prisma.project.findFirst({
+  where: { status: 'Draft' },
+});
+
+// 包含關聯
+const project = await prisma.project.findUnique({
+  where: { id },
+  include: {
+    budgetPool: true,
+    manager: { select: { id: true, name: true, email: true } },
+    proposals: { orderBy: { createdAt: 'desc' } },
+  },
 });
 ```
 
-### 複雜查詢
+### 分頁與過濾
+
 ```typescript
-// 分頁 + 過濾 + 排序
+// 分頁 + 模糊搜尋 + 排序
 const projects = await prisma.project.findMany({
   where: {
     status: 'InProgress',
-    name: { contains: 'ERP', mode: 'insensitive' }, // 模糊搜尋（不區分大小寫）
+    name: { contains: 'ERP', mode: 'insensitive' },
+    budgetPoolId,
   },
   orderBy: { createdAt: 'desc' },
   skip: (page - 1) * limit,
@@ -286,13 +681,23 @@ const projects = await prisma.project.findMany({
 });
 
 // 計數
-const count = await prisma.project.count({ where: { status: 'InProgress' } });
+const count = await prisma.project.count({
+  where: { status: 'InProgress' },
+});
 ```
 
 ### 寫入操作
+
 ```typescript
 // 建立
-const project = await prisma.project.create({ data: { ... } });
+const project = await prisma.project.create({
+  data: {
+    name: 'New Project',
+    status: 'Draft',
+    managerId: userId,
+    // ...
+  },
+});
 
 // 更新
 const project = await prisma.project.update({
@@ -300,64 +705,108 @@ const project = await prisma.project.update({
   data: { status: 'Completed' },
 });
 
+// Upsert
+const project = await prisma.project.upsert({
+  where: { projectCode },
+  update: { name: 'Updated' },
+  create: { name: 'New', projectCode, ... },
+});
+
 // 刪除
 await prisma.project.delete({ where: { id } });
-
-// Upsert（更新或建立）
-const project = await prisma.project.upsert({
-  where: { id },
-  update: { ... },
-  create: { ... },
-});
 ```
 
 ### Transaction
+
 ```typescript
+// 批次 Transaction
 const result = await prisma.$transaction([
   prisma.project.update({ where: { id }, data: { status: 'Completed' } }),
-  prisma.budgetPool.update({ where: { id: poolId }, data: { usedAmount: { increment: 1000 } } }),
+  prisma.budgetPool.update({
+    where: { id: poolId },
+    data: { usedAmount: { increment: 1000 } },
+  }),
 ]);
 
-// 互動式 Transaction
+// 互動式 Transaction（可包含條件邏輯）
 const result = await prisma.$transaction(async (tx) => {
   const project = await tx.project.update({ ... });
-  await tx.history.create({ ... });
+  await tx.history.create({
+    data: { action: 'STATUS_CHANGED', ... },
+  });
   return project;
 });
 ```
 
-## 📊 效能優化
+### 選擇性載入
 
-### 選擇性欄位載入
 ```typescript
-// ✅ 只載入需要的欄位
+// ✅ 只載入需要的欄位（效能優化）
 const projects = await prisma.project.findMany({
   select: {
     id: true,
     name: true,
     status: true,
+    manager: { select: { name: true } },
   },
 });
 
-// ❌ 避免載入所有欄位（如果不需要）
-const projects = await prisma.project.findMany(); // 載入所有欄位
+// ❌ 避免載入所有欄位
+const projects = await prisma.project.findMany(); // 載入全部
 ```
 
-### 批次操作
-```typescript
-// createMany
-await prisma.project.createMany({
-  data: [{ ... }, { ... }],
-});
+---
 
-// updateMany
-await prisma.project.updateMany({
-  where: { status: 'Draft' },
-  data: { status: 'Archived' },
-});
-```
+## ⚠️ 重要約定
+
+### Schema 維護
+1. **永不直接修改 migrations/**（遷移檔案是不可變的）
+2. **修改 schema.prisma 後必須 `pnpm db:generate`**
+3. **生產環境遷移必須可回滾**（設計時考慮向後兼容）
+
+### 欄位設計
+4. **外鍵關係必須有索引**（效能優化）
+5. **敏感資料欄位考慮加密**（如 password 用 bcrypt）
+6. **大型文字欄位使用 @db.Text**
+7. **金額欄位使用 Float**（不用 Decimal 除非需要高精度）
+8. **時區統一使用 UTC**（應用層轉換顯示）
+
+### 向後兼容
+9. **@deprecated 欄位保留直到下個大版本**
+10. **新增欄位優先設為可選或有預設值**
+
+---
+
+## 📊 模型統計
+
+| 類別 | 模型數量 | 主要模型 |
+|------|----------|----------|
+| 核心使用者與權限 | 8 | User, Role, Permission |
+| 核心業務流程 | 7 | Project, BudgetProposal, Expense |
+| 輔助模型 | 3 | Comment, History, Notification |
+| 營運公司與預算類別 | 4 | OperatingCompany, BudgetCategory |
+| 採購單與費用明細 | 2 | PurchaseOrderItem, ExpenseItem |
+| OM 費用模型 | 4 | OMExpense, OMExpenseItem |
+| 費用轉嫁模型 | 2 | ChargeOut, ChargeOutItem |
+| 貨幣管理 | 1 | Currency |
+| **總計** | **31** | |
+
+---
 
 ## 相關文件
-- `packages/api/src/routers/*.ts` - 使用 Prisma Client 的 API Routers
+
+### 使用 Prisma 的程式碼
+- `packages/api/src/routers/*.ts` - 所有 tRPC Router 使用 Prisma Client
 - `packages/api/src/trpc.ts` - Prisma Client 注入到 tRPC Context
+- `packages/api/src/lib/schemaDefinition.ts` - Schema 同步定義
+
+### Schema 同步
+- `claudedocs/SCHEMA-SYNC-MECHANISM.md` - Azure 環境 Schema 同步機制
+
+### 文檔
 - [Prisma 官方文檔](https://www.prisma.io/docs)
+- [Prisma Schema 參考](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference)
+
+### 規則文件
+- `.claude/rules/database.md` - Prisma 資料庫規範
+- `.claude/rules/backend-api.md` - tRPC 後端 API 規範
