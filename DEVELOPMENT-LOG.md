@@ -20,6 +20,51 @@
 
 ## 🚀 開發記錄
 
+### 2025-12-18 | 🎨 CHANGE-033~035: UI 優化改進系列 | 完成 ✅
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+- 根據用戶反饋進行 UI/UX 優化改進
+- 簡化登入頁面，改進專案和 OM 費用頁面的搜尋/篩選功能
+
+**實現內容**:
+
+1. **CHANGE-033: Login 頁面簡化**
+   - 移除「忘記密碼」連結
+   - 移除「註冊」連結
+   - 簡化頁面佈局，專注於核心登入功能
+
+2. **CHANGE-034: Projects 頁面預設值與過濾器**
+   - 新增搜尋欄位
+   - 改進篩選功能佈局
+   - 新增 i18n 翻譯 key (projects.list.filters.*)
+
+3. **CHANGE-035: OM Expenses 頁面過濾器**
+   - 新增名稱搜尋功能（含 300ms 防抖）
+   - API 新增 `search` 參數支援 (case-insensitive)
+   - 優化篩選器網格佈局（響應式設計 md:grid-cols-2 lg:grid-cols-4）
+   - 新增 i18n 翻譯 key (omExpenses.list.filters.*)
+
+**修改文件** (10 個):
+- `apps/web/src/app/[locale]/login/page.tsx`
+- `apps/web/src/app/[locale]/projects/page.tsx`
+- `apps/web/src/app/[locale]/om-expenses/page.tsx`
+- `packages/api/src/routers/project.ts`
+- `packages/api/src/routers/omExpense.ts`
+- `apps/web/src/messages/zh-TW.json`
+- `apps/web/src/messages/en.json`
+- `claudedocs/4-changes/feature-changes/CHANGE-033-*.md` (新增)
+- `claudedocs/4-changes/feature-changes/CHANGE-034-*.md` (新增)
+- `claudedocs/4-changes/feature-changes/CHANGE-035-*.md` (新增)
+
+**統計**:
+- 新增文件: 3 個
+- 修改文件: 7 個
+- 代碼行數: +724 / -151
+
+---
+
 ### 2025-12-18 | 📚 建立 .claude/rules/ 規則框架 + CLAUDE.md 全面更新 | 完成 ✅
 
 **類型**: 文檔 | **負責人**: AI 助手 | **狀態**: ✅ 完成
