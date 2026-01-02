@@ -85,10 +85,11 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - Design system migration (shadcn/ui + Radix UI)
 - 4 new pages (Quotes, Settings, Register, Forgot Password)
 - Environment deployment optimization
-- Quality fixes (FIX-003, FIX-004, FIX-005)
+- Quality fixes (FIX-009 ~ FIX-099, 共 40+ bug fixes)
 - **FEAT-007**: OM Expense 表頭-明細架構重構 (OMExpense → OMExpenseItem → OMExpenseMonthly)
 - **FEAT-008**: OM Expense Data Import (Excel 數據導入 v1.0 → v1.3)
-- **CHANGE-005~011**: 多項功能改進 (OM Summary 欄位顯示、isOngoing 改進、lastFYActualExpense 修復等)
+- **FEAT-009 ~ FEAT-012**: OpCo 權限、Project Import、Permission Management、Loading System
+- **CHANGE-001~036**: 36 項功能改進 (OM Summary、Dashboard、Delete Enhancement、User Password 等)
 
 **📋 Next Phase: Epic 9-10** (AI Assistant + External Integration)
 
@@ -757,7 +758,7 @@ pnpm validate:i18n
 - 4 new pages (Quotes, Settings, Register, Forgot Password)
 - Environment setup automation (DEVELOPMENT-SETUP.md, check-environment.js)
 - Cross-platform deployment optimization
-- Quality fixes (FIX-003, FIX-004, FIX-005)
+- Quality fixes (FIX-009 ~ FIX-099, 共 40+ bug fixes)
 - **FEAT-007**: OM Expense 表頭-明細架構重構
   - 新增 OMExpenseItem 模型 (支援多明細項目)
   - 新增 6 個 API procedures (createWithItems, addItem, updateItem, removeItem, reorderItems, updateItemMonthlyRecords)
@@ -768,14 +769,18 @@ pnpm validate:i18n
   - 支援 xlsx/xls 格式解析 (xlsx 庫)
   - 表頭-明細關聯建立
   - 版本歷程: v1.0 → v1.1 (欄位映射優化) → v1.2 (驗證強化) → v1.3 (Bug 修復)
-- **CHANGE-005~011**: 多項功能改進
-  - CHANGE-005: i18n 翻譯更新
-  - CHANGE-006: OM Summary 欄位顯示改進
-  - CHANGE-007: Budget Pool 分類顯示修復
-  - CHANGE-008: Schema 同步修復
-  - CHANGE-009: OM Expense budgetCategoryId 驗證修復
-  - CHANGE-010: isOngoing 欄位增強
-  - CHANGE-011: lastFYActualExpense 欄位傳遞修復
+- **FEAT-009 ~ FEAT-012**: 後續功能增強
+  - FEAT-009: OpCo 數據權限管理
+  - FEAT-010: Project 數據導入
+  - FEAT-011: Permission Management (Sidebar 權限過濾)
+  - FEAT-012: 統一載入特效系統 (Spinner, LoadingButton, LoadingOverlay, GlobalProgress)
+- **CHANGE-001 ~ CHANGE-036**: 36 項功能改進
+  - CHANGE-001~004: OM Expense 來源追蹤、費用類別統一、OM Summary 顯示
+  - CHANGE-005~011: i18n、Budget Pool 分類、Schema 同步、isOngoing 增強
+  - CHANGE-012~019: Dashboard 改進、OM Summary 欄位優化、刪除功能增強
+  - CHANGE-021~024: 各模組刪除確認對話框優化
+  - CHANGE-028~032: OM Summary 預設 FY、搜尋功能、用戶密碼管理
+  - CHANGE-033~036: UI 優化系列、登入頁簡化、專案詳情頁欄位增強
 
 ### 📋 Epic 9: AI Assistant (Planned)
 - Intelligent budget suggestions during proposal phase
@@ -809,7 +814,7 @@ Comprehensive documentation exists in multiple locations:
 - `PROJECT-INDEX.md` - Complete file index (250+ files)
 - `INDEX-MAINTENANCE-GUIDE.md` - Index maintenance strategy
 - `DEVELOPMENT-LOG.md` - Development history and decisions
-- `FIXLOG.md` - Bug fix records (FIX-001 to FIX-005)
+- `FIXLOG.md` - Bug fix records (FIX-009 ~ FIX-099, 40+ fixes)
 
 ### Analysis & Planning (claudedocs/)
 - `DESIGN-SYSTEM-MIGRATION-PROGRESS.md` - Design system migration tracking
