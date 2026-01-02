@@ -109,6 +109,7 @@ export default function ProjectsPage() {
   const t = useTranslations('projects');
   const tCommon = useTranslations('common');
   const tToast = useTranslations('toast');
+  const tNav = useTranslations('navigation'); // FIX-098: 統一麵包屑翻譯
 
   // Session and Toast
   const { data: session } = useSession();
@@ -394,7 +395,7 @@ export default function ProjectsPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/dashboard">{tCommon('nav.dashboard')}</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('home')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -425,12 +426,12 @@ export default function ProjectsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* 麵包屑導航 */}
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">{tCommon('nav.dashboard')}</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('home')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -517,9 +518,8 @@ export default function ProjectsPage() {
         </AlertDialog>
 
         {/* CHANGE-034: 重新組織的搜尋和篩選欄 */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-4">
+        {/* FIX-099: 移除 Card wrapper，與其他列表頁保持一致 */}
+        <div className="flex flex-col gap-4">
               {/* 主要篩選器 - 始終顯示 */}
               <div className="flex flex-col gap-4 md:flex-row md:items-center">
                 {/* CHANGE-034: 財務年度篩選 (優先顯示) */}
@@ -714,9 +714,7 @@ export default function ProjectsPage() {
                   </select>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* 結果數量統計 */}
         {pagination && (

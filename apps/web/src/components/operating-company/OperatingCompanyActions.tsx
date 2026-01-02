@@ -4,6 +4,7 @@
  * @description
  * 營運公司的操作按鈕組件，用於列表頁面的每一行。
  * 支援編輯、切換啟用狀態、刪除等操作，並包含確認對話框防止誤操作。
+ * 使用直接按鈕顯示，避免下拉選單被截斷的問題。
  *
  * @component OperatingCompanyActions
  *
@@ -21,12 +22,12 @@
  *
  * @dependencies
  * - @tanstack/react-query: tRPC mutation
- * - shadcn/ui: Button, DropdownMenu, AlertDialog
+ * - shadcn/ui: Button, AlertDialog, Tooltip
  * - lucide-react: Icons
  *
  * @author IT Department
  * @since FEAT-004 - Operating Company Management
- * @lastModified 2025-12-01
+ * @lastModified 2025-12-18
  */
 
 'use client';
@@ -37,13 +38,6 @@ import { useTranslations } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -53,9 +47,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import {
-  MoreHorizontal,
   Edit,
   Power,
   PowerOff,
@@ -152,61 +151,86 @@ export function OperatingCompanyActions({ opCo, onSuccess }: OperatingCompanyAct
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" disabled={isLoading}>
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MoreHorizontal className="h-4 w-4" />
-            )}
-            <span className="sr-only">{tCommon('actions.actions')}</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {/* 編輯 */}
-          <DropdownMenuItem onClick={handleEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            {t('actions.edit')}
-          </DropdownMenuItem>
+      <TooltipProvider delayDuration={300}>
+        <div className="flex items-center gap-1">
+          {/* 編輯按鈕 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEdit}
+                disabled={isLoading}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">{t('actions.edit')}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('actions.edit')}</p>
+            </TooltipContent>
+          </Tooltip>
 
-          {/* 切換啟用/停用 */}
-          <DropdownMenuItem onClick={() => setShowToggleDialog(true)}>
-            {opCo.isActive ? (
-              <>
-                <PowerOff className="mr-2 h-4 w-4" />
-                {t('actions.deactivate')}
-              </>
-            ) : (
-              <>
-                <Power className="mr-2 h-4 w-4" />
-                {t('actions.activate')}
-              </>
-            )}
-          </DropdownMenuItem>
+          {/* 切換啟用/停用按鈕 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowToggleDialog(true)}
+                disabled={isLoading}
+                className="h-8 w-8 p-0"
+              >
+                {toggleMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : opCo.isActive ? (
+                  <PowerOff className="h-4 w-4" />
+                ) : (
+                  <Power className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {opCo.isActive ? t('actions.deactivate') : t('actions.activate')}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{opCo.isActive ? t('actions.deactivate') : t('actions.activate')}</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <DropdownMenuSeparator />
-
-          {/* 刪除 - 有關聯資料時禁用 */}
-          {!hasRelations ? (
-            <DropdownMenuItem
-              onClick={() => setShowDeleteDialog(true)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t('actions.delete')}
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem
-              className="text-muted-foreground cursor-not-allowed opacity-50"
-              title={t('messages.cannotDeleteWithRelations')}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t('actions.delete')}
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          {/* 刪除按鈕 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => !hasRelations && setShowDeleteDialog(true)}
+                disabled={isLoading || hasRelations}
+                className={`h-8 w-8 p-0 ${
+                  hasRelations
+                    ? 'text-muted-foreground cursor-not-allowed opacity-50'
+                    : 'text-destructive hover:text-destructive hover:bg-destructive/10'
+                }`}
+              >
+                {deleteMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                <span className="sr-only">{t('actions.delete')}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {hasRelations
+                  ? t('messages.cannotDeleteWithRelations')
+                  : t('actions.delete')}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
 
       {/* 切換狀態確認對話框 */}
       <AlertDialog open={showToggleDialog} onOpenChange={setShowToggleDialog}>

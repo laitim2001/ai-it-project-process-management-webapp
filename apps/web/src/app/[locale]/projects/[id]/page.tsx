@@ -87,6 +87,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 
 export default function ProjectDetailPage() {
   const t = useTranslations('projects.detail');
+  const tForm = useTranslations('projects.form');  // CHANGE-036: 表單欄位標籤
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation.menu');
   const tStatus = useTranslations('common.status');
@@ -557,6 +558,165 @@ export default function ProjectDetailPage() {
                     <dd className="text-foreground font-medium mt-1">
                       {new Date(project.updatedAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')}
                     </dd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CHANGE-036: 專案分類 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="h-5 w-5" />
+                  {t('projectClassification')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.projectCategory.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.projectCategory || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.projectType.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">
+                      {project.projectType ? tForm(`fields.projectType.options.${project.projectType.toLowerCase()}`) : '-'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.expenseType.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">
+                      {project.expenseType ? tForm(`fields.expenseType.options.${project.expenseType.toLowerCase()}`) : '-'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.probability.label')}</dt>
+                    <dd className="mt-1">
+                      {project.probability ? (
+                        <Badge variant={
+                          project.probability === 'high' ? 'default' :
+                          project.probability === 'medium' ? 'secondary' : 'outline'
+                        }>
+                          {tForm(`fields.probability.options.${project.probability.toLowerCase()}`)}
+                        </Badge>
+                      ) : '-'}
+                    </dd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CHANGE-036: 費用分攤資訊 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  {t('chargeOutInfo')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.chargeBackToOpCo.label')}</dt>
+                    <dd className="mt-1">
+                      <Badge variant={project.chargeBackToOpCo ? 'default' : 'outline'}>
+                        {project.chargeBackToOpCo ? tCommon('yes') : tCommon('no')}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.chargeOutMethod.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.chargeOutMethod || '-'}</dd>
+                  </div>
+                  {project.chargeBackToOpCo && project.chargeOutOpCos && project.chargeOutOpCos.length > 0 && (
+                    <div className="col-span-2">
+                      <dt className="text-sm font-medium text-muted-foreground mb-2">{tForm('fields.chargeOutOpCos.label')}</dt>
+                      <dd className="flex flex-wrap gap-2">
+                        {project.chargeOutOpCos.map((item) => (
+                          <Badge key={item.opCo.id} variant="secondary">
+                            {item.opCo.code} - {item.opCo.name}
+                          </Badge>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CHANGE-036: 團隊資訊 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {t('projectTeam')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.team.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.team || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.personInCharge.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.personInCharge || '-'}</dd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CHANGE-036: 審核與財務 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  {t('reviewAndFinance')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.isCdoReviewRequired.label')}</dt>
+                    <dd className="mt-1">
+                      <Badge variant={project.isCdoReviewRequired ? 'default' : 'outline'}>
+                        {project.isCdoReviewRequired ? tCommon('yes') : tCommon('no')}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.isManagerConfirmed.label')}</dt>
+                    <dd className="mt-1">
+                      <Badge variant={project.isManagerConfirmed ? 'default' : 'outline'}>
+                        {project.isManagerConfirmed ? tCommon('yes') : tCommon('no')}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.fiscalYear.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.fiscalYear || '-'}</dd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CHANGE-036: 付款資訊 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  {t('paymentInfo')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.payForWhat.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.payForWhat || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.payToWhom.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.payToWhom || '-'}</dd>
                   </div>
                 </div>
               </CardContent>
