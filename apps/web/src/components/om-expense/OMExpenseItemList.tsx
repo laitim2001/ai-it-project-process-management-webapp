@@ -156,12 +156,12 @@ interface OMExpenseItemListProps {
  * 格式化金額（千分位）
  */
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('zh-HK', {
-    style: 'currency',
-    currency: 'HKD',
+  const formatted = new Intl.NumberFormat('en-US', {
+    style: 'decimal',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+  return `US$${formatted}`;
 }
 
 /**

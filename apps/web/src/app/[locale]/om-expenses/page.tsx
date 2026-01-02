@@ -172,12 +172,12 @@ export default function OMExpensesPage() {
 
   // 格式化金額
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-HK', {
-      style: 'currency',
-      currency: 'HKD',
+    const formatted = new Intl.NumberFormat('en-US', {
+      style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+    return `US$${formatted}`;
   };
 
   // 格式化增長率

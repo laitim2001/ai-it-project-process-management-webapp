@@ -189,12 +189,12 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-HK', {
-      style: 'currency',
-      currency: 'HKD',
+    const formatted = new Intl.NumberFormat('en-US', {
+      style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+    return `US$${formatted}`;
   };
 
   // Format date
