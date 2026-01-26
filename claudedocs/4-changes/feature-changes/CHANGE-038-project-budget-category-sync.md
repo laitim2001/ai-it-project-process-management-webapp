@@ -32,10 +32,8 @@ Project.budgetCategoryId → BudgetCategory (可選, 1:N)
 **核心流程**：
 ```
 1. 用戶建立/編輯 Project → 選擇 Budget Pool
-2. 系統自動帶入該 Pool 下所有 active BudgetCategory
-3. 用戶為每個類別設定此專案的預算金額 (requestedAmount)
-4. 審批後可設定 approvedAmount
-5. 追蹤每個類別的實際支出
+2. 系統自動帶入該 Pool 下所有 active BudgetCategory（含 Budget Amount，唯讀顯示）
+3. 用戶為每個類別設定此專案的 Request Amount（唯一可編輯欄位）
 ```
 
 ---
@@ -47,11 +45,11 @@ Project.budgetCategoryId → BudgetCategory (可選, 1:N)
 | 編號 | 需求 | 優先級 | 說明 |
 |------|------|--------|------|
 | R-01 | Budget Pool 類別自動同步 | High | 選擇 BudgetPool 時，自動帶入該 Pool 下所有 active BudgetCategory |
-| R-02 | 專案層級金額設定 | High | 每個同步的類別可設定 requestedAmount 和 approvedAmount |
-| R-03 | Budget Pool 切換時重新同步 | High | 更換 BudgetPool 時，清除舊類別並同步新類別 |
-| R-04 | 手動觸發同步 | Medium | 當 BudgetPool 新增類別後，專案可手動觸發同步 |
-| R-05 | 類別金額總計驗證 | Medium | 各類別 requestedAmount 總和不應超過 Project.requestedBudget |
-| R-06 | 實際支出追蹤 | Low | 記錄每個類別的實際支出金額 (actualAmount) |
+| R-02 | Budget Amount 唯讀顯示 | High | 從 BudgetCategory.totalAmount 取得，在專案頁中**不可編輯**，僅顯示 |
+| R-03 | Request Amount 可編輯 | High | 每個同步的類別可設定 requestedAmount（唯一可編輯欄位） |
+| R-04 | Budget Pool 切換時重新同步 | High | 更換 BudgetPool 時，清除舊類別並同步新類別 |
+| R-05 | 手動觸發同步 | Medium | 當 BudgetPool 新增類別後，專案可手動觸發同步 |
+| R-06 | 類別金額總計驗證 | Medium | 各類別 requestedAmount 總和不應超過 Project.requestedBudget |
 
 ### 2.2 業務規則
 
@@ -66,14 +64,12 @@ Project.budgetCategoryId → BudgetCategory (可選, 1:N)
    - 已有金額設定的類別，重新同步時保留金額（不覆蓋）
    - 若 BudgetPool 的某個類別被停用，對應的 ProjectBudgetCategory 標記為 inactive 但不刪除
 
-3. **金額管理**：
-   - requestedAmount：專案申請的預算金額（PM 填寫）
-   - approvedAmount：審批後的預算金額（Supervisor 審批）
-   - actualAmount：實際支出金額（系統自動計算，或手動填寫）
+3. **欄位可編輯性**：
+   - Budget Amount（唯讀）：從 BudgetCategory.totalAmount 取得，專案頁面中**不可修改**，僅作為參考顯示
+   - Request Amount（可編輯）：PM 為此專案在該類別下申請的預算金額，**唯一可編輯欄位**
 
 4. **權限控制**：
-   - PM：可同步類別、設定 requestedAmount
-   - Supervisor：可設定 approvedAmount
+   - PM：可設定 Request Amount
    - Admin：完整權限
 
 ### 2.3 與現有 budgetCategoryId 的關係
@@ -100,15 +96,12 @@ model ProjectBudgetCategory {
   projectId        String
   budgetCategoryId String
 
-  // 金額管理
-  requestedAmount  Float   @default(0)  // PM 申請金額
-  approvedAmount   Float?               // Supervisor 審批金額
-  actualAmount     Float   @default(0)  // 實際支出金額
+  // 金額管理（Budget Amount 不需儲存，查詢時從 BudgetCategory.totalAmount 取得）
+  requestedAmount  Float   @default(0)  // PM 申請金額（唯一可編輯欄位）
 
   // 排序與狀態
   sortOrder        Int     @default(0)
   isActive         Boolean @default(true)
-  notes            String? @db.Text
 
   // 時間戳
   createdAt        DateTime @default(now())
@@ -124,6 +117,8 @@ model ProjectBudgetCategory {
   @@index([isActive])
 }
 ```
+
+> **注意**：Budget Amount 不存入此表，查詢時透過 `include: { budgetCategory: true }` 從 `BudgetCategory.totalAmount` 取得並唯讀顯示。
 
 #### 修改現有模型
 
@@ -162,9 +157,7 @@ const syncBudgetCategoriesSchema = z.object({
 
 const updateProjectBudgetCategorySchema = z.object({
   id: z.string().uuid(),
-  requestedAmount: z.number().min(0).optional(),
-  approvedAmount: z.number().min(0).optional(),
-  notes: z.string().optional(),
+  requestedAmount: z.number().min(0),
 });
 
 const batchUpdateProjectBudgetCategoriesSchema = z.object({
@@ -172,7 +165,6 @@ const batchUpdateProjectBudgetCategoriesSchema = z.object({
   categories: z.array(z.object({
     budgetCategoryId: z.string().uuid(),
     requestedAmount: z.number().min(0),
-    notes: z.string().optional(),
   })),
 });
 ```
@@ -188,70 +180,99 @@ const batchUpdateProjectBudgetCategoriesSchema = z.object({
 
 ### 3.3 前端變更
 
+#### UI 設計參考
+
+> **設計稿**: `it-project-process-management-project-screen-add-budget-category-details-v1.png`
+
+#### 頁面佈局（根據設計稿）
+
+「Budget Category Details」區塊位於 **Budget Pools / Currency** 選擇器下方、**Project Manager / Supervisor / Start Date / End Date** 上方：
+
+```
+建立/編輯 Project 頁面：
+┌──────────────────────────────────────────────────────────────────┐
+│ ...（其他表單欄位）                                                │
+│                                                                   │
+│ Budget Pools *              Currency                              │
+│ [▼ Select budget pool ]     [▼ Select currency (optional) ]      │
+│                                                                   │
+│ ┌─ Budget Category Details ─────────────────────────────────────┐│
+│ │                                                                ││
+│ │  Category              Code    Budget Amount    Request Amount ││
+│ │  ─────────────────────────────────────────────────────────── ──││
+│ │  1. Budget Category 1  BC1     $500,000         [$150,000   ] ││
+│ │  2. Budget Category 2  BC2     $300,000         [$300,000   ] ││
+│ │  3. Budget Category 3  BC3     $200,000         [$200,000   ] ││
+│ │                                                                ││
+│ └────────────────────────────────────────────────────────────────┘│
+│                                                                   │
+│ Project Manager *    Supervisor *    Start Date *    End Date     │
+│ [▼ Select PM    ]    [▼ Select   ]   [mm/dd/yyyy]   [mm/dd/yyyy] │
+│                                                                   │
+│ [Create Project]  [Cancel]                                        │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+#### 表格欄位規格
+
+| 欄位 | 來源 | 可編輯 | 說明 |
+|------|------|--------|------|
+| **Category** | `BudgetCategory.categoryName` | 唯讀 | 帶序號顯示，如 "1. Budget Category 1" |
+| **Code** | `BudgetCategory.categoryCode` | 唯讀 | 類別代碼，如 "BC1" |
+| **Budget Amount** | `BudgetCategory.totalAmount` | **唯讀** | 從 Budget Pool 取得，不可在專案頁中修改，僅顯示 |
+| **Request Amount** | `ProjectBudgetCategory.requestedAmount` | **可編輯** | PM 為此專案申請的金額，**唯一可編輯欄位** |
+
+#### 互動行為
+
+1. **選擇 Budget Pool 時**：自動載入該 Pool 下所有 active BudgetCategory，顯示 Budget Category Details 表格
+2. **未選擇 Budget Pool 時**：不顯示 Budget Category Details 區塊
+3. **切換 Budget Pool 時**：清除舊類別，重新載入新 Pool 的類別，Request Amount 重置為 0
+4. **Request Amount 輸入**：使用數字輸入框，支援金額格式（`$` 前綴 + 千分位）
+
 #### 新增組件
 
 | 組件 | 路徑 | 說明 |
 |------|------|------|
-| `ProjectBudgetCategoryTable` | `components/project/ProjectBudgetCategoryTable.tsx` | 專案預算類別表格（顯示/編輯） |
-| `ProjectBudgetCategorySummary` | `components/project/ProjectBudgetCategorySummary.tsx` | 預算類別匯總卡片 |
-| `SyncBudgetCategoriesButton` | `components/project/SyncBudgetCategoriesButton.tsx` | 同步類別按鈕 |
+| `BudgetCategoryDetails` | `components/project/BudgetCategoryDetails.tsx` | 預算類別明細表格（整合到 ProjectForm 中） |
 
 #### 修改頁面
 
 | 頁面 | 修改內容 |
 |------|----------|
-| `projects/new/page.tsx` | 選擇 BudgetPool 後，自動觸發類別同步並顯示類別表格 |
-| `projects/[id]/page.tsx` | 專案詳情頁新增「預算類別」區塊 |
-| `projects/[id]/edit/page.tsx` | 編輯頁面整合類別金額編輯 |
-
-#### UI 互動流程
-
-```
-建立/編輯 Project 頁面：
-┌─────────────────────────────────────────────────┐
-│ 專案資訊                                         │
-│                                                  │
-│ Budget Pool: [▼ FY2025 IT Budget Pool    ]       │
-│                                                  │
-│ ┌─ 預算類別分配 ──────────────────────── [🔄同步]│
-│ │                                               ││
-│ │ 類別        | 代碼 | Pool 總額 | 申請金額      ││
-│ │ ─────────────────────────────────────────────  ││
-│ │ Hardware    | HW   | 500,000  | [________]    ││
-│ │ Software    | SW   | 300,000  | [________]    ││
-│ │ Services    | SVC  | 200,000  | [________]    ││
-│ │ Consulting  | CON  | 150,000  | [________]    ││
-│ │ ─────────────────────────────────────────────  ││
-│ │ 合計                 1,150,000  0             ││
-│ └────────────────────────────────────────────── ││
-│                                                  │
-│                        [取消]  [儲存]             │
-└─────────────────────────────────────────────────┘
-```
+| `projects/new/page.tsx` (ProjectForm) | 選擇 BudgetPool 後，顯示 Budget Category Details 表格 |
+| `projects/[id]/page.tsx` | 專案詳情頁新增「Budget Category Details」唯讀顯示區塊 |
+| `projects/[id]/edit/page.tsx` (ProjectForm) | 編輯頁面顯示 Budget Category Details，可修改 Request Amount |
 
 ### 3.4 I18N 翻譯鍵
 
 ```json
 {
   "projects": {
-    "budgetCategories": {
-      "title": "預算類別分配",
-      "syncButton": "同步類別",
-      "syncSuccess": "類別同步成功",
-      "syncConfirm": "確定要重新同步預算類別嗎？",
+    "budgetCategoryDetails": {
+      "title": "Budget Category Details",
       "table": {
-        "categoryName": "類別名稱",
-        "categoryCode": "類別代碼",
-        "poolTotal": "Pool 總額",
-        "requestedAmount": "申請金額",
-        "approvedAmount": "核准金額",
-        "actualAmount": "實際支出",
-        "notes": "備註"
+        "category": "Category",
+        "code": "Code",
+        "budgetAmount": "Budget Amount",
+        "requestAmount": "Request Amount"
       },
-      "summary": {
-        "totalRequested": "申請總計",
-        "totalApproved": "核准總計",
-        "totalActual": "實際總計"
+      "empty": "No budget categories available",
+      "noBudgetPool": "Please select a budget pool first"
+    }
+  }
+}
+```
+
+```json
+{
+  "projects": {
+    "budgetCategoryDetails": {
+      "title": "預算類別明細",
+      "table": {
+        "category": "類別",
+        "code": "代碼",
+        "budgetAmount": "預算金額",
+        "requestAmount": "申請金額"
       },
       "empty": "尚無預算類別",
       "noBudgetPool": "請先選擇預算池"
@@ -270,12 +291,10 @@ const batchUpdateProjectBudgetCategoriesSchema = z.object({
 |------|----------|------|
 | `packages/db/prisma/schema.prisma` | 修改 | 新增 ProjectBudgetCategory 模型，擴展 Project/BudgetCategory 關聯 |
 | `packages/api/src/routers/project.ts` | 修改 | 新增 5 個 procedures |
-| `apps/web/src/components/project/ProjectBudgetCategoryTable.tsx` | 新增 | 預算類別表格組件 |
-| `apps/web/src/components/project/ProjectBudgetCategorySummary.tsx` | 新增 | 匯總卡片組件 |
-| `apps/web/src/components/project/SyncBudgetCategoriesButton.tsx` | 新增 | 同步按鈕組件 |
-| `apps/web/src/app/[locale]/projects/new/page.tsx` | 修改 | 整合類別同步流程 |
-| `apps/web/src/app/[locale]/projects/[id]/page.tsx` | 修改 | 新增預算類別顯示區塊 |
-| `apps/web/src/app/[locale]/projects/[id]/edit/page.tsx` | 修改 | 類別金額編輯 |
+| `apps/web/src/components/project/BudgetCategoryDetails.tsx` | 新增 | Budget Category Details 表格組件 |
+| `apps/web/src/app/[locale]/projects/new/page.tsx` (ProjectForm) | 修改 | 整合 Budget Category Details 區塊 |
+| `apps/web/src/app/[locale]/projects/[id]/page.tsx` | 修改 | 新增 Budget Category Details 唯讀顯示 |
+| `apps/web/src/app/[locale]/projects/[id]/edit/page.tsx` (ProjectForm) | 修改 | 類別 Request Amount 編輯 |
 | `apps/web/src/messages/en.json` | 修改 | 新增翻譯鍵 |
 | `apps/web/src/messages/zh-TW.json` | 修改 | 新增翻譯鍵 |
 
@@ -292,13 +311,14 @@ const batchUpdateProjectBudgetCategoriesSchema = z.object({
 ## 5. 驗收標準
 
 ### 5.1 功能驗收
-- [ ] 建立 Project 選擇 BudgetPool 後，自動同步所有 active 類別
-- [ ] 同步後可為每個類別輸入 requestedAmount
-- [ ] 切換 BudgetPool 時，舊類別被清除，新類別被同步
-- [ ] 手動同步按鈕可重新同步類別（保留已有金額）
-- [ ] 專案詳情頁正確顯示預算類別和金額
-- [ ] 編輯頁面可修改類別金額
-- [ ] 各類別金額合計正確顯示
+- [ ] 選擇 Budget Pool 後，自動顯示 Budget Category Details 表格
+- [ ] 表格正確顯示 4 欄：Category（帶序號）、Code、Budget Amount、Request Amount
+- [ ] Budget Amount 從 BudgetCategory.totalAmount 取得，唯讀不可編輯
+- [ ] Request Amount 可編輯（唯一可編輯欄位）
+- [ ] 切換 BudgetPool 時，舊類別被清除，新類別被載入，Request Amount 重置為 0
+- [ ] 未選擇 Budget Pool 時，不顯示 Budget Category Details 區塊
+- [ ] 專案詳情頁正確顯示 Budget Category Details（全部唯讀）
+- [ ] 編輯頁面可修改 Request Amount
 
 ### 5.2 技術驗收
 - [ ] TypeScript 類型完整，無 any
@@ -325,10 +345,11 @@ const batchUpdateProjectBudgetCategoriesSchema = z.object({
 6. 整合到現有 `create` 和 `update` procedure
 
 ### Phase 3: 前端組件 + 頁面整合
-1. 建立 3 個新組件
-2. 修改 Project 建立/詳情/編輯頁面
-3. 新增 I18N 翻譯鍵
-4. 執行 `pnpm validate:i18n`
+1. 建立 `BudgetCategoryDetails` 組件（4 欄表格：Category / Code / Budget Amount 唯讀 / Request Amount 可編輯）
+2. 整合到 ProjectForm（建立/編輯頁面），位於 Budget Pools 選擇器下方
+3. 修改 Project 詳情頁（唯讀顯示 Budget Category Details）
+4. 新增 I18N 翻譯鍵（en.json + zh-TW.json）
+5. 執行 `pnpm validate:i18n`
 
 ### Phase 4: 測試驗證
 1. 功能測試
@@ -362,23 +383,7 @@ const batchUpdateProjectBudgetCategoriesSchema = z.object({
 
 **建議**: B) 標記 inactive
 
-### Q3: approvedAmount 審批流程
-**選項**:
-- A) 需要 Supervisor 逐一審批每個類別金額
-- B) Supervisor 審批專案總額，不涉及類別層級
-- C) 視業務流程決定
-
-**建議**: 待確認
-
-### Q4: actualAmount 來源
-**選項**:
-- A) 系統自動從 Expense 計算
-- B) PM 手動填寫
-- C) 兩者皆支援
-
-**建議**: 待確認
-
-### Q5: BudgetPool 新增類別後的通知
+### Q3: BudgetPool 新增類別後的通知
 **選項**:
 - A) 自動通知相關 Project
 - B) 不通知，由 PM 手動同步
