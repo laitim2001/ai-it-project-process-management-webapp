@@ -234,6 +234,7 @@ model Project {
   purchaseOrders PurchaseOrder[]
   chargeOuts     ChargeOut[] // 新增：費用轉嫁
   chargeOutOpCos ProjectChargeOutOpCo[] // FEAT-006: 向哪些 OpCo 收費（多選）
+  projectBudgetCategories ProjectBudgetCategory[] // CHANGE-038: 專案預算類別同步
 
   @@index([managerId])
   @@index([supervisorId])
@@ -558,9 +559,41 @@ model BudgetCategory {
   budgetPool BudgetPool @relation(fields: [budgetPoolId], references: [id], onDelete: Cascade)
   projects   Project[] // 使用此類別的項目
   expenses   Expense[] // 關聯的支出
+  projectBudgetCategories ProjectBudgetCategory[] // CHANGE-038: 專案預算類別同步
 
   @@unique([budgetPoolId, categoryName])
   @@index([budgetPoolId])
+  @@index([isActive])
+}
+
+// ==================================================================
+// 5.3 專案預算類別同步 (Project ↔ BudgetCategory with amounts)
+// CHANGE-038: Project Budget Category Sync
+// ==================================================================
+
+model ProjectBudgetCategory {
+  id               String @id @default(uuid())
+  projectId        String
+  budgetCategoryId String
+
+  // 金額管理（Budget Amount 不需儲存，查詢時從 BudgetCategory.totalAmount 取得）
+  requestedAmount Float @default(0) // PM 申請金額（唯一可編輯欄位）
+
+  // 排序與狀態
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  // 時間戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  budgetCategory BudgetCategory @relation(fields: [budgetCategoryId], references: [id], onDelete: Restrict)
+
+  @@unique([projectId, budgetCategoryId]) // 同一專案同一類別不可重複
+  @@index([projectId])
+  @@index([budgetCategoryId])
   @@index([isActive])
 }
 

@@ -2143,6 +2143,328 @@ export const projectRouter = createTRPCRouter({
   }),
 
   // ============================================================
+  // CHANGE-038: 專案預算類別同步 (Project Budget Category Sync)
+  // ============================================================
+
+  /**
+   * 同步 Budget Pool 類別到 Project
+   *
+   * @description
+   * 當 Project 選定 BudgetPool 後，自動同步該 Pool 下所有 active 的 BudgetCategory
+   * 到 ProjectBudgetCategory。已存在的類別保留金額（不覆蓋），新的類別預設金額 0，
+   * Pool 中已不存在或被停用的類別標記為 inactive。
+   *
+   * @input projectId - 專案 ID
+   * @returns 同步後的 ProjectBudgetCategory 列表
+   */
+  syncBudgetCategories: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, '專案 ID 為必填'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 1. 取得 Project 及其 budgetPoolId
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId },
+        select: { id: true, budgetPoolId: true },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案',
+        });
+      }
+
+      if (!project.budgetPoolId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '專案尚未關聯預算池，無法同步類別',
+        });
+      }
+
+      // 2. 查詢 Pool 下所有 active BudgetCategory
+      const poolCategories = await ctx.prisma.budgetCategory.findMany({
+        where: {
+          budgetPoolId: project.budgetPoolId,
+          isActive: true,
+        },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      // 3. 使用 Transaction 進行同步
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // 3a. 取得現有的 ProjectBudgetCategory
+        const existingCategories =
+          await tx.projectBudgetCategory.findMany({
+            where: { projectId: input.projectId },
+          });
+
+        const existingMap = new Map(
+          existingCategories.map((c) => [c.budgetCategoryId, c])
+        );
+
+        const poolCategoryIds = new Set(
+          poolCategories.map((c) => c.id)
+        );
+
+        // 3b. Upsert：新增或重新啟用類別
+        for (const [index, category] of poolCategories.entries()) {
+          const existing = existingMap.get(category.id);
+
+          if (existing) {
+            // 已存在：確保 isActive = true，保留金額
+            if (!existing.isActive) {
+              await tx.projectBudgetCategory.update({
+                where: { id: existing.id },
+                data: {
+                  isActive: true,
+                  sortOrder: index,
+                },
+              });
+            }
+          } else {
+            // 新增：建立新的 ProjectBudgetCategory
+            await tx.projectBudgetCategory.create({
+              data: {
+                projectId: input.projectId,
+                budgetCategoryId: category.id,
+                requestedAmount: 0,
+                sortOrder: index,
+                isActive: true,
+              },
+            });
+          }
+        }
+
+        // 3c. 標記 Pool 中已不存在的類別為 inactive
+        for (const existing of existingCategories) {
+          if (!poolCategoryIds.has(existing.budgetCategoryId)) {
+            await tx.projectBudgetCategory.update({
+              where: { id: existing.id },
+              data: { isActive: false },
+            });
+          }
+        }
+
+        // 3d. 回傳同步後的結果
+        return tx.projectBudgetCategory.findMany({
+          where: {
+            projectId: input.projectId,
+            isActive: true,
+          },
+          include: {
+            budgetCategory: true,
+          },
+          orderBy: { sortOrder: 'asc' },
+        });
+      });
+
+      return result;
+    }),
+
+  /**
+   * 取得 Project 的所有預算類別
+   *
+   * @description
+   * 查詢 Project 的所有 active ProjectBudgetCategory，
+   * 包含 BudgetCategory 詳情（categoryName, categoryCode, totalAmount）。
+   * Budget Amount 從 BudgetCategory.totalAmount 取得，唯讀顯示。
+   *
+   * @input projectId - 專案 ID
+   * @returns ProjectBudgetCategory 列表（含 budgetCategory 關聯）
+   */
+  getProjectBudgetCategories: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, '專案 ID 為必填'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const categories = await ctx.prisma.projectBudgetCategory.findMany({
+        where: {
+          projectId: input.projectId,
+          isActive: true,
+        },
+        include: {
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+              totalAmount: true,
+            },
+          },
+        },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      return categories;
+    }),
+
+  /**
+   * 更新單一專案預算類別金額
+   *
+   * @description
+   * 更新指定 ProjectBudgetCategory 的 requestedAmount。
+   * requestedAmount 是唯一可編輯欄位。
+   *
+   * @input id - ProjectBudgetCategory ID
+   * @input requestedAmount - PM 申請金額
+   * @returns 更新後的 ProjectBudgetCategory
+   */
+  updateProjectBudgetCategory: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, 'ID 為必填'),
+        requestedAmount: z.number().min(0, '金額不可為負數'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.prisma.projectBudgetCategory.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: '找不到該專案預算類別',
+        });
+      }
+
+      const updated = await ctx.prisma.projectBudgetCategory.update({
+        where: { id: input.id },
+        data: { requestedAmount: input.requestedAmount },
+        include: {
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+              totalAmount: true,
+            },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * 批量更新專案預算類別金額
+   *
+   * @description
+   * 批量更新多個 ProjectBudgetCategory 的 requestedAmount。
+   * 通常在表單儲存時一次送出所有類別的金額。
+   *
+   * @input projectId - 專案 ID
+   * @input categories - 要更新的類別陣列 [{budgetCategoryId, requestedAmount}]
+   * @returns 更新後的所有 ProjectBudgetCategory
+   */
+  batchUpdateProjectBudgetCategories: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, '專案 ID 為必填'),
+        categories: z.array(
+          z.object({
+            budgetCategoryId: z.string().min(1),
+            requestedAmount: z.number().min(0, '金額不可為負數'),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        for (const cat of input.categories) {
+          await tx.projectBudgetCategory.updateMany({
+            where: {
+              projectId: input.projectId,
+              budgetCategoryId: cat.budgetCategoryId,
+              isActive: true,
+            },
+            data: { requestedAmount: cat.requestedAmount },
+          });
+        }
+
+        return tx.projectBudgetCategory.findMany({
+          where: {
+            projectId: input.projectId,
+            isActive: true,
+          },
+          include: {
+            budgetCategory: {
+              select: {
+                id: true,
+                categoryName: true,
+                categoryCode: true,
+                totalAmount: true,
+              },
+            },
+          },
+          orderBy: { sortOrder: 'asc' },
+        });
+      });
+
+      return result;
+    }),
+
+  /**
+   * 取得專案預算類別匯總
+   *
+   * @description
+   * 匯總 Project 下所有 active ProjectBudgetCategory 的金額，
+   * 包含各類別的 Budget Amount（唯讀）和 Request Amount，
+   * 以及總計。
+   *
+   * @input projectId - 專案 ID
+   * @returns 匯總資料
+   */
+  getProjectBudgetCategorySummary: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, '專案 ID 為必填'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const categories = await ctx.prisma.projectBudgetCategory.findMany({
+        where: {
+          projectId: input.projectId,
+          isActive: true,
+        },
+        include: {
+          budgetCategory: {
+            select: {
+              id: true,
+              categoryName: true,
+              categoryCode: true,
+              totalAmount: true,
+            },
+          },
+        },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      const totalBudgetAmount = categories.reduce(
+        (sum, c) => sum + (c.budgetCategory?.totalAmount ?? 0),
+        0
+      );
+      const totalRequestedAmount = categories.reduce(
+        (sum, c) => sum + c.requestedAmount,
+        0
+      );
+
+      return {
+        categories,
+        summary: {
+          totalBudgetAmount,
+          totalRequestedAmount,
+          categoryCount: categories.length,
+        },
+      };
+    }),
+
+  // ============================================================
   // FIX-008: 專案狀態回退功能
   // ============================================================
 

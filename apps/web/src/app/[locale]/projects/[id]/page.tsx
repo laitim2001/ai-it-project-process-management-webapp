@@ -82,8 +82,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle, RotateCcw, Layers } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { BudgetCategoryDetails } from '@/components/project/BudgetCategoryDetails';
 
 export default function ProjectDetailPage() {
   const t = useTranslations('projects.detail');
@@ -721,6 +722,15 @@ export default function ProjectDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* CHANGE-038: 預算類別明細 */}
+            {project.budgetPoolId && (
+              <BudgetCategoryDetails
+                budgetPoolId={project.budgetPoolId}
+                projectId={project.id}
+                mode="readonly"
+              />
+            )}
 
             {/* 專案統計數據 */}
             {stats && (

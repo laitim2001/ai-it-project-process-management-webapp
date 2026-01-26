@@ -651,6 +651,17 @@
           "placeholder": "Select budget category (optional)",
           "selectPoolFirst": "Please select budget pool first"
         },
+        "budgetCategoryDetails": {
+          "title": "Budget Category Details",
+          "table": {
+            "category": "Category",
+            "code": "Code",
+            "budgetAmount": "Budget Amount",
+            "requestAmount": "Request Amount"
+          },
+          "empty": "No budget categories available",
+          "noBudgetPool": "Please select a budget pool first"
+        },
         "requestedBudget": {
           "label": "Requested Budget Amount",
           "placeholder": "0.00"

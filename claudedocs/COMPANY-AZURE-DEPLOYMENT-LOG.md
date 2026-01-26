@@ -52,6 +52,32 @@ curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.fullSche
 
 ## 部署歷史
 
+### v40-change037-currency (2026-01-02)
+
+| 項目 | 內容 |
+|------|------|
+| **版本** | v40-change037-currency |
+| **日期** | 2026-01-02 |
+| **變更內容** | CHANGE-037 OM Expenses 幣別格式從 HK$ 改為 US$ |
+| **狀態** | ✅ 成功 |
+
+**包含變更:**
+- OM Expenses 列表頁 Budget 和 Actual Spent 欄位顯示 US$ 前綴
+- OM Expense 詳情頁 Budget Overview 金額顯示 US$ 前綴
+- OM Expense 詳情頁 Line Items 金額顯示 US$ 前綴
+
+**修改檔案:**
+- `apps/web/src/app/[locale]/om-expenses/page.tsx` - formatCurrency 函數
+- `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` - formatCurrency 函數
+- `apps/web/src/components/om-expense/OMExpenseItemList.tsx` - formatCurrency 函數
+
+**驗證結果:**
+- ✅ 主頁面: 200
+- ✅ OM Expenses 頁面: 200
+- ✅ 登入頁面: 200
+
+---
+
 ### v29-fix-date (2025-12-15)
 
 | 項目 | 內容 |
@@ -490,5 +516,5 @@ curl https://app-itpm-company-dev-001.azurewebsites.net/api/trpc/health.schemaCo
 
 ---
 
-**最後更新**: 2025-12-14
+**最後更新**: 2026-01-02
 **維護者**: AI 助手

@@ -651,6 +651,17 @@
           "placeholder": "選擇預算類別（選填）",
           "selectPoolFirst": "請先選擇預算池"
         },
+        "budgetCategoryDetails": {
+          "title": "預算類別明細",
+          "table": {
+            "category": "類別",
+            "code": "代碼",
+            "budgetAmount": "預算金額",
+            "requestAmount": "申請金額"
+          },
+          "empty": "尚無預算類別",
+          "noBudgetPool": "請先選擇預算池"
+        },
         "requestedBudget": {
           "label": "請求預算金額",
           "placeholder": "0.00"

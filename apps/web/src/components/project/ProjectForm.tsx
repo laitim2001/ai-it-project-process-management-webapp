@@ -37,13 +37,14 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
+import { BudgetCategoryDetails } from '@/components/project/BudgetCategoryDetails';
 
 interface ProjectFormProps {
   initialData?: {
@@ -121,6 +122,15 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // CHANGE-038: 預算類別金額狀態
+  const [categoryAmounts, setCategoryAmounts] = useState<
+    { budgetCategoryId: string; requestedAmount: number }[]
+  >([]);
+
+  // CHANGE-038: 預算類別同步 mutations
+  const syncBudgetCategoriesMutation = api.project.syncBudgetCategories.useMutation();
+  const batchUpdateCategoriesMutation = api.project.batchUpdateProjectBudgetCategories.useMutation();
+
   // Fetch budget pools for dropdown
   const { data: budgetPoolsData } = api.budgetPool.getAll.useQuery({
     page: 1,
@@ -135,19 +145,6 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     value: pool.id,
     label: `${pool.name} - FY${pool.financialYear} ($${pool.totalAmount.toLocaleString()})`,
   }));
-
-  // Module 2: 動態載入預算類別列表（當選擇預算池時）
-  const { data: budgetCategories } = api.budgetPool.getCategories.useQuery(
-    { budgetPoolId: formData.budgetPoolId },
-    { enabled: !!formData.budgetPoolId }
-  );
-
-  // Module 2: 當預算池改變時，清空預算類別選擇
-  useEffect(() => {
-    if (initialData?.budgetPoolId !== formData.budgetPoolId) {
-      setFormData((prev) => ({ ...prev, budgetCategoryId: '' }));
-    }
-  }, [formData.budgetPoolId, initialData?.budgetPoolId]);
 
   // FEAT-001: 查詢啟用的貨幣列表
   const { data: currencies } = api.currency.getActive.useQuery();
@@ -173,6 +170,19 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const createMutation = api.project.create.useMutation({
     onSuccess: (project) => {
+      // CHANGE-038: 建立後同步預算類別
+      if (categoryAmounts.length > 0) {
+        syncBudgetCategoriesMutation.mutateAsync({ projectId: project.id })
+          .then(() =>
+            batchUpdateCategoriesMutation.mutateAsync({
+              projectId: project.id,
+              categories: categoryAmounts,
+            })
+          )
+          .catch(() => {
+            // 類別同步失敗不阻塞主流程
+          });
+      }
       toast({
         title: tToast('success.title'),
         description: tToast('success.created', { entity: tForm('entityName') }),
@@ -192,6 +202,15 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const updateMutation = api.project.update.useMutation({
     onSuccess: () => {
+      // CHANGE-038: 更新預算類別金額
+      if (categoryAmounts.length > 0 && initialData) {
+        batchUpdateCategoriesMutation.mutateAsync({
+          projectId: initialData.id,
+          categories: categoryAmounts,
+        }).catch(() => {
+          // 類別更新失敗不阻塞主流程
+        });
+      }
       toast({
         title: tToast('success.title'),
         description: tToast('success.updated', { entity: tForm('entityName') }),
@@ -687,53 +706,17 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
         </div>
       </div>
 
-      {/* Row 9: Budget Category, Requested Budget Amount */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div>
-          <label htmlFor="budgetCategoryId" className="block text-sm font-medium text-gray-700">
-            {tFields('budgetCategory.label')}
-          </label>
-          <select
-            id="budgetCategoryId"
-            name="budgetCategoryId"
-            value={formData.budgetCategoryId}
-            onChange={(e) => setFormData({ ...formData, budgetCategoryId: e.target.value })}
-            disabled={!formData.budgetPoolId}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            <option value="">{tFields('budgetCategory.placeholder')}</option>
-            {budgetCategories?.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.categoryName}
-              </option>
-            ))}
-          </select>
-          {!formData.budgetPoolId && (
-            <p className="mt-1 text-sm text-gray-500">{tFields('budgetCategory.selectPoolFirst')}</p>
-          )}
-        </div>
+      {/* CHANGE-038: Budget Category Details */}
+      {formData.budgetPoolId && (
+        <BudgetCategoryDetails
+          budgetPoolId={formData.budgetPoolId}
+          projectId={mode === 'edit' ? initialData?.id : undefined}
+          mode={mode}
+          onCategoriesChange={setCategoryAmounts}
+        />
+      )}
 
-        <div>
-          <label htmlFor="requestedBudget" className="block text-sm font-medium text-gray-700">
-            {tFields('requestedBudget.label')}
-          </label>
-          <input
-            type="number"
-            id="requestedBudget"
-            name="requestedBudget"
-            value={formData.requestedBudget}
-            onChange={(e) =>
-              setFormData({ ...formData, requestedBudget: parseFloat(e.target.value) || 0 })
-            }
-            min="0"
-            step="0.01"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            placeholder={tFields('requestedBudget.placeholder')}
-          />
-        </div>
-      </div>
-
-      {/* Row 10: Project Manager*, Supervisor*, Start Date*, End Date */}
+      {/* Row 9: Project Manager*, Supervisor*, Start Date*, End Date */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <div>
           <label htmlFor="managerId" className="block text-sm font-medium text-gray-700">
