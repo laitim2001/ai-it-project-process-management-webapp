@@ -29,8 +29,11 @@
   - [ ] .dockerignore 不排除 migrations 資料夾
   - [ ] schema.prisma 包含 linux-musl-openssl-3.0.x binaryTarget
   - [ ] 所有 migration SQL 檔案都已提交到 Git
+  - [ ] ⚠️ .gitignore 的 *.sql 規則未阻擋 migration SQL（見關鍵提醒 #5）
   - [ ] 環境變數配置檔案已準備好
   - [ ] ⚠️ 確認所有 schema 變更都有對應的 migration（見下方警告）
+  - [ ] ⚠️ 確認 _prisma_migrations 表無 finishedAt=null 的卡住記錄（見關鍵提醒 #6）
+  - [ ] ⚠️ 新增表/欄位的功能是否有舊資料 fallback 邏輯（見關鍵提醒 #7）
 ```
 
 ### ⚠️ 關鍵警告：db push vs migration
@@ -40,15 +43,27 @@ critical_warning:
   問題: 開發時使用 "prisma db push" 不會創建 migration 文件
   後果: 本地數據庫有新欄位/表，但 Azure 部署時不會執行
 
-  發生過的案例 (2025-12-08):
-    - FEAT-006: Project 8 個新欄位 + ProjectChargeOutOpCo 表 → 無 migration
-    - FEAT-007: OMExpense 3 個新欄位 → 無 migration
-    - 結果: 部署後 /projects, /om-expenses, /om-summary 全部 500 錯誤
+  發生過的案例:
+    案例 1 (2025-12-08):
+      - FEAT-006: Project 8 個新欄位 + ProjectChargeOutOpCo 表 → 無 migration
+      - FEAT-007: OMExpense 3 個新欄位 → 無 migration
+      - 結果: 部署後 /projects, /om-expenses, /om-summary 全部 500 錯誤
+
+    案例 2 (2026-01-27):
+      - CHANGE-038: ProjectBudgetCategory 整張新表 → 僅用 db push，無 migration
+      - 額外問題: feat011_permission_tables migration 卡住 (finishedAt=null)，阻擋後續 migration
+      - 額外問題: .gitignore 的 *.sql 規則阻擋手動建立的 migration SQL 提交
+      - 結果: 部署後 project.getProjectBudgetCategories API 返回 500 錯誤
+      - 修復過程: 手動建立 migration SQL → git add -f 強制提交 → 修改 health.ts fixMigration
+                  → 重建 Docker image → 部署 → 調用 fixMigration + fullSchemaSync
 
   預防措施:
     1. 開發完成後，執行 "pnpm db:migrate" 創建正式 migration
-    2. 或確保 health.ts 有對應的修復 API
-    3. 部署後立即執行 schema 修復 API
+    2. 或手動在 migrations/ 建立 SQL 並確認已提交到 Git
+    3. 提交前用 "git status" 確認 migration SQL 不被 .gitignore 忽略
+    4. 部署前檢查 _prisma_migrations 表是否有卡住的記錄
+    5. 部署後立即執行 health.fixMigration + health.fullSchemaSync
+    6. 新功能的前端組件必須有「舊資料無記錄」的 fallback 邏輯
 ```
 
 ---
@@ -454,6 +469,79 @@ critical_check:
   預防: 使用 health.fixMigration 或 health.fixAllTables API 修復
 ```
 
+### 5. .gitignore 與 migration SQL 衝突 (2026-01-27 新增)
+
+```yaml
+critical_check:
+  問題: 根目錄 .gitignore 含 "*.sql" 規則，即使有 "!packages/db/prisma/migrations/**/*.sql"
+        例外規則，某些情況下例外規則不生效（如路徑層級問題）
+  症狀: "git add" 手動建立的 migration SQL 時被忽略，git status 看不到新檔案
+  預防:
+    - 新增 migration SQL 後，先用 "git status" 確認檔案是否被追蹤
+    - 如被忽略，使用 "git add -f packages/db/prisma/migrations/..." 強制加入
+  驗證: |
+    git status packages/db/prisma/migrations/
+    # 應看到新增的 migration 目錄和 SQL 檔案
+  案例: CHANGE-038 手動建立 migration SQL 被 *.sql 規則忽略
+```
+
+### 6. Migration 卡住導致後續 migration 全部失敗 (2026-01-27 新增)
+
+```yaml
+critical_check:
+  問題: _prisma_migrations 表中某筆記錄的 finishedAt 為 null（通常是之前部署中斷）
+  症狀: 新的 migration 無法執行，prisma migrate deploy 報錯但容器仍啟動
+  後果: 所有依賴新表/欄位的 API 返回 500
+  診斷: |
+    SELECT migration_name, started_at, finished_at
+    FROM _prisma_migrations
+    WHERE finished_at IS NULL;
+  修復:
+    - 調用 health.fixMigration API 將卡住的 migration 標記為完成
+    - 或直接 SQL: UPDATE _prisma_migrations SET finished_at = NOW() WHERE finished_at IS NULL
+  預防:
+    - 每次部署前，先檢查 _prisma_migrations 表狀態
+    - 部署後若 schemaCheck 異常，優先檢查是否有卡住的 migration
+  案例: feat011_permission_tables 卡住，導致 CHANGE-038 的 migration 無法執行
+```
+
+### 7. 新功能的舊資料相容性 (2026-01-27 新增)
+
+```yaml
+critical_check:
+  問題: 新功能建立了新的關聯表（如 ProjectBudgetCategory），但舊資料沒有對應記錄
+  症狀: 功能在新建資料時正常，但編輯舊資料時顯示為空或報錯
+  根因: 前端組件 edit 模式只查新表（空結果），沒有 fallback 到基礎資料
+  預防:
+    - 新功能的前端組件必須有 fallback 邏輯：
+      新表有資料 → 使用新表；新表為空 → fallback 到基礎資料源
+    - 或在 migration/sync 時自動為舊資料生成關聯記錄
+  案例: |
+    CHANGE-038 BudgetCategoryDetails 組件：
+    - edit 模式只查 ProjectBudgetCategory（舊專案無記錄 → 顯示為空）
+    - 修復：新增 fallback 到 BudgetPool.getCategories（poolCategories）
+  驗證: 部署新功能後，必須測試「用舊資料開啟編輯頁面」的場景
+```
+
+### 8. API 級別驗證不可省略 (2026-01-27 新增)
+
+```yaml
+critical_check:
+  問題: 頁面級別的 HTTP 200/302 檢查不足以發現 API 層的 500 錯誤
+  症狀: 頁面本身載入正常（SSR 成功），但客戶端 tRPC 調用失敗
+  原因: Next.js SSR 渲染頁面框架成功，但 tRPC query 在客戶端執行時才觸發資料庫錯誤
+  預防:
+    - 部署後除了頁面級 curl 測試，還要測試關鍵的 tRPC API 端點
+    - 特別是新功能涉及的 API（如新建的 getProjectBudgetCategories）
+    - 登入系統後手動操作關鍵業務流程（建立/編輯/刪除）
+  驗證: |
+    # API 級別測試（需要認證的 API 會返回 401，不應返回 500）
+    curl "$BASE_URL/api/trpc/project.getProjectBudgetCategories?input=..."
+    # 401 = 正常（需要認證）
+    # 500 = 異常（資料庫或 schema 問題）
+  案例: CHANGE-038 部署後頁面載入正常，但 getProjectBudgetCategories 返回 500
+```
+
 ---
 
 ## 📁 相關檔案參考
@@ -485,6 +573,8 @@ critical_check:
     - [ ] health.ping 返回 pong
     - [ ] health.dbCheck 返回 healthy
     - [ ] health.schemaCheck 所有表格存在
+    - [ ] health.fullSchemaCompare 返回 "synced"（如有差異先執行 fullSchemaSync）
+    - [ ] _prisma_migrations 表無 finishedAt=null 的卡住記錄
 
   頁面測試:
     - [ ] /zh-TW/login 可以訪問
@@ -493,9 +583,20 @@ critical_check:
     - [ ] /zh-TW/om-expenses 可以訪問
     - [ ] /zh-TW/om-summary 可以訪問
 
+  API 級別測試（關鍵！頁面 200 不代表 API 正常）:
+    - [ ] 新功能涉及的 tRPC API 返回 401（非 500）
+    - [ ] 登入後手動觸發新功能的 API 調用（如切換 Budget Pool 驗證類別顯示）
+
+  舊資料相容性測試（關鍵！新功能 + 舊資料場景）:
+    - [ ] 打開「舊專案」的編輯頁面，確認新功能區域不為空
+    - [ ] 打開「新專案」的編輯頁面，確認新功能區域正常
+    - [ ] 測試 create 和 edit 兩種模式
+
   功能測試:
     - [ ] 可以登入系統
     - [ ] 可以查看專案列表
+    - [ ] 可以建立新專案（含新功能欄位）
+    - [ ] 可以編輯舊專案（驗證 fallback 邏輯）
     - [ ] 可以上傳文件（如果配置了 Azure Storage）
 
 部署後通知:
@@ -522,10 +623,19 @@ critical_check:
 
 ---
 
-**版本**: 2.2.0 **最後更新**: 2025-12-15 **維護者**: DevOps Team + Azure Administrator
+**版本**: 2.3.0 **最後更新**: 2026-01-27 **維護者**: DevOps Team + Azure Administrator
 
 **更新記錄**:
 
+- v2.3.0 (2026-01-27): **CHANGE-038 部署經驗 — 4 項新增關鍵提醒**
+  - 🚨 新增關鍵提醒 #5: `.gitignore` 與 migration SQL 衝突（`*.sql` 規則阻擋 migration）
+  - 🚨 新增關鍵提醒 #6: Migration 卡住導致後續 migration 全部失敗（`finishedAt=null`）
+  - 🚨 新增關鍵提醒 #7: 新功能的舊資料相容性（前端 fallback 邏輯）
+  - 🚨 新增關鍵提醒 #8: API 級別驗證不可省略（頁面 200 不代表 API 正常）
+  - 📝 更新快速開始檢查清單：新增 3 項部署前必檢
+  - 📝 更新 db push 警告：新增案例 2（CHANGE-038）及 6 項預防措施
+  - 📝 更新部署完成檢查清單：新增 API 級別測試、舊資料相容性測試
+  - 🔧 記錄完整修復過程：手動 migration → `git add -f` → health.fixMigration → 前端 fallback
 - v2.2.0 (2025-12-15): **完整 Schema 同步機制**
   - 🆕 新增 `health.fullSchemaCompare` API - 完整對比所有 31 個表格
   - 🆕 新增 `health.fullSchemaSync` API - 一鍵修復所有 Schema 差異
