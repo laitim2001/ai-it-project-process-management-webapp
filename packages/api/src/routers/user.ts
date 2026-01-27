@@ -33,6 +33,8 @@
  * - getRoles: 獲取所有角色列表
  * - setPassword: 設定/更改用戶密碼（Admin only）
  * - hasPassword: 檢查用戶是否已設定密碼
+ * - changeOwnPassword: 使用者自助變更/設定密碼（CHANGE-041）
+ * - getOwnAuthInfo: 查詢當前使用者認證方式資訊（CHANGE-041）
  *
  * @dependencies
  * - Prisma Client: 資料庫操作
@@ -53,7 +55,7 @@
 
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { createTRPCRouter, publicProcedure, adminProcedure } from '../trpc';
+import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
 import { validatePasswordStrength } from '../lib/passwordValidation';
 
 /**
@@ -426,4 +428,92 @@ export const userRouter = createTRPCRouter({
         hasPassword: !!user.password,
       };
     }),
+
+  /**
+   * 使用者自助變更/設定密碼 (CHANGE-041)
+   * - SSO 使用者首次設定：不需要舊密碼
+   * - 已有密碼的使用者：必須驗證舊密碼
+   * - 密碼強度驗證：12 字元 + 6 個大寫/數字/符號
+   */
+  changeOwnPassword: protectedProcedure
+    .input(
+      z.object({
+        currentPassword: z.string().optional(),
+        newPassword: z.string().min(1, '新密碼為必填'),
+        confirmPassword: z.string().min(1, '確認密碼為必填'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // 取得當前使用者的密碼狀態
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: userId },
+        select: { password: true },
+      });
+
+      if (!user) {
+        throw new Error('找不到該使用者');
+      }
+
+      const hasExistingPassword = !!user.password;
+
+      // 如果已有密碼，必須驗證舊密碼
+      if (hasExistingPassword) {
+        if (!input.currentPassword) {
+          throw new Error('請輸入目前密碼');
+        }
+        const isCurrentValid = await bcrypt.compare(
+          input.currentPassword,
+          user.password!
+        );
+        if (!isCurrentValid) {
+          throw new Error('目前密碼不正確');
+        }
+      }
+
+      // 驗證新密碼一致性
+      if (input.newPassword !== input.confirmPassword) {
+        throw new Error('新密碼不一致');
+      }
+
+      // 驗證密碼強度
+      const passwordValidation = validatePasswordStrength(input.newPassword);
+      if (!passwordValidation.isValid) {
+        throw new Error(passwordValidation.errors.join('；'));
+      }
+
+      // 加密並儲存新密碼
+      const hashedPassword = await bcrypt.hash(input.newPassword, 12);
+      await ctx.prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+
+      return {
+        success: true,
+        isFirstTimeSet: !hasExistingPassword,
+      };
+    }),
+
+  /**
+   * 查詢當前使用者的認證方式資訊 (CHANGE-041)
+   * 用於 Settings Security Tab 顯示認證狀態
+   */
+  getOwnAuthInfo: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true },
+    });
+
+    if (!user) {
+      throw new Error('找不到該使用者');
+    }
+
+    return {
+      hasPassword: !!user.password,
+    };
+  }),
 });

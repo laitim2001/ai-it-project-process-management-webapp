@@ -2937,14 +2937,49 @@
       "title": "安全設定",
       "description": "管理您的帳號安全性",
       "password": "密碼",
-      "passwordNote": "您的密碼透過 Azure AD B2C 管理",
+      "passwordNote": "管理您的本機密碼，用於電子郵件/密碼登入",
       "changePassword": "變更密碼",
       "twoFactor": "雙因素驗證",
       "twoFactorNote": "增強帳號安全性(未來功能)",
       "enableTwoFactor": "啟用雙因素驗證",
       "activityLog": "活動記錄",
       "activityLogNote": "查看您的帳號活動歷史",
-      "viewActivityLog": "查看活動記錄"
+      "viewActivityLog": "查看活動記錄",
+      "authMethods": {
+        "title": "認證方式",
+        "description": "查看和管理您的登入方式",
+        "azureAd": "Azure AD 單一登入",
+        "azureAdAvailable": "可用",
+        "azureAdNotConfigured": "未設定",
+        "localPassword": "本機密碼",
+        "passwordSet": "已設定",
+        "passwordNotSet": "未設定",
+        "dualAuthInfo": "您可以同時使用 Azure AD SSO 和本機密碼登入。設定本機密碼即可啟用電子郵件/密碼登入。"
+      },
+      "passwordManagement": {
+        "title": "密碼管理",
+        "setDescription": "設定本機密碼以啟用電子郵件/密碼登入",
+        "changeDescription": "變更您目前的本機密碼",
+        "setButton": "設定密碼",
+        "changeButton": "變更密碼"
+      },
+      "passwordDialog": {
+        "setTitle": "設定本機密碼",
+        "changeTitle": "變更密碼",
+        "setDescription": "建立本機密碼，除了 Azure AD SSO 外，您還可以使用電子郵件/密碼登入。",
+        "changeDescription": "輸入目前密碼並設定新密碼。",
+        "currentPassword": "目前密碼",
+        "newPassword": "新密碼",
+        "confirmPassword": "確認新密碼",
+        "submit": "儲存密碼",
+        "cancel": "取消",
+        "successSet": "本機密碼已設定成功。您現在可以使用電子郵件/密碼登入。",
+        "successChange": "密碼已變更成功",
+        "errorCurrentRequired": "請輸入目前密碼",
+        "errorCurrentIncorrect": "目前密碼不正確",
+        "errorMismatch": "新密碼不一致",
+        "errorTooWeak": "密碼不符合強度要求"
+      }
     },
     "toast": {
       "success": "成功",

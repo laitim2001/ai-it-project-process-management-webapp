@@ -2937,14 +2937,49 @@
       "title": "Security Settings",
       "description": "Manage your account security",
       "password": "Password",
-      "passwordNote": "Your password is managed through Azure AD B2C",
+      "passwordNote": "Manage your local password for email/password login",
       "changePassword": "Change Password",
       "twoFactor": "Two-Factor Authentication",
       "twoFactorNote": "Enhance account security (future feature)",
       "enableTwoFactor": "Enable Two-Factor Authentication",
       "activityLog": "Activity Log",
       "activityLogNote": "View your account activity history",
-      "viewActivityLog": "View Activity Log"
+      "viewActivityLog": "View Activity Log",
+      "authMethods": {
+        "title": "Authentication Methods",
+        "description": "View and manage your sign-in methods",
+        "azureAd": "Azure AD SSO",
+        "azureAdAvailable": "Available",
+        "azureAdNotConfigured": "Not Configured",
+        "localPassword": "Local Password",
+        "passwordSet": "Set",
+        "passwordNotSet": "Not Set",
+        "dualAuthInfo": "You can use both Azure AD SSO and local password to sign in. Set a local password to enable email/password login."
+      },
+      "passwordManagement": {
+        "title": "Password Management",
+        "setDescription": "Set a local password to enable email/password login",
+        "changeDescription": "Change your current local password",
+        "setButton": "Set Password",
+        "changeButton": "Change Password"
+      },
+      "passwordDialog": {
+        "setTitle": "Set Local Password",
+        "changeTitle": "Change Password",
+        "setDescription": "Create a local password to enable email/password login in addition to Azure AD SSO.",
+        "changeDescription": "Enter your current password and choose a new password.",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "submit": "Save Password",
+        "cancel": "Cancel",
+        "successSet": "Local password has been set successfully. You can now use email/password to sign in.",
+        "successChange": "Password changed successfully",
+        "errorCurrentRequired": "Current password is required",
+        "errorCurrentIncorrect": "Current password is incorrect",
+        "errorMismatch": "New passwords do not match",
+        "errorTooWeak": "Password does not meet strength requirements"
+      }
     },
     "toast": {
       "success": "Success",

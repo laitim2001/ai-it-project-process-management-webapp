@@ -67,6 +67,7 @@ import { NativeSelect } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { Settings, User, Bell, Eye, Shield, Save } from 'lucide-react';
+import { AuthMethodsCard } from '@/components/settings/AuthMethodsCard';
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
@@ -354,48 +355,44 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
-          {/* 安全設定 Tab */}
+          {/* 安全設定 Tab - CHANGE-041: 雙認證方式支援 */}
           <TabsContent value="security" className="space-y-6">
+            {/* 認證方式 + 密碼管理（CHANGE-041） */}
+            <AuthMethodsCard />
+
+            {/* 2FA（未來功能） */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  {t('security.title')}
+                  {t('security.twoFactor')}
                 </CardTitle>
                 <CardDescription>
-                  {t('security.description')}
+                  {t('security.twoFactorNote')}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t('security.password')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('security.passwordNote')}
-                  </p>
-                  <Button variant="outline" disabled>
-                    {t('security.changePassword')}
-                  </Button>
-                </div>
+              <CardContent>
+                <Button variant="outline" disabled>
+                  {t('security.enableTwoFactor')}
+                </Button>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <Label>{t('security.twoFactor')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('security.twoFactorNote')}
-                  </p>
-                  <Button variant="outline" disabled>
-                    {t('security.enableTwoFactor')}
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t('security.activityLog')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('security.activityLogNote')}
-                  </p>
-                  <Button variant="outline" disabled>
-                    {t('security.viewActivityLog')}
-                  </Button>
-                </div>
+            {/* 活動記錄（未來功能） */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  {t('security.activityLog')}
+                </CardTitle>
+                <CardDescription>
+                  {t('security.activityLogNote')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" disabled>
+                  {t('security.viewActivityLog')}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
