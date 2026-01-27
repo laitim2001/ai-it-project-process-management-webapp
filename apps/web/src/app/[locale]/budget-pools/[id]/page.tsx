@@ -275,6 +275,15 @@ export default function BudgetPoolDetailPage() {
                     </dd>
                   </div>
                   <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.totalRequested')}</dt>
+                    <dd className="text-xl font-bold text-blue-600">
+                      ${(budgetPool.computedTotalRequested ?? 0).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </dd>
+                  </div>
+                  <div>
                     <dt className="text-sm font-medium text-muted-foreground mb-1">{t('fields.usedAmount')}</dt>
                     <dd className="text-xl font-bold text-orange-600">
                       ${(budgetPool.computedUsedAmount ?? 0).toLocaleString('en-US', {
@@ -321,6 +330,7 @@ export default function BudgetPoolDetailPage() {
                           <TableHead>{t('detail.categories.table.name')}</TableHead>
                           <TableHead>{t('detail.categories.table.code')}</TableHead>
                           <TableHead className="text-right">{t('detail.categories.table.totalBudget')}</TableHead>
+                          <TableHead className="text-right">{t('detail.categories.table.totalRequested')}</TableHead>
                           <TableHead className="text-right">{t('detail.categories.table.used')}</TableHead>
                           <TableHead className="text-right">{t('detail.categories.table.utilizationRate')}</TableHead>
                           <TableHead className="text-center">{t('detail.categories.table.projectCount')}</TableHead>
@@ -351,6 +361,12 @@ export default function BudgetPoolDetailPage() {
                               </TableCell>
                               <TableCell className="text-right font-medium">
                                 ${category.totalAmount.toLocaleString('en-US', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell className="text-right text-blue-600">
+                                ${(category.totalRequestedAmount ?? 0).toLocaleString('en-US', {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}

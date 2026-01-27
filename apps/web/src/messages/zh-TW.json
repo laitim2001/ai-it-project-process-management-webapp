@@ -657,6 +657,7 @@
             "category": "類別",
             "code": "代碼",
             "budgetAmount": "預算金額",
+            "othersRequested": "其他專案已申請",
             "requestAmount": "申請金額"
           },
           "empty": "尚無預算類別",
@@ -1080,6 +1081,7 @@
       "categories": "個類別",
       "fiscalYear": "財政年度",
       "totalBudget": "總預算",
+      "totalRequested": "總申請金額",
       "used": "已使用金額",
       "usedAmount": "已使用金額",
       "utilizationRate": "使用率",
@@ -1132,6 +1134,7 @@
           "name": "類別名稱",
           "code": "代碼",
           "totalBudget": "總預算",
+          "totalRequested": "總申請金額",
           "used": "已使用",
           "utilizationRate": "使用率",
           "projectCount": "專案數",

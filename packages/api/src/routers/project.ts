@@ -2304,6 +2304,50 @@ export const projectRouter = createTRPCRouter({
     }),
 
   /**
+   * 取得 Budget Pool 各類別的其他專案已申請金額
+   *
+   * @description
+   * CHANGE-039: 計算同一 BudgetPool 下，各 BudgetCategory 被其他專案
+   * 申請的 requestedAmount 總和（排除指定專案）。
+   * 用於專案頁面顯示「Others Requested」欄位。
+   *
+   * @input budgetPoolId - Budget Pool ID
+   * @input excludeProjectId - 要排除的專案 ID（edit/readonly 模式傳入）
+   * @returns Record<budgetCategoryId, totalOthersRequested>
+   */
+  getOthersRequestedAmounts: protectedProcedure
+    .input(
+      z.object({
+        budgetPoolId: z.string().min(1, 'Budget Pool ID 為必填'),
+        excludeProjectId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.prisma.projectBudgetCategory.groupBy({
+        by: ['budgetCategoryId'],
+        where: {
+          isActive: true,
+          budgetCategory: {
+            budgetPoolId: input.budgetPoolId,
+            isActive: true,
+          },
+          ...(input.excludeProjectId && {
+            projectId: { not: input.excludeProjectId },
+          }),
+        },
+        _sum: {
+          requestedAmount: true,
+        },
+      });
+
+      const map: Record<string, number> = {};
+      for (const item of result) {
+        map[item.budgetCategoryId] = item._sum.requestedAmount ?? 0;
+      }
+      return map;
+    }),
+
+  /**
    * 更新單一專案預算類別金額
    *
    * @description

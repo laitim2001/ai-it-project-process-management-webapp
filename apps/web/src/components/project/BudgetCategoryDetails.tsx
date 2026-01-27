@@ -7,6 +7,9 @@
  * - edit: 從 ProjectBudgetCategory 取得已儲存的資料，可編輯 Request Amount
  * - readonly: 唯讀顯示（用於專案詳情頁）
  *
+ * CHANGE-039: 新增 Others Requested 欄位，顯示同一 Budget Category 下
+ * 其他專案已申請的金額總和（排除當前專案）。
+ *
  * @component BudgetCategoryDetails
  * @since CHANGE-038 - Project Budget Category Sync
  */
@@ -59,6 +62,15 @@ export function BudgetCategoryDetails({
   const { data: projectCategories } = api.project.getProjectBudgetCategories.useQuery(
     { projectId: projectId ?? '' },
     { enabled: !!projectId && mode !== 'create' }
+  );
+
+  // CHANGE-039: 查詢其他專案已申請金額
+  const { data: othersRequestedMap } = api.project.getOthersRequestedAmounts.useQuery(
+    {
+      budgetPoolId,
+      excludeProjectId: mode !== 'create' ? projectId : undefined,
+    },
+    { enabled: !!budgetPoolId }
   );
 
   // 初始化本地金額（edit 模式）
@@ -155,10 +167,11 @@ export function BudgetCategoryDetails({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">{tFields('table.category')}</TableHead>
-              <TableHead className="w-[15%]">{tFields('table.code')}</TableHead>
+              <TableHead className="w-[30%]">{tFields('table.category')}</TableHead>
+              <TableHead className="w-[10%]">{tFields('table.code')}</TableHead>
               <TableHead className="w-[20%] text-right">{tFields('table.budgetAmount')}</TableHead>
-              <TableHead className="w-[25%] text-right">{tFields('table.requestAmount')}</TableHead>
+              <TableHead className="w-[20%] text-right">{tFields('table.othersRequested')}</TableHead>
+              <TableHead className="w-[20%] text-right">{tFields('table.requestAmount')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -172,6 +185,9 @@ export function BudgetCategoryDetails({
                 </TableCell>
                 <TableCell className="text-right">
                   ${cat.totalAmount.toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  ${(othersRequestedMap?.[cat.budgetCategoryId] ?? 0).toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right">
                   {isEditable ? (

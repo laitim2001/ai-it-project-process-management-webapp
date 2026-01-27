@@ -657,6 +657,7 @@
             "category": "Category",
             "code": "Code",
             "budgetAmount": "Budget Amount",
+            "othersRequested": "Others Requested",
             "requestAmount": "Request Amount"
           },
           "empty": "No budget categories available",
@@ -1080,6 +1081,7 @@
       "categories": "Categories",
       "fiscalYear": "Fiscal Year",
       "totalBudget": "Total Budget",
+      "totalRequested": "Total Requested",
       "used": "Used Amount",
       "usedAmount": "Used Amount",
       "utilizationRate": "Utilization Rate",
@@ -1132,6 +1134,7 @@
           "name": "Category Name",
           "code": "Code",
           "totalBudget": "Total Budget",
+          "totalRequested": "Total Requested",
           "used": "Used",
           "utilizationRate": "Utilization Rate",
           "projectCount": "Projects",

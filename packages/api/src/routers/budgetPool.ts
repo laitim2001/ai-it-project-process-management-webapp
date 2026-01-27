@@ -217,20 +217,50 @@ export const budgetPoolRouter = createTRPCRouter({
         });
       }
 
+      // CHANGE-040: 查詢各 Category 的所有專案已申請金額
+      const requestedAmounts = await ctx.prisma.projectBudgetCategory.groupBy({
+        by: ['budgetCategoryId'],
+        where: {
+          isActive: true,
+          budgetCategory: {
+            budgetPoolId: input.id,
+            isActive: true,
+          },
+        },
+        _sum: {
+          requestedAmount: true,
+        },
+      });
+
+      const requestedMap = new Map(
+        requestedAmounts.map(item => [
+          item.budgetCategoryId,
+          item._sum.requestedAmount ?? 0,
+        ])
+      );
+
       // 計算總預算和已用金額（從 categories 累加）
       const totalAmount = pool.categories.reduce((sum, cat) => sum + cat.totalAmount, 0);
       const usedAmount = pool.categories.reduce((sum, cat) => sum + cat.usedAmount, 0);
 
-      // 為每個類別計算使用率
+      // 為每個類別計算使用率和總申請金額
       const categoriesWithRate = pool.categories.map(cat => ({
         ...cat,
         utilizationRate: cat.totalAmount > 0 ? (cat.usedAmount / cat.totalAmount) * 100 : 0,
+        totalRequestedAmount: requestedMap.get(cat.id) ?? 0,
       }));
+
+      // CHANGE-040: 計算 Pool 級總申請金額
+      const computedTotalRequested = requestedAmounts.reduce(
+        (sum, item) => sum + (item._sum.requestedAmount ?? 0),
+        0
+      );
 
       return {
         ...pool,
         categories: categoriesWithRate,
         computedTotalAmount: totalAmount,
+        computedTotalRequested: computedTotalRequested,
         computedUsedAmount: usedAmount,
         utilizationRate: totalAmount > 0 ? (usedAmount / totalAmount) * 100 : 0,
       };
