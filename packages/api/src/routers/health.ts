@@ -142,6 +142,71 @@ export const healthRouter = createTRPCRouter({
       `;
       results.push('Marked migration 20251202110000_add_postmvp_tables as complete');
 
+      // Step 6: Mark feat011_permission_tables migration as complete (tables already exist via fullSchemaSync)
+      await ctx.prisma.$executeRaw`
+        UPDATE _prisma_migrations
+        SET finished_at = NOW(), applied_steps_count = 1
+        WHERE migration_name = '20251214100000_feat011_permission_tables'
+        AND finished_at IS NULL
+      `;
+      results.push('Marked migration 20251214100000_feat011_permission_tables as complete');
+
+      // Step 7: Create ProjectBudgetCategory table (CHANGE-038)
+      await ctx.prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "ProjectBudgetCategory" (
+          "id" TEXT NOT NULL,
+          "projectId" TEXT NOT NULL,
+          "budgetCategoryId" TEXT NOT NULL,
+          "requestedAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+          "sortOrder" INTEGER NOT NULL DEFAULT 0,
+          "isActive" BOOLEAN NOT NULL DEFAULT true,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP(3) NOT NULL,
+          CONSTRAINT "ProjectBudgetCategory_pkey" PRIMARY KEY ("id")
+        )
+      `;
+      results.push('Created ProjectBudgetCategory table (CHANGE-038)');
+
+      // Step 8: Add indexes and constraints for ProjectBudgetCategory
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ProjectBudgetCategory_projectId_idx" ON "ProjectBudgetCategory"("projectId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ProjectBudgetCategory_budgetCategoryId_idx" ON "ProjectBudgetCategory"("budgetCategoryId")`;
+      await ctx.prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ProjectBudgetCategory_isActive_idx" ON "ProjectBudgetCategory"("isActive")`;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProjectBudgetCategory_projectId_budgetCategoryId_key') THEN
+            ALTER TABLE "ProjectBudgetCategory" ADD CONSTRAINT "ProjectBudgetCategory_projectId_budgetCategoryId_key" UNIQUE ("projectId", "budgetCategoryId");
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProjectBudgetCategory_projectId_fkey') THEN
+            ALTER TABLE "ProjectBudgetCategory" ADD CONSTRAINT "ProjectBudgetCategory_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      await ctx.prisma.$executeRaw`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProjectBudgetCategory_budgetCategoryId_fkey') THEN
+            ALTER TABLE "ProjectBudgetCategory" ADD CONSTRAINT "ProjectBudgetCategory_budgetCategoryId_fkey" FOREIGN KEY ("budgetCategoryId") REFERENCES "BudgetCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+          END IF;
+        END $$
+      `;
+      results.push('Created ProjectBudgetCategory indexes and constraints');
+
+      // Step 9: Register change038 migration as applied
+      await ctx.prisma.$executeRaw`
+        INSERT INTO _prisma_migrations (id, checksum, migration_name, finished_at, applied_steps_count)
+        SELECT gen_random_uuid()::text, 'manual-change038', '20260127100000_change038_project_budget_category', NOW(), 1
+        WHERE NOT EXISTS (
+          SELECT 1 FROM _prisma_migrations WHERE migration_name = '20260127100000_change038_project_budget_category'
+        )
+      `;
+      results.push('Registered migration 20260127100000_change038_project_budget_category');
+
       return {
         success: true,
         results,
