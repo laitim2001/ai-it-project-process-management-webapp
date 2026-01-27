@@ -2377,13 +2377,22 @@ export const projectRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const result = await ctx.prisma.$transaction(async (tx) => {
         for (const cat of input.categories) {
-          await tx.projectBudgetCategory.updateMany({
+          // 使用 upsert：舊專案可能沒有 ProjectBudgetCategory 記錄
+          await tx.projectBudgetCategory.upsert({
             where: {
+              projectId_budgetCategoryId: {
+                projectId: input.projectId,
+                budgetCategoryId: cat.budgetCategoryId,
+              },
+            },
+            update: { requestedAmount: cat.requestedAmount },
+            create: {
               projectId: input.projectId,
               budgetCategoryId: cat.budgetCategoryId,
+              requestedAmount: cat.requestedAmount,
               isActive: true,
+              sortOrder: 0,
             },
-            data: { requestedAmount: cat.requestedAmount },
           });
         }
 
