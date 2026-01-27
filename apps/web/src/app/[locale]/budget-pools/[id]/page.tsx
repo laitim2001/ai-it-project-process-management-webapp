@@ -69,22 +69,23 @@ import { DollarSign, Calendar, TrendingUp, Folder, Edit, Trash2, User, AlertCirc
 
 /**
  * 專案狀態顯示配置
+ * label 對應 common.status 翻譯 key
  */
 const PROJECT_STATUS_CONFIG = {
   Draft: {
-    label: '草稿',
+    translationKey: 'status.draft',
     variant: 'default' as const,
   },
   InProgress: {
-    label: '進行中',
+    translationKey: 'status.inProgress',
     variant: 'default' as const,
   },
   Completed: {
-    label: '已完成',
+    translationKey: 'status.completed',
     variant: 'secondary' as const,
   },
   Archived: {
-    label: '已歸檔',
+    translationKey: 'status.archived',
     variant: 'outline' as const,
   },
 } as const;
@@ -485,7 +486,7 @@ export default function BudgetPoolDetailPage() {
                           <span>{project.manager.name || project.manager.email}</span>
                         </div>
                         <Badge variant={PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].variant}>
-                          {PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].label}
+                          {tCommon(PROJECT_STATUS_CONFIG[project.status as keyof typeof PROJECT_STATUS_CONFIG].translationKey)}
                         </Badge>
                       </Link>
                     ))}
