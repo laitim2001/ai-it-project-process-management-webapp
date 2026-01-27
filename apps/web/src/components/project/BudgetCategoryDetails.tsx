@@ -99,8 +99,12 @@ export function BudgetCategoryDetails({
   }, [localAmounts, onCategoriesChange, poolCategories]);
 
   // 決定顯示的類別列表
+  // edit/readonly 模式：優先使用 projectCategories，若為空則 fallback 到 poolCategories
+  // （舊專案在 CHANGE-038 之前建立，可能沒有 ProjectBudgetCategory 記錄）
+  const hasProjectCategories = projectCategories && projectCategories.length > 0;
+
   const displayCategories =
-    mode === 'create'
+    mode === 'create' || (mode !== 'create' && !hasProjectCategories)
       ? poolCategories?.map((cat) => ({
           budgetCategoryId: cat.id,
           categoryName: cat.categoryName,
