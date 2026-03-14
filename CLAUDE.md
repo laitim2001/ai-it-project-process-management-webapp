@@ -851,6 +851,42 @@ This project is designed for AI-assisted development with production-quality cod
 - **Index navigation system**: 4-layer index for AI context loading
 - **Automated checks**: `check-environment.js` for setup validation
 - **Session management**: `/sc:load` and `/sc:save` for context persistence
+- **ITPM Slash Commands**: `.claude/commands/itpm/` 跨電腦開發工作流指令
+
+### ITPM Slash Commands（跨電腦開發工作流）
+
+本專案支援在**兩台電腦間切換開發**，以下 slash commands 簡化日常操作：
+
+| 指令 | 使用時機 | 功能 |
+|------|---------|------|
+| `/itpm:sync` | 切換到另一台電腦開始工作時 | 拉取最新代碼、安裝依賴、同步資料庫、啟動服務 |
+| `/itpm:status` | 隨時快速檢查 | 一覽 Git / Docker / DB / Dev Server 狀態 |
+| `/itpm:pre-commit` | 提交代碼前 | i18n 一致性、TypeScript、Lint 品質檢查 |
+| `/itpm:push` | 結束開發離開前 | 提交變更並推送到 GitHub |
+| `/itpm:init` | 全新電腦首次設置 | 完整初始化（Docker → 依賴 → DB → 種子資料） |
+
+**典型工作流程**：
+```
+電腦 A 開始工作 → /itpm:sync
+開發中隨時檢查 → /itpm:status
+準備提交代碼   → /itpm:pre-commit
+離開前推送     → /itpm:push
+電腦 B 開始工作 → /itpm:sync
+```
+
+**初始化注意事項**（詳見 `docs/deployment/05-local-initialization-checklist.md`）：
+- 種子資料 `pnpm --filter db db:seed` **必須執行**，否則 Sidebar 不顯示任何功能
+- `.env` 中的 `NEXTAUTH_URL` Port 必須與實際運行 Port 一致
+- 跨電腦遷移後須清除瀏覽器 cookies（避免舊 JWT session 錯誤）
+- 用 `prisma db push` 同步 Schema 時，勿用 shell 直接更新密碼（`$` 符號會被轉義）
+
+**測試帳號**（由種子資料建立）：
+
+| 角色 | Email | 密碼 | 權限 |
+|------|-------|------|------|
+| Admin | `admin@itpm.local` | `admin123` | 全部 18 項功能 |
+| ProjectManager | `pm@itpm.local` | `pm123` | 11 項核心業務 |
+| Supervisor | `supervisor@itpm.local` | `supervisor123` | 17 項（除用戶管理） |
 
 ### AI Development Guidelines
 - tRPC provides end-to-end type safety with zero API schema maintenance
@@ -984,6 +1020,6 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ---
 
-**Last Updated**: 2025-12-12
+**Last Updated**: 2026-03-14
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion
