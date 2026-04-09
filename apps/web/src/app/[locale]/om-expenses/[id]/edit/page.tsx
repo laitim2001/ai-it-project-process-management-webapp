@@ -64,6 +64,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import OMExpenseForm from '@/components/om-expense/OMExpenseForm';
 import { api } from '@/lib/trpc';
@@ -81,7 +82,14 @@ export default function EditOMExpensePage({ params }: { params: { id: string } }
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-8">{t('detail.loading')}</div>
+        <div className="space-y-8">
+          <Skeleton className="h-5 w-96" />
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <Skeleton className="h-96 w-full" />
+        </div>
       </DashboardLayout>
     );
   }

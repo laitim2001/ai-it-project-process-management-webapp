@@ -72,7 +72,9 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  // FIX-110: Add tailwindcss-animate plugin for shadcn/ui animation classes
+  // NOTE: Run `pnpm add -D tailwindcss-animate --filter=web` to install the package
+  plugins: [require('tailwindcss-animate')],
 };
 
 export default config;

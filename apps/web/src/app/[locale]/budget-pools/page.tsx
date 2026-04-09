@@ -98,7 +98,7 @@ export default function BudgetPoolsPage() {
     page,
     limit: 9,
     search: debouncedSearch || undefined,
-    year: yearFilter,
+    financialYear: yearFilter,
     sortBy,
     sortOrder,
   });

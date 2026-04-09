@@ -159,7 +159,7 @@ export default function EditExpensePage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {t('messages.onlyDraftCanEdit')} {t('status.'+expense.status.toLowerCase())}
+                  {t('messages.onlyDraftCanEdit')} {t(`status.${expense.status.charAt(0).toLowerCase() + expense.status.slice(1)}` as any)}
                 </AlertDescription>
               </Alert>
               <Link href={`/expenses/${id}`}>

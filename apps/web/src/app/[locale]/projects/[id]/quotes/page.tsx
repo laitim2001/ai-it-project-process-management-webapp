@@ -438,7 +438,7 @@ export default function ProjectQuotesPage() {
                             <div className="flex-1">
                               <p className="text-sm text-muted-foreground">{t('fields.document')}</p>
                               <a
-                                href={quote.filePath}
+                                href={`/api/download?url=${encodeURIComponent(quote.filePath)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-sm text-primary hover:underline flex items-center gap-1"

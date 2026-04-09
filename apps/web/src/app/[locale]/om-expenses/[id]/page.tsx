@@ -51,7 +51,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Edit, TrendingUp, TrendingDown, Minus, Layers } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, TrendingUp, TrendingDown, Minus, Layers } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -78,6 +78,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
@@ -89,6 +101,7 @@ import OMExpenseItemForm from '@/components/om-expense/OMExpenseItemForm';
 
 export default function OMExpenseDetailPage({ params }: { params: { id: string } }) {
   const t = useTranslations('omExpenses');
+  const tDetail = useTranslations('omExpenses.detail');
   const tItems = useTranslations('omExpenses.items');
   const tNav = useTranslations('navigation');
   const tCommon = useTranslations('common');
@@ -99,6 +112,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   // Active tab state for items section (controlled tabs)
   const [activeTab, setActiveTab] = useState<string>('items');
+  // Item delete dialog state
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   // Item form state (for add/edit dialog)
   const [itemFormMode, setItemFormMode] = useState<'add' | 'edit' | null>(null);
   const [editingItem, setEditingItem] = useState<OMExpenseItemData | null>(null);
@@ -199,7 +214,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
 
   // Format date
   const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('zh-HK', {
+    return new Date(date).toLocaleDateString('zh-TW', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -230,11 +245,9 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     return 'bg-gray-500';
   };
 
-  // Delete confirmation
+  // Delete handler (called from AlertDialog)
   const handleDelete = () => {
-    if (confirm(t('messages.deleteConfirm'))) {
-      deleteMutation.mutate({ id: params.id });
-    }
+    deleteMutation.mutate({ id: params.id });
   };
 
   // Handle item selection for monthly grid
@@ -254,10 +267,15 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   }, []);
 
   const handleDeleteItem = useCallback((itemId: string) => {
-    if (confirm(tItems('deleteConfirm', { defaultValue: '確定要刪除此明細項目嗎？刪除後將無法恢復。' }))) {
-      deleteItemMutation.mutate({ id: itemId });
+    setDeleteItemId(itemId);
+  }, []);
+
+  const confirmDeleteItem = useCallback(() => {
+    if (deleteItemId) {
+      deleteItemMutation.mutate({ id: deleteItemId });
+      setDeleteItemId(null);
     }
-  }, [deleteItemMutation, tItems]);
+  }, [deleteItemId, deleteItemMutation]);
 
   const handleReorder = useCallback((newOrder: string[]) => {
     reorderItemsMutation.mutate({
@@ -335,7 +353,28 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-8">{t('detail.loading')}</div>
+        <div className="space-y-8">
+          <Skeleton className="h-5 w-96" />
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-64" />
+              <Skeleton className="h-5 w-48" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-1">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-48" />
+            </div>
+            <div className="lg:col-span-2">
+              <Skeleton className="h-96" />
+            </div>
+          </div>
+        </div>
       </DashboardLayout>
     );
   }
@@ -409,13 +448,34 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               <Edit className="mr-2 h-4 w-4" />
               {t('form.actions.edit')}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? t('form.actions.deleting') : t('form.actions.delete')}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deleteMutation.isPending ? t('form.actions.deleting') : t('form.actions.delete')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{tDetail('deleteDialog.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {tDetail('deleteDialog.description')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleteMutation.isPending ? t('form.actions.deleting') : tCommon('actions.delete')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
@@ -739,6 +799,27 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
           )}
         </DialogContent>
       </Dialog>
+
+      {/* FIX-129: Item Delete Confirmation AlertDialog */}
+      <AlertDialog open={deleteItemId !== null} onOpenChange={(open) => !open && setDeleteItemId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tDetail('itemDeleteDialog.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tDetail('itemDeleteDialog.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteItem}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {tCommon('actions.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

@@ -410,13 +410,14 @@ export const budgetPoolRouter = createTRPCRouter({
       });
 
       if (!budgetPool) {
-        throw new Error('Budget pool not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Budget pool not found' });
       }
 
       if (budgetPool._count.projects > 0) {
-        throw new Error(
-          'Cannot delete budget pool with existing projects. Please delete or reassign projects first.'
-        );
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Cannot delete budget pool with existing projects. Please delete or reassign projects first.',
+        });
       }
 
       return ctx.prisma.budgetPool.delete({
@@ -463,7 +464,7 @@ export const budgetPoolRouter = createTRPCRouter({
       });
 
       if (!budgetPool) {
-        throw new Error('Budget pool not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Budget pool not found' });
       }
 
       // Calculate total budget from categories (not deprecated totalAmount field)

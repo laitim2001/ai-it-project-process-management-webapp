@@ -58,6 +58,11 @@ import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@itpm/db';
 
 /**
+ * FIX-106: 安全的 User select 欄位，避免洩漏密碼 hash
+ */
+const safeUserSelect = { id: true, name: true, email: true, image: true } as const;
+
+/**
  * ChargeOut 狀態枚舉
  */
 export const ChargeOutStatusEnum = z.enum([
@@ -547,7 +552,7 @@ export const chargeOutRouter = createTRPCRouter({
         include: {
           project: true,
           opCo: true,
-          confirmer: true,
+          confirmer: { select: safeUserSelect },
           items: {
             include: {
               expense: true,
@@ -672,7 +677,7 @@ export const chargeOutRouter = createTRPCRouter({
         include: {
           project: true,
           opCo: true,
-          confirmer: true,
+          confirmer: { select: safeUserSelect },
           items: {
             include: {
               expense: true,
@@ -697,12 +702,12 @@ export const chargeOutRouter = createTRPCRouter({
         include: {
           project: {
             include: {
-              manager: true,
-              supervisor: true,
+              manager: { select: safeUserSelect },
+              supervisor: { select: safeUserSelect },
             },
           },
           opCo: true,
-          confirmer: true,
+          confirmer: { select: safeUserSelect },
           items: {
             include: {
               expense: {

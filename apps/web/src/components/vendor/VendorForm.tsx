@@ -199,7 +199,7 @@ export function VendorForm({ initialData, mode }: VendorFormProps) {
       {/* 供應商名稱 */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          {t('form.name.label')} <span className="text-red-500">*</span>
+          {t('form.name.label')} <span className="text-destructive">*</span>
         </label>
         <input
           type="text"

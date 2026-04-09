@@ -41,8 +41,9 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,7 +62,16 @@ export default function CurrenciesPage() {
   const t = useTranslations('currencies');
   const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
+  const router = useRouter();
+  const { data: session } = useSession();
   const { toast } = useToast();
+
+  // FIX-134: Admin role check
+  const isAdmin = session?.user?.role?.name === 'Admin';
+  if (session && !isAdmin) {
+    router.push('/dashboard');
+    return null;
+  }
 
   // 狀態管理
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

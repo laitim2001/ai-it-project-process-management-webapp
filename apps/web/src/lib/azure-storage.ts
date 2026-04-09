@@ -52,7 +52,7 @@ interface AzureStorageConfig {
  * 上傳結果接口
  */
 export interface UploadResult {
-  /** Blob 的完整 URL */
+  /** Blob 的完整 URL（私有容器，前端需透過 /api/download 代理存取） */
   url: string;
   /** Blob 名稱 */
   blobName: string;
@@ -156,9 +156,9 @@ async function getContainerClient(
   const exists = await containerClient.exists();
   if (!exists) {
     console.log(`[Azure Storage] 創建 Container: ${containerName}`);
-    await containerClient.create({
-      access: "blob", // 允許匿名讀取 blob（可根據需求調整為 "container" 或 "private"）
-    });
+    // 安全設定：不設置 access 屬性，容器預設為 private（需認證才能存取）
+    // 前端透過 /api/download API 以 SAS Token 臨時授權存取文件
+    await containerClient.create();
   }
 
   return containerClient;

@@ -45,7 +45,7 @@
  * - Edge Runtime 限制: https://nextjs.org/docs/app/api-reference/edge
  *
  * @author IT Department
- * @since Epic 1 - Azure AD B2C Authentication
+ * @since Epic 1 - Azure AD (Entra ID) Authentication
  * @lastModified 2025-11-14
  */
 
@@ -111,12 +111,12 @@ export const authConfig: NextAuthConfig = {
         '/dashboard',
         '/projects',
         '/budget-pools',
-        '/budget-proposals',
+        '/proposals',
         '/vendors',
         '/purchase-orders',
         '/expenses',
         '/users',
-        // ===== FIX-095: 新增缺失的受保護路由 (9 個) =====
+        // ===== FIX-095: 新增缺失的受保護路由 (10 個) =====
         '/om-expenses',
         '/om-summary',
         '/charge-outs',
@@ -124,6 +124,7 @@ export const authConfig: NextAuthConfig = {
         '/notifications',
         '/settings',
         '/data-import',
+        '/project-data-import',
         '/operating-companies',
         '/om-expense-categories',
       ];

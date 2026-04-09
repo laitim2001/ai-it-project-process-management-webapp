@@ -54,8 +54,9 @@
 
 'use client';
 
-import { Link } from "@/i18n/routing";
-import { useTranslations } from 'next-intl';
+import { Link, useRouter } from "@/i18n/routing";
+import { useTranslations, useLocale } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
@@ -69,7 +70,17 @@ import { Plus, Users, AlertCircle } from 'lucide-react';
 export default function UsersPage() {
   const t = useTranslations('users');
   const tNav = useTranslations('navigation');
+  const locale = useLocale();
+  const router = useRouter();
+  const { data: session } = useSession();
   const { data: users, isLoading } = api.user.getAll.useQuery();
+
+  // FIX-134: Admin role check
+  const isAdmin = session?.user?.role?.name === 'Admin';
+  if (session && !isAdmin) {
+    router.push('/dashboard');
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -210,7 +221,7 @@ export default function UsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleDateString(locale)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link

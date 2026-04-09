@@ -107,10 +107,13 @@ export default function ProposalsPage() {
   // Debounce search to avoid too many API requests
   const debouncedSearch = useDebounce(search, 300);
 
-  const { data: proposals, isLoading, refetch } = api.budgetProposal.getAll.useQuery({
+  // FIX-112: 使用分頁 API，從回應中提取 items 陣列
+  const { data: proposalsData, isLoading, refetch } = api.budgetProposal.getAll.useQuery({
     search: debouncedSearch || undefined,
     status: statusFilter,
+    limit: 100, // 列表頁面預設載入較多資料
   });
+  const proposals = proposalsData?.items;
 
   // CHANGE-017: 刪除 mutations
   const deleteMutation = api.budgetProposal.delete.useMutation({

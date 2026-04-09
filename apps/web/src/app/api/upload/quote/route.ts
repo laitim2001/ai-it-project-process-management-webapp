@@ -79,6 +79,7 @@
  * }
  */
 
+import { auth } from '@/auth';
 import { BLOB_CONTAINERS, uploadToBlob } from '@/lib/azure-storage';
 import { prisma } from '@itpm/db';
 import { NextRequest, NextResponse } from 'next/server';
@@ -99,6 +100,12 @@ const ALLOWED_TYPES = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
+  // 認證檢查：僅允許已登入用戶上傳報價單
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: '未授權：請先登入' }, { status: 401 });
+  }
+
   try {
     const formData = await request.formData();
 

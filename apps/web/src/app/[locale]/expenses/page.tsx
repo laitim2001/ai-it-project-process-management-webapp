@@ -97,7 +97,7 @@ export default function ExpensesPage() {
     };
     const config = configs[status as keyof typeof configs];
     return {
-      label: config ? t(`list.filter.${status.toLowerCase()}` as any) : status || tCommon('noData'),
+      label: config ? t(`list.filter.${status.charAt(0).toLowerCase() + status.slice(1)}` as any) : status || tCommon('noData'),
       variant: config?.variant || ('outline' as const),
     };
   };

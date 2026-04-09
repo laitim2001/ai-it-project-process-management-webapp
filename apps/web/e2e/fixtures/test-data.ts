@@ -108,7 +108,7 @@ export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve,
  * 格式化貨幣
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('zh-HK', {
+  return new Intl.NumberFormat('zh-TW', {
     style: 'currency',
     currency: 'HKD',
     minimumFractionDigits: 0,

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Last Updated**: 2025-12-18
 > **Project Status**: Post-MVP Enhancement Phase (FEAT-008 Complete)
-> **Total Code**: ~35,000+ lines of core code
+> **Total Code**: ~73,500 lines of core code
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
 > **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境 已部署
 > **Language Preference**: 繁體中文 (Traditional Chinese) - AI assistants should communicate in Traditional Chinese by default
@@ -79,7 +79,7 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - All 8 core Epics delivered and tested
 - 56+ pages implemented (20 route modules)
 - 75+ components (35+ UI + 40 business)
-- ~35,000+ lines of production code
+- ~73,500 lines of production code
 
 **✅ Post-MVP Enhancements: Complete**
 - Design system migration (shadcn/ui + Radix UI)
@@ -89,7 +89,7 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - **FEAT-007**: OM Expense 表頭-明細架構重構 (OMExpense → OMExpenseItem → OMExpenseMonthly)
 - **FEAT-008**: OM Expense Data Import (Excel 數據導入 v1.0 → v1.3)
 - **FEAT-009 ~ FEAT-012**: OpCo 權限、Project Import、Permission Management、Loading System
-- **CHANGE-001~036**: 36 項功能改進 (OM Summary、Dashboard、Delete Enhancement、User Password 等)
+- **CHANGE-001~041**: 41 項功能改進 (OM Summary、Dashboard、Delete Enhancement、User Password 等)
 
 **📋 Next Phase: Epic 9-10** (AI Assistant + External Integration)
 
@@ -102,11 +102,11 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - **API Layer**: tRPC 10.x (type-safe RPC)
 - **Database ORM**: Prisma 5.22.0
 - **Database**: PostgreSQL 16 (Azure Database for PostgreSQL)
-- **Auth**: NextAuth.js + Azure AD B2C
+- **Auth**: NextAuth.js + Azure AD (Entra ID)
 - **Styling**: Tailwind CSS 3.x
 - **Components**: shadcn/ui + Radix UI
-- **State**: Zustand / Jotai
-- **Testing**: Jest + React Testing Library, Playwright
+- **State**: React Query (tRPC), useState, React Hook Form
+- **Testing**: Playwright (E2E); unit tests not yet implemented
 - **Monorepo**: Turborepo (pnpm 8.15.3)
 - **Deployment**: Azure App Service
 - **CI/CD**: GitHub Actions
@@ -145,7 +145,7 @@ This is a **Turborepo monorepo** with the following structure:
 │       │   │   ├── users/                  ✅ Full CRUD
 │       │   │   ├── notifications/          ✅ List View (Epic 8)
 │       │   │   ├── settings/               ✅ User Settings (Post-MVP)
-│       │   │   ├── login/                  ✅ Azure AD B2C + Local
+│       │   │   ├── login/                  ✅ Azure AD + Local
 │       │   │   ├── register/               ✅ Sign Up (Post-MVP)
 │       │   │   └── forgot-password/        ✅ Password Reset (Post-MVP)
 │       │   ├── components/           # 75+ components
@@ -163,7 +163,7 @@ This is a **Turborepo monorepo** with the following structure:
 │       └── package.json
 │
 ├── packages/
-│   ├── api/              # tRPC backend routers (16 routers)
+│   ├── api/              # tRPC backend routers (17 routers)
 │   │   └── src/
 │   │       ├── routers/
 │   │       │   ├── budgetPool.ts
@@ -181,12 +181,13 @@ This is a **Turborepo monorepo** with the following structure:
 │   │       │   ├── purchaseOrder.ts
 │   │       │   ├── quote.ts
 │   │       │   ├── user.ts
-│   │       │   └── vendor.ts
+│   │       │   ├── vendor.ts
+│   │       │   └── permission.ts         # FEAT-011
 │   │       └── lib/
 │   │           └── email.ts          # EmailService (Epic 8)
-│   ├── db/               # Prisma schema (31 models)
+│   ├── db/               # Prisma schema (32 models)
 │   │   └── prisma/schema.prisma
-│   ├── auth/             # NextAuth.js + Azure AD B2C
+│   ├── auth/             # NextAuth.js + Azure AD (Entra ID)
 │   ├── eslint-config/    # Shared ESLint configuration
 │   └── tsconfig/         # Shared TypeScript configuration
 │
@@ -204,7 +205,7 @@ This is a **Turborepo monorepo** with the following structure:
 **Key Architecture Patterns:**
 - **packages/db**: Single source of truth for data models (Prisma schema)
 - **packages/api**: All business logic and tRPC procedures live here
-- **packages/auth**: Centralized authentication with NextAuth.js + Azure AD B2C
+- **packages/auth**: Centralized authentication with NextAuth.js + Azure AD (Entra ID)
 - **apps/web**: Consumes `packages/api` via tRPC, handles UI/UX
 
 ---
@@ -221,7 +222,7 @@ model User {
   emailVerified DateTime?
   name          String?
   image         String?
-  password      String?   // bcrypt hash, null for Azure AD B2C users
+  password      String?   // bcrypt hash, null for Azure AD SSO users
   roleId        Int       @default(1)
 
   role          Role
@@ -233,8 +234,8 @@ model User {
 }
 
 model Account {
-  // NextAuth.js OAuth accounts (Azure AD B2C)
-  provider          String  // "azure-ad-b2c"
+  // NextAuth.js OAuth accounts (Azure AD)
+  provider          String  // "azure-ad"
   providerAccountId String
   // ... OAuth tokens
 }
@@ -496,14 +497,12 @@ NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SESSION_MAX_AGE=86400  # 24 hours
 ```
 
-**Azure AD B2C** (Epic 1):
+**Azure AD (Entra ID)** (Epic 1):
 ```bash
-AZURE_AD_B2C_TENANT_NAME="yourtenantname"
-AZURE_AD_B2C_TENANT_ID="your-tenant-id-guid"
-AZURE_AD_B2C_CLIENT_ID="your-client-id-guid"
-AZURE_AD_B2C_CLIENT_SECRET="your-client-secret"
-AZURE_AD_B2C_PRIMARY_USER_FLOW="B2C_1_signupsignin"
-AZURE_AD_B2C_SCOPE="openid profile email offline_access"
+AZURE_AD_TENANT_ID="your-tenant-id-guid"
+AZURE_AD_CLIENT_ID="your-client-id-guid"
+AZURE_AD_CLIENT_SECRET="your-client-secret"
+AZURE_AD_SCOPE="openid profile email User.Read"
 ```
 
 **Email Service** (Epic 8):
@@ -517,7 +516,7 @@ SENDGRID_FROM_NAME="IT Project Management"
 SMTP_HOST=localhost
 SMTP_PORT=1025
 SMTP_USER=""
-SMTP_PASSWORD=""
+SMTP_PASS=""
 ```
 
 **Redis** (Session & Caching):
@@ -599,13 +598,13 @@ Mailhog UI:   localhost:8025
   - `components/[feature]/` - Feature-specific business components
 - Use **Tailwind CSS** for styling, **shadcn/ui + Radix UI** for accessible components
 - Use **cn()** utility for className merging (from `lib/utils.ts`)
-- State management: Use **Zustand** or **Jotai** for client state (prefer over Redux)
+- State management: **React Query** (via tRPC) for server state, **useState** for local state, **React Hook Form** for forms
 - Theme: Support Light/Dark/System modes via `useTheme()` hook
 
 ### Authentication (Epic 1)
-- NextAuth.js + Azure AD B2C integration in `packages/auth`
+- NextAuth.js + Azure AD (Entra ID) integration in `packages/auth`
 - Dual authentication support:
-  - **Azure AD B2C SSO** (production)
+  - **Azure AD SSO** (production)
   - **Email/Password** (local development)
 - Access current user in tRPC context: `ctx.session.user`
 - Protect routes using `protectedProcedure` middleware
@@ -613,8 +612,8 @@ Mailhog UI:   localhost:8025
 - Session duration: 24 hours (configurable)
 
 ### Testing
-- **Unit/Component Tests**: Jest + React Testing Library
 - **E2E Tests**: Playwright
+- **Unit/Component Tests**: Not yet implemented (Jest + React Testing Library planned)
 - Focus on user behavior, not implementation details
 - Test files colocate with source: `*.test.ts`, `*.spec.ts`
 
@@ -702,8 +701,8 @@ pnpm validate:i18n
 
 ## Epic Status & Feature Completion
 
-### ✅ Epic 1: Azure AD B2C Authentication (100%)
-- Azure AD B2C SSO integration
+### ✅ Epic 1: Azure AD (Entra ID) Authentication (100%)
+- Azure AD SSO integration
 - Email/Password local authentication
 - NextAuth.js session management
 - RBAC middleware (ProjectManager, Supervisor, Admin)
@@ -774,7 +773,7 @@ pnpm validate:i18n
   - FEAT-010: Project 數據導入
   - FEAT-011: Permission Management (Sidebar 權限過濾)
   - FEAT-012: 統一載入特效系統 (Spinner, LoadingButton, LoadingOverlay, GlobalProgress)
-- **CHANGE-001 ~ CHANGE-036**: 36 項功能改進
+- **CHANGE-001 ~ CHANGE-041**: 41 項功能改進
   - CHANGE-001~004: OM Expense 來源追蹤、費用類別統一、OM Summary 顯示
   - CHANGE-005~011: i18n、Budget Pool 分類、Schema 同步、isOngoing 增強
   - CHANGE-012~019: Dashboard 改進、OM Summary 欄位優化、刪除功能增強
@@ -901,7 +900,7 @@ This project is designed for AI-assisted development with production-quality cod
 
 ### Security
 - **Never commit secrets** to the repository (`.env` is gitignored)
-- Azure AD B2C redirect URIs must be configured in Azure portal
+- Azure AD redirect URIs must be configured in Azure portal
 - Use `protectedProcedure` for all authenticated routes
 - Validate all user inputs with Zod schemas
 
@@ -1003,13 +1002,13 @@ One-click: install dependencies + generate Prisma Client + check environment.
 ## Project Metrics
 
 **Code Statistics** (as of 2025-12-12):
-- Total Core Code: ~35,000+ lines
+- Total Core Code: ~73,500 lines
 - Indexed Files: 250+ important files
 - UI Components: 75+ (35+ design system + 40 business)
-- API Routers: 16 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, notification, omExpense, operatingCompany, project, purchaseOrder, quote, user, vendor, health)
-- Prisma Models: 27 (User, Role, Account, Session, VerificationToken, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ExpenseCategory, ChargeOut, ChargeOutItem, OMExpense, OMExpenseItem, OMExpenseMonthly, OperatingCompany, ProjectChargeOutOpCo, Currency, Comment, History, Notification)
+- API Routers: 17 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, health, notification, omExpense, operatingCompany, permission, project, purchaseOrder, quote, user, vendor)
+- Prisma Models: 32 (User, Role, Account, Session, VerificationToken, Permission, RolePermission, UserPermission, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ExpenseCategory, ChargeOut, ChargeOutItem, OMExpense, OMExpenseItem, OMExpenseMonthly, OperatingCompany, ProjectChargeOutOpCo, UserOperatingCompany, ProjectBudgetCategory, Currency, Comment, History, Notification)
 - Pages: 56+ full-featured pages (20 route modules)
-- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements + FEAT-007/008 + CHANGE-004~011
+- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements + FEAT-007~012 + CHANGE-001~041
 
 **Development Timeline:**
 - Sprint 0-8: MVP Phase 1 (Epic 1-8) ✅

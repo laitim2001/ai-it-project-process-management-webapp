@@ -55,7 +55,8 @@
 
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { createTRPCRouter, protectedProcedure, adminProcedure } from '../trpc';
 import { validatePasswordStrength } from '../lib/passwordValidation';
 
 /**
@@ -90,7 +91,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 取得所有使用者
    */
-  getAll: publicProcedure.query(async ({ ctx }) => {
+  getAll: protectedProcedure.query(async ({ ctx }) => {
     const users = await ctx.prisma.user.findMany({
       include: {
         role: true,
@@ -106,7 +107,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 根據 ID 取得使用者
    */
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(
       z.object({
         id: z.string().uuid('無效的使用者ID'),
@@ -133,7 +134,7 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!user) {
-        throw new Error('找不到該使用者');
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
       }
 
       return user;
@@ -143,7 +144,7 @@ export const userRouter = createTRPCRouter({
    * 根據角色名稱取得使用者
    * 用於下拉選單（例如：選擇專案管理者或監督者）
    */
-  getByRole: publicProcedure
+  getByRole: protectedProcedure
     .input(
       z.object({
         roleName: z.enum(['ProjectManager', 'Supervisor', 'Admin']),
@@ -170,7 +171,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 取得所有管理者（ProjectManager）
    */
-  getManagers: publicProcedure.query(async ({ ctx }) => {
+  getManagers: protectedProcedure.query(async ({ ctx }) => {
     const managers = await ctx.prisma.user.findMany({
       where: {
         role: {
@@ -191,7 +192,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 取得所有監督者（Supervisor）
    */
-  getSupervisors: publicProcedure.query(async ({ ctx }) => {
+  getSupervisors: protectedProcedure.query(async ({ ctx }) => {
     const supervisors = await ctx.prisma.user.findMany({
       where: {
         role: {
@@ -213,7 +214,7 @@ export const userRouter = createTRPCRouter({
    * 建立使用者
    * 支援可選的密碼設定，密碼會經過驗證和 bcrypt 加密
    */
-  create: publicProcedure
+  create: adminProcedure
     .input(userCreateInputSchema)
     .mutation(async ({ ctx, input }) => {
       // 檢查 email 是否已存在
@@ -224,7 +225,7 @@ export const userRouter = createTRPCRouter({
       });
 
       if (existingUser) {
-        throw new Error('此電子郵件已被使用');
+        throw new TRPCError({ code: 'CONFLICT', message: '此電子郵件已被使用' });
       }
 
       // 驗證 roleId 是否存在
@@ -235,7 +236,7 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!role) {
-        throw new Error('無效的角色ID');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '無效的角色ID' });
       }
 
       // 如果提供了密碼，驗證密碼強度並加密
@@ -243,7 +244,7 @@ export const userRouter = createTRPCRouter({
       if (input.password) {
         const passwordValidation = validatePasswordStrength(input.password);
         if (!passwordValidation.isValid) {
-          throw new Error(passwordValidation.errors.join('；'));
+          throw new TRPCError({ code: 'BAD_REQUEST', message: passwordValidation.errors.join('；') });
         }
         hashedPassword = await bcrypt.hash(input.password, 12);
       }
@@ -266,7 +267,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 更新使用者
    */
-  update: publicProcedure
+  update: adminProcedure
     .input(userUpdateInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
@@ -283,7 +284,7 @@ export const userRouter = createTRPCRouter({
         });
 
         if (existingUser) {
-          throw new Error('此電子郵件已被其他使用者使用');
+          throw new TRPCError({ code: 'CONFLICT', message: '此電子郵件已被其他使用者使用' });
         }
       }
 
@@ -296,7 +297,7 @@ export const userRouter = createTRPCRouter({
         });
 
         if (!role) {
-          throw new Error('無效的角色ID');
+          throw new TRPCError({ code: 'BAD_REQUEST', message: '無效的角色ID' });
         }
       }
 
@@ -316,7 +317,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 刪除使用者
    */
-  delete: publicProcedure
+  delete: adminProcedure
     .input(
       z.object({
         id: z.string().uuid('無效的使用者ID'),
@@ -335,11 +336,11 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!userWithProjects) {
-        throw new Error('找不到該使用者');
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
       }
 
       if (userWithProjects.projects.length > 0 || userWithProjects.approvals.length > 0) {
-        throw new Error('無法刪除：此使用者有關聯的專案');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '無法刪除：此使用者有關聯的專案' });
       }
 
       await ctx.prisma.user.delete({
@@ -354,7 +355,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 取得所有角色
    */
-  getRoles: publicProcedure.query(async ({ ctx }) => {
+  getRoles: protectedProcedure.query(async ({ ctx }) => {
     const roles = await ctx.prisma.role.findMany({
       orderBy: {
         id: 'asc',
@@ -380,13 +381,13 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!user) {
-        throw new Error('找不到該使用者');
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
       }
 
       // 驗證密碼強度
       const passwordValidation = validatePasswordStrength(input.password);
       if (!passwordValidation.isValid) {
-        throw new Error(passwordValidation.errors.join('；'));
+        throw new TRPCError({ code: 'BAD_REQUEST', message: passwordValidation.errors.join('；') });
       }
 
       // 加密密碼
@@ -408,7 +409,7 @@ export const userRouter = createTRPCRouter({
    * 檢查使用者是否已設定密碼 (CHANGE-032)
    * 用於前端顯示「設定密碼」或「更改密碼」
    */
-  hasPassword: publicProcedure
+  hasPassword: protectedProcedure
     .input(
       z.object({
         userId: z.string().uuid('無效的使用者ID'),
@@ -421,7 +422,7 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!user) {
-        throw new Error('找不到該使用者');
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
       }
 
       return {
@@ -453,7 +454,7 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!user) {
-        throw new Error('找不到該使用者');
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
       }
 
       const hasExistingPassword = !!user.password;
@@ -461,26 +462,26 @@ export const userRouter = createTRPCRouter({
       // 如果已有密碼，必須驗證舊密碼
       if (hasExistingPassword) {
         if (!input.currentPassword) {
-          throw new Error('請輸入目前密碼');
+          throw new TRPCError({ code: 'BAD_REQUEST', message: '請輸入目前密碼' });
         }
         const isCurrentValid = await bcrypt.compare(
           input.currentPassword,
           user.password!
         );
         if (!isCurrentValid) {
-          throw new Error('目前密碼不正確');
+          throw new TRPCError({ code: 'BAD_REQUEST', message: '目前密碼不正確' });
         }
       }
 
       // 驗證新密碼一致性
       if (input.newPassword !== input.confirmPassword) {
-        throw new Error('新密碼不一致');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '新密碼不一致' });
       }
 
       // 驗證密碼強度
       const passwordValidation = validatePasswordStrength(input.newPassword);
       if (!passwordValidation.isValid) {
-        throw new Error(passwordValidation.errors.join('；'));
+        throw new TRPCError({ code: 'BAD_REQUEST', message: passwordValidation.errors.join('；') });
       }
 
       // 加密並儲存新密碼
@@ -509,7 +510,7 @@ export const userRouter = createTRPCRouter({
     });
 
     if (!user) {
-      throw new Error('找不到該使用者');
+      throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
     }
 
     return {

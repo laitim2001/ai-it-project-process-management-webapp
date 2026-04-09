@@ -59,10 +59,13 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import { ChargeOutForm } from '@/components/charge-out/ChargeOutForm';
+import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/trpc';
 
 export default function EditChargeOutPage({ params }: { params: { id: string } }) {
   const t = useTranslations('chargeOuts');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const router = useRouter();
 
   // 獲取 ChargeOut 詳情
@@ -74,7 +77,14 @@ export default function EditChargeOutPage({ params }: { params: { id: string } }
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-8">載入中...</div>
+        <div className="space-y-8">
+          <Skeleton className="h-5 w-96" />
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <Skeleton className="h-96 w-full" />
+        </div>
       </DashboardLayout>
     );
   }
@@ -84,9 +94,9 @@ export default function EditChargeOutPage({ params }: { params: { id: string } }
     return (
       <DashboardLayout>
         <div className="text-center py-8">
-          <p className="text-muted-foreground">找不到 ChargeOut 記錄</p>
+          <p className="text-muted-foreground">{t('detail.notFound')}</p>
           <Button className="mt-4" onClick={() => router.push('/charge-outs')}>
-            返回列表
+            {tCommon('actions.back')}
           </Button>
         </div>
       </DashboardLayout>
@@ -102,7 +112,7 @@ export default function EditChargeOutPage({ params }: { params: { id: string } }
             只有草稿 (Draft) 狀態的 ChargeOut 可以編輯
           </p>
           <Button className="mt-4" onClick={() => router.push(`/charge-outs/${chargeOut.id}`)}>
-            返回詳情
+            {tCommon('actions.back')}
           </Button>
         </div>
       </DashboardLayout>
@@ -115,11 +125,11 @@ export default function EditChargeOutPage({ params }: { params: { id: string } }
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+            <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink asChild><Link href="/charge-outs">費用轉嫁</Link></BreadcrumbLink>
+            <BreadcrumbLink asChild><Link href="/charge-outs">{tNav('menu.chargeOuts')}</Link></BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -129,7 +139,7 @@ export default function EditChargeOutPage({ params }: { params: { id: string } }
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>編輯</BreadcrumbPage>
+            <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

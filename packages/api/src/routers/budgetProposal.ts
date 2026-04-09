@@ -55,7 +55,12 @@
 
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
+
+/**
+ * FIX-106: 安全的 User select 欄位，避免洩漏密碼 hash
+ */
+const safeUserSelect = { id: true, name: true, email: true, image: true } as const;
 
 /**
  * 預算提案狀態枚舉
@@ -85,12 +90,10 @@ const budgetProposalUpdateInputSchema = z.object({
 
 const budgetProposalSubmitInputSchema = z.object({
   id: z.string().min(1, '無效的提案ID'),
-  userId: z.string().min(1, '無效的使用者ID'),
 });
 
 const budgetProposalApprovalInputSchema = z.object({
   id: z.string().min(1, '無效的提案ID'),
-  userId: z.string().min(1, '無效的使用者ID'),
   action: z.enum(['Approved', 'Rejected', 'MoreInfoRequired']),
   comment: z.string().optional(),
   approvedAmount: z.number().min(0, '批准金額必須大於等於0').optional(), // Module 2/3 新增：批准的預算金額
@@ -98,7 +101,6 @@ const budgetProposalApprovalInputSchema = z.object({
 
 const commentInputSchema = z.object({
   budgetProposalId: z.string().min(1, '無效的提案ID'),
-  userId: z.string().min(1, '無效的使用者ID'),
   content: z.string().min(1, '評論內容不能為空'),
 });
 
@@ -107,12 +109,15 @@ const commentInputSchema = z.object({
  */
 export const budgetProposalRouter = createTRPCRouter({
   /**
-   * 取得所有預算提案
+   * 取得所有預算提案（支援分頁）
+   * FIX-112: 新增分頁支援，避免大量資料一次載入
    */
   getAll: protectedProcedure
     .input(
       z
         .object({
+          page: z.number().min(1).default(1),
+          limit: z.number().min(1).max(100).default(20),
           status: ProposalStatus.optional(),
           projectId: z.string().min(1).optional(),
           search: z.string().optional(),
@@ -120,49 +125,66 @@ export const budgetProposalRouter = createTRPCRouter({
         .optional()
     )
     .query(async ({ ctx, input }) => {
-      const proposals = await ctx.prisma.budgetProposal.findMany({
-        where: {
-          ...(input?.status && { status: input.status }),
-          ...(input?.projectId && { projectId: input.projectId }),
-          ...(input?.search && {
-            OR: [
-              { title: { contains: input.search, mode: 'insensitive' } },
-              { project: { name: { contains: input.search, mode: 'insensitive' } } },
-            ],
-          }),
-        },
-        include: {
-          project: {
-            include: {
-              manager: true,
-              supervisor: true,
-              budgetPool: true,
-              currency: true, // FEAT-002: Include project currency
-            },
-          },
-          comments: {
-            include: {
-              user: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-          historyItems: {
-            include: {
-              user: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+      const page = input?.page ?? 1;
+      const limit = input?.limit ?? 20;
+      const skip = (page - 1) * limit;
 
-      return proposals;
+      const where = {
+        ...(input?.status && { status: input.status }),
+        ...(input?.projectId && { projectId: input.projectId }),
+        ...(input?.search && {
+          OR: [
+            { title: { contains: input.search, mode: 'insensitive' as const } },
+            { project: { name: { contains: input.search, mode: 'insensitive' as const } } },
+          ],
+        }),
+      };
+
+      const [items, total] = await Promise.all([
+        ctx.prisma.budgetProposal.findMany({
+          where,
+          skip,
+          take: limit,
+          include: {
+            project: {
+              include: {
+                manager: { select: safeUserSelect },
+                supervisor: { select: safeUserSelect },
+                budgetPool: true,
+                currency: true, // FEAT-002: Include project currency
+              },
+            },
+            comments: {
+              include: {
+                user: { select: safeUserSelect },
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+            historyItems: {
+              include: {
+                user: { select: safeUserSelect },
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
+        ctx.prisma.budgetProposal.count({ where }),
+      ]);
+
+      return {
+        items,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
     }),
 
   /**
@@ -182,15 +204,15 @@ export const budgetProposalRouter = createTRPCRouter({
         include: {
           project: {
             include: {
-              manager: true,
-              supervisor: true,
+              manager: { select: safeUserSelect },
+              supervisor: { select: safeUserSelect },
               budgetPool: true,
               currency: true, // FEAT-002: Include project currency
             },
           },
           comments: {
             include: {
-              user: true,
+              user: { select: safeUserSelect },
             },
             orderBy: {
               createdAt: 'desc',
@@ -198,7 +220,7 @@ export const budgetProposalRouter = createTRPCRouter({
           },
           historyItems: {
             include: {
-              user: true,
+              user: { select: safeUserSelect },
             },
             orderBy: {
               createdAt: 'desc',
@@ -247,8 +269,8 @@ export const budgetProposalRouter = createTRPCRouter({
         include: {
           project: {
             include: {
-              manager: true,
-              supervisor: true,
+              manager: { select: safeUserSelect },
+              supervisor: { select: safeUserSelect },
               budgetPool: true,
             },
           },
@@ -298,8 +320,8 @@ export const budgetProposalRouter = createTRPCRouter({
         include: {
           project: {
             include: {
-              manager: true,
-              supervisor: true,
+              manager: { select: safeUserSelect },
+              supervisor: { select: safeUserSelect },
               budgetPool: true,
             },
           },
@@ -352,8 +374,8 @@ export const budgetProposalRouter = createTRPCRouter({
           include: {
             project: {
               include: {
-                manager: true,
-                supervisor: true,
+                manager: { select: safeUserSelect },
+                supervisor: { select: safeUserSelect },
                 budgetPool: true,
               },
             },
@@ -365,14 +387,14 @@ export const budgetProposalRouter = createTRPCRouter({
           data: {
             action: 'SUBMITTED',
             details: '提案已提交審批',
-            userId: input.userId,
+            userId: ctx.session.user.id,
             budgetProposalId: input.id,
           },
         });
 
         // Epic 8: 發送通知給 Supervisor
         const submitter = await prisma.user.findUnique({
-          where: { id: input.userId },
+          where: { id: ctx.session.user.id },
         });
 
         await prisma.notification.create({
@@ -396,7 +418,7 @@ export const budgetProposalRouter = createTRPCRouter({
   /**
    * 審批提案（PendingApproval → Approved/Rejected/MoreInfoRequired）
    */
-  approve: protectedProcedure
+  approve: supervisorProcedure
     .input(budgetProposalApprovalInputSchema)
     .mutation(async ({ ctx, input }) => {
       // 檢查提案狀態
@@ -432,7 +454,7 @@ export const budgetProposalRouter = createTRPCRouter({
             // Module 2/3: 批准時記錄批准金額、批准者、批准時間
             ...(input.action === 'Approved' && {
               approvedAmount: input.approvedAmount || existingProposal.amount,
-              approvedBy: input.userId,
+              approvedBy: ctx.session.user.id,
               approvedAt: new Date(),
             }),
             // 拒絕時記錄原因
@@ -443,8 +465,8 @@ export const budgetProposalRouter = createTRPCRouter({
           include: {
             project: {
               include: {
-                manager: true,
-                supervisor: true,
+                manager: { select: safeUserSelect },
+                supervisor: { select: safeUserSelect },
                 budgetPool: true,
               },
             },
@@ -463,7 +485,7 @@ export const budgetProposalRouter = createTRPCRouter({
           data: {
             action: historyAction,
             details: input.comment || null,
-            userId: input.userId,
+            userId: ctx.session.user.id,
             budgetProposalId: input.id,
           },
         });
@@ -473,7 +495,7 @@ export const budgetProposalRouter = createTRPCRouter({
           await prisma.comment.create({
             data: {
               content: input.comment,
-              userId: input.userId,
+              userId: ctx.session.user.id,
               budgetProposalId: input.id,
             },
           });
@@ -493,7 +515,7 @@ export const budgetProposalRouter = createTRPCRouter({
 
         // Epic 8: 發送通知給 Project Manager
         const reviewer = await prisma.user.findUnique({
-          where: { id: input.userId },
+          where: { id: ctx.session.user.id },
         });
 
         const notificationTypeMap = {
@@ -541,11 +563,11 @@ export const budgetProposalRouter = createTRPCRouter({
       const comment = await ctx.prisma.comment.create({
         data: {
           content: input.content,
-          userId: input.userId,
+          userId: ctx.session.user.id,
           budgetProposalId: input.budgetProposalId,
         },
         include: {
-          user: true,
+          user: { select: safeUserSelect },
         },
       });
 
@@ -593,8 +615,8 @@ export const budgetProposalRouter = createTRPCRouter({
         include: {
           project: {
             include: {
-              manager: true,
-              supervisor: true,
+              manager: { select: safeUserSelect },
+              supervisor: { select: safeUserSelect },
               budgetPool: true,
             },
           },
@@ -645,8 +667,8 @@ export const budgetProposalRouter = createTRPCRouter({
         include: {
           project: {
             include: {
-              manager: true,
-              supervisor: true,
+              manager: { select: safeUserSelect },
+              supervisor: { select: safeUserSelect },
               budgetPool: true,
             },
           },
@@ -870,17 +892,17 @@ export const budgetProposalRouter = createTRPCRouter({
           include: {
             project: {
               include: {
-                manager: true,
-                supervisor: true,
+                manager: { select: safeUserSelect },
+                supervisor: { select: safeUserSelect },
                 budgetPool: true,
               },
             },
             comments: {
-              include: { user: true },
+              include: { user: { select: safeUserSelect } },
               orderBy: { createdAt: 'desc' },
             },
             historyItems: {
-              include: { user: true },
+              include: { user: { select: safeUserSelect } },
               orderBy: { createdAt: 'desc' },
             },
           },

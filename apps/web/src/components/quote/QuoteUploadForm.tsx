@@ -231,7 +231,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
           {/* 文件選擇 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('form.file.label')} <span className="text-red-500">*</span>
+              {t('form.file.label')} <span className="text-destructive">*</span>
             </label>
             <div className="flex items-center gap-4">
               <input
@@ -265,7 +265,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
           {/* 供應商選擇 */}
           <div>
             <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('form.vendor.label')} <span className="text-red-500">*</span>
+              {t('form.vendor.label')} <span className="text-destructive">*</span>
             </label>
             <NativeSelect id="vendor"
               value={vendorId}
@@ -285,7 +285,7 @@ export function QuoteUploadForm({ projectId, onSuccess }: QuoteUploadFormProps) 
           {/* 報價金額 */}
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('form.amount.label')} <span className="text-red-500">*</span>
+              {t('form.amount.label')} <span className="text-destructive">*</span>
             </label>
             <Input
               id="amount"

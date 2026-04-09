@@ -120,7 +120,7 @@ export function CategoryFormRow({
       {/* 類別名稱 - 必填 */}
       <div className="col-span-3">
         <Label htmlFor={`categoryName-${index}`} className="text-sm font-medium">
-          {t('name.label')} <span className="text-red-500">*</span>
+          {t('name.label')} <span className="text-destructive">*</span>
         </Label>
         <Input
           id={`categoryName-${index}`}
@@ -154,7 +154,7 @@ export function CategoryFormRow({
       {/* 預算金額 - 必填 */}
       <div className="col-span-2">
         <Label htmlFor={`totalAmount-${index}`} className="text-sm font-medium">
-          {t('amount.label')} <span className="text-red-500">*</span>
+          {t('amount.label')} <span className="text-destructive">*</span>
         </Label>
         <Input
           id={`totalAmount-${index}`}

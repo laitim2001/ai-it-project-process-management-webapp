@@ -65,6 +65,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
@@ -89,6 +90,12 @@ const TYPE_TO_EXTENSION: Record<string, string> = {
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
+  // 認證檢查：僅允許已登入用戶上傳提案文件
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: '未授權：請先登入' }, { status: 401 });
+  }
+
   try {
     // 獲取表單數據
     const formData = await request.formData();

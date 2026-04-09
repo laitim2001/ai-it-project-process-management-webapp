@@ -326,7 +326,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="md:col-span-1">
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            {tFields('name.label')} <span className="text-red-500">*</span>
+            {tFields('name.label')} <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
@@ -342,7 +342,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="projectCode" className="block text-sm font-medium text-gray-700">
-            {tFields('projectCode.label')} <span className="text-red-500">*</span>
+            {tFields('projectCode.label')} <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
@@ -400,7 +400,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="projectType" className="block text-sm font-medium text-gray-700">
-            {tFields('projectType.label')} <span className="text-red-500">*</span>
+            {tFields('projectType.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="projectType"
@@ -416,7 +416,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="expenseType" className="block text-sm font-medium text-gray-700">
-            {tFields('expenseType.label')} <span className="text-red-500">*</span>
+            {tFields('expenseType.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="expenseType"
@@ -436,7 +436,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <div>
           <label htmlFor="globalFlag" className="block text-sm font-medium text-gray-700">
-            {tFields('globalFlag.label')} <span className="text-red-500">*</span>
+            {tFields('globalFlag.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="globalFlag"
@@ -452,7 +452,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
-            {tFields('priority.label')} <span className="text-red-500">*</span>
+            {tFields('priority.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="priority"
@@ -605,7 +605,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div>
           <label htmlFor="probability" className="block text-sm font-medium text-gray-700">
-            {tFields('probability.label')} <span className="text-red-500">*</span>
+            {tFields('probability.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="probability"
@@ -673,7 +673,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label htmlFor="budgetPoolId" className="block text-sm font-medium text-gray-700 mb-2">
-            {tFields('budgetPool.label')} <span className="text-red-500">*</span>
+            {tFields('budgetPool.label')} <span className="text-destructive">*</span>
           </label>
           <Combobox
             options={budgetPoolOptions}
@@ -720,7 +720,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <div>
           <label htmlFor="managerId" className="block text-sm font-medium text-gray-700">
-            {tFields('manager.label')} <span className="text-red-500">*</span>
+            {tFields('manager.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="managerId"
@@ -741,7 +741,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="supervisorId" className="block text-sm font-medium text-gray-700">
-            {tFields('supervisor.label')} <span className="text-red-500">*</span>
+            {tFields('supervisor.label')} <span className="text-destructive">*</span>
           </label>
           <select
             id="supervisorId"
@@ -762,7 +762,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-            {tFields('startDate.label')} <span className="text-red-500">*</span>
+            {tFields('startDate.label')} <span className="text-destructive">*</span>
           </label>
           <input
             type="date"

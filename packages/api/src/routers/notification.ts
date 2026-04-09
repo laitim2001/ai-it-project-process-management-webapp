@@ -48,6 +48,7 @@
  */
 
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { emailService } from "../lib/email";
 
@@ -61,6 +62,7 @@ export const NotificationType = z.enum([
   "PROPOSAL_MORE_INFO",
   "EXPENSE_SUBMITTED",
   "EXPENSE_APPROVED",
+  "EXPENSE_REJECTED",
 ]);
 
 /**
@@ -138,7 +140,7 @@ export const notificationRouter = createTRPCRouter({
       });
 
       if (!notification) {
-        throw new Error("通知不存在或無權訪問");
+        throw new TRPCError({ code: "NOT_FOUND", message: "通知不存在或無權訪問" });
       }
 
       return notification;
@@ -181,7 +183,7 @@ export const notificationRouter = createTRPCRouter({
       });
 
       if (!notification) {
-        throw new Error("通知不存在或無權訪問");
+        throw new TRPCError({ code: "NOT_FOUND", message: "通知不存在或無權訪問" });
       }
 
       // 更新為已讀
@@ -233,7 +235,7 @@ export const notificationRouter = createTRPCRouter({
       });
 
       if (!notification) {
-        throw new Error("通知不存在或無權訪問");
+        throw new TRPCError({ code: "NOT_FOUND", message: "通知不存在或無權訪問" });
       }
 
       await ctx.prisma.notification.delete({

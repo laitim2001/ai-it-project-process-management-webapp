@@ -60,6 +60,11 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
+/**
+ * FIX-106: 安全的 User select 欄位，避免洩漏密碼 hash
+ */
+const safeUserSelect = { id: true, name: true, email: true, image: true } as const;
+
 // ========================================
 // Zod Schema 驗證定義
 // ========================================
@@ -985,8 +990,8 @@ export const expenseRouter = createTRPCRouter({
             include: {
               project: {
                 include: {
-                  manager: true,
-                  supervisor: true,
+                  manager: { select: safeUserSelect },
+                  supervisor: { select: safeUserSelect },
                 },
               },
               vendor: true,
@@ -1032,8 +1037,8 @@ export const expenseRouter = createTRPCRouter({
               include: {
                 project: {
                   include: {
-                    manager: true,
-                    supervisor: true,
+                    manager: { select: safeUserSelect },
+                    supervisor: { select: safeUserSelect },
                   },
                 },
                 vendor: true,
@@ -1131,8 +1136,8 @@ export const expenseRouter = createTRPCRouter({
               include: {
                 project: {
                   include: {
-                    manager: true,
-                    supervisor: true,
+                    manager: { select: safeUserSelect },
+                    supervisor: { select: safeUserSelect },
                   },
                 },
                 vendor: true,
@@ -1202,7 +1207,7 @@ export const expenseRouter = createTRPCRouter({
             include: {
               project: {
                 include: {
-                  manager: true,
+                  manager: { select: safeUserSelect },
                 },
               },
             },
@@ -1239,7 +1244,7 @@ export const expenseRouter = createTRPCRouter({
               include: {
                 project: {
                   include: {
-                    manager: true,
+                    manager: { select: safeUserSelect },
                   },
                 },
                 vendor: true,
@@ -1362,7 +1367,7 @@ export const expenseRouter = createTRPCRouter({
         },
       });
 
-      const pendingApprovalAmount = expensesByStatus.find(g => g.status === 'PendingApproval')?._sum.totalAmount || 0;
+      const pendingApprovalAmount = expensesByStatus.find(g => g.status === 'Submitted')?._sum.totalAmount || 0;
       const approvedAmount = expensesByStatus.find(g => g.status === 'Approved')?._sum.totalAmount || 0;
       const paidAmount = expensesByStatus.find(g => g.status === 'Paid')?._sum.totalAmount || 0;
 

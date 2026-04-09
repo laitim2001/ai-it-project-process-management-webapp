@@ -53,6 +53,11 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
+/**
+ * FIX-106: 安全的 User select 欄位，避免洩漏密碼 hash
+ */
+const safeUserSelect = { id: true, name: true, email: true, image: true } as const;
+
 // ============================================================
 // Zod 驗證 Schema 定義
 // ============================================================
@@ -477,7 +482,7 @@ export const projectRouter = createTRPCRouter({
       });
 
       if (!project) {
-        throw new Error('Project not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
       }
 
       return project;
@@ -1190,7 +1195,7 @@ export const projectRouter = createTRPCRouter({
       });
 
       if (!project) {
-        throw new Error('Project not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
       }
 
       // 計算提案統計
@@ -1348,28 +1353,29 @@ export const projectRouter = createTRPCRouter({
       });
 
       if (!project) {
-        throw new Error('找不到該專案');
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該專案' });
       }
 
       // 2. 檢查專案狀態
       if (project.status === 'Completed' || project.status === 'Archived') {
-        throw new Error('專案已完成或已歸檔，無法再次執行 Charge Out');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '專案已完成或已歸檔，無法再次執行 Charge Out' });
       }
 
       // 3. 收集所有費用記錄
       const allExpenses = project.purchaseOrders.flatMap(po => po.expenses);
 
       if (allExpenses.length === 0) {
-        throw new Error('專案沒有任何費用記錄，無法執行 Charge Out');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: '專案沒有任何費用記錄，無法執行 Charge Out' });
       }
 
       // 4. 檢查是否所有費用都已支付
       const unpaidExpenses = allExpenses.filter(exp => exp.status !== 'Paid');
 
       if (unpaidExpenses.length > 0) {
-        throw new Error(
-          `專案還有 ${unpaidExpenses.length} 筆未支付的費用，無法執行 Charge Out。所有費用必須處於「已支付」狀態。`
-        );
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `專案還有 ${unpaidExpenses.length} 筆未支付的費用，無法執行 Charge Out。所有費用必須處於「已支付」狀態。`,
+        });
       }
 
       // 5. 更新專案狀態為 Completed 並記錄 chargeOutDate
@@ -2555,7 +2561,7 @@ export const projectRouter = createTRPCRouter({
       const project = await ctx.prisma.project.findUnique({
         where: { id: input.id },
         include: {
-          manager: true,
+          manager: { select: safeUserSelect },
           proposals: {
             where: { status: 'Approved' },
             select: { id: true, title: true },

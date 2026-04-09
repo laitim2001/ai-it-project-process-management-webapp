@@ -110,7 +110,6 @@ export function CommentSection({ proposalId, comments }: CommentSectionProps) {
     try {
       await addCommentMutation.mutateAsync({
         budgetProposalId: proposalId,
-        userId: session.user.id,
         content: newComment,
       });
     } finally {

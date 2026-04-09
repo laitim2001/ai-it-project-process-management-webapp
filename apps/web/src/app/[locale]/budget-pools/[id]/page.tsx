@@ -65,6 +65,17 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { DollarSign, Calendar, TrendingUp, Folder, Edit, Trash2, User, AlertCircle, ListTree } from 'lucide-react';
 
 /**
@@ -122,9 +133,7 @@ export default function BudgetPoolDetailPage() {
   });
 
   const handleDelete = () => {
-    if (confirm(t('messages.confirmDelete'))) {
-      deleteMutation.mutate({ id });
-    }
+    deleteMutation.mutate({ id });
   };
 
   if (isLoading) {
@@ -234,14 +243,34 @@ export default function BudgetPoolDetailPage() {
                 {t('actions.edit')}
               </Button>
             </Link>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isLoading}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {deleteMutation.isLoading ? tCommon('actions.deleting') : t('actions.delete')}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={deleteMutation.isLoading}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deleteMutation.isLoading ? tCommon('actions.deleting') : t('actions.delete')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('deleteDialog.description')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{tCommon('actions.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleteMutation.isLoading ? tCommon('actions.deleting') : tCommon('actions.delete')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

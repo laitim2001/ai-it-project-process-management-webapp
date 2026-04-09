@@ -345,7 +345,7 @@ export default function PurchaseOrderDetailPage() {
                     </p>
                     {purchaseOrder.quote.filePath && (
                       <a
-                        href={purchaseOrder.quote.filePath}
+                        href={`/api/download?url=${encodeURIComponent(purchaseOrder.quote.filePath)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline flex items-center gap-1 mt-1"

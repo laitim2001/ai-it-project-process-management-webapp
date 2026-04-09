@@ -18,7 +18,11 @@
       "search": "Search",
       "openMenu": "Open menu",
       "goBack": "Go Back",
-      "goToDashboard": "Go to Dashboard"
+      "goToDashboard": "Go to Dashboard",
+      "exporting": "Exporting...",
+      "backToList": "Back to List",
+      "add": "Add",
+      "retry": "Retry"
     },
     "sort": {
       "createdAtDesc": "Newest First",
@@ -43,7 +47,8 @@
         "label": "Description"
       },
       "currency": {
-        "label": "Currency"
+        "label": "Currency",
+        "required": "Currency is required"
       }
     },
     "status": {
@@ -131,15 +136,20 @@
       "loadError": "Failed to load",
       "notFound": "Resource not found",
       "createFailed": "Failed to create",
-      "updateFailed": "Failed to update"
+      "updateFailed": "Failed to update",
+      "deleteFailed": "Failed to delete",
+      "validationError": "Validation error, please check your input"
     },
     "validation": {
       "required": "{field} is required",
-      "invalidEmail": "Invalid email format"
+      "invalidEmail": "Invalid email format",
+      "amountPositive": "Amount must be a positive number"
     },
     "errors": {
       "accessDenied": "Access Denied",
-      "noPermission": "You do not have permission to access this page"
+      "noPermission": "You do not have permission to access this page",
+      "loadingError": "Failed to load data. ",
+      "tryAgain": "Please try again later."
     }
   },
   "navigation": {
@@ -307,11 +317,27 @@
     "forgotPassword": {
       "title": "Forgot Password",
       "subtitle": "Enter your email to reset your password",
-      "email": "Email",
+      "description": "Enter your registered email address and we will send you a password reset link",
+      "email": {
+        "label": "Email Address",
+        "placeholder": "Enter your email address",
+        "hint": "We will send a password reset link to this email"
+      },
       "sendResetLink": "Send Reset Link",
+      "sendButton": "Send Reset Link",
       "backToLogin": "Back to Login",
       "sending": "Sending...",
-      "success": "Reset link has been sent to your email"
+      "success": "Reset link has been sent to your email",
+      "successTitle": "Email Sent",
+      "successDescription": "Password reset instructions have been sent",
+      "successMessage": "Please check your inbox for the password reset link",
+      "checkSpam": "If you don't see the email, please check your spam folder",
+      "rememberedPassword": "Remembered your password?",
+      "noAccount": "Don't have an account?",
+      "registerNow": "Register Now",
+      "errors": {
+        "sendFailed": "Failed to send reset email. Please try again later."
+      }
     }
   },
   "dashboard": {
@@ -392,6 +418,19 @@
       "todayStats": "Today's Stats",
       "pendingProposals": "Pending Proposals",
       "todayMeetings": "Today's Meetings"
+    },
+    "budgetPool": {
+      "noData": "No budget pool data available",
+      "fiscalYearPool": "FY{year} Budget Pool",
+      "totalBudget": "Total Budget",
+      "used": "Used Amount",
+      "remaining": "Remaining",
+      "utilizationRate": "Utilization Rate",
+      "relatedProjects": "Related Projects",
+      "projectCount": "{count} projects",
+      "activeCount": "{count} active",
+      "warningAlmostDepleted": "Budget is almost depleted, please review spending",
+      "warningHighUsage": "Budget utilization is high, please monitor spending"
     }
   },
   "projects": {
@@ -407,7 +446,8 @@
     "actions": {
       "createNew": "New Project",
       "exportCSV": "Export CSV",
-      "exporting": "Exporting..."
+      "exporting": "Exporting...",
+      "backToList": "Back to Projects"
     },
     "filters": {
       "allStatuses": "All Statuses",
@@ -630,7 +670,9 @@
       },
       "edit": {
         "title": "Edit Project",
-        "subtitle": "Update project information"
+        "subtitle": "Update project information",
+        "notFound": "Project not found",
+        "backToList": "Back to Projects"
       },
       "entityName": "project",
       "fields": {
@@ -1071,7 +1113,8 @@
       "updateSuccess": "Budget proposal has been updated successfully",
       "deleteSuccess": "Budget proposal has been deleted successfully",
       "submitSuccess": "Budget proposal has been submitted for approval",
-      "approvalSuccess": "Budget proposal has been approved successfully"
+      "approvalSuccess": "Budget proposal has been approved successfully",
+      "commentRequired": "Please enter a comment before submitting"
     }
   },
   "budgetPools": {
@@ -1129,6 +1172,7 @@
       "basicInfo": "Basic Information",
       "categories": {
         "title": "Budget Categories",
+        "empty": "No budget categories defined",
         "table": {
           "sort": "Sort",
           "name": "Category Name",
@@ -1169,11 +1213,13 @@
       "basicInfo": "Basic Information",
       "name": {
         "label": "Budget Pool Name",
-        "placeholder": "e.g., FY2024 IT Infrastructure"
+        "placeholder": "e.g., FY2024 IT Infrastructure",
+        "required": "Budget pool name is required"
       },
       "fiscalYear": {
         "label": "Fiscal Year",
-        "placeholder": "Select fiscal year"
+        "placeholder": "Select fiscal year",
+        "rangeError": "Fiscal year must be between 2000 and 2100"
       },
       "description": {
         "placeholder": "Describe the purpose and scope of this budget pool..."
@@ -1203,6 +1249,7 @@
         "addCategory": "Add Category",
         "add": "Add Category",
         "remove": "Remove",
+        "minOneRequired": "At least one budget category is required",
         "nameRequired": "Category name is required",
         "nameDuplicate": "Category name must be unique",
         "amountNegative": "Budget amount cannot be negative",
@@ -1268,7 +1315,8 @@
       "view": "View",
       "edit": "Edit Budget Pool",
       "delete": "Delete Budget Pool",
-      "update": "Update"
+      "update": "Update",
+      "backToList": "Back to Budget Pools"
     },
     "filters": {
       "allYears": "All Years"
@@ -1307,7 +1355,12 @@
       "createSuccess": "Budget pool created successfully",
       "updateSuccess": "Budget pool updated successfully",
       "deleteSuccess": "Budget pool deleted successfully",
-      "confirmDelete": "Are you sure you want to delete this budget pool? This action cannot be undone."
+      "confirmDelete": "Are you sure you want to delete this budget pool? This action cannot be undone.",
+      "notFound": "Budget pool not found"
+    },
+    "deleteDialog": {
+      "title": "Confirm Delete",
+      "description": "Are you sure you want to delete this budget pool? This action cannot be undone."
     }
   },
   "vendors": {
@@ -1351,7 +1404,8 @@
       "recentQuotes": "Recent Quotes",
       "recentPurchaseOrders": "Recent Purchase Orders",
       "quotes": "Quote History",
-      "purchaseOrders": "Purchase Orders"
+      "purchaseOrders": "Purchase Orders",
+      "noContact": "No contact information available"
     },
     "form": {
       "name": {
@@ -1417,7 +1471,8 @@
     "actions": {
       "create": "New Vendor",
       "view": "View",
-      "actions": "Actions"
+      "actions": "Actions",
+      "backToList": "Back to Vendors"
     },
     "sort": {
       "nameAsc": "Name (A-Z)",
@@ -1439,7 +1494,12 @@
       "createSuccess": "Vendor has been created successfully",
       "updateSuccess": "Vendor has been updated successfully",
       "deleteSuccess": "Vendor has been deleted successfully",
-      "confirmDelete": "Are you sure you want to delete this vendor?"
+      "confirmDelete": "Are you sure you want to delete this vendor?",
+      "notFound": "Vendor not found"
+    },
+    "deleteDialog": {
+      "title": "Confirm Delete",
+      "description": "Are you sure you want to delete this vendor? This action cannot be undone."
     }
   },
   "quotes": {
@@ -2232,7 +2292,15 @@
       "increaseBy": "Spending increased by {rate}%",
       "decreaseBy": "Spending decreased by {rate}%",
       "noChange": "Spending unchanged",
-      "defaultOpCo": "Default OpCo"
+      "defaultOpCo": "Default OpCo",
+      "deleteDialog": {
+        "title": "Confirm Delete",
+        "description": "Are you sure you want to delete this OM expense? This action cannot be undone and will also delete all related items and monthly records."
+      },
+      "itemDeleteDialog": {
+        "title": "Confirm Delete Item",
+        "description": "Are you sure you want to delete this item? Related monthly records will also be deleted. This action cannot be undone."
+      }
     },
     "form": {
       "create": {
@@ -2334,6 +2402,10 @@
       "titleForItem": "Monthly Records",
       "description": "Edit actual spending amounts for months 1-12, system will automatically calculate total",
       "descriptionForItem": "Edit monthly actual spending amounts for this item",
+      "descriptionAggregate": "Showing aggregated monthly spending from all line items. To edit, click to view item details.",
+      "readOnlyMode": "Read Only",
+      "viewItems": "View Item Details",
+      "itemBreakdown": "Item Breakdown",
       "saveButton": "Save Monthly Records",
       "saveSuccess": "Monthly records updated, item actual spending: {amount}",
       "monthColumn": "Month",
@@ -2345,7 +2417,10 @@
         "autoCalculate": "System will automatically calculate total actual spending and utilization rate",
         "clickSave": "Click \"Save Monthly Records\" button to save all changes",
         "autoUpdate": "After saving, system will automatically update OM expense actualSpent field",
-        "autoUpdateItem": "After saving, system will automatically update item and header actual spending"
+        "autoUpdateItem": "After saving, system will automatically update item and header actual spending",
+        "aggregateView": "This view shows aggregated monthly spending from all line items",
+        "editViaItems": "To edit monthly records, click \"View Item Details\" to access individual item editing",
+        "autoUpdateTotal": "After editing item monthly records, the aggregate totals will update automatically"
       },
       "months": {
         "jan": "January",
@@ -2371,6 +2446,9 @@
       "removeItem": "Delete Item",
       "noItems": "No line items yet",
       "addFirstItem": "Click the button above to add your first item",
+      "addFirstItemHint": "Click the button below to add your first line item",
+      "deleteConfirm": "Are you sure you want to delete this line item? This action cannot be undone.",
+      "atLeastOne": "At least one line item is required",
       "total": "Total",
       "itemCount": "items",
       "dragToReorder": "Drag to reorder",
@@ -3105,8 +3183,10 @@
       "server": "Server error, please try again later"
     },
     "creating": "Creating...",
+    "updating": "Updating...",
     "uploading": "Uploading...",
     "submitting": "Submitting...",
+    "pleaseLogin": "Please log in to continue",
     "warning": {
       "title": "Warning",
       "unsavedChanges": "You have unsaved changes",

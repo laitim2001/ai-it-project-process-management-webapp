@@ -51,7 +51,7 @@
 
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { api } from '@/lib/trpc';
 import { Link } from "@/i18n/routing";
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
@@ -78,6 +78,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export default function ProjectManagerDashboard() {
   const t = useTranslations('dashboardPM');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
 
   // 查詢儀表板數據
   const { data, isLoading, error } = api.dashboard.getProjectManagerDashboard.useQuery();
@@ -384,7 +385,7 @@ export default function ProjectManagerDashboard() {
                             </div>
                             <p className="text-sm text-muted-foreground mt-2">
                               {t('tasks.proposals.lastUpdated', {
-                                date: new Date(proposal.updatedAt).toLocaleDateString()
+                                date: new Date(proposal.updatedAt).toLocaleDateString(locale)
                               })}
                             </p>
                           </div>
@@ -425,7 +426,7 @@ export default function ProjectManagerDashboard() {
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
                               {t('tasks.expenses.expenseDate', {
-                                date: new Date(expense.expenseDate).toLocaleDateString()
+                                date: new Date(expense.expenseDate).toLocaleDateString(locale)
                               })}
                             </p>
                           </div>

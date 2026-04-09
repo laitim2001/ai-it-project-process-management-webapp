@@ -67,6 +67,8 @@ import { Link } from "@/i18n/routing";
 
 export default function EditPurchaseOrderPage() {
   const t = useTranslations('purchaseOrders');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const params = useParams();
   const id = params.id as string;
 
@@ -92,15 +94,15 @@ export default function EditPurchaseOrderPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/purchase-orders">採購單</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/purchase-orders">{tNav('menu.purchaseOrders')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -110,11 +112,11 @@ export default function EditPurchaseOrderPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  找不到採購單。此採購單可能不存在或已被刪除。
+                  {t('errors.notFound')}
                 </AlertDescription>
               </Alert>
               <Link href="/purchase-orders">
-                <Button>返回採購單列表</Button>
+                <Button>{t('actions.backToList')}</Button>
               </Link>
             </div>
           </div>
@@ -131,15 +133,15 @@ export default function EditPurchaseOrderPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/purchase-orders">採購單</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/purchase-orders">{tNav('menu.purchaseOrders')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -153,7 +155,7 @@ export default function EditPurchaseOrderPage() {
                 </AlertDescription>
               </Alert>
               <Link href={`/purchase-orders/${id}`}>
-                <Button>返回詳情頁面</Button>
+                <Button>{tCommon('actions.goBack')}</Button>
               </Link>
             </div>
           </div>
@@ -169,11 +171,11 @@ export default function EditPurchaseOrderPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/purchase-orders">採購單</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/purchase-orders">{tNav('menu.purchaseOrders')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -183,14 +185,14 @@ export default function EditPurchaseOrderPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯</BreadcrumbPage>
+              <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯採購單</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('form.editTitle')}</h1>
           <p className="text-muted-foreground mt-2">
             修改採購單信息和品項明細
           </p>

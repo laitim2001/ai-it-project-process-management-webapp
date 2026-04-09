@@ -178,7 +178,6 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     try {
       await submitMutation.mutateAsync({
         id: proposalId,
-        userId,
       });
     } finally {
       setIsSubmitting(false);
@@ -208,7 +207,6 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     try {
       await approveMutation.mutateAsync({
         id: proposalId,
-        userId,
         action,
         comment: comment || undefined,
       });
@@ -332,7 +330,7 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
               </AlertDialogHeader>
               <div className="py-4">
                 <label htmlFor="revertReason" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('actions.revertReason')} <span className="text-red-500">*</span>
+                  {t('actions.revertReason')} <span className="text-destructive">*</span>
                 </label>
                 <textarea
                   id="revertReason"

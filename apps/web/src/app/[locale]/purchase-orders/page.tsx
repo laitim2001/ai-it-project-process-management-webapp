@@ -486,7 +486,7 @@ export default function PurchaseOrdersPage() {
                                     po.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
                                     'bg-red-100 text-red-800'
                                   }`}>
-                                    {t(`status.${po.status.toLowerCase()}`)}
+                                    {t(`status.${po.status.charAt(0).toLowerCase() + po.status.slice(1)}` as any)}
                                   </span>
                                 </div>
                               </div>
@@ -648,7 +648,7 @@ export default function PurchaseOrdersPage() {
                           po.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
                           'bg-red-100 text-red-800'
                         }`}>
-                          {t(`status.${po.status.toLowerCase()}`)}
+                          {t(`status.${po.status.charAt(0).toLowerCase() + po.status.slice(1)}` as any)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-medium">

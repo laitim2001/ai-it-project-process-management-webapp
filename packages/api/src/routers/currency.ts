@@ -260,6 +260,11 @@ export const currencyRouter = createTRPCRouter({
       return ctx.prisma.currency.findMany({
         where: input.includeInactive ? undefined : { active: true },
         orderBy: { code: 'asc' },
+        include: {
+          _count: {
+            select: { projects: true },
+          },
+        },
       });
     }),
 

@@ -61,6 +61,8 @@ import { AlertCircle } from 'lucide-react';
 
 export default function EditVendorPage() {
   const t = useTranslations('vendors');
+  const tNav = useTranslations('navigation');
+  const tCommon = useTranslations('common');
   const params = useParams();
   const id = params.id as string;
 
@@ -114,15 +116,15 @@ export default function EditVendorPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link href="/vendors">供應商管理</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href="/vendors">{tNav('menu.vendors')}</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>編輯</BreadcrumbPage>
+                <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -151,11 +153,11 @@ export default function EditVendorPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/dashboard">首頁</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/dashboard">{tNav('dashboard')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link href="/vendors">供應商管理</Link></BreadcrumbLink>
+              <BreadcrumbLink asChild><Link href="/vendors">{tNav('menu.vendors')}</Link></BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -163,15 +165,15 @@ export default function EditVendorPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>編輯</BreadcrumbPage>
+              <BreadcrumbPage>{tCommon('actions.edit')}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* 頁面標題 */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">編輯供應商</h1>
-          <p className="mt-2 text-muted-foreground">更新 {vendor.name} 的資訊</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('form.edit.title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('form.edit.subtitle')}</p>
         </div>
 
         {/* 表單卡片 */}

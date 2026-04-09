@@ -127,7 +127,7 @@ function generateTempId(): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('zh-HK', {
+  return new Intl.NumberFormat('zh-TW', {
     style: 'currency',
     currency: 'HKD',
     minimumFractionDigits: 0,

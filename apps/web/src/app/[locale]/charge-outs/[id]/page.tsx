@@ -82,7 +82,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
 
   // 格式化金額
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-HK', {
+    return new Intl.NumberFormat('zh-TW', {
       style: 'currency',
       currency: 'HKD',
       minimumFractionDigits: 0,
@@ -93,7 +93,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
   // 格式化日期時間
   const formatDateTime = (date: Date | null) => {
     if (!date) return 'N/A';
-    return new Intl.DateTimeFormat('zh-HK', {
+    return new Intl.DateTimeFormat('zh-TW', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -105,7 +105,7 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
   // 格式化日期
   const formatDate = (date: Date | null) => {
     if (!date) return 'N/A';
-    return new Intl.DateTimeFormat('zh-HK').format(new Date(date));
+    return new Intl.DateTimeFormat('zh-TW').format(new Date(date));
   };
 
   // 狀態顏色

@@ -34,7 +34,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc';
+import { createTRPCRouter, publicProcedure, adminProcedure } from '../trpc';
 import { FULL_SCHEMA_DEFINITION, COLUMN_TYPE_MAP } from '../lib/schemaDefinition';
 
 export const healthRouter = createTRPCRouter({
@@ -79,7 +79,7 @@ export const healthRouter = createTRPCRouter({
    * Fix stuck migration - create missing ExpenseCategory table and mark migration complete
    * 修復卡住的 migration - 創建缺失的 ExpenseCategory 表並標記 migration 為完成
    */
-  fixMigration: publicProcedure.mutation(async ({ ctx }) => {
+  fixMigration: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -435,7 +435,7 @@ export const healthRouter = createTRPCRouter({
    * Fix OMExpense schema mismatch - add missing columns
    * 修復 OMExpense 表缺失的欄位（categoryId, sourceExpenseId）
    */
-  fixOmExpenseSchema: publicProcedure.mutation(async ({ ctx }) => {
+  fixOmExpenseSchema: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -510,7 +510,7 @@ export const healthRouter = createTRPCRouter({
    * Create all missing Post-MVP tables with full schema
    * 創建所有缺失的 Post-MVP 表格（完整 schema）
    */
-  fixAllTables: publicProcedure.mutation(async ({ ctx }) => {
+  fixAllTables: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -802,7 +802,7 @@ export const healthRouter = createTRPCRouter({
   /**
    * FIX-007: 修復 ExpenseItem 表缺失的 chargeOutOpCoId 欄位
    */
-  fixExpenseItemSchema: publicProcedure.mutation(async ({ ctx }) => {
+  fixExpenseItemSchema: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -899,7 +899,7 @@ export const healthRouter = createTRPCRouter({
    * FIX-007: 一鍵修復所有 Schema 不同步問題
    * 添加所有缺失的欄位到對應的表格
    */
-  fixAllSchemaIssues: publicProcedure.mutation(async ({ ctx }) => {
+  fixAllSchemaIssues: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -1005,7 +1005,7 @@ export const healthRouter = createTRPCRouter({
    * FEAT-007: 創建 OMExpenseItem 表
    * 用於 OM 費用表頭-明細架構重構
    */
-  createOMExpenseItemTable: publicProcedure.mutation(async ({ ctx }) => {
+  createOMExpenseItemTable: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -1151,7 +1151,7 @@ export const healthRouter = createTRPCRouter({
    * - FEAT-006: Project 表的 8 個新欄位
    * - FEAT-007: OMExpense 表的 3 個新欄位
    */
-  fixFeat006AndFeat007Columns: publicProcedure.mutation(async ({ ctx }) => {
+  fixFeat006AndFeat007Columns: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -1415,7 +1415,7 @@ export const healthRouter = createTRPCRouter({
    * 完整 Project 表欄位修復
    * 修復 FEAT-001, FEAT-006, FEAT-010 新增的所有欄位
    */
-  fixProjectSchema: publicProcedure.mutation(async ({ ctx }) => {
+  fixProjectSchema: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -1505,7 +1505,7 @@ export const healthRouter = createTRPCRouter({
    * 完整 Schema 修復 - 一次性修復所有已知問題
    * 包括 Project, BudgetProposal, OMExpense, Permission 等表
    */
-  fixAllSchemaComplete: publicProcedure.mutation(async ({ ctx }) => {
+  fixAllSchemaComplete: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -1654,7 +1654,7 @@ export const healthRouter = createTRPCRouter({
    * FEAT-011: 修復 Permission 表架構
    * 創建 Permission、RolePermission、UserPermission 表並植入預設權限
    */
-  fixPermissionTables: publicProcedure.mutation(async ({ ctx }) => {
+  fixPermissionTables: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
 
     try {
@@ -1971,7 +1971,7 @@ export const healthRouter = createTRPCRouter({
    * @usage
    * curl -X POST https://your-app.azurewebsites.net/api/trpc/health.fullSchemaSync
    */
-  fullSchemaSync: publicProcedure.mutation(async ({ ctx }) => {
+  fullSchemaSync: adminProcedure.mutation(async ({ ctx }) => {
     const results: string[] = [];
     let fixedColumns = 0;
     let fixedTables = 0;

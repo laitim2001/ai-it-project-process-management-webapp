@@ -358,7 +358,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
           {/* 預算池名稱 */}
           <div>
             <Label htmlFor="name" className="text-sm font-medium">
-              {t('form.name.label')} <span className="text-red-500">*</span>
+              {t('form.name.label')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="name"
@@ -379,7 +379,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
           {/* 財政年度 */}
           <div>
             <Label htmlFor="financialYear" className="text-sm font-medium">
-              {t('form.fiscalYear.label')} <span className="text-red-500">*</span>
+              {t('form.fiscalYear.label')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="financialYear"
@@ -405,7 +405,7 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
           {/* FEAT-002: Currency Selection */}
           <div>
             <Label htmlFor="currency" className="text-sm font-medium">
-              {tCommon('form.currency.label')} <span className="text-red-500">*</span>
+              {tCommon('form.currency.label')} <span className="text-destructive">*</span>
             </Label>
             <CurrencySelect
               value={formData.currencyId}

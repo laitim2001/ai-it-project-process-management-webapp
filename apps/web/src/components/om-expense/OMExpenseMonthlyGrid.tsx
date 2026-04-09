@@ -225,7 +225,7 @@ export default function OMExpenseMonthlyGrid({
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-HK', {
+    return new Intl.NumberFormat('zh-TW', {
       style: 'currency',
       currency: 'HKD',
       minimumFractionDigits: 0,

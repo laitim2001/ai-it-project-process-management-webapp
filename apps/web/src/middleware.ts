@@ -133,7 +133,7 @@ export default auth((req) => {
     '/dashboard',
     '/projects',
     '/budget-pools',
-    '/budget-proposals',
+    '/proposals',
     '/vendors',
     '/purchase-orders',
     '/expenses',
@@ -145,6 +145,7 @@ export default auth((req) => {
     '/notifications',
     '/settings',
     '/data-import',
+    '/project-data-import',
     '/operating-companies',
     '/om-expense-categories',
   ];
@@ -182,7 +183,7 @@ export default auth((req) => {
  * - `/dashboard/*` - 儀表板（Epic 7）
  * - `/projects/*` - 專案管理（Epic 2）
  * - `/budget-pools/*` - 預算池管理（Epic 2）
- * - `/budget-proposals/*` - 預算提案（Epic 3）
+ * - `/proposals/*` - 預算提案（Epic 3）
  * - `/vendors/*` - 供應商管理（Epic 5）
  * - `/purchase-orders/*` - 採購單（Epic 5）
  * - `/expenses/*` - 費用記錄（Epic 6）

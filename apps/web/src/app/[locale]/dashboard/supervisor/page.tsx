@@ -53,8 +53,9 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { api } from '@/lib/trpc';
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { BudgetPoolOverview } from '@/components/dashboard/BudgetPoolOverview';
@@ -82,6 +83,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export default function SupervisorDashboard() {
   const t = useTranslations('dashboardSupervisor');
   const tCommon = useTranslations('common');
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  // FIX-134: Supervisor/Admin role check
+  const isSupervisorOrAdmin =
+    session?.user?.role?.name === 'Supervisor' ||
+    session?.user?.role?.name === 'Admin';
+  if (session && !isSupervisorOrAdmin) {
+    router.push('/dashboard');
+    return null;
+  }
 
   // 狀態管理
   const [page, setPage] = useState(1);
