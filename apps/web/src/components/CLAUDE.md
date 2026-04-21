@@ -1,8 +1,12 @@
 # React Components - UI 組件層
 
-> **Last Updated**: 2025-12-18
-> **Total Components**: 89+ .tsx 檔案
-> **Subdirectories**: 24 個業務領域目錄
+> **Last Updated**: 2026-04-21
+> **Total Components**: **94 個 .tsx**（**51 業務 + 43 UI**，共 ~24,987 行）
+> **Subdirectories**: 21 個業務領域目錄（`ui/` + 20 業務）
+> **深度分析參考**:
+> - `docs/codebase-analyze/04-components/component-index.md` — 組件目錄總覽
+> - `docs/codebase-analyze/04-components/detail/business-components.md` — 51 業務組件詳解
+> - `docs/codebase-analyze/04-components/detail/ui-components.md` — 43 UI 組件詳解
 
 ## 📋 目錄用途
 

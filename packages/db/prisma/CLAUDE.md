@@ -1,6 +1,12 @@
 # Prisma Database Layer - 資料模型定義層
 
+> **Last Updated**: 2026-04-21
 > **相關規則**: 請參閱 `.claude/rules/database.md` 獲取 Prisma 資料庫完整開發規範
+> **深度分析參考**:
+> - `docs/codebase-analyze/05-database/schema-overview.md` — 32 Models, 94 索引, 16 級聯策略
+> - `docs/codebase-analyze/05-database/model-detail.md` — 每個 Model 的完整欄位規格
+> - `docs/codebase-analyze/05-database/migration-history.md` — 7 個遷移 + Seed 數據
+> - `docs/codebase-analyze/09-diagrams/er-diagram.md` — 7 個 ER 關聯圖（Mermaid）
 
 ## 📋 目錄用途
 
@@ -28,7 +34,7 @@ prisma/
 
 ## 🎯 Schema 組織結構
 
-### 總覽：31 個 Prisma Models，分為 9 個區塊
+### 總覽：32 個 Prisma Models，分為 9 個區塊
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐

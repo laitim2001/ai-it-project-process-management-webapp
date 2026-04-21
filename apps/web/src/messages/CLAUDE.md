@@ -1,5 +1,12 @@
 # Translation Messages - 翻譯資源層
 
+> **Last Updated**: 2026-04-21
+> **翻譯規模**: **2,706 keys** / **29 namespaces** / en + zh-TW 完全同步
+> **相關規則**: `.claude/rules/i18n.md`
+> **深度分析參考**:
+> - `docs/codebase-analyze/08-i18n/translation-analysis.md` — 完整 namespace 結構與鍵值統計
+> - `docs/codebase-analyze/11-verification/round-6-i18n-exhaustive.md` — i18n 窮盡驗證報告
+
 ## 📋 目錄用途
 此目錄包含所有國際化翻譯鍵值對，支援繁體中文和英文。
 

@@ -296,6 +296,13 @@ reports/
 
 # Claude Code
 .claude/settings.local.json
+.claude/.drift-cooldown.json
+
+# CLAUDE.md 漂移警告（由 scripts/check-claude-md-sync.js 動態產生）
+docs/codebase-analyze/drift-warnings.md
+
+# Codebase Analysis 快照（由 scripts/snapshot-analysis.js 建立）
+.claude/.analysis-snapshots/
 
 # GitHub Copilot
 .github/copilot/

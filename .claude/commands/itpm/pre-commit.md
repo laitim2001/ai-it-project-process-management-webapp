@@ -42,6 +42,14 @@ pnpm typecheck
 pnpm lint
 ```
 
+### 5.5. CLAUDE.md ↔ codebase-analyze 同步檢查
+```
+pnpm check:claude-sync
+```
+- 比對 CLAUDE.md 中的統計數字與 `docs/codebase-analyze/SUMMARY.md` 權威值
+- 漂移 > 5% 或絕對差 > 2 時會在 stderr 警告（不阻斷提交）
+- 若警告頻繁，建議執行 `/itpm:refresh-stats` 更新權威統計
+
 ### 6. 建議 commit message
 根據變更內容，使用 conventional commit 格式建議 commit message：
 - `feat(scope):` 新功能
@@ -61,5 +69,6 @@ message 使用繁體中文，scope 使用英文。
 | i18n | ✅/⏭️ (跳過) |
 | TypeScript | ✅/❌ |
 | Lint | ✅/❌ |
+| CLAUDE.md 同步 | ✅/⚠️ (warn) |
 
 如果全部通過，提示使用者可以安全 commit。

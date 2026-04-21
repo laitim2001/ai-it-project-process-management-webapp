@@ -1,0 +1,19 @@
+{
+  "enabledPlugins": {
+    "andrej-karpathy-skills@karpathy-skills": true
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/check-claude-md-sync.js --quiet --write-log",
+            "timeout": 15000
+          }
+        ]
+      }
+    ]
+  }
+}

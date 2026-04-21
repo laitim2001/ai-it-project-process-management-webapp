@@ -1,7 +1,14 @@
 # Auth Package - 身份驗證與授權層
 
+> **Last Updated**: 2026-04-21
+> **技術基礎**: NextAuth.js 5.0.0-beta.30 + Azure AD (Entra ID)
+> **深度分析參考**:
+> - `docs/codebase-analyze/06-auth-and-config/auth-system.md` — 雙認證（Azure AD + Credentials）、JWT、RBAC 完整規格
+> - `docs/codebase-analyze/06-auth-and-config/middleware.md` — 認證 + i18n 路由保護（17 個保護路徑）
+> - `docs/codebase-analyze/10-issues-and-debt/security-review.md` — 安全審查（3 個 Critical 安全問題已於 FIX-101/102/103 修復）
+
 ## 📋 目錄用途
-此目錄包含 NextAuth.js 配置和 Azure AD B2C 整合，提供統一的身份驗證和授權服務。
+此目錄包含 NextAuth.js 配置和 **Azure AD (Entra ID)** 整合，提供統一的身份驗證和授權服務。
 
 ## 🏗️ 核心檔案
 

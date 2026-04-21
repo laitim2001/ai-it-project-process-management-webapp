@@ -1,9 +1,19 @@
 # Next.js App Router - 前端路由與頁面層
 
+> **Last Updated**: 2026-04-21
+> **深度分析參考**:
+> - `docs/codebase-analyze/03-frontend-pages/page-index.md` — 23 路由模組總覽
+> - `docs/codebase-analyze/03-frontend-pages/detail/group1-core-workflow.md` — dashboard~quotes (8 模組, 31 檔)
+> - `docs/codebase-analyze/03-frontend-pages/detail/group2-om-and-admin.md` — om-expenses~users (8 模組, 21 檔)
+> - `docs/codebase-analyze/03-frontend-pages/detail/group3-auth-and-system.md` — notifications~forgot-password + layouts + API routes
+> - `docs/codebase-analyze/06-auth-and-config/middleware.md` — 認證 + i18n 路由保護（17 個保護路徑）
+
 ## 📋 目錄用途
 此目錄包含所有用戶可訪問的頁面，使用 Next.js 14 App Router 架構，支援國際化路由。
 
-## 🏗️ 路由結構（共 20 個路由模塊，56+ 個頁面）
+## 🏗️ 路由結構（共 **23 個路由模塊**，**60 個頁面**）
+
+> **注意**：原舊文件遺漏 `project-data-import/` (FEAT-010)，下方結構已補充。
 
 ```
 [locale]/                    # 國際化路由組（en, zh-TW）
@@ -36,8 +46,10 @@
 │   ├── page.tsx
 │   ├── new/
 │   └── [id]/, [id]/edit/
-├── data-import/             # 數據導入 - FEAT-008
+├── data-import/             # OM 數據導入 - FEAT-008
 │   └── page.tsx             # Excel 數據導入頁面
+├── project-data-import/     # Project 數據導入 - FEAT-010
+│   └── page.tsx             # 專案 Excel 批量匯入
 ├── om-expenses/             # OM 費用（CRUD）- FEAT-007 重構
 │   ├── page.tsx
 │   ├── new/

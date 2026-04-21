@@ -1,9 +1,10 @@
 # UI Design System - shadcn/ui 組件層
 
-> **Last Updated**: 2025-12-18
-> **Total Components**: 41+ 個 .tsx 檔案
+> **Last Updated**: 2026-04-21
+> **Total Components**: **43 個 .tsx 檔案**（~7,387 行）
 > **技術基礎**: shadcn/ui + Radix UI + Tailwind CSS
 > **設計系統版本**: Post-MVP Design System Migration
+> **深度分析參考**: `docs/codebase-analyze/04-components/detail/ui-components.md`
 
 ## 📋 目錄用途
 

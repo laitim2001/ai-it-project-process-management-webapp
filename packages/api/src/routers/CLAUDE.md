@@ -1,9 +1,19 @@
 # API Routers - tRPC 業務邏輯層
 
-> **Last Updated**: 2025-12-18
-> **Total Routers**: 17 個 .ts 檔案
-> **技術基礎**: tRPC 10.x + Zod + Prisma
+> **Last Updated**: 2026-04-21
+> **Total Routers**: 17 個 .ts 檔案 / **200 Procedures** / ~16,979 行
+> **技術基礎**: tRPC 10.45.1 + Zod + Prisma 5.9.1
 > **框架**: Type-safe API with end-to-end TypeScript
+> **深度分析參考**:
+> - `docs/codebase-analyze/02-api-layer/router-index.md` — 17 Routers 完整總覽
+> - `docs/codebase-analyze/02-api-layer/detail/` — 每個 Router 的 Procedure 詳解（含輸入 schema、權限、依賴）
+> - `docs/codebase-analyze/10-issues-and-debt/security-review.md` — 安全審查報告
+>
+> **安全修復歷史**（Codebase 分析驗證後完成）:
+> - **FIX-101**: User Router 全面加權限（查詢 protectedProcedure / CUD adminProcedure）
+> - **FIX-102**: Health Router schema 修改端點改 adminProcedure
+> - **FIX-103**: 檔案上傳 API 加認證中間件
+> - **FIX-104~137**: 34 項額外品質與 UX 修正（詳見 commit `5017bd0`）
 
 ## 📋 目錄用途
 

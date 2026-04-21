@@ -1,8 +1,47 @@
+<!--
+machine-readable-stats:
+  version: 1
+  last_analysis_date: "2026-04-09"
+  last_refresh_date: "2026-04-21"
+  stats:
+    core_source_files: 258
+    ts_files: 81
+    tsx_files: 155
+    js_files: 22
+    prisma_models: 32
+    api_routers: 17
+    api_procedures: 200
+    api_lines: 16979
+    route_modules: 23
+    pages: 60
+    business_components: 51
+    business_components_lines: 17600
+    ui_components: 43
+    ui_components_lines: 7387
+    i18n_keys: 2706
+    i18n_namespaces: 29
+    scripts: 40
+    mermaid_diagrams: 30
+    total_md_docs: 620
+  tech_stack:
+    nextjs: "14.2.33"
+    typescript: "5.3.3"
+    trpc: "10.45.1"
+    prisma: "5.9.1"
+    nextauth: "5.0.0-beta.30"
+    tailwind: "3.x"
+    next_intl: "v4"
+    turborepo_pnpm: "8.15.3"
+    postgresql: "16"
+-->
+
 # Codebase Analysis Summary — IT Project Process Management Webapp
 
 > **分析日期**: 2026-04-09
 > **分析方法**: 基於 codebase-analyze-playbook.md 的 6 階段分析法
 > **驗證狀態**: Round 1 完成 — 316 驗證點, 94.3% 準確率 (修正後 ~99%)
+>
+> **⚙️ 機器可讀統計**：本文件頂部 HTML 註解包含 `machine-readable-stats` YAML，供 `scripts/check-claude-md-sync.js` 自動校驗 CLAUDE.md 數字一致性使用。修改統計時請同步更新。
 
 ---
 

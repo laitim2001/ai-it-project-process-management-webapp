@@ -2,12 +2,45 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2025-12-18
-> **Project Status**: Post-MVP Enhancement Phase (FEAT-008 Complete)
-> **Total Code**: ~73,500 lines of core code
+> **Last Updated**: 2026-04-21
+> **Project Status**: Post-MVP Enhancement Phase (FEAT-012 + FIX-101~137 Complete)
+> **Total Code**: ~73,500 lines of core code (258 core source files)
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
 > **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境 已部署
 > **Language Preference**: 繁體中文 (Traditional Chinese) - AI assistants should communicate in Traditional Chinese by default
+
+---
+
+## 📚 Codebase 深度分析參考文件（權威資料來源）
+
+> **重要**：`docs/codebase-analyze/` 目錄包含 **2026-04-09 完成的全面 Codebase 掃描與驗證**（77 份文件，790 個驗證點，準確率 94.3%）。當需要**精確的統計數據、架構細節、已知問題清單**時，**AI 助手應優先參考此目錄**，而非本 CLAUDE.md 的摘要數字。
+
+**關鍵索引檔**：
+
+| 查詢目的 | 參考文件 |
+|---------|---------|
+| 整體統計、最嚴重發現 | `docs/codebase-analyze/SUMMARY.md` |
+| 分析方法與驗證流程 | `docs/codebase-analyze/00-analysis-plan.md` |
+| 技術棧完整清單 (53 deps + 34 devDeps) | `docs/codebase-analyze/01-project-overview/tech-stack.md` |
+| 架構模式（tRPC 4 層、JWT、Provider 鏈） | `docs/codebase-analyze/01-project-overview/architecture-patterns.md` |
+| Docker 構建 + 6 個 GitHub Actions | `docs/codebase-analyze/01-project-overview/build-and-deploy.md` |
+| Azure 基礎設施完整規格 | `docs/codebase-analyze/01-project-overview/azure-infrastructure.md` |
+| **17 Routers + 200 Procedures 詳解** | `docs/codebase-analyze/02-api-layer/` |
+| **23 路由模組、60 頁面詳解** | `docs/codebase-analyze/03-frontend-pages/` |
+| **51 業務 + 43 UI 組件詳解** | `docs/codebase-analyze/04-components/` |
+| **32 Models + 94 索引 + ER 圖** | `docs/codebase-analyze/05-database/` |
+| 認證、Middleware、環境變數 | `docs/codebase-analyze/06-auth-and-config/` |
+| 40 個腳本分類索引 | `docs/codebase-analyze/07-scripts-and-tools/` |
+| **2,706 翻譯 keys、29 namespaces** | `docs/codebase-analyze/08-i18n/` |
+| 30 個 Mermaid 系統/流程圖 | `docs/codebase-analyze/09-diagrams/` |
+| **🔴 安全問題、技術債務、死碼清單** | `docs/codebase-analyze/10-issues-and-debt/` |
+| 驗證報告（R1–R10） | `docs/codebase-analyze/11-verification/` |
+
+**典型使用情境**：
+- 被問到「總共幾個 procedures？」→ 查 `02-api-layer/router-index.md`，答 200 個
+- 要修某個 Router → 先看 `02-api-layer/detail/{router}.md` 了解完整介面
+- 碰到安全 / 權限問題 → 查 `10-issues-and-debt/security-review.md`
+- 新增 i18n key 前 → 查 `08-i18n/translation-analysis.md` 確認命名空間
 
 ---
 
@@ -77,39 +110,65 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 
 **✅ MVP Phase 1: 100% Complete** (Epic 1-8)
 - All 8 core Epics delivered and tested
-- 56+ pages implemented (20 route modules)
-- 75+ components (35+ UI + 40 business)
-- ~73,500 lines of production code
+- **60 頁面實作**（**23 個路由模組**，含 `project-data-import`）
+- **94 個組件**（**43 個 UI** + **51 個業務組件**）
+- ~73,500 lines of production code (258 core source files)
+- **17 Routers / 200 Procedures**
+- **32 Prisma Models / 94 索引 / 16 級聯策略**
+- **2,706 翻譯 keys**（29 namespaces，en + zh-TW 完全同步）
 
 **✅ Post-MVP Enhancements: Complete**
 - Design system migration (shadcn/ui + Radix UI)
 - 4 new pages (Quotes, Settings, Register, Forgot Password)
 - Environment deployment optimization
-- Quality fixes (FIX-009 ~ FIX-099, 共 40+ bug fixes)
+- **Quality fixes (FIX-009 ~ FIX-137, 共 70+ bug fixes)**
+  - FIX-009 ~ FIX-099: MVP 階段品質修復
+  - **FIX-101 ~ FIX-137**: Codebase 分析驗證修復（34 項安全、品質、UX 修正，commit `5017bd0`）
+    - FIX-101: User Router 權限修復（改 protectedProcedure / adminProcedure）
+    - FIX-102: Health Router Schema 修改端點改 adminProcedure
+    - FIX-103: 檔案上傳 API 加認證中間件
 - **FEAT-007**: OM Expense 表頭-明細架構重構 (OMExpense → OMExpenseItem → OMExpenseMonthly)
 - **FEAT-008**: OM Expense Data Import (Excel 數據導入 v1.0 → v1.3)
-- **FEAT-009 ~ FEAT-012**: OpCo 權限、Project Import、Permission Management、Loading System
+- **FEAT-009**: OpCo 數據權限管理
+- **FEAT-010**: Project Data Import（前端模組 `project-data-import/`）
+- **FEAT-011**: Permission Management（Sidebar 權限過濾）
+- **FEAT-012**: 統一載入特效系統（Spinner, LoadingButton, LoadingOverlay, GlobalProgress）
 - **CHANGE-001~041**: 41 項功能改進 (OM Summary、Dashboard、Delete Enhancement、User Password 等)
 
 **📋 Next Phase: Epic 9-10** (AI Assistant + External Integration)
+
+### ⚠️ 已知未完成 / 技術債務（節選，完整清單見 `docs/codebase-analyze/10-issues-and-debt/`）
+
+- **未完成功能**：Settings Save 全為 TODO；Forgot Password 使用 setTimeout 模擬
+- **超大檔案**：29 個 > 500 行，11 個 > 1000 行（`data-import` 1,606 行、`omExpense` router 2,762 行）
+- **兩套 Toast 系統共存**（MVP Context 版 + Post-MVP Pub/Sub 版，待統一）
+- **表單處理不一致**：6 個用 react-hook-form + Zod，9 個用 useState（待統一）
+- **代碼 Bug**：
+  - `expense.getStats` 引用不存在的 `'PendingApproval'` 狀態
+  - `expense.reject` 發送未註冊的通知類型 `'EXPENSE_REJECTED'`
+  - `project.chargeOut` 使用 `throw new Error` 而非 `TRPCError`
 
 ---
 
 ## Tech Stack
 
 **Core Framework:**
-- **Framework**: Next.js 14.1.0 (App Router)
-- **API Layer**: tRPC 10.x (type-safe RPC)
-- **Database ORM**: Prisma 5.22.0
+- **Framework**: Next.js 14.2.33 (App Router)
+- **Language**: TypeScript 5.3.3
+- **API Layer**: tRPC 10.45.1 (type-safe RPC)
+- **Database ORM**: Prisma 5.9.1
 - **Database**: PostgreSQL 16 (Azure Database for PostgreSQL)
-- **Auth**: NextAuth.js + Azure AD (Entra ID)
+- **Auth**: NextAuth.js 5.0.0-beta.30 + Azure AD (Entra ID)
 - **Styling**: Tailwind CSS 3.x
-- **Components**: shadcn/ui + Radix UI
+- **Components**: shadcn/ui + Radix UI (React 18)
 - **State**: React Query (tRPC), useState, React Hook Form
+- **i18n**: next-intl v4
 - **Testing**: Playwright (E2E); unit tests not yet implemented
 - **Monorepo**: Turborepo (pnpm 8.15.3)
-- **Deployment**: Azure App Service
-- **CI/CD**: GitHub Actions
+- **Deployment**: Azure App Service (Docker Multi-stage)
+- **CI/CD**: GitHub Actions (6 workflows)
+
+> 完整依賴清單見 `docs/codebase-analyze/01-project-overview/tech-stack.md`
 
 **Development Requirements:**
 - **Node.js**: >= 20.0.0 (fixed at 20.11.0 via .nvmrc)
@@ -127,7 +186,7 @@ This is a **Turborepo monorepo** with the following structure:
 ├── apps/
 │   └── web/              # Next.js frontend application
 │       ├── src/
-│       │   ├── app/      # App Router pages (56+ pages, 20 route modules)
+│       │   │   ├── app/  # App Router pages (60 pages, 23 route modules)
 │       │   │   ├── dashboard/              ✅ PM + Supervisor
 │       │   │   ├── projects/               ✅ Full CRUD
 │       │   │   ├── proposals/              ✅ Full CRUD + Approval
@@ -137,7 +196,8 @@ This is a **Turborepo monorepo** with the following structure:
 │       │   │   ├── purchase-orders/        ✅ Full CRUD
 │       │   │   ├── expenses/               ✅ Full CRUD + Approval
 │       │   │   ├── charge-outs/            ✅ Full CRUD (FEAT-005)
-│       │   │   ├── data-import/            ✅ Excel Import (FEAT-008)
+│       │   │   ├── data-import/            ✅ OM Excel Import (FEAT-008)
+│       │   │   ├── project-data-import/    ✅ Project Excel Import (FEAT-010)
 │       │   │   ├── om-expenses/            ✅ Full CRUD (FEAT-007 重構)
 │       │   │   ├── om-expense-categories/  ✅ Full CRUD (FEAT-007)
 │       │   │   ├── om-summary/             ✅ Report (CHANGE-004)
@@ -148,8 +208,8 @@ This is a **Turborepo monorepo** with the following structure:
 │       │   │   ├── login/                  ✅ Azure AD + Local
 │       │   │   ├── register/               ✅ Sign Up (Post-MVP)
 │       │   │   └── forgot-password/        ✅ Password Reset (Post-MVP)
-│       │   ├── components/           # 75+ components
-│       │   │   ├── ui/               # 35+ shadcn/ui components
+│       │   ├── components/           # 94 components (43 UI + 51 business)
+│       │   │   ├── ui/               # 43 shadcn/ui components
 │       │   │   ├── layout/           # Sidebar, TopBar, DashboardLayout
 │       │   │   ├── dashboard/        # StatsCard, BudgetPoolOverview
 │       │   │   ├── project/          # ProjectForm
@@ -1001,24 +1061,34 @@ One-click: install dependencies + generate Prisma Client + check environment.
 
 ## Project Metrics
 
-**Code Statistics** (as of 2025-12-12):
+**Code Statistics** (as of 2026-04-09, 來源：`docs/codebase-analyze/SUMMARY.md`):
 - Total Core Code: ~73,500 lines
-- Indexed Files: 250+ important files
-- UI Components: 75+ (35+ design system + 40 business)
-- API Routers: 17 (budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, health, notification, omExpense, operatingCompany, permission, project, purchaseOrder, quote, user, vendor)
-- Prisma Models: 32 (User, Role, Account, Session, VerificationToken, Permission, RolePermission, UserPermission, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ExpenseCategory, ChargeOut, ChargeOutItem, OMExpense, OMExpenseItem, OMExpenseMonthly, OperatingCompany, ProjectChargeOutOpCo, UserOperatingCompany, ProjectBudgetCategory, Currency, Comment, History, Notification)
-- Pages: 56+ full-featured pages (20 route modules)
-- Epic Completion: 8/8 MVP (100%) + Post-MVP enhancements + FEAT-007~012 + CHANGE-001~041
+- Core Source Files: **258** (81 .ts + 155 .tsx + 22 .js)
+- Business Components: **51** (~17,600 行)
+- UI Components: **43** (~7,387 行)
+- API Routers: **17** / Procedures: **200** (~16,979 行)
+  - budgetPool, budgetProposal, chargeOut, currency, dashboard, expense, expenseCategory, health, notification, omExpense, operatingCompany, permission, project, purchaseOrder, quote, user, vendor
+- Prisma Models: **32** / Indexes: **94** / Cascade 策略: **16**
+  - User, Role, Account, Session, VerificationToken, Permission, RolePermission, UserPermission, BudgetPool, BudgetCategory, Project, BudgetProposal, Vendor, Quote, PurchaseOrder, PurchaseOrderItem, Expense, ExpenseItem, ExpenseCategory, ChargeOut, ChargeOutItem, OMExpense, OMExpenseItem, OMExpenseMonthly, OperatingCompany, ProjectChargeOutOpCo, UserOperatingCompany, ProjectBudgetCategory, Currency, Comment, History, Notification
+- Pages: **60** (**23 route modules**)
+- i18n: **2,706 keys** / **29 namespaces** (en + zh-TW 完全同步)
+- Scripts: **40** (9 個類別)
+- Mermaid Diagrams: **30**
+- Documentation: **620** .md files
+- Epic Completion: 8/8 MVP (100%) + Post-MVP + FEAT-007~012 + CHANGE-001~041 + FIX-101~137
 
 **Development Timeline:**
 - Sprint 0-8: MVP Phase 1 (Epic 1-8) ✅
 - Sprint 9-10: Post-MVP Enhancements ✅
 - Sprint 11: FEAT-007 OM Expense 表頭-明細重構 ✅
 - Sprint 12: FEAT-008 OM Expense Data Import + CHANGE-005~011 ✅
-- Sprint 13+: Epic 9-10 (Planned)
+- Sprint 13: FEAT-009~012 (OpCo 權限 / Project Import / Permission / Loading System) ✅
+- Sprint 14: CHANGE-012~041 UX 改進系列 ✅
+- Sprint 15: Codebase Analysis + FIX-101~137 (34 項安全/品質/UX 修復) ✅
+- Sprint 16+: Epic 9-10 (Planned)
 
 ---
 
-**Last Updated**: 2026-03-14
+**Last Updated**: 2026-04-21
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion
