@@ -150,21 +150,22 @@ function countI18n() {
 // Core Source Files
 // ============================================================
 function countCoreFiles() {
+  // 核心源碼範圍：apps/web + packages/**（排除 dist/build/.next/node_modules）
+  // 計法與 docs/codebase-analyze/SUMMARY.md 原分析對齊
   const dirs = [
-    path.join(ROOT, 'apps/web/src'),
-    path.join(ROOT, 'packages/api/src'),
-    path.join(ROOT, 'packages/auth/src'),
-    path.join(ROOT, 'packages/db/prisma'),
+    path.join(ROOT, 'apps/web'),
+    path.join(ROOT, 'packages'),
   ];
   let ts = 0, tsx = 0, js = 0;
   for (const d of dirs) {
-    ts += countFiles(d, n => n.endsWith('.ts') && !n.endsWith('.test.ts') && !n.endsWith('.spec.ts'));
-    tsx += countFiles(d, n => n.endsWith('.tsx') && !n.endsWith('.test.tsx'));
+    ts += countFiles(d, n => n.endsWith('.ts'));
+    tsx += countFiles(d, n => n.endsWith('.tsx'));
     js += countFiles(d, n => n.endsWith('.js'));
   }
-  // scripts/ 也算
+  // scripts/ 目錄也算核心源碼
   const scriptsDir = path.join(ROOT, 'scripts');
   js += countFiles(scriptsDir, n => n.endsWith('.js'));
+  ts += countFiles(scriptsDir, n => n.endsWith('.ts'));
   return { ts_files: ts, tsx_files: tsx, js_files: js, core_source_files: ts + tsx + js };
 }
 

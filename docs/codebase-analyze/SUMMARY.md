@@ -4,25 +4,25 @@ machine-readable-stats:
   last_analysis_date: "2026-04-09"
   last_refresh_date: "2026-04-21"
   stats:
-    core_source_files: 258
+    core_source_files: 259
     ts_files: 81
     tsx_files: 155
-    js_files: 22
+    js_files: 23
     prisma_models: 32
     api_routers: 17
-    api_procedures: 200
-    api_lines: 16979
-    route_modules: 23
-    pages: 60
+    api_procedures: 204
+    api_lines: 16996
+    route_modules: 21
+    pages: 59
     business_components: 51
-    business_components_lines: 17600
-    ui_components: 43
-    ui_components_lines: 7387
+    business_components_lines: 17648
+    ui_components: 41
+    ui_components_lines: 7125
     i18n_keys: 2706
     i18n_namespaces: 29
-    scripts: 40
+    scripts: 41
     mermaid_diagrams: 30
-    total_md_docs: 620
+    total_md_docs: 735
   tech_stack:
     nextjs: "14.2.33"
     typescript: "5.3.3"
@@ -47,19 +47,21 @@ machine-readable-stats:
 
 ## Codebase 規模概覽
 
-| 指標 | 數值 |
-|------|------|
-| 核心源碼檔案 | 258 (.ts 81 + .tsx 155 + .js 22) |
-| Prisma Models | 32 個 (6 個領域分組) |
-| API Routers | 17 個, 200 個 procedures |
-| API 總行數 | ~16,979 行 |
-| 前端頁面路由 | 23 個模組, 60 個 .tsx 頁面檔 |
-| 業務組件 | 51 個 (.tsx), ~17,600 行 |
-| UI 組件 | 43 個檔案, ~7,387 行 |
-| 翻譯 Keys | 2,706 個 (29 個命名空間, en + zh-TW 完全同步, FIX-116 +66 keys) |
-| 腳本工具 | 40 個 (9 個類別) |
-| Mermaid 圖表 | 30 個 |
-| 文檔 (.md) | 620 個 |
+> **最後刷新**: 2026-04-21（由 `pnpm refresh:stats:apply` 自動更新）
+
+| 指標 | 數值 | 備註 |
+|------|------|------|
+| 核心源碼檔案 | 259 (.ts 81 + .tsx 155 + .js 23) | apps/web + packages + scripts |
+| Prisma Models | 32 個 (6 個領域分組) | — |
+| API Routers | 17 個, 204 個 procedures | procedures +4（自上次分析） |
+| API 總行數 | ~16,996 行 | +17 行 |
+| 前端頁面路由 | 21 個模組, 59 個 .tsx 頁面檔 | route_modules -2, pages -1（與舊計法差異） |
+| 業務組件 | 51 個 (.tsx), ~17,648 行 | 行數 +48 |
+| UI 組件 | 41 個檔案, ~7,125 行 | ui -2, 行數 -262（可能已合併重構） |
+| 翻譯 Keys | 2,706 個 (29 個命名空間, en + zh-TW 完全同步) | 與原分析一致 |
+| 腳本工具 | 41 個 (9 個類別) | +1（新增 check-claude-md-sync.js 等） |
+| Mermaid 圖表 | 30 個 | — |
+| 文檔 (.md) | 735 個 | +115（12 天內自然增長） |
 
 ---
 
