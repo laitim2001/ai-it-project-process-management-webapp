@@ -7,6 +7,14 @@
 > - `docs/codebase-analyze/04-components/component-index.md` — 組件目錄總覽
 > - `docs/codebase-analyze/04-components/detail/business-components.md` — 51 業務組件詳解
 > - `docs/codebase-analyze/04-components/detail/ui-components.md` — 43 UI 組件詳解
+>
+> **🔎 複雜業務子 CLAUDE.md**（處理對應領域前先閱讀）:
+> - [`om-expense/CLAUDE.md`](om-expense/CLAUDE.md) — ⭐⭐⭐⭐⭐ FEAT-007 表頭-明細-月度三層架構
+> - [`proposal/CLAUDE.md`](proposal/CLAUDE.md) — ⭐⭐⭐⭐ Epic 3 審批工作流狀態機
+> - [`charge-out/CLAUDE.md`](charge-out/CLAUDE.md) — ⭐⭐⭐⭐ FEAT-005 多 OpCo 費用轉嫁
+> - [`om-summary/CLAUDE.md`](om-summary/CLAUDE.md) — ⭐⭐⭐⭐ CHANGE-004 跨年度樞紐報表
+> - [`expense/CLAUDE.md`](expense/CLAUDE.md) — ⭐⭐⭐ Epic 6 費用記錄 + 即時預算池追蹤
+> - [`project/CLAUDE.md`](project/CLAUDE.md) — ⭐⭐⭐ 專案核心 CRUD + FEAT-001 欄位擴展
 
 ## 📋 目錄用途
 
