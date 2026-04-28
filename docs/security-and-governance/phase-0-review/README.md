@@ -58,7 +58,7 @@
 ## 📚 參考文件
 
 - 主矩陣：`claudedocs/4-changes/FEAT-013-security-hardening.md`
-- 公司 sample：`docs/development-log/enterprise-security-governance-sample.md`
+- 公司 sample：`docs/security-and-governance/references/enterprise-security-governance-sample.md`
 - 既有安全審查：`docs/codebase-analyze/10-issues-and-debt/security-review.md`
 - 技術債：`docs/codebase-analyze/10-issues-and-debt/tech-debt.md`
 

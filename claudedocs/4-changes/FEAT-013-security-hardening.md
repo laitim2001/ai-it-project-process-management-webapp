@@ -6,7 +6,7 @@
 > **預計完成**: 2026-Q3（分 4 階段）
 > **狀態**: 📋 Phase 1 規劃中（矩陣 Review）
 > **參考標準**: OWASP ASVS L2、NIST CSF v2.0、SOC2 Type II、ISO 27001、CIS Controls v8、GDPR
-> **參考來源**: `docs/development-log/enterprise-security-governance-sample.md`（公司內部企業級評估矩陣 v1.0）
+> **參考來源**: `docs/security-and-governance/references/enterprise-security-governance-sample.md`（公司內部企業級評估矩陣 v1.0）
 
 ---
 
@@ -856,7 +856,7 @@
 
 ## 附錄 A：與 sample matrix 的對應
 
-本文件採用 `docs/development-log/enterprise-security-governance-sample.md`（公司 v1.0）的 7 領域 77 檢查項框架，並：
+本文件採用 `docs/security-and-governance/references/enterprise-security-governance-sample.md`（公司 v1.0）的 7 領域 77 檢查項框架，並：
 1. **完全保留** 77 項檢查 ID 與描述（便於跨專案比對）
 2. **填入** 本專案目前評估等級（L0-L4）與對應的既有 SEC / GAP 編號
 3. **新增** 本專案特有的修補步驟與驗收標準
