@@ -40,12 +40,15 @@ docs/security-and-governance/
 依 FEAT-013 規劃，以下 14+ 份治理文件將陸續寫入本目錄：
 
 ### Phase 1 啟動後（governance 子目錄）
-- `governance/database-migration-runbook.md`（Gov-01）
-- `governance/incident-response-plan.md`（Resi-09）
-- `governance/disaster-recovery-plan.md`（Resi-06/07/08）
-- `governance/access-review-process.md`（Gov-10）
-- `governance/risk-register.md`（Gov-12）
-- `governance/security-roles-and-responsibilities.md`（Gov-08）
+- ✅ `governance/incident-response-plan.md`（Resi-09，FEAT-013.5 已產出 Draft 雛形）
+- ✅ `governance/runbooks/data-breach-runbook.md`（FEAT-013.5）
+- ✅ `governance/runbooks/ddos-runbook.md`（FEAT-013.5）
+- ✅ `governance/runbooks/account-takeover-runbook.md`（FEAT-013.5）
+- 📋 `governance/database-migration-runbook.md`（Gov-01）
+- 📋 `governance/disaster-recovery-plan.md`（Resi-06/07/08）
+- 📋 `governance/access-review-process.md`（Gov-10）
+- 📋 `governance/risk-register.md`（Gov-12）
+- 📋 `governance/security-roles-and-responsibilities.md`（Gov-08）
 
 ### Phase 2 中（policies 子目錄）
 - `policies/data-classification.md`（DP-01）
