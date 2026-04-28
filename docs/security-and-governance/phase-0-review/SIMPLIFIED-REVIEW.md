@@ -4,7 +4,20 @@
 > **填寫者**: Tech Lead + Management（一起 1 次會議完成）
 > **預計時間**: 60-90 分鐘（含討論）
 > **建立日期**: 2026-04-28
-> **取代**: 原 01-05 詳細文件（保留作為日後深入參考用）
+> **更新**: 2026-04-28 v2 — 依 stakeholder 確認簡化（SSO 主導 + 成本最小化）
+> **取代**: 原 01-05 詳細文件（移至 `deep-dive/` 供日後參考）
+
+---
+
+## 🔑 重要前提（依 stakeholder 確認 2026-04-28）
+
+本次 Review 在以下假設下執行，影響多個項目的處置：
+
+1. **生產登入主要走 Azure SSO** — 密碼 / MFA 類項目大幅縮減（由 Azure AD Conditional Access 統一管控）
+2. **本地密碼僅供開發 / 緊急 fallback** — 影響範圍極小（admin@itpm.local 等少量帳號）
+3. **本系統屬內部工具（Internal）** — DDoS / WAF / Pen Test / SOC 2 等對外暴露面才需要的項目暫緩
+4. **既有 Azure 基礎設施已涵蓋大部分基礎需求** — Key Vault 已採用，PostgreSQL 標準備份已足夠
+5. **任何「鎖定」類功能必須同步設計「解鎖」流程** — 防止支援負擔
 
 ---
 
@@ -91,57 +104,86 @@
 
 ---
 
-## ⚠️ Group B：Has Impact（會改變現有用戶體驗）— 9 項
+## ⚠️ Group B：Has Impact（會改變現有用戶體驗）— 7 項
 
+> **前提假設（依 stakeholder 確認 2026-04-28）**：
+> - 生產環境**主要使用 Azure SSO 登入**，本地密碼僅用於開發/緊急 fallback 帳號
+> - 因此密碼/MFA 相關項目大幅縮減（SSO 已內建 MFA 由 Azure AD 控管）
+>
 > **建議**：逐項討論，**確認業務可接受 UX 變化**才 Approve。
 
 | # | Check ID | 項目 | 對使用者的具體影響 | 緩解 / 替代 | 決議 |
 |---|----------|------|------------------|-------------|------|
 | B1 | **IAM-04** | Session 24h 過期 | 隔天需重新登入；超過 3 個 device 最舊的會被踢 | 可調整 maxAge，或限制更寬鬆 | ☐ Approve ☐ Defer ☐ 修改 |
-| B2 | **IAM-05** | 密碼 90 天過期 + 不可重用 | 用戶每季強制改密碼，最近 5 次不可重複 | 可改 180 天或關閉過期（保留歷史檢查） | ☐ Approve ☐ Defer ☐ 修改 |
-| B3 | **IAM-06** | MFA 強制（Admin） | Admin 每次登入需輸入 TOTP（手機驗證碼） | 可先 opt-in 一段時間再強制 | ☐ Approve ☐ Defer ☐ 修改 |
-| B4 | **IAM-07** | 帳號鎖定 5 次失敗 / 15 分鐘 | 連續輸錯 5 次後等 15 分鐘才能再試 | 可調整次數 / 鎖定時長 | ☐ Approve ☐ Defer ☐ 修改 |
-| B5 | **AppSec-03** | CSP 啟用 | 若有未列入白名單的 inline script 會被擋 | 先 Report-Only 模式 1-2 週觀察 | ☐ Approve ☐ Defer |
-| B6 | **AppSec-09** | Rate Limit 100 req/min | 重度使用者（如批量 API 呼叫）可能被擋 | 可針對特定用戶提高上限 | ☐ Approve ☐ Defer ☐ 修改 |
-| B7 | **DP-03** | 欄位級加密（email、name 等 PII） | DB 直查看不到明文；性能略下降；既有資料需 backfill | 可只加密最敏感欄位（如手機） | ☐ Approve ☐ Defer ☐ 修改 |
-| B8 | **DP-07/08** | GDPR 資料匯出 / 刪除 | 設定頁多兩個按鈕；刪除帳號流程變嚴 | 視業務範圍是否真需要（內部工具可不做） | ☐ Approve ☐ Defer |
-| B9 | **Gov-03 + Gov-07** | SoD + Cookie Consent | dev 失去 prod DB 直接存取；登入頁多 Privacy Policy 同意 | SoD 可漸進；Cookie 為合規必要 | ☐ Approve ☐ Defer |
+| B2 | **IAM-05** | 密碼歷史 / 過期（**僅本地 fallback 帳號**） | 影響範圍小：僅 admin@itpm.local 等少量本地帳號；主流程走 SSO 不受影響 | 可只做密碼歷史（不重用），不做 90 天過期 | ☐ Approve ☐ Defer ☐ 修改 |
+| B3 | **IAM-07** | 帳號鎖定 + **解鎖機制** | 連續輸錯 5 次後等 15 分鐘；**Admin 需有手動解鎖介面** | 必須同步設計解鎖功能（見下方說明） | ☐ Approve ☐ Defer ☐ 修改 |
+| B4 | **AppSec-03** | CSP 啟用 | 若有未列入白名單的 inline script 會被擋 | 先 Report-Only 模式 1-2 週觀察 | ☐ Approve ☐ Defer |
+| B5 | **AppSec-09** | Rate Limit 100 req/min | 重度使用者（如批量 API 呼叫）可能被擋 | 可針對特定用戶提高上限；in-memory 版本不需 Redis | ☐ Approve ☐ Defer ☐ 修改 |
+| B6 | **DP-03** | 欄位級加密（email、name 等 PII） | DB 直查看不到明文；性能略下降；既有資料需 backfill | 可只加密最敏感欄位（如手機） | ☐ Approve ☐ Defer ☐ 修改 |
+| B7 | **DP-07/08** | GDPR 資料匯出 / 刪除 | 設定頁多兩個按鈕；刪除帳號流程變嚴 | 視業務範圍是否真需要（內部工具可不做） | ☐ Approve ☐ Defer |
+| ~~B8~~ | ~~Gov-03 + Gov-07~~ | ~~SoD + Cookie Consent~~ | （SSO 主導 + 內部工具 → 拆出獨立評估，暫不放入此次決議）| | - |
+
+### B3 IAM-07 解鎖機制設計要求（必含）
+
+僅做「鎖定」會造成支援負擔，必須同步設計以下解鎖路徑：
+
+1. **自動解鎖**：鎖定 15 分鐘後自動恢復（最低限度）
+2. **Admin 手動解鎖**：`/admin/users/[id]` 頁面提供「解鎖」按鈕，操作記錄到 AuditLog
+3. **使用者自助解鎖**（可選）：透過 SSO 登入成功後自動解除本地鎖定狀態
+4. **鎖定通知**：被鎖定時 email 通知用戶（讓真正的用戶知道有人在嘗試）
+5. **錯誤訊息**：不洩漏「密碼錯誤」vs「帳號鎖定」差異
 
 **Group B 額外備註**:
 > ______
 
 ---
 
-## 💰 Group C：Has Cost（產生額外金錢成本）— 8 項
+## 💰 Group C：Has Cost（產生額外金錢成本）— 重新分類
 
-> **建議**：依預算與業務需求逐項決定。
+> **依 stakeholder 回饋 2026-04-28 簡化**：
+> - 大部分「需新採購雲服務」項目於此階段**暫緩**（內部工具規模 + 既有 Azure 基礎已足夠）
+> - 僅保留無法迴避的成本項目
 
-| # | Check ID | 項目 | 一次性成本 | 持續成本 | 業務驅動因素 | 決議 |
-|---|----------|------|-----------|---------|-------------|------|
-| C1 | **DP-04** | Azure Key Vault | $0 | **~$5/月** | 必要（合規） | ☐ Approve ☐ Defer |
-| C2 | **AppSec-09** | Upstash Redis（Rate Limit 後端） | $0 | **$0-20/月** | 必要（防暴力破解） | ☐ Approve ☐ Defer |
-| C3 | **Obs-04/06** | Application Insights（APM + SIEM） | $0 | **$50-200/月** | 強烈建議（無法看到問題） | ☐ Approve ☐ Defer ☐ 試用 |
-| C4 | **Obs-08** | Azure Blob Cool tier（Log 留存） | $0 | **~$10/月**（隨量增） | 若做 Obs-01 必須一起做 | ☐ Approve ☐ Defer |
-| C5 | **Resi-02** | Azure Front Door + WAF | $0 | **$300+/月** | 視流量規模（內部工具可省） | ☐ Approve ☐ Defer |
-| C6 | **DP-09** | Azure PostgreSQL Geo-Redundant Backup | $0 | **+50% DB 成本** | 業務 RTO/RPO 決定 | ☐ Approve ☐ Defer |
-| C7 | **Gov-09** | 員工資安培訓（外部講師） | $0 | **$1K-5K/年** | 合規要求 | ☐ Approve ☐ Defer ☐ 改內訓 |
-| C8 | **SDLC-11** | 第三方滲透測試（年度） | $10K-30K | $0 | 客戶/合規要求 | ☐ Approve ☐ Defer |
+### C-Done：已完成（無需此階段決議）
 
-**未列入：SOC 2 / ISO 27001 認證**（$30K-50K/年）— 屬獨立決策，待 Phase 3 完成後再評估。
+| Check ID | 項目 | 狀態 |
+|----------|------|------|
+| **DP-04** | Azure Key Vault | ✅ **已採用**（公司 Azure 環境已使用） |
 
-**Group C 預算上限**:
-> 月度上限: $______
-> 年度一次性: $______
+### C-Active：本階段建議 Approve（低成本必要項）
+
+| # | Check ID | 項目 | 持續成本 | 決議 |
+|---|----------|------|---------|------|
+| C1 | **Obs-08** | Azure Blob Cool tier（Log 留存） | **~$10/月**（隨量增） | ☐ Approve ☐ Defer |
+| C2 | **Gov-09** | 員工資安培訓（內訓 / 線上免費課程） | **$0**（改內訓） | ☐ Approve ☐ Defer |
+
+### C-Defer：此階段暫緩（規模未到 / 替代方案已足夠）
+
+| Check ID | 項目 | 原規劃成本 | 替代方案 | 重評時機 |
+|----------|------|-----------|---------|---------|
+| **AppSec-09** | Upstash Redis（Rate Limit 後端） | $0-20/月 | 改用 **in-memory rate limit**（單實例足夠，內部工具流量不大） | 多實例擴展 / 流量上升時 |
+| **Obs-04/06** | Application Insights（APM + SIEM） | $50-200/月 | 沿用 **App Service 內建 logs + Azure Monitor 基本指標** | 出現需深度排查的事件時 |
+| **Resi-02** | Azure Front Door + WAF | $300+/月 | **App Service IP 限制 + Azure Defender Basic** 已足夠 | 對外開放或客戶要求時 |
+| **DP-09** | PostgreSQL Geo-Redundant Backup | +50% DB 成本 | 標準 backup（35 天 + PITR）已足夠 | 業務 RTO/RPO 變嚴時 |
+| **SDLC-11** | 第三方滲透測試 | $10K-30K/年 | 內部 SAST/DAST 工具（OSS）+ 自我測試 | 客戶要求 / 上市準備 |
+
+> **Group C 摘要**：原 8 項中 **1 項已完成、2 項 Active、5 項 Defer**。本階段年度新增成本上限約 **$120-150/年**（僅 C1 Blob 留存）。
+
+**Group C 額外備註**:
+> ______
 
 ---
 
-## 🚫 Group D：N/A 或暫緩 — 3 項
+## 🚫 Group D：N/A 或暫緩 — 4 項
 
 | Check ID | 項目 | 為何不做 |
 |----------|------|---------|
+| IAM-06 | MFA 強制（本地帳號） | **生產環境主要走 Azure SSO，MFA 由 Azure AD 統一管控（Conditional Access）**；內部工具無需在應用層額外實作 TOTP |
 | IAM-09 | Service Account / API Key | 目前無 M2M 場景，Epic 10 整合時重評估 |
 | AppSec-10 | SSRF 防護 | 本專案無外部 URL fetch / proxy |
 | AppSec-12 | LLM Prompt Injection | Epic 9 規劃時納入，現在不需 |
+
+> **IAM-06 補充**：若未來開放外部 / 客戶使用，或本地 fallback 帳號（admin@itpm.local）權限提升至能修改生產資料，**屆時應重新評估**是否在應用層加 MFA。
 
 - ☐ 同意 N/A
 - ☐ 不同意（請說明）：______
@@ -165,21 +207,28 @@
 ### 一句話決議
 
 ```
-[ ] Group A 全部 Approve
-[ ] Group B Approve _____ 項，Defer _____ 項
-[ ] Group C Approve _____ 項，預算上限 $_____ /月
-[ ] Group D N/A 確認
+[ ] Group A 全部 Approve（41 項，純工程時間）
+[ ] Group B Approve _____ 項，Defer _____ 項（共 7 項 UX 影響）
+[ ] Group C-Active Approve（C1 Blob 留存 + C2 內訓）
+[ ] Group C-Defer 確認暫緩（5 項，$0 新增）
+[ ] Group D N/A 確認（4 項，含 IAM-06 MFA）
 [ ] Security Lead = _____
 ```
 
-### 優先 4 項（建議 Phase 1，4 週內完成）
+### 優先 5 項（建議 Phase 1，4 週內完成）
 
-從 Group B/C 中選出最高優先：
+依 SSO 主導 + 成本最小化原則重新排序：
 
-1. **AppSec-09 + C2**: Rate Limiting（防暴力破解，$20/月）
-2. **DP-04 + C1**: Key Vault（合規必要，$5/月）
-3. **IAM-06**: Admin MFA（最高風險帳號保護，$0）
-4. **Resi-09**: IR Plan（事件發生時的應對，$0 文件）
+1. **IAM-01**: publicProcedure 審查（修補既有暴露端點，$0，2d）
+2. **IAM-10**: 資源所有權驗證（防止跨用戶操作，$0，5d）
+3. **AppSec-09**: Rate Limiting（**改用 in-memory 版本，$0**）
+4. **IAM-07 + 解鎖機制**: 帳號鎖定 + Admin 解鎖介面 + email 通知（$0，3d）
+5. **Resi-09**: Incident Response Plan（事件發生時的應對，$0 文件）
+
+> **變化說明**：
+> - 移除「DP-04 Key Vault」（已採用）、「IAM-06 MFA」（SSO 已涵蓋）
+> - 加入「IAM-01 publicProcedure 審查」（既有 Critical 漏洞修補）、「IAM-10 資源所有權」（高 ROI）
+> - 「IAM-07 帳號鎖定」**必須含解鎖機制**才算完成
 
 其餘 Group A 41 項可在 Phase 2-3 滾動處理。
 
