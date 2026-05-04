@@ -93,8 +93,8 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 取得所有專案
-  const { data: projects } = api.project.getAll.useQuery();
+  // 取得所有專案（必須帶 limit；getAll 預設 limit=20，否則下拉選單顯示不全）
+  const { data: projects } = api.project.getAll.useQuery({ limit: 100 });
 
   const createMutation = api.budgetProposal.create.useMutation({
     onSuccess: (proposal) => {
