@@ -166,7 +166,8 @@ export const updateProjectSchema = z.object({
   description: z.string().optional(),
   status: projectStatusEnum.optional(),
   budgetPoolId: z.string().min(1).optional(),
-  budgetCategoryId: z.string().uuid('Invalid budget category ID').optional(), // 新增：預算類別ID
+  // 切換 budget pool 時前端送 null 以清除舊 categoryId，避免跨 pool 不一致
+  budgetCategoryId: z.string().uuid('Invalid budget category ID').nullable().optional(),
   requestedBudget: z.number().min(0, 'Requested budget must be >= 0').optional(), // 新增：請求預算金額
   approvedBudget: z.number().min(0, 'Approved budget must be >= 0').optional(), // 新增：批准預算金額
   managerId: z.string().uuid().optional(),

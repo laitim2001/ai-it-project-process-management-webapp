@@ -282,7 +282,9 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       name: formData.name,
       description: formData.description.trim() === '' ? undefined : formData.description,
       budgetPoolId: formData.budgetPoolId,
-      budgetCategoryId: formData.budgetCategoryId.trim() === '' ? undefined : formData.budgetCategoryId,
+      // 切換 Budget Pool 時 budgetCategoryId 會被清為 ''；送 null 才能讓 Prisma 真正清除舊值
+      // 送 undefined 則 Prisma 會保留舊值，導致 budgetCategoryId 跨 pool 不一致
+      budgetCategoryId: formData.budgetCategoryId.trim() === '' ? null : formData.budgetCategoryId,
       requestedBudget: formData.requestedBudget > 0 ? formData.requestedBudget : undefined,
       managerId: formData.managerId,
       supervisorId: formData.supervisorId,
@@ -678,7 +680,17 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           <Combobox
             options={budgetPoolOptions}
             value={formData.budgetPoolId}
-            onChange={(value) => setFormData({ ...formData, budgetPoolId: value })}
+            onChange={(value) => {
+              // 切換 Budget Pool 時，必須同時清空 budgetCategoryId 與 categoryAmounts
+              // Why: 後端 update procedure 會校驗 budgetCategory.budgetPoolId 是否屬於新 pool，
+              //      若舊 categoryId 跨 pool，會 throw BAD_REQUEST (HTTP 400)
+              if (value !== formData.budgetPoolId) {
+                setFormData({ ...formData, budgetPoolId: value, budgetCategoryId: '' });
+                setCategoryAmounts([]);
+              } else {
+                setFormData({ ...formData, budgetPoolId: value });
+              }
+            }}
             placeholder={tFields('budgetPool.placeholder')}
             searchPlaceholder={tCommon('actions.search')}
             emptyText={tCommon('noResults')}
