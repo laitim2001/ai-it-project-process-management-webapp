@@ -171,6 +171,59 @@ const mutation = api.project.create.useMutation({
 });
 ```
 
+## 🚨 載入狀態必須使用 `LoadingButton`，禁止手刻 `'...'`
+
+**規則**：任何**提交/觸發 mutation 的按鈕**，loading 狀態**必須**使用 `@/components/ui/loading/LoadingButton`。**禁止**在 `<Button>` 內手刻 `{isLoading ? '...' : t('submit')}`。
+
+**Why**：
+- FEAT-012 已統一載入特效系統（Spinner / LoadingButton / LoadingOverlay / GlobalProgress），手刻等於繞過設計系統
+- 手刻 `'...'` 沒有 spinner，視覺回饋不足；也不會禁用按鈕，可能導致重複提交
+- 2026-04-21 Karpathy 審查發現 `PasswordChangeDialog.tsx:196` 就是此反模式
+
+**How to apply**：套用到所有 **form submit / mutation trigger / 長時間非同步操作** 的按鈕。純導航按鈕、純開關 dialog 的按鈕不受此規則約束。
+
+### ✅ 正確用法
+
+```typescript
+import { LoadingButton } from '@/components/ui/loading/LoadingButton';
+
+const mutation = api.user.changePassword.useMutation({ ... });
+
+<LoadingButton
+  type="submit"
+  isLoading={mutation.isLoading}
+  loadingText={t('submitting')}    // 可選
+>
+  {t('submit')}
+</LoadingButton>
+```
+
+### ❌ 禁止用法
+
+```typescript
+// ❌ 手刻 '...' 字串
+<Button type="submit" disabled={mutation.isLoading}>
+  {mutation.isLoading ? '...' : t('submit')}
+</Button>
+
+// ❌ 手刻 Spinner + disabled（繞過 LoadingButton）
+<Button type="submit" disabled={mutation.isLoading}>
+  {mutation.isLoading && <Spinner />}
+  {t('submit')}
+</Button>
+
+// ❌ 只 disabled 沒視覺回饋
+<Button type="submit" disabled={mutation.isLoading}>
+  {t('submit')}
+</Button>
+```
+
+### Checklist
+
+- [ ] 這個按鈕會觸發 mutation 或長時間非同步操作？→ **必須用 `LoadingButton`**
+- [ ] 是否從 `@/components/ui/loading/LoadingButton` 匯入，而非自己 wrap？
+- [ ] `isLoading` 綁到 `mutation.isLoading`（或對應的 async state）？
+
 ## 新增組件檢查清單
 
 ### UI 組件

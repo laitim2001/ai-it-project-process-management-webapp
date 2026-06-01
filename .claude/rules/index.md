@@ -7,22 +7,24 @@
 
 ```
 .claude/rules/
-├── index.md              # 本索引文件
-├── frontend.md           # Next.js App Router 頁面規範
-├── components.md         # React 組件規範
-├── ui-design-system.md   # shadcn/ui 設計系統規範
-├── backend-api.md        # tRPC 後端 API 規範
-├── database.md           # Prisma 資料庫規範
-├── i18n.md               # 國際化規範
-├── typescript.md         # TypeScript 約定
-├── scripts.md            # 開發腳本規範
-└── documentation.md      # 文檔規範
+├── index.md                 # 本索引文件
+├── karpathy-guidelines.md   # 🧠 AI 編碼行為準則（meta-rule）
+├── frontend.md              # Next.js App Router 頁面規範
+├── components.md            # React 組件規範
+├── ui-design-system.md      # shadcn/ui 設計系統規範
+├── backend-api.md           # tRPC 後端 API 規範
+├── database.md              # Prisma 資料庫規範
+├── i18n.md                  # 國際化規範
+├── typescript.md            # TypeScript 約定
+├── scripts.md               # 開發腳本規範
+└── documentation.md         # 文檔規範
 ```
 
 ## 規則適用範圍
 
 | 規則文件 | 適用路徑 | 主要內容 |
 |----------|----------|----------|
+| `karpathy-guidelines.md` | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.prisma` | **AI 編碼行為準則**（Think / Simplicity / Surgical / Goal-Driven） |
 | `frontend.md` | `apps/web/src/app/**` | Next.js 頁面、路由、Metadata |
 | `components.md` | `apps/web/src/components/**` | React 組件模式、Props、狀態管理 |
 | `ui-design-system.md` | `apps/web/src/components/ui/**` | shadcn/ui 組件使用規範 |
@@ -37,12 +39,18 @@
 
 當多個規則適用於同一檔案時，按以下優先級：
 
-1. **路徑特定規則** > 通用規則
-2. **TypeScript 規則**（基礎約定）
-3. **領域規則**（frontend/backend/database）
-4. **文檔規則**（輔助說明）
+1. **Meta-rule**：`karpathy-guidelines.md`（AI 編碼態度，貫穿所有任務）
+2. **路徑特定規則** > 通用規則
+3. **TypeScript 規則**（基礎約定）
+4. **領域規則**（frontend/backend/database）
+5. **文檔規則**（輔助說明）
+
+> Meta-rule 定義**做的態度**（謹慎、聚焦、可驗證），其他規則定義**具體怎麼做**。兩者不衝突時並行；衝突時遵循具體技術規則，但保留 meta-rule 的行為態度。
 
 ## 快速查找
+
+### 任何編碼任務（必讀）
+0. `karpathy-guidelines.md` - 行為態度：先思考、簡潔、外科手術式、目標驅動
 
 ### 開發前端頁面
 1. `frontend.md` - 頁面結構、路由保護

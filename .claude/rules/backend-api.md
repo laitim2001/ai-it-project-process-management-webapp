@@ -166,6 +166,76 @@ throw new TRPCError({
 });
 ```
 
+### 🚨 錯誤分類必須用 `code`，禁止讓前端用 message 字串比對分支
+
+**規則**：當同一 procedure 可能拋出**多種前端需要區分的錯誤**時，**必須**用不同的 `code` 或在 `cause` 帶穩定識別碼。**禁止**讓前端用 `err.message.includes('...')` 來決定顯示哪個訊息。
+
+**Why**：
+- 後端訊息一旦改字（包括 i18n 化、typo 修正、語氣調整），前端的 `includes()` 會**靜默失效**
+- 2026-04-21 Karpathy 審查發現 `PasswordChangeDialog.tsx:89-96` 就是此反模式（比對「目前密碼不正確」字串）
+
+**How to apply**：
+- 只有一種錯誤 → 用標準 `code` + 任意 message（OK）
+- 多種錯誤需前端區分 → 以下**二選一**：
+
+#### 方案 A（推薦）：用 `cause` 帶穩定識別碼
+
+```typescript
+// ✅ Backend — packages/api/src/routers/user.ts
+throw new TRPCError({
+  code: 'BAD_REQUEST',
+  message: 'Current password is incorrect',  // 可自由修改
+  cause: { reason: 'INVALID_CURRENT_PASSWORD' }, // ← 穩定識別碼
+});
+
+throw new TRPCError({
+  code: 'BAD_REQUEST',
+  message: 'New password must differ from current password',
+  cause: { reason: 'PASSWORD_REUSE' },
+});
+
+// ✅ Frontend — 用 cause.reason 判斷，不用 message
+onError: (err) => {
+  const reason = (err.data?.cause as { reason?: string })?.reason;
+  switch (reason) {
+    case 'INVALID_CURRENT_PASSWORD':
+      return toast({ title: t('errors.invalidCurrentPassword'), variant: 'destructive' });
+    case 'PASSWORD_REUSE':
+      return toast({ title: t('errors.passwordReuse'), variant: 'destructive' });
+    default:
+      return toast({ title: t('errors.unknown'), description: err.message, variant: 'destructive' });
+  }
+}
+```
+
+#### 方案 B：後端直接拋 i18n key
+
+```typescript
+// ✅ Backend
+throw new TRPCError({
+  code: 'BAD_REQUEST',
+  message: 'errors.invalidCurrentPassword', // ← 直接是 i18n key
+});
+
+// ✅ Frontend
+onError: (err) => toast({ title: t(err.message), variant: 'destructive' }),
+```
+
+**❌ 禁止**：
+
+```typescript
+// ❌ 前端用 message 字串比對
+onError: (err) => {
+  if (err.message.includes('目前密碼不正確')) { ... }     // 後端改字就壞
+  else if (err.message.includes('密碼不能與舊密碼相同')) { ... }
+}
+```
+
+**Checklist**：
+- [ ] Procedure 有多種錯誤情境？→ 決定用方案 A 或 B
+- [ ] 前端分支是否讀 `err.data.cause.reason` 或 i18n key，不是 `err.message`？
+- [ ] 新增錯誤類型時，同步更新前端 switch 的 case（含 default fallback）
+
 ## Transaction 處理模式
 
 ```typescript
