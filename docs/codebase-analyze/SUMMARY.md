@@ -2,7 +2,7 @@
 machine-readable-stats:
   version: 1
   last_analysis_date: "2026-04-09"
-  last_refresh_date: "2026-04-21"
+  last_refresh_date: "2026-04-22"
   stats:
     core_source_files: 259
     ts_files: 81
@@ -22,7 +22,7 @@ machine-readable-stats:
     i18n_namespaces: 29
     scripts: 41
     mermaid_diagrams: 30
-    total_md_docs: 735
+    total_md_docs: 744
   tech_stack:
     nextjs: "14.2.33"
     typescript: "5.3.3"
