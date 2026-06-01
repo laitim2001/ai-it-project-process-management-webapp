@@ -1,7 +1,16 @@
-# ITPM — Session Start Prompt（每個新 session 必用）
+# ITPM — Session Start Prompt（貼上式 onboarding）
 
-> **用法**：每個新 session 開始時，整份 copy 入對話框送出，**只需更新最後一節「今天的任務」一行**。其他段落是常駐 onboarding context，不需要每次改。
+> ## ⚠️ 在 Claude Code 裡，通常**不需要**每個 session 讀這份檔案
 >
+> 本專案的 **`CLAUDE.md` + 全部 `.claude/rules/*.md` 會在 session 啟動時由 Claude Code 自動載入**（約 24–26K tokens 常駐 context）。也就是說，AI 在開新 session 時**已經理解專案狀況與開發指引**，再讀本檔等於重複載入、浪費 token。
+>
+> **正確用法（on-demand，而非每次讀）**：
+> - **接續工作 / 換電腦**需要動態現況 → 跑 `/itpm:status`（不是讀本檔）
+> - **規劃 / 開發 FEAT / CHANGE / FIX** → 讀 `03-dev-workflow.md`（權威流程）
+> - 其餘細節在任務需要時才按 `CLAUDE.md` 的「必讀順序」按需讀
+>
+> **本檔的真正用途**：給**沒有自動載入 `CLAUDE.md` 的環境**使用——例如 claude.ai 網頁版、其他 AI 工具、或新人 onboarding。在那些場景才整份 copy 貼上，並更新最後一節「今天的任務」。
+
 > **適用範圍**：IT Project Process Management Platform（ITPM）Post-MVP 階段任何開發 / 審查 / 修復 session。
 >
 > **語言**：本專案 primary language 為 **繁體中文**（standard 書面）。
@@ -148,11 +157,13 @@ docs/, claudedocs/
 
 ## 第五部分：開發工作流（Task Classification + ITPM Slash Commands）
 
+> **完整權威流程見 `docs/10-ai-assistant/03-dev-workflow.md`**（含分支策略、暫緩條款、規劃文件正確位置）。本節為起手摘要。
+
 ### Task Type 分類（收到任務先分類，再 propose）
 
 | 使用者請求訊號 | 類型 | 規劃文件位置 |
 |---|---|---|
-| 「實作新功能 / 新模組」 / 對應 Epic deliverable | **Feature（FEAT-NNN）** | `claudedocs/4-changes/feature-changes/` |
+| 「實作新功能 / 新模組」 / 對應 Epic deliverable | **Feature（FEAT-NNN）** | `claudedocs/1-planning/features/FEAT-NNN-{name}/`（資料夾）|
 | 「改 X 行為」/「加 Y 選項」/「調整 Z」 | **Change（CHANGE-NNN）** | `claudedocs/4-changes/feature-changes/` |
 | 「X 壞了」/「broken」/「fail」/「錯了」 | **Bug-fix（FIX-NNN）** | `claudedocs/4-changes/bug-fixes/` + 同步 `FIXLOG.md` |
 | 「修 typo」/「rename 變數」/「更新註解」（< 30 min） | **Trivial** | 無需 doc，直接改 |
@@ -313,6 +324,7 @@ git status --short
 ### 配套文件
 
 - **`02-compact-session.md`**（每個 session `/compact` 之前用）— 一個 session 開頭、一個 session 結尾配套使用
+- **`03-dev-workflow.md`** — 開發 FEAT / CHANGE / FIX 的**權威流程文件**（分支策略、暫緩條款、規劃文件正確位置）
 
 ---
 
