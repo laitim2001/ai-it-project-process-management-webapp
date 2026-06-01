@@ -20,6 +20,36 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-02 | 💱 CHANGE-042: OM Expense 雙幣別顯示（USD 主 + 換算次值）| 完成 ✅
+
+**類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+- OM Expense 詳情頁同頁出現三種幣別不一致：Budget Overview `US$`、月度網格 `HK$`、下拉 `TWD`，皆為硬編碼，與明細真實 `currencyId` 無關。
+- 根因：CHANGE-037 將 OM 幣別改 US$ 時只改 3 檔，遺漏 `OMExpenseItemMonthlyGrid.tsx`（殘留 HKD）。
+
+**實現內容**:
+1. 新增換算層 `lib/currency.ts`（`convertFromUSD`/`formatUSD`/`formatSecondary`，匯率語意 1 USD = `exchangeRate` × 該幣）與顯示組件 `shared/DualCurrency.tsx`（USD 主 + ≈ 次值，優雅降級）。
+2. 移除 4 處硬編碼幣別（詳情頁 US$、月度網格 HKD、下拉 TWD、`OMExpenseItemList` US$）並改讀明細 `currencyId`；`OMExpenseForm.tsx` 的 HKD 一併修正（scope 擴充）。
+3. 跨明細彙總（Budget Overview + Item List 總計）採 `sharedCurrency`：全明細同幣別才顯次值，混幣別只顯 USD。
+4. i18n 月度欄頭 `(HKD)` → `(USD)`（en + zh-TW）。
+
+**修改文件** (8 個):
+- 新增：`apps/web/src/lib/currency.ts`、`apps/web/src/components/shared/DualCurrency.tsx`
+- 修改：`om-expenses/[id]/page.tsx`、`om-expense/OMExpenseItemMonthlyGrid.tsx`、`om-expense/OMExpenseItemList.tsx`、`om-expense/OMExpenseForm.tsx`、`messages/en.json`、`messages/zh-TW.json`
+
+**驗證**:
+- 瀏覽器（Playwright）：無幣別時全頁一致 `US$`；設 HKD 匯率 7.8 + 明細設 HKD → 一致顯示 `US$500,000 (≈ HK$3,900,000)`。
+- `validate:i18n` 通過；本變更檔案 typecheck/lint 零新增錯誤（baseline 既有債務除外）。
+
+**待辦**:
+- 🟡 死碼 `OMExpenseMonthlyGrid.tsx`（未被 import）仍含 HKD 硬編碼，建議另開 FIX 清理。
+- 🟡 資料前置：種子幣別未填 `exchangeRate`，需 Admin 於 `/settings/currencies` 填寫方顯示次值。
+
+**相關文檔**: `claudedocs/4-changes/feature-changes/CHANGE-042-om-expense-dual-currency-display.md`
+
+---
+
 ### 2025-12-18 | 🎨 CHANGE-033~035: UI 優化改進系列 | 完成 ✅
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成

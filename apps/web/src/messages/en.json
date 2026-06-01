@@ -2409,7 +2409,7 @@
       "saveButton": "Save Monthly Records",
       "saveSuccess": "Monthly records updated, item actual spending: {amount}",
       "monthColumn": "Month",
-      "amountColumn": "Actual Spending (HKD)",
+      "amountColumn": "Actual Spending (USD)",
       "total": "Total",
       "tips": {
         "title": "Usage Tips",

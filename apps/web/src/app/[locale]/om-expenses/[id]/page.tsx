@@ -93,6 +93,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
+import { DualCurrency } from '@/components/shared/DualCurrency';
+import { formatUSD } from '@/lib/currency';
 
 // FEAT-007 Components
 import OMExpenseItemList, { type OMExpenseItemData } from '@/components/om-expense/OMExpenseItemList';
@@ -130,8 +132,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
         toast({
           title: t('messages.growthCalculated'),
           description: t('messages.growthCalculationDesc', {
-            current: formatCurrency(data.currentAmount),
-            previous: formatCurrency(data.previousAmount ?? 0),
+            current: formatUSD(data.currentAmount),
+            previous: formatUSD(data.previousAmount ?? 0),
             rate: formatGrowthRate(data.yoyGrowthRate),
           }),
         });
@@ -201,16 +203,6 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       });
     },
   });
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    const formatted = new Intl.NumberFormat('en-US', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-    return `US$${formatted}`;
-  };
 
   // Format date
   const formatDate = (date: Date | string) => {
@@ -336,6 +328,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
         id: item.currency.id,
         code: item.currency.code,
         name: item.currency.name,
+        symbol: item.currency.symbol,
+        exchangeRate: item.currency.exchangeRate,
       } : null,
       monthlyRecords: item.monthlyRecords?.map((record) => ({
         month: record.month,
@@ -349,6 +343,15 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     if (!selectedItemId) return null;
     return transformedItems.find((item) => item.id === selectedItemId) || null;
   }, [selectedItemId, transformedItems]);
+
+  // CHANGE-042: 跨明細彙總的次要幣別——僅當所有明細同一幣別時才顯示次值（否則只顯示 USD，避免不同幣別錯加）
+  const sharedCurrency = useMemo(() => {
+    const firstItem = transformedItems[0];
+    if (!firstItem?.currency) return null;
+    const firstCurrency = firstItem.currency;
+    const allSame = transformedItems.every((item) => item.currency?.id === firstCurrency.id);
+    return allSame ? firstCurrency : null;
+  }, [transformedItems]);
 
   if (isLoading) {
     return (
@@ -565,7 +568,9 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('detail.budgetAmount')}</span>
-                <span className="font-semibold">{formatCurrency(totalBudget)}</span>
+                <span className="font-semibold">
+                  <DualCurrency amountUSD={totalBudget} currency={sharedCurrency} />
+                </span>
               </div>
 
               <div className="flex justify-between">
@@ -579,14 +584,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                       : 'text-green-600'
                   }`}
                 >
-                  {formatCurrency(totalActual)}
+                  <DualCurrency amountUSD={totalActual} currency={sharedCurrency} />
                 </span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('detail.remainingBudget')}</span>
                 <span className="font-semibold">
-                  {formatCurrency(totalBudget - totalActual)}
+                  <DualCurrency amountUSD={totalBudget - totalActual} currency={sharedCurrency} />
                 </span>
               </div>
 
@@ -724,7 +729,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                           </SelectItem>
                           {transformedItems.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
-                              {item.name} - TWD {item.budgetAmount?.toLocaleString() ?? '0'}
+                              {item.name} - {formatUSD(item.budgetAmount ?? 0)}
                             </SelectItem>
                           ))}
                         </SelectContent>

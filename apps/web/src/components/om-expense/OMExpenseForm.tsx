@@ -127,12 +127,12 @@ function generateTempId(): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('zh-TW', {
-    style: 'currency',
-    currency: 'HKD',
+  // CHANGE-042: 金額以 USD 為主（OM 全模組統一，移除舊 HKD 硬編碼）
+  const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+  return `US$${formatted}`;
 }
 
 // ============================================================

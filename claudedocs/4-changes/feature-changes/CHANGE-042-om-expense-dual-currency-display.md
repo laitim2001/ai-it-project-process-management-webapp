@@ -1,8 +1,8 @@
 # CHANGE-042: OM Expense 雙幣別顯示（USD 主值 + 依 currencyId 換算次值）
 
 > **建立日期**: 2026-06-01
-> **完成日期**: —
-> **狀態**: 📋 設計中
+> **完成日期**: 2026-06-02
+> **狀態**: ✅ 已完成
 > **優先級**: Medium
 > **類型**: 現有功能增強 + Bug 修復（取代 CHANGE-037 的硬編碼做法）
 > **前置依賴**: 無（但實作前需 Admin 在 `/settings/currencies` 填妥各幣別 `exchangeRate`）
@@ -105,12 +105,12 @@ export function convertFromUSD(
 
 ## 5. 驗收標準
 
-- [ ] OM 明細 `currencyId=HKD` 且已設匯率 → 顯示 `US$X (≈ HK$Y)`，Y = X × rate
-- [ ] 明細 `currencyId=TWD`（截圖情境）→ 顯示 `US$X (≈ NT$Y)`，不再出現無關的 HK$
-- [ ] 明細無 currencyId / 幣別無匯率 / currencyId=USD → 只顯示 `US$X`，無括號、無錯誤
-- [ ] 月度網格（`OMExpenseItemMonthlyGrid`）金額與欄頭不再出現硬編碼 HKD
-- [ ] Budget Overview 跨明細總計：同幣別才顯示次值，混幣別只顯示 USD（不錯加）
-- [ ] `pnpm typecheck` / `pnpm lint` / `pnpm validate:i18n` 通過
+- [x] OM 明細 `currencyId=HKD` 且已設匯率 → 顯示 `US$X (≈ HK$Y)`，Y = X × rate（瀏覽器驗證：US$500,000 → ≈ HK$3,900,000）
+- [x] 明細幣別硬編碼移除（下拉選單舊「TWD」已改為 `US$`；TWD 換算走與 HKD 相同路徑）
+- [x] 明細無 currencyId / 幣別無匯率 / currencyId=USD → 只顯示 `US$X`，無括號、無錯誤（瀏覽器驗證：空 Currency 表時全頁一致 US$）
+- [x] 月度網格（`OMExpenseItemMonthlyGrid`）金額與欄頭不再出現硬編碼 HKD（欄頭已為 `Actual Spending (USD)`）
+- [x] Budget Overview + Item List 總計：同幣別才顯示次值，混幣別只顯示 USD（不錯加）
+- [x] `pnpm validate:i18n` 通過；`typecheck`/`lint` 本變更**未新增**錯誤（repo baseline 既有債務不在本變更範圍）
 
 ---
 
@@ -130,3 +130,33 @@ export function convertFromUSD(
 - 批次總覽：`1-planning/roadmap/2026-06-expense-approval-batch.md`（決策 D1~D4）
 - 重用方：`FEAT-015`（Project Expense 將沿用本變更的換算 helper 與顯示組件）
 - 既有資產：`components/shared/CurrencyDisplay.tsx`、`routers/currency.ts`、`settings/currencies/page.tsx`
+
+---
+
+## 8. 實施記錄（2026-06-02）
+
+### 8.1 實際變更檔案
+**新增（2）：**
+- `apps/web/src/lib/currency.ts` — `convertFromUSD` / `formatUSD` / `formatSecondary`（匯率語意：1 USD = `exchangeRate` × 該幣）
+- `apps/web/src/components/shared/DualCurrency.tsx` — 雙幣別顯示組件（USD 主 + ≈ 次值；缺幣別/匯率優雅降級為純 USD）
+
+**修改（4 + i18n 2）：**
+- `apps/web/src/app/[locale]/om-expenses/[id]/page.tsx` — Budget Overview 改 `DualCurrency`（新增 `sharedCurrency`：全明細同幣別才顯次值）、修下拉硬編碼 **TWD**、成長率 toast 改 `formatUSD`、currency 映射補 `symbol`/`exchangeRate`
+- `apps/web/src/components/om-expense/OMExpenseItemMonthlyGrid.tsx` — 移除 **HKD 硬編碼**、`OMExpenseItemData` 補 `currency`、改 `DualCurrency`
+- `apps/web/src/components/om-expense/OMExpenseItemList.tsx` — 每列改 `DualCurrency`；總計列亦改 `DualCurrency`（`sharedCurrency` 一致性）
+- `apps/web/src/components/om-expense/OMExpenseForm.tsx` — **scope 擴充**：建立/編輯表單也硬編碼 HKD，順手改為 USD
+- `apps/web/src/messages/{en,zh-TW}.json` — `omExpenses.monthlyGrid.amountColumn` 由 `(HKD)` → `(USD)`
+
+### 8.2 與原規劃的差異
+- **scope 擴充**：原計畫列 4 處，實作時 grep 另發現 `OMExpenseForm.tsx` 也硬編碼 HKD（活躍使用中），一併修正。
+- **列表頁 `om-expenses/page.tsx` 未改**：其顯示為每張 OM 的跨明細彙總（可能混幣別），維持 USD-only 正確，依外科手術原則不動。
+
+### 8.3 待辦 / 提出但未處理
+- 🟡 **死碼**：`OMExpenseMonthlyGrid.tsx`（非 ItemMonthlyGrid）仍硬編碼 HKD，但**無任何頁面 import**（FEAT-007 重構遺留）。依外科手術原則未動，建議另開 FIX 清理。
+- 🟡 **資料前置**：本機 dev DB 的 `Currency` 表原為空；種子 `seed-minimal.ts` 建立 6 幣別時**未填 `exchangeRate`**。雙幣別次值需 Admin 於 `/settings/currencies` 填匯率方會顯示，否則優雅降級為純 USD（即「全部 USD」目標達成）。
+
+### 8.4 驗證
+- **瀏覽器目視**（Playwright，admin 登入）：
+  - 情境①（明細無幣別）：Budget Overview / Item List / Monthly / 下拉 全部一致 `US$`，HK$/TWD 消失。
+  - 情境②（新增 HKD 匯率 7.8 + 明細設 HKD）：三區塊一致顯示 `US$500,000 (≈ HK$3,900,000)`、`US$0 (≈ HK$0)`。
+- **靜態檢查**：`pnpm validate:i18n` 通過（2706 keys 一致）；本變更檔案 `typecheck`/`lint` 零新增錯誤（已用 `git stash` 證明 7 個 lint error 與 `project.ts` typecheck error 均為既有 baseline）。

@@ -104,6 +104,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { DualCurrency } from '@/components/shared/DualCurrency';
 
 // ============================================================
 // Types
@@ -129,6 +130,8 @@ export interface OMExpenseItemData {
     id: string;
     code: string;
     name: string;
+    symbol?: string | null;
+    exchangeRate?: number | null;
   } | null;
   monthlyRecords?: Array<{
     month: number;
@@ -151,18 +154,6 @@ interface OMExpenseItemListProps {
 // ============================================================
 // Helper Functions
 // ============================================================
-
-/**
- * 格式化金額（千分位）
- */
-function formatCurrency(amount: number): string {
-  const formatted = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-  return `US$${formatted}`;
-}
 
 /**
  * 格式化日期
@@ -287,12 +278,12 @@ function SortableRow({
 
       {/* Budget Amount */}
       <TableCell className="text-right font-mono">
-        {formatCurrency(item.budgetAmount)}
+        <DualCurrency amountUSD={item.budgetAmount} currency={item.currency} />
       </TableCell>
 
       {/* Actual Spent */}
       <TableCell className={cn('text-right font-mono', getUtilizationColor(utilization))}>
-        {formatCurrency(item.actualSpent)}
+        <DualCurrency amountUSD={item.actualSpent} currency={item.currency} />
       </TableCell>
 
       {/* Utilization */}
@@ -412,6 +403,14 @@ export default function OMExpenseItemList({
   }, [items]);
 
   const totalUtilization = calculateUtilization(totals.actualSpent, totals.budgetAmount);
+
+  // CHANGE-042: 全部明細同一幣別時，總計才顯示換算次值（否則只顯示 USD，避免混幣別錯加）
+  const sharedCurrency = useMemo(() => {
+    const firstItem = items[0];
+    if (!firstItem?.currency) return null;
+    const firstCurrency = firstItem.currency;
+    return items.every((item) => item.currency?.id === firstCurrency.id) ? firstCurrency : null;
+  }, [items]);
 
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
@@ -555,7 +554,7 @@ export default function OMExpenseItemList({
                           {t('items.itemCount', { defaultValue: '項' })})
                         </TableCell>
                         <TableCell className="text-right font-semibold font-mono">
-                          {formatCurrency(totals.budgetAmount)}
+                          <DualCurrency amountUSD={totals.budgetAmount} currency={sharedCurrency} />
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -563,7 +562,7 @@ export default function OMExpenseItemList({
                             getUtilizationColor(totalUtilization)
                           )}
                         >
-                          {formatCurrency(totals.actualSpent)}
+                          <DualCurrency amountUSD={totals.actualSpent} currency={sharedCurrency} />
                         </TableCell>
                         <TableCell
                           className={cn(

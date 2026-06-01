@@ -50,6 +50,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
+import { DualCurrency } from '@/components/shared/DualCurrency';
+import { formatUSD } from '@/lib/currency';
 
 // ============================================================
 // Types
@@ -72,6 +74,14 @@ export interface OMExpenseItemData {
     code: string;
     name: string;
   };
+  // CHANGE-042: 明細幣別（金額存 USD，此為次要顯示幣別）
+  currency?: {
+    id?: string;
+    code: string;
+    name?: string;
+    symbol?: string | null;
+    exchangeRate?: number | null;
+  } | null;
   monthlyRecords?: MonthlyRecord[];
 }
 
@@ -155,16 +165,6 @@ export default function OMExpenseItemMonthlyGrid({
     return 'text-green-600 dark:text-green-400';
   };
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'HKD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   // Update single month data
   const updateMonth = (month: number, amount: number) => {
     setMonthlyData((prev) =>
@@ -180,8 +180,8 @@ export default function OMExpenseItemMonthlyGrid({
       toast({
         title: tCommon('success'),
         description: t('monthlyGrid.saveSuccess', {
-          defaultValue: `月度記錄已更新，項目實際支出: ${formatCurrency(data?.actualSpent ?? totalActual)}`,
-          amount: formatCurrency(data?.actualSpent ?? totalActual),
+          defaultValue: `月度記錄已更新，項目實際支出: ${formatUSD(data?.actualSpent ?? totalActual)}`,
+          amount: formatUSD(data?.actualSpent ?? totalActual),
         }),
       });
       if (onSave) {
@@ -248,14 +248,16 @@ export default function OMExpenseItemMonthlyGrid({
             <div className="text-sm text-muted-foreground">
               {t('items.itemBudget', { defaultValue: '項目預算' })}
             </div>
-            <div className="text-lg font-semibold">{formatCurrency(item.budgetAmount)}</div>
+            <div className="text-lg font-semibold">
+              <DualCurrency amountUSD={item.budgetAmount} currency={item.currency} />
+            </div>
           </div>
           <div>
             <div className="text-sm text-muted-foreground">
               {t('detail.actualSpent')}
             </div>
             <div className={cn('text-lg font-semibold', getUtilizationColor(utilizationRate))}>
-              {formatCurrency(totalActual)}
+              <DualCurrency amountUSD={totalActual} currency={item.currency} />
             </div>
           </div>
           <div>
@@ -263,7 +265,7 @@ export default function OMExpenseItemMonthlyGrid({
               {t('detail.remainingBudget')}
             </div>
             <div className="text-lg font-semibold">
-              {formatCurrency(item.budgetAmount - totalActual)}
+              <DualCurrency amountUSD={item.budgetAmount - totalActual} currency={item.currency} />
             </div>
           </div>
           <div>
@@ -321,7 +323,7 @@ export default function OMExpenseItemMonthlyGrid({
               <tr className="border-t-2 font-semibold">
                 <td className="p-2">{t('monthlyGrid.total')}</td>
                 <td className={cn('p-2 text-right', getUtilizationColor(utilizationRate))}>
-                  {formatCurrency(totalActual)}
+                  <DualCurrency amountUSD={totalActual} currency={item.currency} />
                 </td>
               </tr>
             </tfoot>

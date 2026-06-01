@@ -2409,7 +2409,7 @@
       "saveButton": "儲存月度記錄",
       "saveSuccess": "月度記錄已更新，項目實際支出：{amount}",
       "monthColumn": "月份",
-      "amountColumn": "實際支出 (HKD)",
+      "amountColumn": "實際支出 (USD)",
       "total": "總計",
       "tips": {
         "title": "使用提示",
