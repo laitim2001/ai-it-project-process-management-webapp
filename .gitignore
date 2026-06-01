@@ -308,6 +308,19 @@ docs/codebase-analyze/drift-warnings.md
 .github/copilot/
 
 # ------------------------------------------------------------------------------
+# AI Assistant 工作產物 & 本地保留檔（不入版控）
+# ------------------------------------------------------------------------------
+# Playwright MCP 執行時 console log（執行產物）
+.playwright-mcp/
+
+# CLAUDE.md 舊版備份（內容可從 git 還原，保留本地）
+CLAUDE_bak_*.md
+
+# Session prompt / CLAUDE 參考範例素材（一次性參考，保留本地）
+docs/10-ai-assistant/*-sample.md
+docs/11-reference-sample/
+
+# ------------------------------------------------------------------------------
 # Keep These Files (whitelist)
 # ------------------------------------------------------------------------------
 # Explicitly keep certain files that might be caught by patterns above
