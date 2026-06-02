@@ -20,6 +20,63 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-02 | ✨ FEAT-015: Project Expense 月度模組（Phase 1）| 完成 ✅（待釐清 migration）
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ Phase 1 實作 + E2E 驗證完成；⚠️ migration 待釐清（見下）
+
+**背景**:
+- 專案原本完全沒有「按月」維度（年度預算掛 `Project.requestedBudget/approvedBudget`、實際支出由 PO→Expense 即時聚合）。
+- 需求 #1：比照 OM Expense 三層架構，為專案新增「按月手填」的預算 + 實際費用模組。
+
+**實現內容（比照 FEAT-007 OM 三層）**:
+1. **Schema**（`packages/db`）：新增 3 model — `ProjectExpense`（表頭，含 `financialYear` + 匯總欄）→ `ProjectExpenseItem`（明細，`currencyId`/`categoryId`/`opCoId` 皆可選 + `sortOrder` + 匯總欄）→ `ProjectExpenseMonthly`（月度，**每月 `budgetAmount` + `actualAmount` 兩欄**，比 OM 月度多預算欄，`@@unique([projectExpenseItemId, month])`）；`Project`/`Currency`/`ExpenseCategory`/`OperatingCompany` 加反向關聯。
+2. **API**（`packages/api`）：新增 `projectExpense` router（9 procedures：getByProject / createExpense / updateExpense / removeExpense / addItem / updateItem / removeItem / reorderItems / updateItemMonthlyRecords）；三層彙總回算（月度→明細→表頭）在 transaction 內維護；全 Zod；註冊到 `root.ts`。
+3. **前端**（`apps/web`）：新增 `components/project-expense/` 5 檔（types + ProjectExpenseForm/ItemList/ItemForm/ItemMonthlyGrid + ProjectExpensePanel 容器）；掛載於 Project 詳情頁底部全寬區塊。
+4. **雙幣別**：重用 CHANGE-042 `DualCurrency`（USD 主值 + 依 currencyId 換算次值；混幣別總計只顯 USD）。
+5. **i18n**：新增 `projectExpenses` namespace（+77 keys，雙語）。
+
+**驗證**:
+- `validate:i18n` 通過（2794 keys 一致）；`projectExpense.ts` + `project-expense/` 組件 typecheck/lint **零錯誤零警告**（baseline 既有錯誤不在本次檔案）。
+- **Playwright E2E（admin，UUID 專案）**：建費用表 → 加明細（設 CLOUD 類別 / RHK OpCo / HKD 幣別）→ 月度填 Jan(預算10000/實際8000)+Feb(6000/5000) → 存檔。**三層彙總正確**：明細與表頭皆 Budget US$16,000 / Actual US$13,000 / 81.3%；**雙幣別正確**：US$16,000 (≈ HK$124,800，匯率 7.8)；與 Budget Usage 卡片**明確分離、不相加**（D11/R8）；edit-item 預填正確、存檔保留彙總。
+
+**關鍵決策**:
+- `createExpense` 僅建表頭，明細由 `addItem` 另行新增（簡化，符合「先建表再加明細」UX）。
+- 新增**容器組件 `ProjectExpensePanel`**（規劃為 4 組件，實際 5）：因無獨立 detail page（掛 Project 詳情頁），需容器編排查詢/對話框/mutation。
+- `categoryId`/`opCoId` v1 設為可選（OM 明細 opCoId 必填，此處刻意放寬，見 02-tech §1）。
+
+**⚠️ Migration 待釐清（紅旗）**:
+- FEAT-015 schema 以 **`prisma db push`** 套用（沿用 CHANGE-042/043 精準），dev DB 已有 3 表。
+- **但 FIX-141 的 `00000000000000_init` baseline 實際不含 FEAT-015 三表**（經 `grep` 確認），與 FIX-141 log「已含 FEAT-015 三表」之記載矛盾 → 代表 FIX-141 早於本 session 的 schema 變更執行。
+- 影響：schema.prisma 與 migrations 現有 drift；若僅憑現有 migrations 做全新 `migrate deploy`，會缺 FEAT-015 三表。**需與使用者確認**：(a) 重生 baseline 納入 FEAT-015、(b) 為 FEAT-015 補一支獨立 migration、或 (c) 維持 db push 並於 FIX-141 提交時一併處理。
+
+**相關文件**: `claudedocs/1-planning/features/FEAT-015-project-expense-monthly/`（01~03 + 04-progress）、`packages/api/src/routers/projectExpense.ts`、`apps/web/src/components/project-expense/`
+
+---
+
+### 2026-06-02 | 🔧 FIX-141: 重建 Prisma Migration Baseline，恢復 `migrate dev` | 本機完成 ✅
+
+**類型**: Chore / 基礎設施 | **負責人**: AI 助手（破壞性操作經使用者逐步確認）| **狀態**: ✅ 本機 dev 完成；⏳ Azure 正式環境待團隊執行
+
+**背景**:
+- `prisma migrate dev` 長期無法運作：缺少建立 base tables 的 init migration（base schema 由 `db push` 建立、未捕捉成 migration），最早的 `20251126100000_add_currency` 直接 ALTER 不存在的 `BudgetPool`，shadow DB 重放報 P3006 / P1014。即 CHANGE-043 記載的「既有基礎設施債」。
+
+**實現內容**:
+1. **Squash baseline**：以 git **HEAD 的 schema（pre-FEAT-015，32 模型）** `migrate diff --from-empty` 產生 `00000000000000_init`（32 tables / 59 FK）。
+2. **封存 7 個舊 migration** → `packages/db/prisma/_archived-migrations-pre-baseline/`（非冪等的 #1/#6/#7 無法與前置 init 共存，故只能 squash）。
+3. **重置 dev `_prisma_migrations`**（先備份）為單一 init 記錄（`DELETE` + `migrate resolve --applied`），不重跑 SQL、不動既有資料、未 reset。
+4. **修正 `.gitignore`** 行內註解 bug（第 289 行 `# Allow...` 使 migration SQL 反向規則失效，導致所有 migration SQL 被 `*.sql` 忽略）→ init 與封存 migration 可進版控。
+
+**驗證**: init@32 重放 vs dev DB **空 diff**（無 drift）；vs 工作區 schema@35 列出 FEAT-015 三表待建（工作流就緒）；`migrate status` up to date；`migrate deploy` no pending；`migrate dev --create-only` 不再噴 P3006。
+
+**關鍵決策**:
+- baseline 定在 **HEAD（32 模型，pre-FEAT-015），完全排除 FEAT-015**（經使用者確認，避免 commit 不一致）；從 dev DB drop 3 個空的 FEAT-015 表，FEAT-015 日後由 `migrate dev` 成為**第一個正式 migration**（解 line 47-50 FEAT-015 log 提出的選項 b）。
+- **未觸碰** FEAT-015 / FIX-140 等進行中未提交工作；baseline commit 完全不含 FEAT-015。
+- Azure 正式環境需做相同 `_prisma_migrations` 重置（init@32 與正式環境一致，同步單純）——詳見 FIX 文件。
+
+**相關文件**: `claudedocs/4-changes/bug-fixes/FIX-141-prisma-migration-baseline.md`、`packages/db/prisma/_archived-migrations-pre-baseline/README.md`
+
+---
+
 ### 2026-06-02 | 📝 CHANGE-043: Budget Proposal 會議記錄欄位擴充 | 完成 ✅
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成

@@ -1,4 +1,115 @@
 {
+  "projectExpenses": {
+    "panel": {
+      "title": "Project Expense (Monthly)",
+      "description": "Manually manage project budget and actuals by year and month",
+      "separationNote": "This module tracks manually-entered monthly project expenses. It is a separate record from the \"Budget Usage\" above (actual spend derived from purchase orders / expense records) and is shown independently — the two are never summed together.",
+      "addExpense": "Add Expense Sheet",
+      "noExpenses": "No expense sheets yet",
+      "addFirstExpense": "Click the button above to add the first expense sheet",
+      "noDescription": "(No description)"
+    },
+    "form": {
+      "createTitle": "Add Expense Sheet",
+      "editTitle": "Edit Expense Sheet",
+      "deleteTitle": "Delete Expense Sheet",
+      "subtitle": "An expense sheet groups a year's project expenses; add line items below after creating it",
+      "name": {
+        "label": "Sheet Name",
+        "placeholder": "e.g. 2026 IT Operations"
+      },
+      "financialYear": {
+        "label": "Financial Year",
+        "placeholder": "e.g. 2026"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Optional"
+      },
+      "createSuccess": "Expense sheet created",
+      "updateSuccess": "Expense sheet updated",
+      "deleteSuccess": "Expense sheet deleted",
+      "confirmDeleteTitle": "Delete Expense Sheet",
+      "confirmDelete": "Are you sure you want to delete this expense sheet? All its line items and monthly records will also be deleted. This action cannot be undone."
+    },
+    "fields": {
+      "annualBudget": "Annual Budget",
+      "annualActual": "Annual Actual",
+      "utilizationRate": "Utilization"
+    },
+    "items": {
+      "addItem": "Add Item",
+      "noItems": "No line items yet",
+      "addFirstItem": "Click \"Add Item\" to get started",
+      "total": "Total",
+      "itemCount": "items",
+      "dragToReorder": "Drag to reorder",
+      "clickToEdit": "Click to edit",
+      "editMonthly": "Edit monthly records",
+      "editItem": "Edit item",
+      "removeItem": "Delete item",
+      "confirmDeleteTitle": "Confirm Delete",
+      "confirmDelete": "Are you sure you want to delete this item? Its monthly records will also be deleted. This action cannot be undone.",
+      "createTitle": "Add Item",
+      "editTitle": "Edit Item",
+      "subtitle": "Enter the item’s amounts by month (budget + actual) in the monthly grid",
+      "addSuccess": "Item added",
+      "updateSuccess": "Item updated",
+      "deleteSuccess": "Item deleted"
+    },
+    "itemFields": {
+      "name": {
+        "label": "Item Name",
+        "placeholder": "e.g. Data center operations"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Optional"
+      },
+      "category": {
+        "label": "Expense Category",
+        "placeholder": "(None)"
+      },
+      "opCo": {
+        "label": "OpCo",
+        "placeholder": "(None)"
+      },
+      "currency": {
+        "label": "Display Currency",
+        "placeholder": "(None, USD only)"
+      }
+    },
+    "monthlyGrid": {
+      "title": "Monthly Records",
+      "description": "Enter this item's budget and actual amounts for each month (in USD)",
+      "saveButton": "Save Monthly Records",
+      "saveSuccess": "Monthly records updated",
+      "monthColumn": "Month",
+      "budgetColumn": "Budget (USD)",
+      "actualColumn": "Actual (USD)",
+      "total": "Total",
+      "months": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      },
+      "tips": {
+        "title": "Tips",
+        "enterAmounts": "Enter the budget and actual amounts for each month",
+        "autoCalculate": "Annual budget, annual actual and utilization are calculated automatically",
+        "clickSave": "Click \"Save Monthly Records\" to save all changes"
+      }
+    }
+  },
   "common": {
     "actions": {
       "actions": "Actions",

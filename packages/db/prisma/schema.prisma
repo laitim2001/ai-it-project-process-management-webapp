@@ -235,6 +235,7 @@ model Project {
   chargeOuts     ChargeOut[] // 新增：費用轉嫁
   chargeOutOpCos ProjectChargeOutOpCo[] // FEAT-006: 向哪些 OpCo 收費（多選）
   projectBudgetCategories ProjectBudgetCategory[] // CHANGE-038: 專案預算類別同步
+  projectExpenses ProjectExpense[] // FEAT-015: 專案費用月度模組（表頭）
 
   @@index([managerId])
   @@index([supervisorId])
@@ -497,6 +498,9 @@ model OperatingCompany {
   omExpenseDefaults OMExpense[]     @relation("OMExpenseDefaultOpCo") // 新增：預設 OpCo 關聯
   omExpensesLegacy  OMExpense[]     @relation("OMExpenseLegacyOpCo") // 舊版關聯（向後兼容）
 
+  // FEAT-015: 專案費用月度模組明細關聯
+  projectExpenseItems ProjectExpenseItem[]
+
   // FEAT-009: 用戶權限關聯
   userPermissions UserOperatingCompany[]
 
@@ -688,6 +692,7 @@ model ExpenseCategory {
   // 關聯
   expenseItems ExpenseItem[] // CHANGE-003: 費用明細項目
   omExpenses   OMExpense[] // OM 費用
+  projectExpenseItems ProjectExpenseItem[] // FEAT-015: 專案費用明細
 
   @@index([code])
   @@index([isActive])
@@ -857,6 +862,85 @@ model OMExpenseMonthly {
 }
 
 // ==================================================================
+// 7.5 專案費用月度模型 (Project Expense Monthly Models)
+// FEAT-015: 比照 OM 三層架構（表頭-明細-月度），月度同時有預算+實際
+// 與 PO→Expense 為「同一筆錢的兩種記法」，v1 各自獨立、不相加、不自動同步
+// ==================================================================
+
+// 專案費用表頭（一個 Project 可有多份費用表）
+model ProjectExpense {
+  id          String  @id @default(uuid())
+  projectId   String
+  name        String  // 費用表名稱（如「2026 年度 IT 維運」）
+  description String? @db.Text
+  financialYear Int   // 年度（Q-G：放表頭，比照 OM）
+
+  // 匯總數據（由所有明細加總自動維護，API 層計算寫入，前端不可直接寫）
+  totalBudgetAmount Float @default(0) // = SUM(items.totalBudgetAmount)
+  totalActualSpent  Float @default(0) // = SUM(items.totalActualSpent)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  project Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items   ProjectExpenseItem[]
+
+  @@index([projectId])
+  @@index([financialYear])
+}
+
+// 專案費用明細（掛在表頭下；Q-F：加 categoryId / opCoId，v1 皆可選）
+model ProjectExpenseItem {
+  id               String  @id @default(uuid())
+  projectExpenseId String
+  name             String  // 明細名稱
+  description      String? @db.Text
+  currencyId       String? // 次要顯示幣別（金額仍存 USD）
+  categoryId       String? // 費用類別（FK→ExpenseCategory；v1 可選）
+  opCoId           String? // OpCo（FK→OperatingCompany；v1 可選）
+  sortOrder        Int     @default(0) // 拖曳排序（比照 OM）
+
+  // 匯總數據（由 12 月加總自動維護，API 層計算寫入，前端不可直接寫）
+  totalBudgetAmount Float @default(0) // = SUM(monthly.budgetAmount)
+  totalActualSpent  Float @default(0) // = SUM(monthly.actualAmount)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  projectExpense ProjectExpense          @relation(fields: [projectExpenseId], references: [id], onDelete: Cascade)
+  currency       Currency?               @relation("ProjectExpenseItemCurrency", fields: [currencyId], references: [id])
+  category       ExpenseCategory?        @relation(fields: [categoryId], references: [id])
+  opCo           OperatingCompany?       @relation(fields: [opCoId], references: [id])
+  monthly        ProjectExpenseMonthly[]
+
+  @@index([projectExpenseId])
+  @@index([currencyId])
+  @@index([categoryId])
+  @@index([opCoId])
+  @@index([sortOrder])
+}
+
+// 月度記錄（每個明細 12 筆；比 OM 月度多 budgetAmount）
+model ProjectExpenseMonthly {
+  id                   String @id @default(uuid())
+  projectExpenseItemId String
+  month                Int    // 1-12
+  budgetAmount         Float  @default(0) // 月度預算（USD）— OM 月度沒有此欄位
+  actualAmount         Float  @default(0) // 月度實際（USD）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  item ProjectExpenseItem @relation(fields: [projectExpenseItemId], references: [id], onDelete: Cascade)
+
+  @@unique([projectExpenseItemId, month]) // 每明細每月唯一（比照 OM）
+  @@index([projectExpenseItemId])
+}
+
+// ==================================================================
 // 8. 費用轉嫁模型 (Charge Out Models)
 // Post-MVP Enhancement - Module 7 & 8
 // ==================================================================
@@ -954,6 +1038,7 @@ model Currency {
   purchaseOrders PurchaseOrder[] @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
   expenses       Expense[]       @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
   omExpenseItems OMExpenseItem[] @relation("OMExpenseItemCurrency") // FEAT-007: OM 費用明細項目
+  projectExpenseItems ProjectExpenseItem[] @relation("ProjectExpenseItemCurrency") // FEAT-015: 專案費用明細
 
   @@index([code])
   @@index([active])

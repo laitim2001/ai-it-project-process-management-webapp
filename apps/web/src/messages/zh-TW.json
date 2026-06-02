@@ -1,4 +1,115 @@
 {
+  "projectExpenses": {
+    "panel": {
+      "title": "專案費用（月度）",
+      "description": "依年度與月份手動管理專案的預算與實際費用",
+      "separationNote": "此模組為「按月手填」的專案費用，與上方「預算使用情況」（來自採購單／費用單據的實際支出）為兩種不同記法，畫面分開呈現、不互相加總。",
+      "addExpense": "新增費用表",
+      "noExpenses": "尚無費用表",
+      "addFirstExpense": "點擊上方按鈕新增第一張費用表",
+      "noDescription": "（無描述）"
+    },
+    "form": {
+      "createTitle": "新增費用表",
+      "editTitle": "編輯費用表",
+      "deleteTitle": "刪除費用表",
+      "subtitle": "費用表為一個年度的專案費用集合，建立後可於下方新增明細",
+      "name": {
+        "label": "費用表名稱",
+        "placeholder": "例如：2026 年度 IT 維運"
+      },
+      "financialYear": {
+        "label": "財務年度",
+        "placeholder": "例如：2026"
+      },
+      "description": {
+        "label": "描述",
+        "placeholder": "選填"
+      },
+      "createSuccess": "費用表已建立",
+      "updateSuccess": "費用表已更新",
+      "deleteSuccess": "費用表已刪除",
+      "confirmDeleteTitle": "確認刪除費用表",
+      "confirmDelete": "確定要刪除此費用表嗎？其下所有明細與月度記錄也會一併刪除。此操作無法復原。"
+    },
+    "fields": {
+      "annualBudget": "年度預算",
+      "annualActual": "年度實際",
+      "utilizationRate": "執行率"
+    },
+    "items": {
+      "addItem": "新增明細",
+      "noItems": "尚無明細",
+      "addFirstItem": "點擊「新增明細」開始建立",
+      "total": "總計",
+      "itemCount": "項",
+      "dragToReorder": "拖曳以排序",
+      "clickToEdit": "點擊編輯",
+      "editMonthly": "編輯月度記錄",
+      "editItem": "編輯明細",
+      "removeItem": "刪除明細",
+      "confirmDeleteTitle": "確認刪除",
+      "confirmDelete": "確定要刪除此明細嗎？相關的月度記錄也會一併刪除。此操作無法復原。",
+      "createTitle": "新增明細",
+      "editTitle": "編輯明細",
+      "subtitle": "明細的金額請於月度網格按月填寫（預算 + 實際）",
+      "addSuccess": "明細已新增",
+      "updateSuccess": "明細已更新",
+      "deleteSuccess": "明細已刪除"
+    },
+    "itemFields": {
+      "name": {
+        "label": "明細名稱",
+        "placeholder": "例如：機房維運"
+      },
+      "description": {
+        "label": "描述",
+        "placeholder": "選填"
+      },
+      "category": {
+        "label": "費用類別",
+        "placeholder": "（不指定）"
+      },
+      "opCo": {
+        "label": "OpCo",
+        "placeholder": "（不指定）"
+      },
+      "currency": {
+        "label": "顯示幣別",
+        "placeholder": "（不指定，僅顯示 USD）"
+      }
+    },
+    "monthlyGrid": {
+      "title": "月度記錄",
+      "description": "分別填寫此明細各月份的「預算」與「實際」金額（皆以 USD 計）",
+      "saveButton": "儲存月度記錄",
+      "saveSuccess": "月度記錄已更新",
+      "monthColumn": "月份",
+      "budgetColumn": "預算 (USD)",
+      "actualColumn": "實際 (USD)",
+      "total": "總計",
+      "months": {
+        "jan": "一月",
+        "feb": "二月",
+        "mar": "三月",
+        "apr": "四月",
+        "may": "五月",
+        "jun": "六月",
+        "jul": "七月",
+        "aug": "八月",
+        "sep": "九月",
+        "oct": "十月",
+        "nov": "十一月",
+        "dec": "十二月"
+      },
+      "tips": {
+        "title": "使用提示",
+        "enterAmounts": "分別輸入每個月的預算與實際金額",
+        "autoCalculate": "系統會自動計算年度預算、年度實際與執行率",
+        "clickSave": "點擊「儲存月度記錄」按鈕儲存所有變更"
+      }
+    }
+  },
   "common": {
     "actions": {
       "actions": "操作",

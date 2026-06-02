@@ -85,6 +85,7 @@ import {
 import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, DollarSign, TrendingUp, Package, PieChart, AlertCircle, RotateCcw, Layers } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { BudgetCategoryDetails } from '@/components/project/BudgetCategoryDetails';
+import ProjectExpensePanel from '@/components/project-expense/ProjectExpensePanel'; // FEAT-015: 專案費用月度模組
 
 export default function ProjectDetailPage() {
   const t = useTranslations('projects.detail');
@@ -1217,6 +1218,9 @@ export default function ProjectDetailPage() {
             </Card>
           </div>
         </div>
+
+        {/* FEAT-015: 專案費用月度模組（與上方 PO→Expense 預算使用情況卡片獨立呈現、不相加） */}
+        <ProjectExpensePanel projectId={id} />
       </div>
     </DashboardLayout>
   );
