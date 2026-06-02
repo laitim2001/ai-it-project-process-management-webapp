@@ -1,7 +1,7 @@
 # FEAT-015: Project Expense 月度模組 — 進度與實施記錄
 
 > **建立日期**: 2026-06-02
-> **狀態**: ✅ Phase 1 完成（實作 + E2E 驗證）｜⚠️ migration 待釐清
+> **狀態**: ✅ Phase 1 完成（實作 + E2E 驗證 + 獨立 migration）
 > **對應**: `./01-requirements.md`、`./02-technical-design.md`、`./03-implementation-plan.md`
 
 ---
@@ -58,19 +58,22 @@
 - [x] 金額顯示為 USD 主值 +（有匯率時）換算次值（HKD 7.8 驗證正確）
 - [x] 專案詳情頁可見此模組，且與既有 PO→Expense 預算使用卡片清楚分開、無相加
 - [x] 明細可編輯（驗證預填 + 存檔保留彙總）；刪除/排序與 OM 同模式（API 已驗 typecheck，UI 未逐一點擊）
-- [x] `db:generate`/`typecheck`/`lint`/`validate:i18n` 通過（schema 以 db push 套用，見 §5）
+- [x] `db:generate`/`typecheck`/`lint`/`validate:i18n` 通過；schema 已補正式 migration（`migrate status` up to date，見 §5）
 
 ---
 
-## 5. ⚠️ Migration 待釐清（重要）
+## 5. Migration（已補獨立 migration ✅）
 
-- FEAT-015 schema 以 **`prisma db push`** 套用（沿用 CHANGE-042/043 既定做法），dev DB 已有 3 表，app E2E 驗證通過。
-- **FIX-141 的 `00000000000000_init` baseline 經 `grep` 確認不含 FEAT-015 三表**，與 FIX-141 在 DEVELOPMENT-LOG 的記載（「已含 FEAT-015 三表」）矛盾 → FIX-141 早於本 session 的 schema 變更執行。
-- **後果**：schema.prisma（有 FEAT-015）與 migrations（init 無 FEAT-015）存在 drift；新環境僅憑現有 migrations `migrate deploy` 會缺 FEAT-015 三表。
-- **待使用者決定**（三選一）：
-  1. **重生 baseline**：以當前 schema 重跑 `migrate diff` 覆蓋 `00000000000000_init`（使其名實相符，含 FEAT-015）。
-  2. **補獨立 migration**：`migrate dev --create-only --name feat015_project_expense` 在 baseline 之上新增一支，再 `migrate resolve --applied`（dev DB 已有表）。
-  3. **維持 db push**：於 FIX-141 正式提交時一併處理（FIX-141 為未提交的他人任務）。
+- FEAT-015 schema 最初以 `prisma db push` 套用（dev DB 已有 3 表，E2E 驗證通過）。
+- **背景**：FIX-141（commit `50c06aa`）刻意建立 **pre-FEAT-015** baseline（`00000000000000_init`，32 tables），其 commit 訊息已預告「FEAT-015 將由後續 migrate dev 產生獨立 migration」。
+- **處理（經使用者選定「補獨立 migration」）**：
+  - 以 `prisma migrate diff --from-schema-datamodel <pre-FEAT-015 schema> --to-schema-datamodel <當前 schema> --script` 產生 delta SQL（3 表 + 8 索引 + 唯一約束 + 6 FK）。
+  - 寫入 `prisma/migrations/20260602110000_feat015_project_expense/migration.sql`。
+  - 以 `prisma migrate resolve --applied` 標記（dev DB 已有表，**不重跑 SQL、無 reset、無資料遺失**）。
+  - 驗證：`migrate status` → 2 migrations、up to date、無 drift。
+  - commit：`a137df5`。
+- **結果**：schema.prisma ↔ migrations 一致；新環境 `migrate deploy` 會建立含 FEAT-015 的完整 schema。
+- **註**：FIX-141 在 DEVELOPMENT-LOG 的條目有一句「baseline 含 FEAT-015 三表（35 模型）」與其 commit 訊息（pre-FEAT-015、32 tables）及實際 init SQL（grep=0）不符 —— 屬 FIX-141 範圍的 stale 文字，本 FEAT 未擅改。
 
 ---
 

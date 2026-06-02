@@ -2,7 +2,7 @@
 
 > **建立日期**: 2026-06-01
 > **最後更新**: 2026-06-02
-> **狀態**: ✅ Phase 1 完成（實作 + E2E 驗證；⚠️ migration 待釐清，見 `./04-progress.md` §5）
+> **狀態**: ✅ Phase 1 完成（實作 + E2E 驗證 + 獨立 migration，見 `./04-progress.md`）
 > **優先級**: High
 > **前置依賴**: CHANGE-042（重用貨幣換算 helper 與雙幣別顯示組件）
 > **參考實作**: FEAT-007（OM Expense 表頭-明細-月度三層架構）
@@ -76,7 +76,7 @@
 - [x] 金額顯示為 USD 主值 +（有匯率時）換算次值
 - [x] 專案詳情頁可見此模組，且與既有 PO→Expense 預算使用卡片**清楚分開、無相加**
 - [x] 明細可編輯/刪除/排序（編輯已 E2E 驗證；刪除/排序與 OM 同模式，typecheck 通過）
-- [x] `db:generate`/`typecheck`/`lint`/`validate:i18n` 通過（schema 以 `db push` 套用，migration 待釐清見 `./04-progress.md` §5）
+- [x] `db:generate`/`typecheck`/`lint`/`validate:i18n` 通過；已補正式 migration（`migrate status` up to date，見 `./04-progress.md` §5）
 
 ---
 

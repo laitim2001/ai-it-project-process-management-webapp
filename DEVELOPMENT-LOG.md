@@ -20,9 +20,9 @@
 
 ## 🚀 開發記錄
 
-### 2026-06-02 | ✨ FEAT-015: Project Expense 月度模組（Phase 1）| 完成 ✅（待釐清 migration）
+### 2026-06-02 | ✨ FEAT-015: Project Expense 月度模組（Phase 1）| 完成 ✅
 
-**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ Phase 1 實作 + E2E 驗證完成；⚠️ migration 待釐清（見下）
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ Phase 1 完成（實作 + E2E 驗證 + 獨立 migration）
 
 **背景**:
 - 專案原本完全沒有「按月」維度（年度預算掛 `Project.requestedBudget/approvedBudget`、實際支出由 PO→Expense 即時聚合）。
@@ -44,10 +44,11 @@
 - 新增**容器組件 `ProjectExpensePanel`**（規劃為 4 組件，實際 5）：因無獨立 detail page（掛 Project 詳情頁），需容器編排查詢/對話框/mutation。
 - `categoryId`/`opCoId` v1 設為可選（OM 明細 opCoId 必填，此處刻意放寬，見 02-tech §1）。
 
-**⚠️ Migration 待釐清（紅旗）**:
-- FEAT-015 schema 以 **`prisma db push`** 套用（沿用 CHANGE-042/043 精準），dev DB 已有 3 表。
-- **但 FIX-141 的 `00000000000000_init` baseline 實際不含 FEAT-015 三表**（經 `grep` 確認），與 FIX-141 log「已含 FEAT-015 三表」之記載矛盾 → 代表 FIX-141 早於本 session 的 schema 變更執行。
-- 影響：schema.prisma 與 migrations 現有 drift；若僅憑現有 migrations 做全新 `migrate deploy`，會缺 FEAT-015 三表。**需與使用者確認**：(a) 重生 baseline 納入 FEAT-015、(b) 為 FEAT-015 補一支獨立 migration、或 (c) 維持 db push 並於 FIX-141 提交時一併處理。
+**Migration（已補獨立 migration ✅，commit `a137df5`）**:
+- FEAT-015 schema 最初以 `db push` 套用；FIX-141（`50c06aa`）刻意為 pre-FEAT-015 baseline（其 commit 訊息已預告 FEAT-015 將由後續 migrate dev 補 migration）。
+- 經使用者選定「補獨立 migration」：以 `migrate diff`（pre-FEAT-015 schema → 當前 schema）產生 delta SQL（3 表 + 8 索引 + 唯一約束 + 6 FK）→ 寫入 `20260602110000_feat015_project_expense/` → `migrate resolve --applied`（dev DB 已有表，不重跑、無 reset、無資料遺失）。
+- `migrate status`：2 migrations、up to date、無 drift。schema.prisma ↔ migrations 一致。
+- 註：FIX-141 的 DEVELOPMENT-LOG 條目有一句「baseline 含 FEAT-015 三表（35 模型）」與其 commit 訊息（pre-FEAT-015、32 tables）及實際 SQL 不符（stale），屬 FIX-141 範圍未擅改。
 
 **相關文件**: `claudedocs/1-planning/features/FEAT-015-project-expense-monthly/`（01~03 + 04-progress）、`packages/api/src/routers/projectExpense.ts`、`apps/web/src/components/project-expense/`
 
