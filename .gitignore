@@ -286,7 +286,10 @@ reports/
 *.sql
 *.dump
 !scripts/init-db.sql  # Allow initialization scripts
-!packages/db/prisma/migrations/**/*.sql  # Allow Prisma migration SQL files
+# Allow Prisma migration SQL files (注意：.gitignore 不支援行內註解，註解須獨立成行)
+!packages/db/prisma/migrations/**/*.sql
+# Allow archived pre-baseline migrations for reference (squash baseline, FIX-141)
+!packages/db/prisma/_archived-migrations-pre-baseline/**/migration.sql
 
 # ------------------------------------------------------------------------------
 # AI & LLM Tools
