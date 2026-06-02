@@ -57,20 +57,13 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
-import { Link, useRouter } from "@/i18n/routing";
-import { api } from '@/lib/trpc';
+import { Plus, FileText, LayoutGrid, List, Search, Trash2, ClipboardCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
+import { useState, useMemo } from 'react';
+
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
+import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,10 +74,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
-import { Plus, FileText, LayoutGrid, List, Search, Trash2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { CurrencyDisplay } from '@/components/shared/CurrencyDisplay';
+import { Link, useRouter } from "@/i18n/routing";
+import { api } from '@/lib/trpc';
 
 type ProposalStatus = 'Draft' | 'PendingApproval' | 'Approved' | 'Rejected' | 'MoreInfoRequired';
 
@@ -313,6 +316,12 @@ export default function ProposalsPage() {
                 <List className="h-4 w-4" />
               </Button>
             </div>
+            <Link href="/proposals/pending">
+              <Button variant="outline">
+                <ClipboardCheck className="h-4 w-4 mr-2" />
+                {t('pending.title')}
+              </Button>
+            </Link>
             <Link href="/proposals/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />

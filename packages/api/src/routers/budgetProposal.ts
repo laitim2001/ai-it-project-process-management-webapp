@@ -53,14 +53,155 @@
  * @lastModified 2025-11-14
  */
 
-import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
+
+import type { Prisma } from '@itpm/db';
 
 /**
  * FIX-106: 安全的 User select 欄位，避免洩漏密碼 hash
  */
 const safeUserSelect = { id: true, name: true, email: true, image: true } as const;
+
+/**
+ * FEAT-014: 含審批流程進度的提案 include（時間線 / 待我審批 / 步驟操作回傳共用）
+ */
+const proposalApprovalInclude = {
+  project: {
+    include: {
+      manager: { select: safeUserSelect },
+      supervisor: { select: safeUserSelect },
+      budgetPool: true,
+      currency: true,
+    },
+  },
+  vendor: true,
+  workflow: {
+    include: {
+      steps: { include: { role: true }, orderBy: { sequence: 'asc' } },
+    },
+  },
+  approvalProgress: {
+    orderBy: { sequence: 'asc' },
+    include: {
+      step: { include: { role: true } },
+      approver: { select: safeUserSelect },
+    },
+  },
+} satisfies Prisma.BudgetProposalInclude;
+
+/**
+ * FEAT-014: 解析提案適用的審批流程
+ *
+ * Phase 1：取唯一一條 isActive 且至少有一個步驟的流程；多條時依
+ * isDefault → matchPriority → createdAt 優先（Phase 2 規則引擎再依
+ * proposalType / 金額門檻細分）。找不到則回傳 null（呼叫端走 Q-D 舊單階段 fallback）。
+ */
+async function resolveWorkflow(prisma: Prisma.TransactionClient) {
+  const workflows = await prisma.approvalWorkflow.findMany({
+    where: { isActive: true },
+    include: { steps: { orderBy: { sequence: 'asc' } } },
+    orderBy: [
+      { isDefault: 'desc' },
+      { matchPriority: 'desc' },
+      { createdAt: 'desc' },
+    ],
+  });
+  return workflows.find((w) => w.steps.length > 0) ?? null;
+}
+
+/**
+ * FEAT-014: 通知某審批角色的所有使用者「提案已進入需你審批的步驟」
+ * 重用已註冊的 PROPOSAL_SUBMITTED 類型（避免發送未註冊類型）。
+ */
+async function notifyStepApprovers(
+  tx: Prisma.TransactionClient,
+  opts: {
+    proposalId: string;
+    proposalTitle: string;
+    approverRoleId: number;
+    submitterName?: string | null;
+  }
+): Promise<void> {
+  const approvers = await tx.user.findMany({
+    where: { roleId: opts.approverRoleId },
+    select: { id: true },
+  });
+  if (approvers.length === 0) return;
+
+  await tx.notification.createMany({
+    data: approvers.map((u) => ({
+      userId: u.id,
+      type: 'PROPOSAL_SUBMITTED',
+      title: '預算提案待您審批',
+      message: `${opts.submitterName || '提案人'} 的預算提案「${opts.proposalTitle}」已進入需要您審批的步驟。`,
+      link: `/proposals/${opts.proposalId}`,
+      entityType: 'PROPOSAL',
+      entityId: opts.proposalId,
+    })),
+  });
+}
+
+/**
+ * FEAT-014: 載入提案的「當前審批步驟」並做角色檢查（approveStep/rejectStep/requestMoreInfoStep 共用）
+ *
+ * 錯誤以 cause.reason 帶穩定識別碼（backend-api.md 規則：前端依 reason 分支，非比對 message）：
+ * - NOT_WORKFLOW_PROPOSAL：提案未綁定流程（應走舊單階段 approve）
+ * - NOT_PENDING：提案非待審批狀態
+ * - STEP_NOT_FOUND：找不到當前步驟進度（資料異常）
+ * - NOT_YOUR_STEP：登入者角色非當前步驟審批角色
+ */
+async function loadCurrentStep(
+  prisma: Prisma.TransactionClient,
+  proposalId: string,
+  actingRoleId: number
+) {
+  const proposal = await prisma.budgetProposal.findUnique({
+    where: { id: proposalId },
+    include: {
+      project: true,
+      approvalProgress: { orderBy: { sequence: 'asc' } },
+    },
+  });
+
+  if (!proposal) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該預算提案' });
+  }
+  if (proposal.workflowId == null || proposal.currentStepSequence == null) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: '此提案未綁定審批流程，請使用單階段審批',
+      cause: { reason: 'NOT_WORKFLOW_PROPOSAL' },
+    });
+  }
+  if (proposal.status !== 'PendingApproval') {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: '只有待審批狀態的提案可以進行審批',
+      cause: { reason: 'NOT_PENDING' },
+    });
+  }
+  const currentProgress = proposal.approvalProgress.find(
+    (p) => p.sequence === proposal.currentStepSequence
+  );
+  if (!currentProgress) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: '找不到當前審批步驟的進度記錄',
+      cause: { reason: 'STEP_NOT_FOUND' },
+    });
+  }
+  if (actingRoleId !== currentProgress.approverRoleId) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: '您不是當前審批步驟的指定審批角色',
+      cause: { reason: 'NOT_YOUR_STEP' },
+    });
+  }
+  return { proposal, currentProgress };
+}
 
 /**
  * 預算提案狀態枚舉
@@ -105,6 +246,24 @@ const budgetProposalApprovalInputSchema = z.object({
 const commentInputSchema = z.object({
   budgetProposalId: z.string().min(1, '無效的提案ID'),
   content: z.string().min(1, '評論內容不能為空'),
+});
+
+// FEAT-014: 序列審批步驟操作 Schema
+const approveStepInputSchema = z.object({
+  id: z.string().min(1, '無效的提案ID'),
+  comment: z.string().optional(),
+  // 僅最末步核准時採用；前面步驟忽略此值（最末步通過才整案 Approved 並寫入 Project.approvedBudget）
+  approvedAmount: z.number().min(0, '批准金額必須大於等於0').optional(),
+});
+
+const rejectStepInputSchema = z.object({
+  id: z.string().min(1, '無效的提案ID'),
+  reason: z.string().min(1, '駁回原因為必填'),
+});
+
+const requestMoreInfoStepInputSchema = z.object({
+  id: z.string().min(1, '無效的提案ID'),
+  comment: z.string().min(1, '補件說明為必填'),
 });
 
 /**
@@ -214,6 +373,19 @@ export const budgetProposalRouter = createTRPCRouter({
             },
           },
           vendor: true, // CHANGE-043: Pay to
+          // FEAT-014: 審批流程 + 各步驟進度（提案詳情頁時間線）
+          workflow: {
+            include: {
+              steps: { include: { role: true }, orderBy: { sequence: 'asc' } },
+            },
+          },
+          approvalProgress: {
+            orderBy: { sequence: 'asc' },
+            include: {
+              step: { include: { role: true } },
+              approver: { select: safeUserSelect },
+            },
+          },
           comments: {
             include: {
               user: { select: safeUserSelect },
@@ -337,22 +509,23 @@ export const budgetProposalRouter = createTRPCRouter({
 
   /**
    * 提交提案審批（Draft/MoreInfoRequired → PendingApproval）
+   *
+   * FEAT-014:
+   * - 首次提交：解析適用的審批流程（Q-B 快照綁定）→ 建立各步驟 progress →
+   *   currentStepSequence = 第一步 → 通知第一步角色。無 active 流程則走 Q-D 舊單階段 fallback。
+   * - 重新提交（補件後、已綁定流程）：回到原步驟續走（Q-A），不重建 progress、
+   *   currentStepSequence 不變、前面步驟維持 Approved。
    */
   submit: protectedProcedure
     .input(budgetProposalSubmitInputSchema)
     .mutation(async ({ ctx, input }) => {
-      // 檢查提案狀態
       const existingProposal = await ctx.prisma.budgetProposal.findUnique({
-        where: {
-          id: input.id,
-        },
+        where: { id: input.id },
+        include: { project: true },
       });
 
       if (!existingProposal) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: '找不到該預算提案',
-        });
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該預算提案' });
       }
 
       if (
@@ -365,29 +538,98 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
-      // 使用 transaction 確保資料一致性
-      const result = await ctx.prisma.$transaction(async (prisma) => {
-        // 更新提案狀態
-        const proposal = await prisma.budgetProposal.update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            status: 'PendingApproval',
-          },
-          include: {
-            project: {
-              include: {
-                manager: { select: safeUserSelect },
-                supervisor: { select: safeUserSelect },
-                budgetPool: true,
-              },
-            },
-          },
-        });
+      const submitter = await ctx.prisma.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { name: true },
+      });
 
-        // 記錄歷史
-        await prisma.history.create({
+      // Q-A: 重新提交（已在流程中）→ 回到原步驟續走，不重建 progress
+      const isResubmitIntoWorkflow =
+        existingProposal.workflowId != null &&
+        existingProposal.currentStepSequence != null;
+
+      if (isResubmitIntoWorkflow) {
+        return ctx.prisma.$transaction(async (tx) => {
+          const proposal = await tx.budgetProposal.update({
+            where: { id: input.id },
+            data: { status: 'PendingApproval' },
+            include: proposalApprovalInclude,
+          });
+          await tx.history.create({
+            data: {
+              action: 'SUBMITTED',
+              details: `提案已重新提交，回到第 ${existingProposal.currentStepSequence} 步審批`,
+              userId: ctx.session.user.id,
+              budgetProposalId: input.id,
+            },
+          });
+          const currentProgress = proposal.approvalProgress.find(
+            (p) => p.sequence === existingProposal.currentStepSequence
+          );
+          if (currentProgress) {
+            await notifyStepApprovers(tx, {
+              proposalId: proposal.id,
+              proposalTitle: proposal.title,
+              approverRoleId: currentProgress.approverRoleId,
+              submitterName: submitter?.name,
+            });
+          }
+          return proposal;
+        });
+      }
+
+      // 首次提交：解析適用流程
+      const workflow = await resolveWorkflow(ctx.prisma);
+
+      const firstStep = workflow?.steps[0];
+
+      return ctx.prisma.$transaction(async (tx) => {
+        if (workflow && firstStep) {
+          const proposal = await tx.budgetProposal.update({
+            where: { id: input.id },
+            data: {
+              status: 'PendingApproval',
+              workflowId: workflow.id,
+              currentStepSequence: firstStep.sequence,
+            },
+          });
+          // 建立各步驟 progress（快照 sequence + approverRoleId，Q-B）
+          await tx.proposalApprovalProgress.createMany({
+            data: workflow.steps.map((s) => ({
+              budgetProposalId: proposal.id,
+              stepId: s.id,
+              sequence: s.sequence,
+              approverRoleId: s.approverRoleId,
+              status: 'Pending',
+            })),
+          });
+          await tx.history.create({
+            data: {
+              action: 'SUBMITTED',
+              details: `提案已提交審批（流程：${workflow.name}）`,
+              userId: ctx.session.user.id,
+              budgetProposalId: input.id,
+            },
+          });
+          await notifyStepApprovers(tx, {
+            proposalId: proposal.id,
+            proposalTitle: proposal.title,
+            approverRoleId: firstStep.approverRoleId,
+            submitterName: submitter?.name,
+          });
+          return tx.budgetProposal.findUnique({
+            where: { id: proposal.id },
+            include: proposalApprovalInclude,
+          });
+        }
+
+        // Q-D fallback: 無 active 流程 → 舊單階段（通知專案 supervisor）
+        const proposal = await tx.budgetProposal.update({
+          where: { id: input.id },
+          data: { status: 'PendingApproval' },
+          include: proposalApprovalInclude,
+        });
+        await tx.history.create({
           data: {
             action: 'SUBMITTED',
             details: '提案已提交審批',
@@ -395,13 +637,7 @@ export const budgetProposalRouter = createTRPCRouter({
             budgetProposalId: input.id,
           },
         });
-
-        // Epic 8: 發送通知給 Supervisor
-        const submitter = await prisma.user.findUnique({
-          where: { id: ctx.session.user.id },
-        });
-
-        await prisma.notification.create({
+        await tx.notification.create({
           data: {
             userId: proposal.project.supervisorId,
             type: 'PROPOSAL_SUBMITTED',
@@ -412,11 +648,8 @@ export const budgetProposalRouter = createTRPCRouter({
             entityId: proposal.id,
           },
         });
-
         return proposal;
       });
-
-      return result;
     }),
 
   /**
@@ -557,6 +790,251 @@ export const budgetProposalRouter = createTRPCRouter({
 
       return result;
     }),
+
+  // ============================================================
+  // FEAT-014: 序列審批執行（綁定 workflow 的提案走此路；未綁定者走上方舊 approve）
+  // ============================================================
+
+  /**
+   * 核准當前步驟（protectedProcedure + 內部角色比對）
+   * 有下一步 → 推進並通知下一步角色；最末步 → 整案 Approved（沿用既有 Project.approvedBudget 更新）
+   */
+  approveStep: protectedProcedure
+    .input(approveStepInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { proposal, currentProgress } = await loadCurrentStep(
+        ctx.prisma,
+        input.id,
+        ctx.session.user.role.id
+      );
+      const userId = ctx.session.user.id;
+      const reviewer = await ctx.prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+
+      // 找下一步（序號大於當前且最小者）— 容忍序號空洞
+      const nextProgress = proposal.approvalProgress
+        .filter((p) => p.sequence > currentProgress.sequence)
+        .sort((a, b) => a.sequence - b.sequence)[0];
+
+      return ctx.prisma.$transaction(async (tx) => {
+        // 標記當前步驟 Approved
+        await tx.proposalApprovalProgress.update({
+          where: { id: currentProgress.id },
+          data: {
+            status: 'Approved',
+            approvedByUserId: userId,
+            decidedAt: new Date(),
+            comment: input.comment ?? null,
+          },
+        });
+
+        if (nextProgress) {
+          // 推進到下一步
+          await tx.budgetProposal.update({
+            where: { id: proposal.id },
+            data: { currentStepSequence: nextProgress.sequence },
+          });
+          await tx.history.create({
+            data: {
+              action: 'STEP_APPROVED',
+              details: `第 ${currentProgress.sequence} 步已核准，進入第 ${nextProgress.sequence} 步${input.comment ? `。意見：${input.comment}` : ''}`,
+              userId,
+              budgetProposalId: proposal.id,
+            },
+          });
+          await notifyStepApprovers(tx, {
+            proposalId: proposal.id,
+            proposalTitle: proposal.title,
+            approverRoleId: nextProgress.approverRoleId,
+            submitterName: reviewer?.name,
+          });
+        } else {
+          // 最末步通過 → 整案 Approved（沿用既有 Project.approvedBudget 更新 + 通知 PM）
+          const approvedAmount = input.approvedAmount ?? proposal.amount;
+          await tx.budgetProposal.update({
+            where: { id: proposal.id },
+            data: {
+              status: 'Approved',
+              approvedAmount,
+              approvedBy: userId,
+              approvedAt: new Date(),
+              currentStepSequence: null,
+            },
+          });
+          await tx.project.update({
+            where: { id: proposal.projectId },
+            data: { approvedBudget: approvedAmount, status: 'InProgress' },
+          });
+          await tx.history.create({
+            data: {
+              action: 'APPROVED',
+              details: `最終核准（第 ${currentProgress.sequence} 步）${input.comment ? `。意見：${input.comment}` : ''}`,
+              userId,
+              budgetProposalId: proposal.id,
+            },
+          });
+          await tx.notification.create({
+            data: {
+              userId: proposal.project.managerId,
+              type: 'PROPOSAL_APPROVED',
+              title: '預算提案已批准',
+              message: `您的預算提案「${proposal.title}」已完成所有審批步驟並批准，批准金額：$${approvedAmount.toLocaleString()}。`,
+              link: `/proposals/${proposal.id}`,
+              entityType: 'PROPOSAL',
+              entityId: proposal.id,
+            },
+          });
+        }
+
+        return tx.budgetProposal.findUnique({
+          where: { id: proposal.id },
+          include: proposalApprovalInclude,
+        });
+      });
+    }),
+
+  /**
+   * 駁回當前步驟 → 整案 Rejected + 通知提案人（須帶原因）
+   */
+  rejectStep: protectedProcedure
+    .input(rejectStepInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { proposal, currentProgress } = await loadCurrentStep(
+        ctx.prisma,
+        input.id,
+        ctx.session.user.role.id
+      );
+      const userId = ctx.session.user.id;
+
+      return ctx.prisma.$transaction(async (tx) => {
+        await tx.proposalApprovalProgress.update({
+          where: { id: currentProgress.id },
+          data: {
+            status: 'Rejected',
+            approvedByUserId: userId,
+            decidedAt: new Date(),
+            comment: input.reason,
+          },
+        });
+        await tx.budgetProposal.update({
+          where: { id: proposal.id },
+          data: {
+            status: 'Rejected',
+            rejectionReason: input.reason,
+            currentStepSequence: null,
+          },
+        });
+        await tx.history.create({
+          data: {
+            action: 'REJECTED',
+            details: `第 ${currentProgress.sequence} 步駁回。原因：${input.reason}`,
+            userId,
+            budgetProposalId: proposal.id,
+          },
+        });
+        await tx.notification.create({
+          data: {
+            userId: proposal.project.managerId,
+            type: 'PROPOSAL_REJECTED',
+            title: '預算提案已駁回',
+            message: `您的預算提案「${proposal.title}」已被駁回。原因：${input.reason}`,
+            link: `/proposals/${proposal.id}`,
+            entityType: 'PROPOSAL',
+            entityId: proposal.id,
+          },
+        });
+        return tx.budgetProposal.findUnique({
+          where: { id: proposal.id },
+          include: proposalApprovalInclude,
+        });
+      });
+    }),
+
+  /**
+   * 要求補件（Q-A）→ 整案 MoreInfoRequired；當前步驟進度維持 Pending、
+   * currentStepSequence 不變。提案人補件重提後回到原步驟續走（前面步驟維持 Approved）。
+   */
+  requestMoreInfoStep: protectedProcedure
+    .input(requestMoreInfoStepInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { proposal, currentProgress } = await loadCurrentStep(
+        ctx.prisma,
+        input.id,
+        ctx.session.user.role.id
+      );
+      const userId = ctx.session.user.id;
+
+      return ctx.prisma.$transaction(async (tx) => {
+        // 整案退回補件；不更動 progress（保持 Pending、currentStepSequence 不變）— Q-A
+        await tx.budgetProposal.update({
+          where: { id: proposal.id },
+          data: { status: 'MoreInfoRequired' },
+        });
+        await tx.history.create({
+          data: {
+            action: 'MORE_INFO_REQUIRED',
+            details: `第 ${currentProgress.sequence} 步要求補件。說明：${input.comment}`,
+            userId,
+            budgetProposalId: proposal.id,
+          },
+        });
+        await tx.notification.create({
+          data: {
+            userId: proposal.project.managerId,
+            type: 'PROPOSAL_MORE_INFO',
+            title: '預算提案需要補充資訊',
+            message: `您的預算提案「${proposal.title}」需要補充資訊。說明：${input.comment}`,
+            link: `/proposals/${proposal.id}`,
+            entityType: 'PROPOSAL',
+            entityId: proposal.id,
+          },
+        });
+        return tx.budgetProposal.findUnique({
+          where: { id: proposal.id },
+          include: proposalApprovalInclude,
+        });
+      });
+    }),
+
+  /**
+   * 待我審批（R11）：當前步驟之審批角色 == 登入者角色 且狀態 Pending 的提案
+   */
+  getPendingForMe: protectedProcedure.query(async ({ ctx }) => {
+    const roleId = ctx.session.user.role.id;
+    const candidates = await ctx.prisma.budgetProposal.findMany({
+      where: {
+        status: 'PendingApproval',
+        workflowId: { not: null },
+        approvalProgress: { some: { approverRoleId: roleId, status: 'Pending' } },
+      },
+      include: proposalApprovalInclude,
+      orderBy: { updatedAt: 'desc' },
+    });
+    // 僅保留「當前步驟」即為登入者角色者
+    return candidates.filter((p) => {
+      const current = p.approvalProgress.find(
+        (pr) => pr.sequence === p.currentStepSequence
+      );
+      return (
+        current != null &&
+        current.status === 'Pending' &&
+        current.approverRoleId === roleId
+      );
+    });
+  }),
+
+  /**
+   * 全部尚未批准綜覽（R12，Supervisor/Admin）
+   */
+  getAllPending: supervisorProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.budgetProposal.findMany({
+      where: { status: 'PendingApproval' },
+      include: proposalApprovalInclude,
+      orderBy: { updatedAt: 'desc' },
+    });
+  }),
 
   /**
    * 新增評論

@@ -1,8 +1,8 @@
 # FEAT-014: 可配置序列審批流程（Budget Proposal）
 
 > **建立日期**: 2026-06-01
-> **最後更新**: 2026-06-01
-> **狀態**: 📋 設計中
+> **最後更新**: 2026-06-02
+> **狀態**: ✅ Phase 1 完成（實作 + 正規 migration + Playwright E2E 全流程驗證，見 `./04-progress.md`）
 > **優先級**: High
 > **前置依賴**: CHANGE-043（BP 會議記錄欄位，提供 `proposalType` 供規則比對）。註：**Phase 1 不阻塞於 CHANGE-043**，`proposalType` 僅 Phase 2 規則引擎需要，Phase 1 可與 CHANGE-043 並行。
 > **相關**: FEAT-016（一人多角，未來；本 FEAT 先以單角色上線，見 D9）
@@ -83,13 +83,13 @@
 
 ## 5. 驗收標準（Phase 1）
 
-- [ ] Admin 能建立含 ≥2 步驟的序列流程並調整順序
-- [ ] 提案提交後依序進入第 1 步；第 1 步該角色任一人核准 → 進第 2 步
-- [ ] 非當前步驟角色的使用者無法搶先審批
-- [ ] 任一步駁回 → 整案 Rejected 並通知提案人
-- [ ] 最末步通過 → 提案 Approved 且 `Project.approvedBudget` 更新（沿用既有）
-- [ ] 「待我審批」只顯示當前步驟角色匹配登入者的 Pending 提案
-- [ ] 全程 History 完整；`pnpm typecheck`/`lint`/`validate:i18n`/`db:migrate` 通過
+- [x] Admin 能建立含 ≥2 步驟的序列流程並調整順序（E2E：建 Supervisor→Admin 兩步；排序與 FEAT-015 dnd 同模式）
+- [x] 提案提交後依序進入第 1 步；第 1 步該角色任一人核准 → 進第 2 步（E2E 通過）
+- [x] 非當前步驟角色的使用者無法搶先審批（E2E：Admin 在 Supervisor 步見「非您的步驟」）
+- [~] 任一步駁回 → 整案 Rejected 並通知提案人（與 approveStep 同結構，typecheck 通過；未 UI 點擊）
+- [x] 最末步通過 → 提案 Approved 且 `Project.approvedBudget` 更新（E2E：approvedBudget=2,500,000）
+- [x] 「待我審批」只顯示當前步驟角色匹配登入者的 Pending 提案（E2E 通過；修復 session.roleId bug）
+- [x] 全程 History 完整；`pnpm typecheck`/`lint`/`validate:i18n`/`db:migrate` 通過
 
 ---
 

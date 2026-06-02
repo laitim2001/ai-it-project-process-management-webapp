@@ -297,7 +297,8 @@
       "currencies": "貨幣管理",
       "notifications": "通知",
       "settings": "系統設定",
-      "help": "幫助中心"
+      "help": "幫助中心",
+      "approvalWorkflows": "審批流程"
     },
     "descriptions": {
       "dashboard": "專案總覽和關鍵指標",
@@ -318,7 +319,8 @@
       "users": "用戶帳號和權限",
       "currencies": "管理系統貨幣選項",
       "settings": "系統參數設定",
-      "help": "使用指南和支援"
+      "help": "使用指南和支援",
+      "approvalWorkflows": "配置預算提案的序列審批流程（僅 Admin）"
     },
     "search": {
       "label": "搜尋",
@@ -1007,7 +1009,8 @@
       "revertReasonRequired": "回退原因為必填",
       "confirmRevert": "確定要將此提案回退到草稿狀態嗎？回退後可重新編輯或刪除。",
       "revertSuccess": "提案已成功回退到草稿狀態",
-      "revertError": "回退失敗"
+      "revertError": "回退失敗",
+      "stepApproved": "步驟已核准"
     },
     "status": {
       "draft": "草稿",
@@ -1030,7 +1033,10 @@
       "supervisor": "主管",
       "budgetPool": "預算池",
       "approvedAmount": "批准金額",
-      "approvedAt": "批准時間"
+      "approvedAt": "批准時間",
+      "proposalType": "提案類型",
+      "documentLink": "文件連結",
+      "vendor": "供應商"
     },
     "list": {
       "title": "預算提案列表",
@@ -1161,6 +1167,16 @@
         "approve": "批准",
         "reject": "駁回",
         "requestInfo": "要求更多資訊"
+      },
+      "currentStep": "目前在第 {step} 步，等待 {role} 審批",
+      "notYourStep": "目前步驟非由您的角色審批，請等待。",
+      "progressTitle": "審批進度",
+      "stepLabel": "第 {step} 步",
+      "currentBadge": "進行中",
+      "progressStatus": {
+        "Pending": "等待中",
+        "Approved": "已核准",
+        "Rejected": "已駁回"
       }
     },
     "attachments": {
@@ -1247,6 +1263,14 @@
       "submitSuccess": "預算提案已提交審批",
       "approvalSuccess": "預算提案已成功批准",
       "commentRequired": "請先輸入評論再提交"
+    },
+    "pending": {
+      "title": "待我審批",
+      "description": "當前審批步驟由您的角色負責、且尚未處理的預算提案。",
+      "listTitle": "待審提案",
+      "empty": "目前沒有待您審批的提案。",
+      "currentStep": "目前步驟",
+      "openLink": "開啟"
     }
   },
   "budgetPools": {
@@ -4092,5 +4116,51 @@
     "updatingRecord": "更新記錄中...",
     "loadingData": "載入資料中...",
     "refreshing": "刷新中..."
+  },
+  "approvalWorkflows": {
+    "title": "審批流程配置",
+    "description": "配置預算提案的序列審批流程；每個步驟指定一個審批角色，提案依序流經各步驟。",
+    "actions": {
+      "createWorkflow": "新增流程",
+      "editWorkflow": "編輯流程"
+    },
+    "status": {
+      "active": "啟用中",
+      "inactive": "已停用",
+      "default": "預設"
+    },
+    "list": {
+      "empty": "尚未建立任何審批流程",
+      "emptyHint": "點擊「新增流程」建立第一個序列審批流程。",
+      "boundCount": "已套用於 {count} 筆提案"
+    },
+    "form": {
+      "workflowSubtitle": "設定流程名稱與是否為預設流程。",
+      "nameLabel": "流程名稱",
+      "namePlaceholder": "例如：預算提案標準流程",
+      "defaultLabel": "設為預設流程",
+      "defaultHint": "當有多個啟用流程時，規則未命中者使用預設流程（Phase 2）。"
+    },
+    "messages": {
+      "error": "操作失敗",
+      "workflowCreated": "流程已建立",
+      "workflowUpdated": "流程已更新",
+      "stepAdded": "步驟已新增",
+      "stepUpdated": "步驟已更新",
+      "stepRemoved": "步驟已移除"
+    },
+    "steps": {
+      "addStep": "新增步驟",
+      "editStep": "編輯步驟",
+      "dialogSubtitle": "指定此步驟的審批角色與顯示名稱。",
+      "roleLabel": "審批角色",
+      "rolePlaceholder": "選擇角色",
+      "nameLabel": "步驟名稱（選填）",
+      "namePlaceholder": "例如：主管初審、財務複核",
+      "noSteps": "尚未新增步驟，點擊下方按鈕新增。",
+      "dragToReorder": "拖曳以調整順序",
+      "confirmRemoveTitle": "移除步驟",
+      "confirmRemove": "確定要移除此審批步驟嗎？移除後其餘步驟序號會自動重新排列。"
+    }
   }
 }

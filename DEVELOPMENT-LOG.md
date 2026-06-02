@@ -20,6 +20,39 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-02 | ✨ FEAT-014: 可配置序列審批流程（Phase 1）| 完成 ✅
+
+**類型**: 功能開發（核心審批流程重構 + migration）| **負責人**: AI 助手 | **狀態**: ✅ Phase 1 完成（實作 + 正規 migration + Playwright E2E 全流程驗證）
+
+**背景**:
+- Budget Proposal 審批原為單階段、審批人寫死 `Project.supervisor`（`supervisorProcedure` 一人核准）。
+- 需求：Admin 可配置「依序多步驟」流程，每步指定一個**審批角色**，提案依序流經各步驟全部通過才 Approved；並提供「待我審批」視圖（原始需求 #4）。
+
+**實現內容（Phase 1，D7~D9 + Q-A~Q-D 決策）**:
+1. **Schema**（`packages/db`）：新增 3 model — `ApprovalWorkflow`（流程定義，含 Phase 2 預留規則欄位）→ `ApprovalStep`（有序步驟，一步一角色，`@@unique([workflowId,sequence])`）→ `ProposalApprovalProgress`（提交時快照各步 `sequence`/`approverRoleId`，Q-B）；`BudgetProposal` 加 `workflowId`+`currentStepSequence`；`Role`/`User` 加反向關聯。**正規 `migrate dev`**（歷史已乾淨）。
+2. **API**（`packages/api`）：新 `approvalWorkflow` router（9 procedures，全 adminProcedure）；`budgetProposal` 重構 `submit`（解析流程→建 progress→進 Step 1 / 重提回原步 Q-A / 無流程 Q-D fallback）+ 新增 `approveStep`/`rejectStep`/`requestMoreInfoStep`（protected + 內部角色比對）+ `getPendingForMe`/`getAllPending`；保留舊 `approve` 為 fallback。通知重用既有類型。
+3. **前端**（`apps/web`）：Admin 配置頁 `/settings/approval-workflows`（流程 CRUD + 步驟 dialog + @dnd-kit 拖曳）+ Sidebar 入口 + 專屬權限 `menu:approval-workflows`（Admin only）；`ProposalActions` 依當前步角色顯示核准/駁回/補件（LoadingButton）；提案詳情頁審批進度時間線；待我審批視圖 `/proposals/pending`。
+4. **i18n**：`approvalWorkflows` namespace + `proposals.approval/pending` 補充（+52 keys/locale，validate 通過 2846 keys）。
+
+**🐛 E2E 發現並修復的 Bug**:
+- `session.user.roleId` runtime 為 **undefined**（augmentation 宣告使 typecheck 通過，但 session callback 僅填 `session.user.role={id,name}`）。導致「待我審批」對 Supervisor 顯示空、角色比對失效。**修復**：全面改用 `session.user.role.id`（後端 4 處 + 前端 1 處）。
+
+**E2E 驗證（Playwright，admin/supervisor/admin 三登入）**:
+- Admin 建「BP 標準審批流程」+ 2 步（Supervisor→Admin）；Sidebar 入口可見。
+- 提交 Draft 提案 → 綁定流程 + 建 progress + 進 Step 1；Admin（非當前步）見「非您的步驟」（角色閘門）。
+- Supervisor「待我審批」見該提案（R13 全欄位）→ 核准 Step 1 → 推進 Step 2 + 時間線/History 更新。
+- Admin 核准 Step 2（最末步）→ 整案 **Approved**、`Project.approvedBudget=2,500,000`、status InProgress（R9）。
+
+**關鍵決策**:
+- Phase 1.3 配置 CRUD **不寫 History**：`History.budgetProposalId` 必填（綁 BP），配置變更無對應 BP，擴寬 History 違反外科手術原則；審批執行（1.4）History 完整。
+- 配置頁專屬權限比照 currencies 模式（種子 + Sidebar + route map），R4 Admin only。
+- 通知重用既有 `PROPOSAL_SUBMITTED/APPROVED/REJECTED/MORE_INFO`，不新增類型（避開未註冊覆轍）。
+- **未 UI 點擊**：reject/moreInfo（與 approve 同結構）、reorder 拖曳（與 FEAT-015 同模式）、Q-D fallback（分支簡單、舊 approve 未改）— 均 typecheck/lint 通過。
+
+**相關文件**: `claudedocs/1-planning/features/FEAT-014-configurable-approval-workflow/`（01~04）、`packages/api/src/routers/approvalWorkflow.ts`、`packages/api/src/routers/budgetProposal.ts`、`apps/web/src/components/approval-workflow/`、`apps/web/src/app/[locale]/settings/approval-workflows/`、`apps/web/src/app/[locale]/proposals/pending/`
+
+---
+
 ### 2026-06-02 | ✨ FEAT-015: Project Expense 月度模組（Phase 1）| 完成 ✅
 
 **類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ Phase 1 完成（實作 + E2E 驗證 + 獨立 migration）

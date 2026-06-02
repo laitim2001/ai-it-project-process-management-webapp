@@ -72,6 +72,7 @@ import { expenseCategoryRouter } from './routers/expenseCategory'; // CHANGE-003
 import { chargeOutRouter } from './routers/chargeOut';
 import { permissionRouter } from './routers/permission'; // FEAT-011: 權限管理
 import { projectExpenseRouter } from './routers/projectExpense'; // FEAT-015: 專案費用月度模組
+import { approvalWorkflowRouter } from './routers/approvalWorkflow'; // FEAT-014: 可配置序列審批流程
 
 /**
  * tRPC 主路由器
@@ -98,6 +99,7 @@ export const appRouter = createTRPCRouter({
   chargeOut: chargeOutRouter,
   permission: permissionRouter, // FEAT-011: 權限管理
   projectExpense: projectExpenseRouter, // FEAT-015: 專案費用月度模組
+  approvalWorkflow: approvalWorkflowRouter, // FEAT-014: 可配置序列審批流程
 });
 
 // export type definition of API

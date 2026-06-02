@@ -579,6 +579,8 @@
 | **Register 頁面** | `apps/web/src/app/[locale]/register/page.tsx` | 註冊頁面 | 🟡 高 |
 | **Forgot Password 頁面** | `apps/web/src/app/[locale]/forgot-password/page.tsx` | 忘記密碼頁面 | 🟡 高 |
 | **Settings Currencies** | `apps/web/src/app/[locale]/settings/currencies/page.tsx` | 幣別管理頁面 | 🟡 高 |
+| **Settings Approval Workflows** | `apps/web/src/app/[locale]/settings/approval-workflows/page.tsx` | 審批流程配置頁面（FEAT-014，Admin only） | 🟡 高 |
+| **Proposals Pending** | `apps/web/src/app/[locale]/proposals/pending/page.tsx` | 待我審批視圖（FEAT-014） | 🟡 高 |
 
 #### API 路由
 
@@ -739,6 +741,8 @@
 | **Expense 路由** | `packages/api/src/routers/expense.ts` | 費用管理 API 路由（Epic 6） | 🟡 高 |
 | **Currency 路由** | `packages/api/src/routers/currency.ts` | 幣別管理 API 路由（FEAT-002） | 🟡 高 |
 | **OperatingCompany 路由** | `packages/api/src/routers/operatingCompany.ts` | 營運公司管理 API 路由 | 🟡 高 |
+| **ProjectExpense 路由** | `packages/api/src/routers/projectExpense.ts` | 專案費用月度 API 路由（FEAT-015：表頭-明細-月度三層） | 🟡 高 |
+| **ApprovalWorkflow 路由** | `packages/api/src/routers/approvalWorkflow.ts` | 可配置序列審批流程配置 API（FEAT-014，Admin only） | 🟡 高 |
 | **EmailService 服務** | `packages/api/src/lib/email.ts` | 郵件發送服務模組（Epic 8） | 🔴 極高 |
 | **健康檢查路由** | `packages/api/src/routers/health.ts` | 健康檢查 API（含 schemaCompare, fixAllSchemaIssues） | 🟡 高 |
 | **Package 配置** | `packages/api/package.json` | API 套件依賴配置 | 🟡 高 |

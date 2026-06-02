@@ -57,29 +57,31 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Link, useRouter } from "@/i18n/routing";
+import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X, Trash2, Workflow, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { api } from '@/lib/trpc';
-import { ProposalActions } from '@/components/proposal/ProposalActions';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { CommentSection } from '@/components/proposal/CommentSection';
+import { ProposalActions } from '@/components/proposal/ProposalActions';
 import { ProposalFileUpload } from '@/components/proposal/ProposalFileUpload';
 import { ProposalMeetingNotes } from '@/components/proposal/ProposalMeetingNotes';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { FileText, DollarSign, Calendar, User, History, Building2, AlertCircle, Upload, Download, Edit, Save, X, Trash2 } from 'lucide-react';
+import { Link, useRouter } from "@/i18n/routing";
+import { api } from '@/lib/trpc';
+
 
 export default function ProposalDetailPage() {
   const t = useTranslations('proposals');
@@ -136,6 +138,7 @@ export default function ProposalDetailPage() {
     APPROVED: t('actions.approve'),
     REJECTED: t('actions.reject'),
     MORE_INFO_REQUIRED: t('actions.requestInfo'),
+    STEP_APPROVED: t('actions.stepApproved'), // FEAT-014
   };
 
   const { data: proposal, isLoading } = api.budgetProposal.getById.useQuery({ id });
@@ -488,7 +491,82 @@ export default function ProposalDetailPage() {
             <ProposalActions
               proposalId={proposal.id}
               status={proposal.status}
+              workflowId={proposal.workflowId}
+              currentStepSequence={proposal.currentStepSequence}
+              approvalProgress={proposal.approvalProgress}
             />
+
+            {/* FEAT-014: 審批進度時間線（綁定流程的提案才顯示） */}
+            {proposal.workflow && proposal.approvalProgress.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Workflow className="h-5 w-5" />
+                    {t('approval.progressTitle')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    {proposal.workflow.name}
+                  </p>
+                  <div className="space-y-4">
+                    {proposal.approvalProgress.map((prog) => {
+                      const isCurrent =
+                        prog.sequence === proposal.currentStepSequence &&
+                        proposal.status === 'PendingApproval';
+                      const StatusIcon =
+                        prog.status === 'Approved'
+                          ? CheckCircle2
+                          : prog.status === 'Rejected'
+                          ? XCircle
+                          : Clock;
+                      const iconColor =
+                        prog.status === 'Approved'
+                          ? 'text-green-600'
+                          : prog.status === 'Rejected'
+                          ? 'text-destructive'
+                          : isCurrent
+                          ? 'text-blue-600'
+                          : 'text-muted-foreground';
+                      return (
+                        <div key={prog.id} className="flex gap-3">
+                          <StatusIcon className={`h-5 w-5 shrink-0 ${iconColor}`} />
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-medium text-foreground">
+                                {t('approval.stepLabel', { step: prog.sequence })}
+                              </span>
+                              <Badge variant="secondary">
+                                {prog.step?.role?.name ?? '-'}
+                              </Badge>
+                              {isCurrent && (
+                                <Badge>{t('approval.currentBadge')}</Badge>
+                              )}
+                            </div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              {prog.status === 'Approved'
+                                ? t('approval.progressStatus.Approved')
+                                : prog.status === 'Rejected'
+                                ? t('approval.progressStatus.Rejected')
+                                : t('approval.progressStatus.Pending')}
+                              {prog.approver &&
+                                ` · ${prog.approver.name || prog.approver.email}`}
+                              {prog.decidedAt &&
+                                ` · ${new Date(prog.decidedAt).toLocaleString('zh-TW')}`}
+                            </div>
+                            {prog.comment && (
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                {prog.comment}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 審批歷史 */}
             {proposal.historyItems.length > 0 && (

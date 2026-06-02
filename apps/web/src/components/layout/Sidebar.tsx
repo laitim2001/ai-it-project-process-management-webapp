@@ -60,9 +60,6 @@
 
 "use client"
 
-import { useTranslations } from 'next-intl'
-import { Link, usePathname } from "@/i18n/routing"
-import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   FolderKanban,
@@ -83,10 +80,16 @@ import {
   Tags,
   Upload,
   FolderUp,
+  Workflow,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
-import { usePermissions, MENU_PERMISSIONS } from "@/hooks/usePermissions"
+import { useTranslations } from 'next-intl'
+
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePermissions, MENU_PERMISSIONS } from "@/hooks/usePermissions"
+import { Link, usePathname } from "@/i18n/routing"
+import { cn } from "@/lib/utils"
+
 
 interface NavigationItem {
   name: string
@@ -235,6 +238,13 @@ export function Sidebar() {
           icon: Coins,
           description: t('descriptions.currencies'),
           permissionCode: MENU_PERMISSIONS.CURRENCIES,
+        },
+        {
+          name: t('menu.approvalWorkflows'),
+          href: "/settings/approval-workflows",
+          icon: Workflow,
+          description: t('descriptions.approvalWorkflows'),
+          permissionCode: MENU_PERMISSIONS.APPROVAL_WORKFLOWS,
         },
         {
           name: t('menu.dataImport'),

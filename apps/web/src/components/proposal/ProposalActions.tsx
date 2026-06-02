@@ -53,11 +53,13 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter } from "@/i18n/routing";
+import { RotateCcw, Lock } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { api } from '@/lib/trpc';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+
+
 import { useToast } from '@/components/ui';
 import {
   AlertDialog,
@@ -70,14 +72,37 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { RotateCcw } from 'lucide-react';
+import { LoadingButton } from '@/components/ui/loading';
+import { useRouter } from "@/i18n/routing";
+import { api } from '@/lib/trpc';
+
+
+/** FEAT-014: 當前步驟進度（用於判斷登入者是否為當前審批角色） */
+interface StepProgress {
+  sequence: number;
+  approverRoleId: number;
+  status: string;
+  step?: { role?: { name: string } | null } | null;
+}
 
 interface ProposalActionsProps {
   proposalId: string;
   status: string;
+  /** FEAT-014: 提案綁定的審批流程（null=未綁定，走舊單階段 approve fallback） */
+  workflowId?: string | null;
+  /** FEAT-014: 目前進行到第幾步 */
+  currentStepSequence?: number | null;
+  /** FEAT-014: 各步驟進度（用於序列審批 UI） */
+  approvalProgress?: StepProgress[];
 }
 
-export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
+export function ProposalActions({
+  proposalId,
+  status,
+  workflowId,
+  currentStepSequence,
+  approvalProgress,
+}: ProposalActionsProps) {
   const t = useTranslations('proposals');
   const tToast = useTranslations('toast');
   const tCommon = useTranslations('common');
@@ -99,6 +124,16 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
 
   // CHANGE-018: 檢查是否可以回退（Admin 或 Supervisor，且非 Draft 狀態）
   const canRevert = (userRole === 'Admin' || userRole === 'Supervisor') && status !== 'Draft';
+
+  // FEAT-014: 序列審批流程判斷（用 role.id；session 未填充頂層 roleId）
+  const userRoleId = session?.user?.role?.id;
+  const isWorkflow = !!workflowId;
+  const currentStep = approvalProgress?.find((p) => p.sequence === currentStepSequence);
+  const isMyStep =
+    isWorkflow &&
+    currentStep?.status === 'Pending' &&
+    currentStep?.approverRoleId === userRoleId;
+  const currentStepRoleName = currentStep?.step?.role?.name;
 
   const submitMutation = api.budgetProposal.submit.useMutation({
     onSuccess: async () => {
@@ -164,6 +199,47 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
     },
   });
 
+  // FEAT-014: 序列審批步驟操作後的共用快取失效
+  const invalidateAfterStep = async () => {
+    await utils.budgetProposal.getById.invalidate({ id: proposalId });
+    await utils.budgetProposal.getPendingForMe.invalidate();
+    await utils.budgetProposal.getAll.invalidate();
+    router.refresh();
+  };
+
+  const stepOnError = (error: { message: string }) =>
+    toast({ title: tToast('error.title'), description: error.message, variant: 'destructive' });
+
+  // FEAT-014: 核准當前步驟
+  const approveStepMutation = api.budgetProposal.approveStep.useMutation({
+    onSuccess: async () => {
+      toast({ title: tToast('success.title'), description: t('messages.approvalSuccess'), variant: 'success' });
+      setComment('');
+      await invalidateAfterStep();
+    },
+    onError: stepOnError,
+  });
+
+  // FEAT-014: 駁回當前步驟
+  const rejectStepMutation = api.budgetProposal.rejectStep.useMutation({
+    onSuccess: async () => {
+      toast({ title: tToast('success.title'), description: t('messages.approvalSuccess'), variant: 'success' });
+      setComment('');
+      await invalidateAfterStep();
+    },
+    onError: stepOnError,
+  });
+
+  // FEAT-014: 要求補件
+  const requestMoreInfoStepMutation = api.budgetProposal.requestMoreInfoStep.useMutation({
+    onSuccess: async () => {
+      toast({ title: tToast('success.title'), description: t('messages.approvalSuccess'), variant: 'success' });
+      setComment('');
+      await invalidateAfterStep();
+    },
+    onError: stepOnError,
+  });
+
   const handleSubmit = async () => {
     if (!userId) {
       toast({
@@ -181,6 +257,25 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // FEAT-014: 序列審批步驟操作處理
+  const handleStepAction = (action: 'approve' | 'reject' | 'moreInfo') => {
+    if (action !== 'approve' && !comment.trim()) {
+      toast({
+        title: tToast('error.title'),
+        description: t('messages.commentRequired'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (action === 'approve') {
+      approveStepMutation.mutate({ id: proposalId, comment: comment.trim() || undefined });
+    } else if (action === 'reject') {
+      rejectStepMutation.mutate({ id: proposalId, reason: comment.trim() });
+    } else {
+      requestMoreInfoStepMutation.mutate({ id: proposalId, comment: comment.trim() });
     }
   };
 
@@ -252,8 +347,73 @@ export function ProposalActions({ proposalId, status }: ProposalActionsProps) {
         </button>
       )}
 
-      {/* 待審批狀態：顯示審批選項 */}
-      {status === 'PendingApproval' && (
+      {/* FEAT-014: 待審批 + 序列審批流程 */}
+      {status === 'PendingApproval' && isWorkflow && (
+        <div className="space-y-4">
+          {/* 當前步驟指示 */}
+          <div className="rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-800">
+            {t('approval.currentStep', {
+              step: currentStepSequence ?? 0,
+              role: currentStepRoleName ?? '',
+            })}
+          </div>
+
+          {isMyStep ? (
+            <>
+              <div>
+                <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
+                  {t('approval.comment.label')}
+                </label>
+                <textarea
+                  id="comment"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={3}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  placeholder={t('approval.comment.placeholder')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <LoadingButton
+                  onClick={() => handleStepAction('approve')}
+                  isLoading={approveStepMutation.isPending}
+                  disabled={rejectStepMutation.isPending || requestMoreInfoStepMutation.isPending}
+                  className="w-full"
+                >
+                  {t('approval.actions.approve')}
+                </LoadingButton>
+                <LoadingButton
+                  onClick={() => handleStepAction('reject')}
+                  isLoading={rejectStepMutation.isPending}
+                  disabled={approveStepMutation.isPending || requestMoreInfoStepMutation.isPending}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {t('approval.actions.reject')}
+                </LoadingButton>
+                <LoadingButton
+                  onClick={() => handleStepAction('moreInfo')}
+                  isLoading={requestMoreInfoStepMutation.isPending}
+                  disabled={approveStepMutation.isPending || rejectStepMutation.isPending}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {t('approval.actions.requestInfo')}
+                </LoadingButton>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2 rounded-md bg-gray-50 px-3 py-3 text-sm text-gray-600">
+              <Lock className="h-4 w-4 shrink-0" />
+              <span>{t('approval.notYourStep')}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 待審批狀態（未綁定流程的舊單階段 fallback，Q-D） */}
+      {status === 'PendingApproval' && !isWorkflow && (
         <div className="space-y-4">
           <div>
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700">

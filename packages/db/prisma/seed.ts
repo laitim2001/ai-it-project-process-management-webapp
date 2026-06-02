@@ -67,6 +67,7 @@ async function main() {
     { code: 'menu:operating-companies', name: '營運公司', category: 'menu', sortOrder: 410, description: '訪問營運公司管理頁面' },
     { code: 'menu:om-expense-categories', name: 'OM 費用類別', category: 'menu', sortOrder: 420, description: '訪問 OM 費用類別管理頁面' },
     { code: 'menu:currencies', name: '幣別', category: 'menu', sortOrder: 430, description: '訪問幣別管理頁面' },
+    { code: 'menu:approval-workflows', name: '審批流程', category: 'menu', sortOrder: 435, description: '訪問審批流程配置頁面（FEAT-014，僅 Admin）' },
     { code: 'menu:data-import', name: 'OM 數據導入', category: 'menu', sortOrder: 440, description: '訪問 OM 數據導入頁面' },
     { code: 'menu:project-data-import', name: '專案數據導入', category: 'menu', sortOrder: 450, description: '訪問專案數據導入頁面' },
 
@@ -107,8 +108,10 @@ async function main() {
     // Admin: 所有權限
     Admin: menuPermissions.map((p) => p.code),
 
-    // Supervisor: 除用戶管理外的所有權限
-    Supervisor: menuPermissions.filter((p) => p.code !== 'menu:users').map((p) => p.code),
+    // Supervisor: 除用戶管理與審批流程配置（FEAT-014 Admin only）外的所有權限
+    Supervisor: menuPermissions
+      .filter((p) => p.code !== 'menu:users' && p.code !== 'menu:approval-workflows')
+      .map((p) => p.code),
 
     // ProjectManager: 核心業務功能權限 (不含系統管理類)
     ProjectManager: [

@@ -297,7 +297,8 @@
       "settings": "Settings",
       "help": "Help Center",
       "dataImport": "Data Import",
-      "projectDataImport": "Project Import"
+      "projectDataImport": "Project Import",
+      "approvalWorkflows": "Approval Workflows"
     },
     "descriptions": {
       "dashboard": "Project overview and key metrics",
@@ -318,7 +319,8 @@
       "settings": "System parameter configuration",
       "help": "User guide and support",
       "dataImport": "Bulk import OM expense data",
-      "projectDataImport": "Bulk import project data from Excel"
+      "projectDataImport": "Bulk import project data from Excel",
+      "approvalWorkflows": "Configure sequential approval workflows for budget proposals (Admin only)"
     },
     "search": {
       "label": "Search",
@@ -993,7 +995,10 @@
       "supervisor": "Supervisor",
       "budgetPool": "Budget Pool",
       "approvedAmount": "Approved Amount",
-      "approvedAt": "Approved At"
+      "approvedAt": "Approved At",
+      "proposalType": "Type",
+      "documentLink": "Document Link",
+      "vendor": "Vendor"
     },
     "list": {
       "title": "Budget Proposals",
@@ -1125,7 +1130,8 @@
       "revertReasonRequired": "Revert reason is required",
       "confirmRevert": "Are you sure you want to revert this proposal to draft status? It can be edited or deleted after reverting.",
       "revertSuccess": "Proposal has been reverted to draft status",
-      "revertError": "Failed to revert proposal"
+      "revertError": "Failed to revert proposal",
+      "stepApproved": "Step Approved"
     },
     "history": {
       "title": "Approval History",
@@ -1161,6 +1167,16 @@
         "approve": "Approve",
         "reject": "Reject",
         "requestInfo": "Request More Info"
+      },
+      "currentStep": "Currently at step {step}, awaiting {role} approval",
+      "notYourStep": "The current step is not assigned to your role. Please wait.",
+      "progressTitle": "Approval Progress",
+      "stepLabel": "Step {step}",
+      "currentBadge": "In Progress",
+      "progressStatus": {
+        "Pending": "Pending",
+        "Approved": "Approved",
+        "Rejected": "Rejected"
       }
     },
     "attachments": {
@@ -1247,6 +1263,14 @@
       "submitSuccess": "Budget proposal has been submitted for approval",
       "approvalSuccess": "Budget proposal has been approved successfully",
       "commentRequired": "Please enter a comment before submitting"
+    },
+    "pending": {
+      "title": "Pending My Approval",
+      "description": "Budget proposals whose current approval step is assigned to your role and not yet acted on.",
+      "listTitle": "Proposals Awaiting Approval",
+      "empty": "No proposals are awaiting your approval.",
+      "currentStep": "Current Step",
+      "openLink": "Open"
     }
   },
   "budgetPools": {
@@ -4092,5 +4116,51 @@
     "updatingRecord": "Updating record...",
     "loadingData": "Loading data...",
     "refreshing": "Refreshing..."
+  },
+  "approvalWorkflows": {
+    "title": "Approval Workflow Configuration",
+    "description": "Configure sequential approval workflows for budget proposals. Each step is assigned an approver role; proposals flow through the steps in order.",
+    "actions": {
+      "createWorkflow": "New Workflow",
+      "editWorkflow": "Edit Workflow"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "default": "Default"
+    },
+    "list": {
+      "empty": "No approval workflows yet",
+      "emptyHint": "Click \"New Workflow\" to create your first sequential approval workflow.",
+      "boundCount": "Applied to {count} proposal(s)"
+    },
+    "form": {
+      "workflowSubtitle": "Set the workflow name and whether it is the default.",
+      "nameLabel": "Workflow Name",
+      "namePlaceholder": "e.g. Standard Budget Proposal Workflow",
+      "defaultLabel": "Set as default",
+      "defaultHint": "When multiple active workflows exist, the default is used when no rule matches (Phase 2)."
+    },
+    "messages": {
+      "error": "Operation failed",
+      "workflowCreated": "Workflow created",
+      "workflowUpdated": "Workflow updated",
+      "stepAdded": "Step added",
+      "stepUpdated": "Step updated",
+      "stepRemoved": "Step removed"
+    },
+    "steps": {
+      "addStep": "Add Step",
+      "editStep": "Edit Step",
+      "dialogSubtitle": "Assign the approver role and an optional display name for this step.",
+      "roleLabel": "Approver Role",
+      "rolePlaceholder": "Select a role",
+      "nameLabel": "Step Name (optional)",
+      "namePlaceholder": "e.g. Supervisor Review, Finance Review",
+      "noSteps": "No steps yet. Click the button below to add one.",
+      "dragToReorder": "Drag to reorder",
+      "confirmRemoveTitle": "Remove Step",
+      "confirmRemove": "Remove this approval step? Remaining step numbers will be re-sequenced automatically."
+    }
   }
 }

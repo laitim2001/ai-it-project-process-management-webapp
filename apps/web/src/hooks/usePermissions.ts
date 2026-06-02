@@ -55,6 +55,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { api } from '@/lib/trpc';
 
 /**
@@ -84,6 +85,7 @@ export const MENU_PERMISSIONS = {
   OPERATING_COMPANIES: 'menu:operating-companies',
   OM_EXPENSE_CATEGORIES: 'menu:om-expense-categories',
   CURRENCIES: 'menu:currencies',
+  APPROVAL_WORKFLOWS: 'menu:approval-workflows', // FEAT-014: 審批流程配置（Admin only）
   DATA_IMPORT: 'menu:data-import',
   PROJECT_DATA_IMPORT: 'menu:project-data-import',
 
@@ -116,6 +118,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, MenuPermissionCode> = {
   '/operating-companies': MENU_PERMISSIONS.OPERATING_COMPANIES,
   '/om-expense-categories': MENU_PERMISSIONS.OM_EXPENSE_CATEGORIES,
   '/currencies': MENU_PERMISSIONS.CURRENCIES,
+  '/settings/approval-workflows': MENU_PERMISSIONS.APPROVAL_WORKFLOWS,
   '/data-import': MENU_PERMISSIONS.DATA_IMPORT,
   '/project-data-import': MENU_PERMISSIONS.PROJECT_DATA_IMPORT,
   '/settings': MENU_PERMISSIONS.SETTINGS,

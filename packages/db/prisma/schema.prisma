@@ -44,6 +44,9 @@ model User {
   // FEAT-011: 用戶菜單/功能權限
   permissions UserPermission[]
 
+  // FEAT-014: 序列審批流程中此用戶做出的審批決策
+  approvalDecisions ProposalApprovalProgress[]
+
   @@index([email])
   @@index([roleId])
 }
@@ -95,6 +98,9 @@ model Role {
 
   // FEAT-011: 角色預設權限
   defaultPermissions RolePermission[]
+
+  // FEAT-014: 此角色作為審批步驟的審批者
+  approvalSteps ApprovalStep[]
 }
 
 // ==================================================================
@@ -203,39 +209,39 @@ model Project {
   currencyId  String? // 關聯到 Currency 表
 
   // FEAT-006: Project Summary Tab 新增欄位 (8 個新欄位)
-  projectCategory  String?  // 專案類別 (如 Data Lines, Hardware, Software)
-  projectType      String   @default("Project") // "Project" | "Budget"
-  expenseType      String   @default("Expense") // "Expense" | "Capital" | "Collection"
-  chargeBackToOpCo Boolean  @default(false) // 是否向 OpCo 收費
-  chargeOutMethod  String?  @db.Text // 如何向 OpCo 收費 (free text)
-  probability      String   @default("Medium") // "High" | "Medium" | "Low" (不同於 priority)
-  team             String?  // 團隊
-  personInCharge   String?  // 負責人 (PIC)
+  projectCategory  String? // 專案類別 (如 Data Lines, Hardware, Software)
+  projectType      String  @default("Project") // "Project" | "Budget"
+  expenseType      String  @default("Expense") // "Expense" | "Capital" | "Collection"
+  chargeBackToOpCo Boolean @default(false) // 是否向 OpCo 收費
+  chargeOutMethod  String? @db.Text // 如何向 OpCo 收費 (free text)
+  probability      String  @default("Medium") // "High" | "Medium" | "Low" (不同於 priority)
+  team             String? // 團隊
+  personInCharge   String? // 負責人 (PIC)
 
   // FEAT-010: Project Data Import 新增欄位 (7 個新欄位)
-  fiscalYear          Int?     // 財務年度
-  isCdoReviewRequired Boolean  @default(false) // CDO 審核需求
-  isManagerConfirmed  Boolean  @default(false) // Manager 確認狀態
-  payForWhat          String?  // 付款原因
-  payToWhom           String?  // 付款對象
-  isOngoing           Boolean  @default(false) // 持續進行中標記
-  lastFYActualExpense Float?   // 上年度實際支出
+  fiscalYear          Int? // 財務年度
+  isCdoReviewRequired Boolean @default(false) // CDO 審核需求
+  isManagerConfirmed  Boolean @default(false) // Manager 確認狀態
+  payForWhat          String? // 付款原因
+  payToWhom           String? // 付款對象
+  isOngoing           Boolean @default(false) // 持續進行中標記
+  lastFYActualExpense Float? // 上年度實際支出
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  manager        User             @relation("ProjectManager", fields: [managerId], references: [id])
-  supervisor     User             @relation("Supervisor", fields: [supervisorId], references: [id])
-  budgetPool     BudgetPool       @relation(fields: [budgetPoolId], references: [id])
-  budgetCategory BudgetCategory?  @relation(fields: [budgetCategoryId], references: [id]) // 新增
-  currency       Currency?        @relation("ProjectCurrency", fields: [currencyId], references: [id], onDelete: SetNull) // FEAT-001
-  proposals      BudgetProposal[]
-  quotes         Quote[]
-  purchaseOrders PurchaseOrder[]
-  chargeOuts     ChargeOut[] // 新增：費用轉嫁
-  chargeOutOpCos ProjectChargeOutOpCo[] // FEAT-006: 向哪些 OpCo 收費（多選）
+  manager                 User                    @relation("ProjectManager", fields: [managerId], references: [id])
+  supervisor              User                    @relation("Supervisor", fields: [supervisorId], references: [id])
+  budgetPool              BudgetPool              @relation(fields: [budgetPoolId], references: [id])
+  budgetCategory          BudgetCategory?         @relation(fields: [budgetCategoryId], references: [id]) // 新增
+  currency                Currency?               @relation("ProjectCurrency", fields: [currencyId], references: [id], onDelete: SetNull) // FEAT-001
+  proposals               BudgetProposal[]
+  quotes                  Quote[]
+  purchaseOrders          PurchaseOrder[]
+  chargeOuts              ChargeOut[] // 新增：費用轉嫁
+  chargeOutOpCos          ProjectChargeOutOpCo[] // FEAT-006: 向哪些 OpCo 收費（多選）
   projectBudgetCategories ProjectBudgetCategory[] // CHANGE-038: 專案預算類別同步
-  projectExpenses ProjectExpense[] // FEAT-015: 專案費用月度模組（表頭）
+  projectExpenses         ProjectExpense[] // FEAT-015: 專案費用月度模組（表頭）
 
   @@index([managerId])
   @@index([supervisorId])
@@ -287,19 +293,95 @@ model BudgetProposal {
   reviewNotes  String? @db.Text // Review notes / action items（與 meetingNotes 語意分離）
   documentLink String? // Docuware 等外部連結（URL）
 
+  // FEAT-014: 可配置序列審批流程（提交時鎖定流程快照，Q-B）
+  workflowId          String? // 提交時鎖定的流程；null=未綁定（走舊單階段 approve fallback，Q-D）
+  currentStepSequence Int? // 目前進行到第幾步；null=未進入流程/已結束
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project      Project   @relation(fields: [projectId], references: [id])
-  approver     User?     @relation("ProposalApprover", fields: [approvedBy], references: [id]) // 新增
-  vendor       Vendor?   @relation(fields: [vendorId], references: [id]) // CHANGE-043: Pay to
-  comments     Comment[]
-  historyItems History[]
+  project          Project                    @relation(fields: [projectId], references: [id])
+  approver         User?                      @relation("ProposalApprover", fields: [approvedBy], references: [id]) // 新增
+  vendor           Vendor?                    @relation(fields: [vendorId], references: [id]) // CHANGE-043: Pay to
+  workflow         ApprovalWorkflow?          @relation(fields: [workflowId], references: [id]) // FEAT-014
+  approvalProgress ProposalApprovalProgress[] // FEAT-014: 各步驟審批進度
+  comments         Comment[]
+  historyItems     History[]
 
   @@index([projectId])
   @@index([status])
   @@index([approvedBy]) // 新增索引
   @@index([vendorId]) // CHANGE-043
+  @@index([workflowId]) // FEAT-014
+}
+
+// ==================================================================
+// FEAT-014: 可配置序列審批流程 (Configurable Sequential Approval Workflow)
+// 審批流程定義 → 有序步驟（一步一角色）→ 單一提案的審批進度快照
+// ==================================================================
+
+// 審批流程定義（Phase 1：通常一條 isActive 預設流程；Phase 2：多條 + 規則比對）
+model ApprovalWorkflow {
+  id        String  @id @default(uuid())
+  name      String // 如「Budget Proposal 標準流程」
+  isActive  Boolean @default(true)
+  isDefault Boolean @default(false) // 規則無命中時的 fallback（Phase 2 用）
+
+  // --- Phase 2 規則欄位（Phase 1 全為 null，視為「總是適用」）---
+  proposalTypeFilter String? // 比對 BudgetProposal.proposalType；null=不限
+  minAmount          Float? // 金額門檻下界（USD）；null=不限
+  maxAmount          Float? // 金額門檻上界（USD）；null=不限
+  matchPriority      Int     @default(0) // 多流程命中時的優先序（大者優先）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯
+  steps     ApprovalStep[]
+  proposals BudgetProposal[] // 已套用此流程的提案（快照綁定，Q-B）
+
+  @@index([isActive])
+}
+
+// 審批步驟（序列；一步一角色，Q-C）
+model ApprovalStep {
+  id             String  @id @default(uuid())
+  workflowId     String
+  sequence       Int // 1,2,3… 序列順序
+  approverRoleId Int // 該步驟的審批「角色」（D7）
+  name           String? // 顯示名稱，如「主管初審」「財務複核」
+
+  workflow ApprovalWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  role     Role                       @relation(fields: [approverRoleId], references: [id])
+  progress ProposalApprovalProgress[]
+
+  @@unique([workflowId, sequence]) // 同流程序號唯一
+  @@index([workflowId])
+  @@index([approverRoleId])
+}
+
+// 單一提案的審批進度（提交時依流程快照生成各步驟一列）
+model ProposalApprovalProgress {
+  id               String    @id @default(uuid())
+  budgetProposalId String
+  stepId           String? // 對應 ApprovalStep（SetNull 以防步驟被刪）
+  sequence         Int // 快照當下的序號（不依賴 step 存活）
+  approverRoleId   Int // 快照當下的審批角色（同上）
+  status           String    @default("Pending") // 'Pending' | 'Approved' | 'Rejected' | 'Skipped'
+  approvedByUserId String? // 實際核准/駁回者
+  decidedAt        DateTime?
+  comment          String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  budgetProposal BudgetProposal @relation(fields: [budgetProposalId], references: [id], onDelete: Cascade)
+  step           ApprovalStep?  @relation(fields: [stepId], references: [id], onDelete: SetNull)
+  approver       User?          @relation(fields: [approvedByUserId], references: [id])
+
+  @@index([budgetProposalId])
+  @@index([approverRoleId, status]) // 支援「待我審批」查詢
+  @@index([stepId])
 }
 
 model Vendor {
@@ -536,7 +618,7 @@ model UserOperatingCompany {
   userId             String
   operatingCompanyId String
   createdAt          DateTime @default(now())
-  createdBy          String?  // 設定此權限的管理員 ID
+  createdBy          String? // 設定此權限的管理員 ID
 
   // 關聯
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -569,9 +651,9 @@ model BudgetCategory {
   updatedAt DateTime @updatedAt
 
   // 關聯
-  budgetPool BudgetPool @relation(fields: [budgetPoolId], references: [id], onDelete: Cascade)
-  projects   Project[] // 使用此類別的項目
-  expenses   Expense[] // 關聯的支出
+  budgetPool              BudgetPool              @relation(fields: [budgetPoolId], references: [id], onDelete: Cascade)
+  projects                Project[] // 使用此類別的項目
+  expenses                Expense[] // 關聯的支出
   projectBudgetCategories ProjectBudgetCategory[] // CHANGE-038: 專案預算類別同步
 
   @@unique([budgetPoolId, categoryName])
@@ -690,8 +772,8 @@ model ExpenseCategory {
   updatedAt   DateTime @updatedAt
 
   // 關聯
-  expenseItems ExpenseItem[] // CHANGE-003: 費用明細項目
-  omExpenses   OMExpense[] // OM 費用
+  expenseItems        ExpenseItem[] // CHANGE-003: 費用明細項目
+  omExpenses          OMExpense[] // OM 費用
   projectExpenseItems ProjectExpenseItem[] // FEAT-015: 專案費用明細
 
   @@index([code])
@@ -722,15 +804,15 @@ model OMExpense {
 
   // ========== FEAT-007: 舊欄位 (DEPRECATED - 將於下個版本移除) ==========
   // @deprecated 改用 items.opCoId
-  opCoId String?
+  opCoId       String?
   // @deprecated 改用 totalBudgetAmount（由 items 計算）
   budgetAmount Float?
   // @deprecated 改用 totalActualSpent（由 items 計算）
-  actualSpent Float @default(0)
+  actualSpent  Float     @default(0)
   // @deprecated 改用 items.startDate
-  startDate DateTime?
+  startDate    DateTime?
   // @deprecated 改用 items.endDate
-  endDate DateTime?
+  endDate      DateTime?
 
   // 增長率（對比上年度）
   yoyGrowthRate Float? // Year-over-Year Growth Rate (%)
@@ -854,7 +936,6 @@ model OMExpenseMonthly {
   @@unique([omExpenseItemId, month])
   // 舊版：保留向後兼容
   @@unique([omExpenseId, month])
-
   @@index([omExpenseItemId])
   @@index([omExpenseId])
   @@index([opCoId])
@@ -869,11 +950,11 @@ model OMExpenseMonthly {
 
 // 專案費用表頭（一個 Project 可有多份費用表）
 model ProjectExpense {
-  id          String  @id @default(uuid())
-  projectId   String
-  name        String  // 費用表名稱（如「2026 年度 IT 維運」）
-  description String? @db.Text
-  financialYear Int   // 年度（Q-G：放表頭，比照 OM）
+  id            String  @id @default(uuid())
+  projectId     String
+  name          String // 費用表名稱（如「2026 年度 IT 維運」）
+  description   String? @db.Text
+  financialYear Int // 年度（Q-G：放表頭，比照 OM）
 
   // 匯總數據（由所有明細加總自動維護，API 層計算寫入，前端不可直接寫）
   totalBudgetAmount Float @default(0) // = SUM(items.totalBudgetAmount)
@@ -894,7 +975,7 @@ model ProjectExpense {
 model ProjectExpenseItem {
   id               String  @id @default(uuid())
   projectExpenseId String
-  name             String  // 明細名稱
+  name             String // 明細名稱
   description      String? @db.Text
   currencyId       String? // 次要顯示幣別（金額仍存 USD）
   categoryId       String? // 費用類別（FK→ExpenseCategory；v1 可選）
@@ -926,7 +1007,7 @@ model ProjectExpenseItem {
 model ProjectExpenseMonthly {
   id                   String @id @default(uuid())
   projectExpenseItemId String
-  month                Int    // 1-12
+  month                Int // 1-12
   budgetAmount         Float  @default(0) // 月度預算（USD）— OM 月度沒有此欄位
   actualAmount         Float  @default(0) // 月度實際（USD）
 
@@ -1033,11 +1114,11 @@ model Currency {
   updatedAt    DateTime @updatedAt
 
   // 關聯
-  projects       Project[]       @relation("ProjectCurrency") // 使用此貨幣的專案
-  budgetPools    BudgetPool[]    @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
-  purchaseOrders PurchaseOrder[] @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
-  expenses       Expense[]       @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
-  omExpenseItems OMExpenseItem[] @relation("OMExpenseItemCurrency") // FEAT-007: OM 費用明細項目
+  projects            Project[]            @relation("ProjectCurrency") // 使用此貨幣的專案
+  budgetPools         BudgetPool[]         @relation("BudgetPoolCurrency") // FEAT-002: 使用此貨幣的預算池
+  purchaseOrders      PurchaseOrder[]      @relation("PurchaseOrderCurrency") // FEAT-002: 使用此貨幣的採購單
+  expenses            Expense[]            @relation("ExpenseCurrency") // FEAT-002: 使用此貨幣的費用
+  omExpenseItems      OMExpenseItem[]      @relation("OMExpenseItemCurrency") // FEAT-007: OM 費用明細項目
   projectExpenseItems ProjectExpenseItem[] @relation("ProjectExpenseItemCurrency") // FEAT-015: 專案費用明細
 
   @@index([code])
