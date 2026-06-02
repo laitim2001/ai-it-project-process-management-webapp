@@ -23,7 +23,9 @@ model User {
   name          String?
   image         String? // NextAuth: 用戶頭像 URL (來自 Azure AD B2C)
   password      String? // 加密後的密碼 (bcrypt hash)，Azure AD B2C 用戶此欄位為 null
-  roleId        Int       @default(1) // 預設為 ProjectManager
+  // @default(2) 對應 ProjectManager（角色 seed 依序建立：Admin=1, ProjectManager=2, Supervisor=3）。
+  // 最小權限預設（安全網）；實際建立用戶的路徑（auth.ts SSO / register API）以 role.name 查詢明確指定 roleId。
+  roleId        Int       @default(2)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -93,7 +95,7 @@ model VerificationToken {
 
 model Role {
   id    Int    @id @default(autoincrement())
-  name  String @unique // "ProjectManager", "Supervisor", "Admin"
+  name  String @unique // 角色名稱（唯一）；seed 依序建立 → Admin=1, ProjectManager=2, Supervisor=3
   users User[]
 
   // FEAT-011: 角色預設權限

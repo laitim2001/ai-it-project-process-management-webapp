@@ -1,6 +1,7 @@
-// Re-export types from @prisma/client for TypeScript compatibility
+// Re-export everything (values + types) from @prisma/client for TypeScript compatibility.
+// 注意：不要再額外 `export type { Prisma, PrismaClient }`，否則會以 type-only 形式
+// 覆蓋上面 `export *` 的 value 匯出，導致 `Prisma.dmmf` 等 runtime 成員無法作為值使用。
 export * from '@prisma/client';
-export type { Prisma, PrismaClient } from '@prisma/client';
 
 // Lazy-loaded PrismaClient to avoid build-time initialization errors
 // The client is only instantiated when getPrisma() or prisma is first accessed

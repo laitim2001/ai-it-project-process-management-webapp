@@ -192,6 +192,8 @@ export function ChargeOutForm({ initialData, isEdit = false }: ChargeOutFormProp
   // ===== Mutations =====
   const createMutation = api.chargeOut.create.useMutation({
     onSuccess: (data) => {
+      // create 以 findUnique 回查，型別為可空；剛建立的記錄必存在，僅作防呆。
+      if (!data) return;
       toast({
         title: t('messages.createSuccess'),
         description: t('messages.createSuccessDesc', { name: data.name }),

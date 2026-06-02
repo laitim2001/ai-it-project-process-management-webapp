@@ -98,8 +98,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     requestedBudget: initialData?.requestedBudget ?? 0,
     managerId: initialData?.managerId ?? '',
     supervisorId: initialData?.supervisorId ?? '',
-    startDate: initialData?.startDate ? initialData.startDate.toISOString().split('T')[0] : '',
-    endDate: initialData?.endDate ? initialData.endDate.toISOString().split('T')[0] : '',
+    startDate: initialData?.startDate ? (initialData.startDate.toISOString().split('T')[0] ?? '') : '',
+    endDate: initialData?.endDate ? (initialData.endDate.toISOString().split('T')[0] ?? '') : '',
     projectCode: initialData?.projectCode ?? '',
     globalFlag: initialData?.globalFlag ?? 'Region',
     priority: initialData?.priority ?? 'Medium',
@@ -113,7 +113,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     probability: initialData?.probability ?? 'Medium',
     team: initialData?.team ?? '',
     personInCharge: initialData?.personInCharge ?? '',
-    fiscalYear: initialData?.fiscalYear ?? new Date().getFullYear(),
+    fiscalYear: (initialData?.fiscalYear ?? new Date().getFullYear()) as number | null,
     isCdoReviewRequired: initialData?.isCdoReviewRequired ?? false,
     isManagerConfirmed: initialData?.isManagerConfirmed ?? false,
     payForWhat: initialData?.payForWhat ?? '',
@@ -170,6 +170,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const createMutation = api.project.create.useMutation({
     onSuccess: (project) => {
+      // project.create 以 findUnique 回查，型別為可空；剛建立的記錄必存在，僅作防呆。
+      if (!project) return;
       // CHANGE-038: 建立後同步預算類別
       if (categoryAmounts.length > 0) {
         syncBudgetCategoriesMutation.mutateAsync({ projectId: project.id })
@@ -291,16 +293,18 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       startDate: new Date(formData.startDate),
       endDate: formData.endDate ? new Date(formData.endDate) : undefined,
       projectCode: formData.projectCode,
-      globalFlag: formData.globalFlag,
-      priority: formData.priority,
+      // 下列欄位在 state 為 string（native select），但 API schema 為 enum；
+      // select 僅提供合法值，於此處收斂為對應 enum 型別。
+      globalFlag: formData.globalFlag as 'RCL' | 'Region',
+      priority: formData.priority as 'High' | 'Medium' | 'Low',
       currencyId: formData.currencyId.trim() === '' ? undefined : formData.currencyId,
       projectCategory: formData.projectCategory.trim() === '' ? undefined : formData.projectCategory,
-      projectType: formData.projectType,
-      expenseType: formData.expenseType,
+      projectType: formData.projectType as 'Project' | 'Budget',
+      expenseType: formData.expenseType as 'Expense' | 'Capital' | 'Collection',
       chargeBackToOpCo: formData.chargeBackToOpCo,
       chargeOutOpCoIds: formData.chargeBackToOpCo ? formData.chargeOutOpCoIds : undefined,
       chargeOutMethod: formData.chargeOutMethod.trim() === '' ? undefined : formData.chargeOutMethod,
-      probability: formData.probability,
+      probability: formData.probability as 'High' | 'Medium' | 'Low',
       team: formData.team.trim() === '' ? undefined : formData.team,
       personInCharge: formData.personInCharge.trim() === '' ? undefined : formData.personInCharge,
       fiscalYear: formData.fiscalYear || undefined,

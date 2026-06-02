@@ -116,7 +116,7 @@ export function BudgetCategoryDetails({
   const hasProjectCategories = projectCategories && projectCategories.length > 0;
 
   const displayCategories =
-    mode === 'create' || (mode !== 'create' && !hasProjectCategories)
+    mode === 'create' || !hasProjectCategories
       ? poolCategories?.map((cat) => ({
           budgetCategoryId: cat.id,
           categoryName: cat.categoryName,

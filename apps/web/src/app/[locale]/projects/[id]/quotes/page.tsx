@@ -111,6 +111,8 @@ export default function ProjectQuotesPage() {
   // 從報價生成採購單
   const createPOMutation = api.purchaseOrder.createFromQuote.useMutation({
     onSuccess: (po) => {
+      // createFromQuote 以 findUnique 回查，型別為可空；剛建立的記錄必存在，僅作防呆。
+      if (!po) return;
       toast({
         title: t('messages.success'),
         description: t('messages.poCreatedSuccess', { poNumber: po.poNumber }),
@@ -281,7 +283,7 @@ export default function ProjectQuotesPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">{t('stats.totalQuotes')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-foreground">{comparison.stats.totalQuotes}</div>
+                <div className="text-3xl font-bold text-foreground">{comparison.stats.total}</div>
               </CardContent>
             </Card>
 
@@ -294,9 +296,9 @@ export default function ProjectQuotesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
-                  {comparison.stats.lowestQuote ? (
+                  {comparison.stats.minAmount ? (
                     <CurrencyDisplay
-                      amount={comparison.stats.lowestQuote}
+                      amount={comparison.stats.minAmount}
                       currency={project.currency}
                     />
                   ) : 'N/A'}
@@ -313,9 +315,9 @@ export default function ProjectQuotesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-red-600">
-                  {comparison.stats.highestQuote ? (
+                  {comparison.stats.maxAmount ? (
                     <CurrencyDisplay
-                      amount={comparison.stats.highestQuote}
+                      amount={comparison.stats.maxAmount}
                       currency={project.currency}
                     />
                   ) : 'N/A'}
@@ -329,9 +331,9 @@ export default function ProjectQuotesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-primary">
-                  {comparison.stats.averageQuote ? (
+                  {comparison.stats.avgAmount ? (
                     <CurrencyDisplay
-                      amount={comparison.stats.averageQuote}
+                      amount={comparison.stats.avgAmount}
                       currency={project.currency}
                     />
                   ) : 'N/A'}
@@ -356,8 +358,8 @@ export default function ProjectQuotesPage() {
             ) : (
               <div className="space-y-4">
                 {sortedQuotes.map((quote, index) => {
-                  const isLowest = quote.amount === comparison?.stats.lowestQuote;
-                  const isHighest = quote.amount === comparison?.stats.highestQuote;
+                  const isLowest = quote.amount === comparison?.stats.minAmount;
+                  const isHighest = quote.amount === comparison?.stats.maxAmount;
                   // FEAT-002 FIX: 檢查是否屬於當前專案的 PO
                   const hasSelectedPO = quote.purchaseOrders && quote.purchaseOrders.some(po => po.projectId === projectId);
 

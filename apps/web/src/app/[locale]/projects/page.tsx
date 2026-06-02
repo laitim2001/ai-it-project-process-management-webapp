@@ -100,7 +100,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { convertToCSV, downloadCSV, generateExportFilename } from '@/lib/exportUtils';
+import { downloadCSV, generateExportFilename } from '@/lib/exportUtils';
 
 export default function ProjectsPage() {
   // ============================================================
@@ -336,7 +336,43 @@ export default function ProjectsPage() {
       });
 
       // 轉換為 CSV 並下載
-      const csvContent = convertToCSV(exportData);
+      // 注意：project.export 回傳含巢狀關聯（budgetPool / manager / supervisor / _count）的
+      // 專案物件，不可套用 budget-pool 專用的 convertToCSV（欄位不符），改用專屬欄位映射。
+      const csvEscape = (v: unknown) => {
+        const s = v === null || v === undefined ? '' : String(v);
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const csvHeaders = [
+        'Name',
+        'Project Code',
+        'Status',
+        'Budget Pool',
+        'Financial Year',
+        'Requested Budget',
+        'Manager',
+        'Supervisor',
+        'Proposals',
+        'Purchase Orders',
+        'Created Date',
+      ];
+      const csvRows = exportData.map((p) =>
+        [
+          p.name,
+          p.projectCode,
+          p.status,
+          p.budgetPool?.name,
+          p.budgetPool?.financialYear,
+          p.requestedBudget,
+          p.manager?.name,
+          p.supervisor?.name,
+          p._count.proposals,
+          p._count.purchaseOrders,
+          new Date(p.createdAt).toLocaleDateString(),
+        ]
+          .map(csvEscape)
+          .join(',')
+      );
+      const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
       const filename = generateExportFilename('projects');
       downloadCSV(csvContent, filename);
 

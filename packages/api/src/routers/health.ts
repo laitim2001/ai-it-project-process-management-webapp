@@ -1805,7 +1805,7 @@ export const healthRouter = createTRPCRouter({
         SELECT id, name FROM "Role"
       `;
 
-      // Admin (roleId=1 通常是 Admin) 獲得所有權限
+      // 依 role.name 判斷（不靠 roleId 數值）：Admin 獲得全部權限，其他角色獲得基本菜單
       for (const role of roles) {
         for (const perm of permissions) {
           // Admin 獲得全部，其他角色獲得基本菜單

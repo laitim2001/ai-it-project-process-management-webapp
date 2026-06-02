@@ -392,8 +392,8 @@ export default async function Layout({ children }) {
     redirect('/login');
   }
 
-  // 檢查角色權限
-  if (session.user.roleId < 2) {
+  // 檢查角色權限（以 role.name 判斷；session 無頂層 roleId）
+  if (!['Supervisor', 'Admin'].includes(session.user.role.name)) {
     redirect('/dashboard'); // 非主管無法訪問
   }
 
@@ -408,7 +408,7 @@ import { useSession } from 'next-auth/react';
 
 export default function Page() {
   const { data: session } = useSession();
-  const canEdit = session?.user.roleId >= 2;
+  const canEdit = ['Supervisor', 'Admin'].includes(session?.user.role.name ?? '');
 
   return (
     <div>

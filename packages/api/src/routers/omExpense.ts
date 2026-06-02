@@ -282,7 +282,8 @@ export interface ItemDetail {
   currentYearBudget: number;
   previousYearActual: number | null;
   changePercent: number | null;
-  endDate: Date;
+  // CHANGE-011: ongoing 項目（isOngoing=true）的 endDate 為 null
+  endDate: Date | null;
   /** CHANGE-004: 關聯的 OM Expense ID（用於導航和識別） */
   omExpenseId?: string;
   /** CHANGE-004: 是否為 OMExpenseItem（新架構）或舊 OMExpense */
@@ -849,7 +850,7 @@ export const omExpenseRouter = createTRPCRouter({
 
       // 驗證所有明細項目的日期邏輯
       for (const item of input.items) {
-        if (item.startDate) {
+        if (item.startDate && item.endDate) {
           const startDate = new Date(item.startDate);
           const endDate = new Date(item.endDate);
           if (startDate >= endDate) {
@@ -892,7 +893,7 @@ export const omExpenseRouter = createTRPCRouter({
             startDate: firstItem.startDate
               ? new Date(firstItem.startDate)
               : new Date(),
-            endDate: new Date(firstItem.endDate),
+            endDate: firstItem.endDate ? new Date(firstItem.endDate) : null,
           },
         });
 
@@ -915,7 +916,7 @@ export const omExpenseRouter = createTRPCRouter({
               startDate: itemInput.startDate
                 ? new Date(itemInput.startDate)
                 : null,
-              endDate: new Date(itemInput.endDate),
+              endDate: itemInput.endDate ? new Date(itemInput.endDate) : null,
             },
           });
 
@@ -1031,7 +1032,7 @@ export const omExpenseRouter = createTRPCRouter({
       }
 
       // 驗證日期邏輯
-      if (input.item.startDate) {
+      if (input.item.startDate && input.item.endDate) {
         const startDate = new Date(input.item.startDate);
         const endDate = new Date(input.item.endDate);
         if (startDate >= endDate) {
@@ -1066,7 +1067,7 @@ export const omExpenseRouter = createTRPCRouter({
             startDate: input.item.startDate
               ? new Date(input.item.startDate)
               : null,
-            endDate: new Date(input.item.endDate),
+            endDate: input.item.endDate ? new Date(input.item.endDate) : null,
           },
         });
 

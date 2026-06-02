@@ -61,7 +61,8 @@ export const {
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
-        session.user.roleId = token.roleId;
+        // ⚠️ session 暴露 role 物件（{id, name}），不暴露頂層 roleId
+        session.user.role = token.role;
       }
       return session;
     },
@@ -69,7 +70,8 @@ export const {
     // JWT Callback: 添加資料到 token
     async jwt({ token, user }) {
       if (user) {
-        token.roleId = user.roleId;
+        token.roleId = user.roleId; // JWT 仍保留 roleId
+        token.role = user.role;     // session 由此 role 物件建立
       }
       return token;
     },
@@ -117,12 +119,13 @@ declare module 'next-auth' {
       email: string;
       name?: string;
       image?: string;
-      roleId: number;  // 自定義欄位
+      role: { id: number; name: string };  // session 用 role 物件（無頂層 roleId）
     };
   }
 
   interface User {
-    roleId: number;
+    roleId: number;                          // User/JWT 仍保留 roleId
+    role?: { id: number; name: string };
   }
 }
 ```
@@ -137,11 +140,21 @@ model Role {
   name String @unique
 }
 
-// 角色 ID 約定
-// 1 = ProjectManager（專案經理）
-// 2 = Supervisor（主管）
-// 3 = Admin（系統管理員）
+// 角色 ID 約定（由 seed.ts 依序 upsert 建立，autoincrement）
+// 1 = Admin（系統管理員）
+// 2 = ProjectManager（專案經理）
+// 3 = Supervisor（主管）
+// 注意：實際 RBAC 中介層以 role.name 判斷（見下），不以 roleId 數值比大小
 ```
+
+### 新用戶預設角色（最小權限原則）
+
+新建立的用戶（SSO 首次登入 / 自助註冊）預設角色為 **ProjectManager**（最小權限）：
+
+- **Azure AD SSO 首登**（`apps/web/src/auth.ts`）與 **自助註冊**（`apps/web/src/app/api/auth/register/route.ts`）皆以 `role.name === 'ProjectManager'` 查詢取得 `roleId`，**不硬編碼數值**（Role.id 為 autoincrement，數值因 seed 順序/環境而異）。
+- Prisma schema 的 `User.roleId @default(2)` 僅為安全網；正常路徑都會明確指定。
+- ⚠️ 歷史注意：早期版本硬編碼 `roleId: 1`（實際對應 Admin），會讓任何 SSO 首登 / 註冊者成為 Admin（權限提升）。已修正為以 name 查詢 ProjectManager。
+- 升級為 Supervisor / Admin 須由管理員透過用戶管理介面手動指派。
 
 ### 權限檢查模式
 
@@ -156,8 +169,8 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 });
 
 export const supervisorProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const roleId = ctx.session.user.roleId;
-  if (roleId !== 2 && roleId !== 3) { // Supervisor 或 Admin
+  const userRole = ctx.session.user.role.name; // 以 role.name 判斷，非 roleId
+  if (userRole !== 'Supervisor' && userRole !== 'Admin') {
     throw new TRPCError({ code: 'FORBIDDEN' });
   }
   return next();
@@ -176,8 +189,8 @@ export default async function Layout({ children }) {
     redirect('/login');
   }
 
-  // 根據角色顯示不同內容
-  const isSupervisor = session.user.roleId >= 2;
+  // 根據角色顯示不同內容（以 role.name 判斷）
+  const isSupervisor = ['Supervisor', 'Admin'].includes(session.user.role.name);
 
   return <DashboardLayout session={session}>{children}</DashboardLayout>;
 }
@@ -194,7 +207,7 @@ export function MyComponent() {
   if (status === 'loading') return <LoadingSkeleton />;
   if (status === 'unauthenticated') redirect('/login');
 
-  const canEdit = session.user.roleId >= 2;
+  const canEdit = ['Supervisor', 'Admin'].includes(session.user.role.name);
 
   return <div>{canEdit && <EditButton />}</div>;
 }

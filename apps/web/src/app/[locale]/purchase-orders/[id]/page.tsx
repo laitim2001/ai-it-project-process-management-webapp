@@ -505,7 +505,7 @@ export default function PurchaseOrderDetailPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">{t('detail.expenses.cumulativeAmount')}</p>
                       <p className="text-xl font-bold text-foreground">
-                        ${purchaseOrder.expenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
+                        ${purchaseOrder.expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
                       </p>
                     </div>
                   </div>

@@ -303,15 +303,15 @@ export default function ChargeOutDetailPage({ params }: { params: { id: string }
                         <tr key={item.id} className="border-b hover:bg-muted/50">
                           <td className="p-2 text-sm">{index + 1}</td>
                           <td className="p-2 text-sm">
-                            <div className="font-medium">{item.expense.name}</div>
+                            <div className="font-medium">{item.expense?.name ?? 'N/A'}</div>
                             <div className="text-xs text-muted-foreground">
-                              {item.expense.expenseDate
+                              {item.expense?.expenseDate
                                 ? formatDate(item.expense.expenseDate)
                                 : 'N/A'}
                             </div>
                           </td>
                           <td className="p-2 text-sm">
-                            {item.expense.invoiceNumber || 'N/A'}
+                            {item.expense?.invoiceNumber || 'N/A'}
                           </td>
                           <td className="p-2 text-right text-sm font-medium">
                             {formatCurrency(item.amount)}

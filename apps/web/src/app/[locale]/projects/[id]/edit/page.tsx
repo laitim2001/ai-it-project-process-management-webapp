@@ -223,7 +223,6 @@ export default function EditProjectPage() {
                 budgetPoolId: project.budgetPoolId,
                 budgetCategoryId: project.budgetCategoryId,
                 requestedBudget: project.requestedBudget,
-                approvedBudget: project.approvedBudget,
                 managerId: project.managerId,
                 supervisorId: project.supervisorId,
                 startDate: project.startDate,

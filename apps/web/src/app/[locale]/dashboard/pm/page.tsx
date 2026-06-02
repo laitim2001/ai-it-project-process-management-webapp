@@ -274,7 +274,7 @@ export default function ProjectManagerDashboard() {
                               <div>
                                 <p className="text-muted-foreground">{t('projects.budgetPool')}</p>
                                 <p className="font-medium text-foreground">
-                                  {t('projects.fiscalYear', { year: project.budgetPool.fiscalYear })}
+                                  {t('projects.fiscalYear', { year: project.budgetPool.financialYear })}
                                 </p>
                               </div>
                             </div>

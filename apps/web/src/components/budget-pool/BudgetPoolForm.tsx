@@ -75,7 +75,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CategoryFormRow, CategoryFormData, CategoryErrors } from './CategoryFormRow';
+import { CategoryFormRow, type CategoryFormData, type CategoryErrors } from './CategoryFormRow';
 import { Plus, Calculator } from 'lucide-react';
 import { CurrencySelect } from '@/components/shared/CurrencySelect';
 

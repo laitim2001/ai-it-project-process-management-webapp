@@ -12,7 +12,7 @@
  * - 伺服器端輸入驗證（Zod schema）
  * - 重複 Email 檢查（數據庫唯一性）
  * - 密碼加密（bcrypt hash，10 輪 salt）
- * - 用戶記錄創建（預設 roleId = 1 ProjectManager）
+ * - 用戶記錄創建（預設角色 ProjectManager，以 role.name 查詢取得 id）
  * - 詳細錯誤訊息（區分重複帳號、驗證錯誤、系統錯誤）
  *
  * @security
@@ -79,10 +79,11 @@ type RegisterInput = z.infer<typeof registerSchema>;
 const BCRYPT_SALT_ROUNDS = 10;
 
 /**
- * 預設用戶角色 ID
- * 1 = ProjectManager（根據 Prisma schema）
+ * 新註冊用戶的預設角色名稱
+ * 以 role.name 查詢實際 id（最小權限原則），避免硬編碼 roleId —
+ * Role.id 為 autoincrement，數值會隨 seed 順序/環境而異。
  */
-const DEFAULT_ROLE_ID = 1;
+const DEFAULT_ROLE_NAME = 'ProjectManager';
 
 // ========================================
 // 📡 API Route Handler
@@ -169,14 +170,34 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     // ========================================
-    // Step 4: Create User Record
+    // Step 4: Resolve Default Role (ProjectManager)
+    // ========================================
+    // 以 role.name 查詢預設角色 id（最小權限），避免硬編碼數值
+    const defaultRole = await prisma.role.findUnique({
+      where: { name: DEFAULT_ROLE_NAME },
+      select: { id: true },
+    });
+
+    if (!defaultRole) {
+      console.error(`❌ 註冊錯誤: 預設角色 ${DEFAULT_ROLE_NAME} 不存在，請先執行資料庫 seed`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: '註冊失敗，請稍後再試',
+        },
+        { status: 500 }
+      );
+    }
+
+    // ========================================
+    // Step 5: Create User Record
     // ========================================
     const newUser = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        roleId: DEFAULT_ROLE_ID, // 預設為 ProjectManager
+        roleId: defaultRole.id, // 預設為 ProjectManager（最小權限）
       },
       select: {
         id: true,
@@ -188,7 +209,7 @@ export async function POST(request: NextRequest) {
     });
 
     // ========================================
-    // Step 5: Return Success Response
+    // Step 6: Return Success Response
     // ========================================
     return NextResponse.json(
       {

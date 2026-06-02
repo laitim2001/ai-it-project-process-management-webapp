@@ -119,7 +119,7 @@ export const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(255),
   description: z.string().optional(),
   budgetPoolId: z.string().min(1, 'Budget pool ID is required'),
-  budgetCategoryId: z.string().uuid('Invalid budget category ID').optional(), // 新增：預算類別ID
+  budgetCategoryId: z.string().uuid('Invalid budget category ID').nullable().optional(), // 新增：預算類別ID（前端清空時送 null）
   requestedBudget: z.number().min(0, 'Requested budget must be >= 0').optional(), // 新增：請求預算金額
   managerId: z.string().uuid('Invalid manager ID'),
   supervisorId: z.string().uuid('Invalid supervisor ID'),
@@ -1622,43 +1622,6 @@ export const projectRouter = createTRPCRouter({
       };
     }),
 
-  /**
-   * 獲取專案類別列表 (FEAT-006)
-   *
-   * @description
-   * 獲取所有不重複的專案類別，用於過濾器下拉選單。
-   *
-   * 回傳：
-   * - categories: 專案類別字串陣列
-   */
-  getProjectCategories: protectedProcedure
-    .query(async ({ ctx }) => {
-      // 使用 findMany + distinct 獲取不重複的 projectCategory
-      const projects = await ctx.prisma.project.findMany({
-        where: {
-          projectCategory: {
-            not: null,
-          },
-        },
-        select: {
-          projectCategory: true,
-        },
-        distinct: ['projectCategory'],
-        orderBy: {
-          projectCategory: 'asc',
-        },
-      });
-
-      // 提取並過濾掉 null 值
-      const categories = projects
-        .map((p) => p.projectCategory)
-        .filter((c): c is string => c !== null);
-
-      return {
-        categories,
-      };
-    }),
-
   // ============================================================
   // FEAT-010: Project Data Import 新增 Procedures
   // ============================================================
@@ -1893,6 +1856,7 @@ export const projectRouter = createTRPCRouter({
         async (tx) => {
           for (let i = 0; i < input.projects.length; i++) {
             const row = input.projects[i];
+            if (!row) continue;
             const rowNumber = i + 1;
 
             try {

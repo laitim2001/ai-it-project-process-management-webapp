@@ -122,8 +122,10 @@ const getFormSchema = (t: any) => z.object({
   invoiceNumber: z.string().min(1, t('validation.invoiceNumberRequired')),
   invoiceDate: z.string().min(1, t('validation.invoiceDateRequired')),
   expenseDate: z.string().optional(),
-  requiresChargeOut: z.boolean().default(false),
-  isOperationMaint: z.boolean().default(false),
+  // 不使用 .default(false)：會使 zod 的 input 型別（可選）與 output 型別（必填）分歧，
+  // 導致 react-hook-form 的 Resolver 型別不符。預設值已由 useForm 的 defaultValues 提供。
+  requiresChargeOut: z.boolean(),
+  isOperationMaint: z.boolean(),
 });
 
 type FormValues = z.infer<ReturnType<typeof getFormSchema>>;
@@ -231,6 +233,8 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
   // ===== Mutations =====
   const createMutation = api.expense.create.useMutation({
     onSuccess: (data) => {
+      // expense.create 以 findUnique 回查，型別為可空；剛建立的記錄必存在，僅作防呆。
+      if (!data) return;
       toast({
         title: commonT('success'),
         description: t('messages.createSuccess', { name: data.name }),
@@ -289,7 +293,9 @@ export function ExpenseForm({ initialData, isEdit = false }: ExpenseFormProps) {
    */
   const handleUpdateItem = (index: number, field: keyof ExpenseItemFormData, value: any) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    const existing = newItems[index];
+    if (!existing) return;
+    newItems[index] = { ...existing, [field]: value };
     setItems(newItems);
   };
 

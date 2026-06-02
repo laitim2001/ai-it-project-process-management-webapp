@@ -511,7 +511,7 @@ export default function ExpensesPage() {
                   <div>
                     <p className="text-sm text-gray-600">{t('list.stats.pendingCount')}</p>
                     <p className="text-2xl font-bold text-orange-600">
-                      {stats.statusCounts?.Submitted ?? 0}
+                      {stats.byStatus.find((s) => s.status === 'Submitted')?.count ?? 0}
                     </p>
                   </div>
                   <FileText className="h-8 w-8 text-orange-600" />
@@ -525,7 +525,7 @@ export default function ExpensesPage() {
                   <div>
                     <p className="text-sm text-gray-600">{t('list.stats.paidCount')}</p>
                     <p className="text-2xl font-bold text-green-600">
-                      {stats.statusCounts?.Paid ?? 0}
+                      {stats.byStatus.find((s) => s.status === 'Paid')?.count ?? 0}
                     </p>
                   </div>
                   <Receipt className="h-8 w-8 text-green-600" />

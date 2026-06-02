@@ -211,6 +211,8 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
   // ===== Mutations =====
   const createMutation = api.purchaseOrder.create.useMutation({
     onSuccess: (data) => {
+      // create 以 findUnique 回查，型別為可空；剛建立的記錄必存在，僅作防呆。
+      if (!data) return;
       toast({
         title: t('form.toast.createSuccess'),
         description: t('form.toast.createSuccessDesc', { name: data.name }),
@@ -270,7 +272,9 @@ export function PurchaseOrderForm({ initialData, isEdit = false }: PurchaseOrder
    */
   const handleUpdateItem = (index: number, field: keyof POItemFormData, value: any) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    const existing = newItems[index];
+    if (!existing) return;
+    newItems[index] = { ...existing, [field]: value };
     setItems(newItems);
   };
 

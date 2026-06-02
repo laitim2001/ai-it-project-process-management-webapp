@@ -81,7 +81,8 @@ export default function BudgetPoolsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState<number | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<'name' | 'year' | 'amount'>('year');
+  // budgetPool.getAll 僅支援 name / year 排序（totalAmount 為計算值，非 DB 欄位無法排序）
+  const [sortBy, setSortBy] = useState<'name' | 'year'>('year');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
@@ -297,7 +298,7 @@ export default function BudgetPoolsPage() {
           <NativeSelect value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [newSortBy, newSortOrder] = e.target.value.split('-') as [
-                'name' | 'year' | 'amount',
+                'name' | 'year',
                 'asc' | 'desc'
               ];
               setSortBy(newSortBy);
@@ -308,8 +309,6 @@ export default function BudgetPoolsPage() {
             <option value="year-asc">{t('sort.yearAsc')}</option>
             <option value="name-asc">{t('sort.nameAsc')}</option>
             <option value="name-desc">{t('sort.nameDesc')}</option>
-            <option value="amount-desc">{t('sort.amountDesc')}</option>
-            <option value="amount-asc">{t('sort.amountAsc')}</option>
           </NativeSelect>
         </div>
 

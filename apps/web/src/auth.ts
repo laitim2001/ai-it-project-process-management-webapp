@@ -21,7 +21,7 @@
  * - Prisma 資料庫整合
  * - 自動用戶 upsert（Azure AD B2C 登入時）
  * - JWT Session 管理
- * - RBAC 支援（roleId and role object in session）
+ * - RBAC 支援（role object in session；roleId 僅存在於 JWT/User，session 一律用 role.id）
  *
  * @dependencies
  * - next-auth v5 - 核心認證框架
@@ -44,48 +44,12 @@ import { prisma } from '@itpm/db';
 import bcrypt from 'bcryptjs';
 import { authConfig as baseAuthConfig } from './auth.config';
 
+// NextAuth 的型別擴充（Session.user.role / User.roleId / JWT）統一由 @itpm/auth 提供，
+// 此處以 side-effect import 載入，避免在本檔重複宣告造成 module augmentation 衝突。
+// （與 packages/api/src/trpc.ts 的 `import '@itpm/auth'` 做法一致）
+import '@itpm/auth';
+
 console.log('🚀 NextAuth v5 配置文件正在載入...');
-
-/**
- * 擴展 NextAuth 類型定義
- */
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      name: string | null;
-      role: {
-        id: number;
-        name: string;
-      };
-    };
-  }
-
-  interface User {
-    id: string;
-    email: string;
-    name: string | null;
-    roleId?: number;
-    role?: {
-      id: number;
-      name: string;
-    };
-  }
-}
-
-declare module '@auth/core/jwt' {
-  interface JWT {
-    id: string;
-    email: string;
-    name: string | null;
-    roleId: number;
-    role: {
-      id: number;
-      name: string;
-    };
-  }
-}
 
 /**
  * NextAuth.js v5 完整配置選項
@@ -107,7 +71,9 @@ export const authConfig: NextAuthConfig = {
           AzureAD({
             clientId: process.env.AZURE_AD_CLIENT_ID,
             clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
-            tenantId: process.env.AZURE_AD_TENANT_ID,
+            // next-auth v5：azure-ad provider 已改為 microsoft-entra-id，不再接受 tenantId，
+            // 改以 issuer 指定單一租戶（限制只允許本組織帳號登入）。
+            issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
             authorization: {
               params: {
                 scope: 'openid profile email User.Read',
@@ -216,18 +182,30 @@ export const authConfig: NextAuthConfig = {
 
       // Azure AD (Entra ID) 登入時，確保用戶在資料庫中存在
       if (account?.provider === 'azure-ad' && user) {
+        // 新 SSO 用戶預設角色為 ProjectManager（最小權限原則）。
+        // 以 role.name 查詢取得 id，避免硬編碼 roleId — Role.id 為 autoincrement，
+        // 數值會隨 seed 順序/環境而異（目前 Admin=1, ProjectManager=2, Supervisor=3）。
+        const defaultRole = await prisma.role.findUnique({
+          where: { name: 'ProjectManager' },
+          select: { id: true },
+        });
+        if (!defaultRole) {
+          throw new Error('預設角色 ProjectManager 不存在，請先執行資料庫 seed（pnpm db:seed）');
+        }
+
         const dbUser = await prisma.user.upsert({
           where: { email: user.email },
           update: {
             name: user.name,
             image: user.image,
+            // 注意：不更新 roleId，避免覆蓋既有用戶被管理員調整過的角色
           },
           create: {
             email: user.email,
             name: user.name,
             image: user.image,
-            roleId: 1, // 預設為 ProjectManager (roleId = 1)
-            password: null, // Azure AD B2C 用戶無本地密碼
+            roleId: defaultRole.id, // 新用戶預設 ProjectManager（最小權限）
+            password: null, // Azure AD 用戶無本地密碼
           },
           include: { role: true },
         });
@@ -248,12 +226,12 @@ export const authConfig: NextAuthConfig = {
       console.log('🔐 Session callback 執行', { hasToken: !!token, tokenId: token?.id });
 
       if (token) {
-        session.user = {
-          id: token.id,
-          email: token.email,
-          name: token.name,
-          role: token.role,
-        };
+        // 逐欄賦值（而非整個取代 session.user）：合併後的 Session.user 型別為
+        // AdapterUser & {…自訂欄位}，直接以物件字面量取代會缺少 AdapterUser 必填欄位。
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.role = token.role;
         console.log('✅ Session callback: 設置 session.user', { userId: session.user.id });
       } else {
         console.log('⚠️ Session callback: token 不存在');

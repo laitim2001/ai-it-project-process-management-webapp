@@ -91,7 +91,7 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "./Button"
+import { Button } from "./button"
 
 interface PaginationProps extends Omit<React.ComponentProps<"nav">, 'currentPage' | 'totalPages' | 'onPageChange'> {}
 

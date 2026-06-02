@@ -59,7 +59,7 @@ import { ZodError } from 'zod';
 
 import { prisma } from '@itpm/db';
 import type { Session } from 'next-auth';
-import '@itpm/auth'; // Side-effect import: loads declare module augmentations for next-auth Session/JWT types (adds role, roleId)
+import '@itpm/auth'; // Side-effect import: loads declare module augmentations for next-auth types (adds role to Session; role + roleId to JWT/User)
 
 /**
  * ====================================================================

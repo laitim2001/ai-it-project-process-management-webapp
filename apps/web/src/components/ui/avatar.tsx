@@ -91,7 +91,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       const text = alt || fallback || ""
       const words = text.trim().split(" ")
       if (words.length >= 2) {
-        return `${words[0][0]}${words[1][0]}`.toUpperCase()
+        return `${words[0]?.[0] ?? ""}${words[1]?.[0] ?? ""}`.toUpperCase()
       }
       return text.slice(0, 2).toUpperCase()
     }

@@ -140,10 +140,13 @@ export default function SupervisorDashboard() {
   // 查詢所有專案經理（用於篩選）
   const { data: managers } = api.dashboard.getProjectManagers.useQuery();
 
+  // 用於命令式查詢（CSV 導出）
+  const utils = api.useUtils();
+
   // CSV 導出函數
   const handleExport = async () => {
     try {
-      const exportData = await api.dashboard.exportProjects.query({
+      const exportData = await utils.dashboard.exportProjects.fetch({
         role: 'Supervisor',
         status,
         managerId,
@@ -154,7 +157,7 @@ export default function SupervisorDashboard() {
       const csvContent = [
         headers.join(','),
         ...exportData.map((row) =>
-          headers.map((h) => `"${row[h] || ''}"`).join(',')
+          headers.map((h) => `"${(row as Record<string, unknown>)[h] ?? ''}"`).join(',')
         ),
       ].join('\n');
 
@@ -309,8 +312,8 @@ export default function SupervisorDashboard() {
                   {managers?.map((manager) => (
                     <option key={manager.id} value={manager.id}>
                       {t('filters.manager.projectCount', {
-                        name: manager.name,
-                        count: manager._count.managedProjects
+                        name: manager.name ?? '',
+                        count: manager._count.projects
                       })}
                     </option>
                   ))}
@@ -352,7 +355,7 @@ export default function SupervisorDashboard() {
                   const totalExpenses = project.purchaseOrders.reduce(
                     (sum, po) =>
                       sum +
-                      po.expenses.reduce((expSum, exp) => expSum + exp.amount, 0),
+                      po.expenses.reduce((expSum, exp) => expSum + exp.totalAmount, 0),
                     0
                   );
 
@@ -391,7 +394,7 @@ export default function SupervisorDashboard() {
                               <div>
                                 <p className="text-xs text-muted-foreground">{t('projects.budgetPool')}</p>
                                 <p className="text-sm font-medium text-foreground">
-                                  {t('projects.fiscalYear', { year: project.budgetPool.fiscalYear })}
+                                  {t('projects.fiscalYear', { year: project.budgetPool.financialYear })}
                                 </p>
                               </div>
                             </div>

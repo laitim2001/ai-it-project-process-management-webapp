@@ -122,7 +122,13 @@ export default function ChargeOutsPage() {
 
   // 獲取 ChargeOut 列表
   const { data: chargeOuts, isLoading, refetch } = api.chargeOut.getAll.useQuery({
-    status: selectedStatus || undefined,
+    status: (selectedStatus || undefined) as
+      | 'Draft'
+      | 'Submitted'
+      | 'Confirmed'
+      | 'Paid'
+      | 'Rejected'
+      | undefined,
     opCoId: selectedOpCo || undefined,
     projectId: selectedProject || undefined,
     page,
@@ -539,7 +545,7 @@ export default function ChargeOutsPage() {
             <AlertDialogDescription>
               {canDelete(deleteTarget?.status || '')
                 ? t('dialogs.delete.description')
-                : t('dialogs.delete.cannotDeleteDescription', { reason: deleteTarget?.status })}
+                : t('dialogs.delete.cannotDeleteDescription', { reason: deleteTarget?.status ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -583,7 +589,7 @@ export default function ChargeOutsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('dialogs.revert.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('dialogs.revert.description', { name: revertTarget?.name })}
+              {t('dialogs.revert.description', { name: revertTarget?.name ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

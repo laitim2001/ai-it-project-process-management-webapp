@@ -111,7 +111,7 @@ function formatDateForInput(value: string | Date | null | undefined): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (isNaN(date.getTime())) return '';
 
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] ?? '';
 }
 
 // ============================================================
@@ -183,7 +183,9 @@ export default function OMExpenseItemForm({
     currencyId: z.string().optional().nullable(),
     startDate: z.string().optional().nullable(),
     endDate: z.string().optional().nullable(), // CHANGE-011: 當 isOngoing=true 時可為空
-    isOngoing: z.boolean().default(false), // CHANGE-011: 持續進行中標記
+    // 不使用 .default(false)：避免 zod input/output 型別分歧導致 RHF Resolver 不符；
+    // 預設值由 useForm 的 defaultValues 提供。
+    isOngoing: z.boolean(), // CHANGE-011: 持續進行中標記
     // CHANGE-006: 上年度實際支出
     lastFYActualExpense: z.number().optional().nullable(),
   }).refine(

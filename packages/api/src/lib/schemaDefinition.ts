@@ -21,7 +21,7 @@
  * @version 2.0.0 (方案 C 自動化版本)
  */
 
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@itpm/db';
 
 // ============================================================
 // 類型定義

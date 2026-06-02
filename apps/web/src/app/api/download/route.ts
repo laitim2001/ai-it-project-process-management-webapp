@@ -24,6 +24,7 @@ import {
   generateSasUrl,
   extractBlobNameFromUrl,
   extractContainerNameFromUrl,
+  type BlobContainerName,
 } from '@/lib/azure-storage';
 
 // Force dynamic rendering
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 從完整 blob URL 提取 container 名稱和 blob 名稱
-    let containerName: string;
+    let containerName: BlobContainerName;
     let blobName: string;
 
     try {

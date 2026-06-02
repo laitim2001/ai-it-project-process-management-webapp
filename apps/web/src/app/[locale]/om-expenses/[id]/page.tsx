@@ -318,7 +318,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       lastFYActualExpense: item.lastFYActualExpense,
       // Convert Date to ISO string
       startDate: item.startDate ? new Date(item.startDate).toISOString() : null,
-      endDate: new Date(item.endDate).toISOString(),
+      endDate: item.endDate ? new Date(item.endDate).toISOString() : null,
       opCo: item.opCo ? {
         id: item.opCo.id,
         code: item.opCo.code,
@@ -330,7 +330,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
         name: item.currency.name,
         symbol: item.currency.symbol,
         exchangeRate: item.currency.exchangeRate,
-      } : null,
+      } : undefined,
       monthlyRecords: item.monthlyRecords?.map((record) => ({
         month: record.month,
         actualAmount: record.actualAmount,

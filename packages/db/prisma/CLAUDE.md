@@ -103,7 +103,7 @@ model User {
   name          String?
   image         String?
   password      String?   // bcrypt hash，Azure AD B2C 用戶為 null
-  roleId        Int       @default(1)
+  roleId        Int       @default(2)  // 預設 ProjectManager（最小權限）；實際建立路徑以 role.name 查詢指定
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -121,7 +121,7 @@ model User {
 model Account { ... }           // NextAuth OAuth
 model Session { ... }           // NextAuth Session
 model VerificationToken { ... } // NextAuth Email 驗證
-model Role { id, name }         // 角色：ProjectManager, Supervisor, Admin
+model Role { id, name }         // 角色 ID（seed 依序建立）：Admin=1, ProjectManager=2, Supervisor=3
 
 // FEAT-011: 權限管理系統
 model Permission {

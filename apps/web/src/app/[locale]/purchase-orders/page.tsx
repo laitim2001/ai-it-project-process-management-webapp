@@ -726,7 +726,7 @@ export default function PurchaseOrdersPage() {
               <AlertDialogTitle>{t('dialogs.delete.title')}</AlertDialogTitle>
               <AlertDialogDescription>
                 {deleteTarget?.status !== 'Draft'
-                  ? t('dialogs.delete.cannotDeleteDescription', { status: deleteTarget?.status })
+                  ? t('dialogs.delete.cannotDeleteDescription', { status: deleteTarget?.status ?? '' })
                   : deleteTarget?.hasExpenses
                     ? t('dialogs.delete.hasExpensesDescription')
                     : t('dialogs.delete.description')
@@ -774,7 +774,7 @@ export default function PurchaseOrdersPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>{t('dialogs.revert.title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                {t('dialogs.revert.description', { poNumber: revertTarget?.poNumber })}
+                {t('dialogs.revert.description', { poNumber: revertTarget?.poNumber ?? '' })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -794,7 +794,7 @@ export default function PurchaseOrdersPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>{t('dialogs.revertToSubmitted.title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                {t('dialogs.revertToSubmitted.description', { poNumber: revertToSubmittedTarget?.poNumber })}
+                {t('dialogs.revertToSubmitted.description', { poNumber: revertToSubmittedTarget?.poNumber ?? '' })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

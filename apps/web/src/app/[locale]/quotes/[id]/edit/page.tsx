@@ -124,7 +124,7 @@ export default function EditQuotePage() {
   useEffect(() => {
     if (quote) {
       setAmount(quote.amount.toString());
-      setDescription(quote.description || '');
+      // Quote 模型無 description 欄位（未持久化於 DB），編輯時不預填。
     }
   }, [quote]);
 

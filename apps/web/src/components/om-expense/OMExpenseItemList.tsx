@@ -120,7 +120,7 @@ export interface OMExpenseItemData {
   opCoId: string;
   currencyId?: string | null;
   startDate?: string | null;
-  endDate: string;
+  endDate: string | null; // CHANGE-011: ongoing 項目（isOngoing=true）的 endDate 可為 null
   opCo?: {
     id: string;
     code: string;
@@ -293,7 +293,7 @@ function SortableRow({
 
       {/* End Date */}
       <TableCell className="text-right">
-        {formatDate(item.endDate)}
+        {item.endDate ? formatDate(item.endDate) : '-'}
       </TableCell>
 
       {/* Actions */}
