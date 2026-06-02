@@ -280,17 +280,25 @@ model BudgetProposal {
   approvedAt      DateTime? // 批准日期
   rejectionReason String?   @db.Text // 拒絕原因
 
+  // CHANGE-043: 會議記錄擴充欄位
+  proposalType String  @default("BudgetProposal") // 'BudgetProposal' | 'Payment'（暫為純選擇欄位，未連 Expense）
+  vendorId     String? // Pay to（FK→Vendor）
+  reviewNotes  String? @db.Text // Review notes / action items（與 meetingNotes 語意分離）
+  documentLink String? // Docuware 等外部連結（URL）
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   project      Project   @relation(fields: [projectId], references: [id])
   approver     User?     @relation("ProposalApprover", fields: [approvedBy], references: [id]) // 新增
+  vendor       Vendor?   @relation(fields: [vendorId], references: [id]) // CHANGE-043: Pay to
   comments     Comment[]
   historyItems History[]
 
   @@index([projectId])
   @@index([status])
   @@index([approvedBy]) // 新增索引
+  @@index([vendorId]) // CHANGE-043
 }
 
 model Vendor {
@@ -302,10 +310,11 @@ model Vendor {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  quotes         Quote[]
-  purchaseOrders PurchaseOrder[]
-  expenses       Expense[] // 新增：關聯費用
-  omExpenses     OMExpense[] // 新增：關聯 OM 費用
+  quotes          Quote[]
+  purchaseOrders  PurchaseOrder[]
+  expenses        Expense[] // 新增：關聯費用
+  omExpenses      OMExpense[] // 新增：關聯 OM 費用
+  budgetProposals BudgetProposal[] // CHANGE-043: 提案的付款對象
 }
 
 model Quote {

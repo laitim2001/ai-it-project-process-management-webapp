@@ -1091,6 +1091,27 @@
         "notes": {
           "label": "會議記錄",
           "placeholder": "請輸入會議記錄內容..."
+        },
+        "type": {
+          "label": "類型",
+          "options": {
+            "budgetProposal": "預算提案",
+            "payment": "付款"
+          }
+        },
+        "vendor": {
+          "label": "付款對象（Pay to）",
+          "placeholder": "選擇供應商",
+          "none": "未指定"
+        },
+        "reviewNotes": {
+          "label": "審查記錄（行動項）",
+          "placeholder": "請輸入審查記錄／行動項..."
+        },
+        "documentLink": {
+          "label": "文件連結（Docuware）",
+          "placeholder": "https://...",
+          "open": "開啟文件"
         }
       },
       "hints": {

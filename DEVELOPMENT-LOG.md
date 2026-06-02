@@ -20,6 +20,41 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-02 | 📝 CHANGE-043: Budget Proposal 會議記錄欄位擴充 | 完成 ✅
+
+**類型**: 功能開發 | **負責人**: AI 助手 | **狀態**: ✅ 完成
+
+**背景**:
+- 提案會議記錄需補齊 4 個欄位：Type（BudgetProposal/Payment）、Vendor（Pay to）、Review notes（行動項）、Docuware 連結。
+- 既有已有 meetingDate/meetingNotes/presentedBy 與 amount/approvedAmount。
+
+**實現內容**:
+1. Schema：`BudgetProposal` +`proposalType`（預設 BudgetProposal）/`vendorId`（FK→Vendor）/`reviewNotes`（Text）/`documentLink`；`Vendor` 加反向關聯；`@@index([vendorId])`。
+2. API：`budgetProposal.updateMeetingNotes` 收納 4 個新欄位；`getById` include `vendor`；新增 `proposalTypeEnum`。
+3. 前端：`ProposalMeetingNotes` 加 Type 下拉、Vendor 下拉（取 `vendor.getAll`）、Review notes、可點外連的 Docuware link（顯示+編輯模式）；詳情頁傳入新 props。
+4. i18n：`proposals.meeting.fields` 新增 type/vendor/reviewNotes/documentLink（+11 keys，雙語）。
+
+**修改文件** (6 個):
+- `packages/db/prisma/schema.prisma`、`packages/api/src/routers/budgetProposal.ts`
+- `apps/web/src/components/proposal/ProposalMeetingNotes.tsx`、`apps/web/src/app/[locale]/proposals/[id]/page.tsx`
+- `apps/web/src/messages/en.json`、`apps/web/src/messages/zh-TW.json`
+
+**關鍵決策**:
+- 4 個欄位全放「會議記錄」編輯器，主 create/update 表單未動（符合「會議記錄欄位」語意）。
+- Schema 改用 **`prisma db push`**（經使用者確認）：repo 缺初始 migration，`migrate dev` 在 shadow DB 重放失敗（既有基礎設施債）；純新增欄位 db push 非破壞性。
+
+**驗證**:
+- 瀏覽器端到端（Playwright）：proposal-cloud-001 設 Type=Payment / Vendor=Microsoft Taiwan / 填各欄位 → 存檔 → refetch 後顯示正確、Docuware 連結可點開。
+- `validate:i18n` 通過（2717 keys）；本變更檔案 typecheck 零新增錯誤。
+
+**待辦**:
+- 🟡 amount/approvedAmount 的「(USD)」標籤未做（在詳情 header，非會議 block，屬獨立小調整）。
+- 🟡 Migration baseline 缺失（既有債）：`migrate dev` 無法乾淨運作，建議獨立 chore 用 `migrate diff` 補建 init migration。
+
+**相關文檔**: `claudedocs/4-changes/feature-changes/CHANGE-043-budget-proposal-meeting-minutes-fields.md`
+
+---
+
 ### 2026-06-02 | 💱 CHANGE-042: OM Expense 雙幣別顯示（USD 主 + 換算次值）| 完成 ✅
 
 **類型**: 功能開發 + Bug 修復 | **負責人**: AI 助手 | **狀態**: ✅ 完成

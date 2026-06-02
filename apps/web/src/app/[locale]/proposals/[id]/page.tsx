@@ -466,6 +466,11 @@ export default function ProposalDetailPage() {
                   meetingDate={proposal.meetingDate}
                   meetingNotes={proposal.meetingNotes}
                   presentedBy={proposal.presentedBy}
+                  proposalType={proposal.proposalType}
+                  vendorId={proposal.vendorId}
+                  vendorName={proposal.vendor?.name ?? null}
+                  reviewNotes={proposal.reviewNotes}
+                  documentLink={proposal.documentLink}
                 />
               </TabsContent>
             </Tabs>

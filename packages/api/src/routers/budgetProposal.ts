@@ -76,6 +76,9 @@ const ProposalStatus = z.enum([
 /**
  * BudgetProposal 輸入驗證 Schema
  */
+// CHANGE-043: 提案類型（Budget Proposal / 付款），暫為純選擇欄位（未連 Expense）
+const proposalTypeEnum = z.enum(['BudgetProposal', 'Payment']);
+
 const budgetProposalCreateInputSchema = z.object({
   title: z.string().min(1, '標題為必填欄位'),
   amount: z.number().positive('金額必須大於0'),
@@ -210,6 +213,7 @@ export const budgetProposalRouter = createTRPCRouter({
               currency: true, // FEAT-002: Include project currency
             },
           },
+          vendor: true, // CHANGE-043: Pay to
           comments: {
             include: {
               user: { select: safeUserSelect },
@@ -637,6 +641,15 @@ export const budgetProposalRouter = createTRPCRouter({
         meetingDate: z.string().min(1, '會議日期為必填'),
         meetingNotes: z.string().min(1, '會議記錄為必填'),
         presentedBy: z.string().optional(),
+        // CHANGE-043: 會議記錄擴充欄位
+        proposalType: proposalTypeEnum.optional(),
+        vendorId: z.string().nullable().optional(), // Pay to（null 表示清除）
+        reviewNotes: z.string().optional(), // Review notes / action items
+        documentLink: z
+          .string()
+          .url('請輸入有效的網址（需含 http(s)://）')
+          .or(z.literal(''))
+          .optional(), // Docuware 連結
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -663,6 +676,11 @@ export const budgetProposalRouter = createTRPCRouter({
           meetingDate: new Date(input.meetingDate),
           meetingNotes: input.meetingNotes,
           presentedBy: input.presentedBy,
+          // CHANGE-043: 會議記錄擴充欄位
+          proposalType: input.proposalType,
+          vendorId: input.vendorId,
+          reviewNotes: input.reviewNotes,
+          documentLink: input.documentLink,
         },
         include: {
           project: {
@@ -672,6 +690,7 @@ export const budgetProposalRouter = createTRPCRouter({
               budgetPool: true,
             },
           },
+          vendor: true, // CHANGE-043
         },
       });
 

@@ -1091,6 +1091,27 @@
         "notes": {
           "label": "Meeting Notes",
           "placeholder": "Enter meeting notes content..."
+        },
+        "type": {
+          "label": "Type",
+          "options": {
+            "budgetProposal": "Budget Proposal",
+            "payment": "Payment"
+          }
+        },
+        "vendor": {
+          "label": "Vendor (Pay to)",
+          "placeholder": "Select vendor",
+          "none": "Not specified"
+        },
+        "reviewNotes": {
+          "label": "Review Notes (Action Items)",
+          "placeholder": "Enter review notes / action items..."
+        },
+        "documentLink": {
+          "label": "Document Link (Docuware)",
+          "placeholder": "https://...",
+          "open": "Open document"
         }
       },
       "hints": {
