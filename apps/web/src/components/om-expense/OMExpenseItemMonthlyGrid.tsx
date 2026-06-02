@@ -4,7 +4,7 @@
  * @description
  * 單一明細項目的月度費用記錄網格編輯組件，支援 12 個月（Jan-Dec）的實際支出金額編輯。
  * 這是 FEAT-007 新架構中的組件，用於編輯單一 OMExpenseItem 的月度記錄。
- * 與舊版 OMExpenseMonthlyGrid 的區別是這個組件針對單一項目，而非整個 OMExpense。
+ * 此組件針對單一明細項目（OMExpenseItem），而非整個 OMExpense 表頭層級。
  *
  * @component OMExpenseItemMonthlyGrid
  *

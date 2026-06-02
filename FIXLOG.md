@@ -10,8 +10,31 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| **2026-06-02** | **🧹 死碼/技術債** | ✅ **已解決** | **[FIX-140: 移除 FEAT-007 遺留死碼 OMExpenseMonthlyGrid.tsx（含 HKD 硬編碼）](#fix-140-移除-feat-007-遺留死碼-omexpensemonthlygridtsx)** |
+| 2026-05-04 | 🔌 前端/API | ✅ 已完成 | [FIX-139: BudgetProposalForm 專案下拉選單只顯示 20 個](claudedocs/4-changes/bug-fixes/FIX-139-proposal-form-project-dropdown-limit.md) |
+| 2026-05-04 | 🔧 API/後端 | ✅ 已完成 | [FIX-138: Project Update 切換 Budget Pool 時回 HTTP 400](claudedocs/4-changes/bug-fixes/FIX-138-project-update-cross-pool-400.md) |
+| 2026-04-09 | 🔴 Critical 修復 | ✅ 已完成 | [FIX-135~137: R8 Critical Fixes](claudedocs/4-changes/bug-fixes/FIX-135-137-R8-critical-fixes.md) |
+| 2026-04-09 | 🎨 UX 一致性 | ✅ 已完成 | [FIX-129/133/134: UX Consistency Fixes](claudedocs/4-changes/bug-fixes/FIX-129-133-134-ux-consistency-fixes.md) |
+| 2026-04-09 | 📚 文檔/配置 | ✅ 已完成 | [FIX-128: .env.example 與 CLAUDE.md 不一致修正](claudedocs/4-changes/bug-fixes/FIX-128-env-claudemd-updates.md) |
+| 2026-04-09 | 🔧 API/品質 | ✅ 已完成 | [FIX-121~123 (+R7): API Router 品質修復](claudedocs/4-changes/bug-fixes/FIX-121-123-R7-router-quality-fixes.md) |
+| 2026-04-09 | 🌐 i18n/UI | ⚠️ 部分完成 | [FIX-118/131/131b: Locale & Required Field Indicator Fixes](claudedocs/4-changes/bug-fixes/FIX-118-131-locale-indicator-fixes.md) |
+| 2026-04-09 | 🌐 i18n | ✅ 已完成 | [FIX-116~120: Comprehensive i18n Translation Key Fix](claudedocs/4-changes/bug-fixes/FIX-116-120-i18n-comprehensive-fix.md) |
+| 2026-04-09 | 🟠 High/綜合 | ✅ 已完成 | [FIX-109~112: High Priority Fixes](claudedocs/4-changes/bug-fixes/FIX-109-112-high-priority-fixes.md) |
+| 2026-04-09 | 🔐 安全/Git/文檔 | ✅ 已完成 | [FIX-107/108: .gitignore、Middleware 路由、文檔修正](claudedocs/4-changes/bug-fixes/FIX-107-108-git-route-doc-fixes.md) |
+| 2026-04-09 | 🔐 安全/資料外洩 | ✅ 已完成 | [FIX-104~106: Security Auth & Data Exposure Fixes](claudedocs/4-changes/bug-fixes/FIX-104-106-security-auth-data-fixes.md) |
+| 2026-04-09 | 🔐 安全/認證 | ✅ 已完成 | [FIX-101~103: 安全性認證修復](claudedocs/4-changes/bug-fixes/FIX-101-103-security-auth-fixes.md) |
+| 2026-04-09 | 📋 規劃 | 📋 規劃 | [FIX-100: Codebase Analysis Bug-Fix 總規劃](claudedocs/4-changes/bug-fixes/FIX-100-codebase-analysis-bugfix-plan.md) |
+| 2025-12-18 | 🎨 UI 一致性 | 📋 待修復 | [FIX-099: 頁面佈局差異問題](claudedocs/4-changes/bug-fixes/FIX-099-layout-differences.md) |
+| 2025-12-18 | 🎨 UI 一致性 | 📋 待修復 | [FIX-098: 麵包屑導航不一致問題](claudedocs/4-changes/bug-fixes/FIX-098-breadcrumb-inconsistency.md) |
+| 2025-12-17 | 🎨 UI/導航 | ✅ 已完成 | [FIX-097: href 模板字符串語法錯誤](claudedocs/4-changes/bug-fixes/FIX-097-href-template-literal-syntax.md) |
+| 2025-12-17 | 🎨 UI/Hydration | ✅ 已完成 | [FIX-096: Layout 嵌套導致的 Hydration 錯誤](claudedocs/4-changes/bug-fixes/FIX-096-layout-hydration-error.md) |
+| 2025-12-17 | 🔐 安全/認證 | ✅ 已完成 | [FIX-095: Middleware 路由保護配置不完整](claudedocs/4-changes/bug-fixes/FIX-095-middleware-route-protection-incomplete.md) |
 | **2025-11-12** | **🔧 API/後端** | ✅ **已解決** | **[FIX-089: Project Detail 頁面 budgetPool.totalAmount undefined 錯誤](#fix-089-project-detail-頁面-budgetpooltotalamount-undefined-錯誤)** ⭐ **Surgical Agent 過度清理** |
 | **2025-11-12** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-088: Budget Pool 模組缺失 5 個 translation keys](#fix-088-budget-pool-模組缺失-5-個-translation-keys)** ⭐ **手動測試發現** |
+| 2025-11-11 | ⚡ 性能優化 | ✅ 已修復 | [FIX-095: Budget Category Usage 性能優化](claudedocs/4-changes/bug-fixes/FIX-095-budget-category-usage-performance.md) |
+| 2025-11-11 | 🔧 程式碼品質 | ✅ 已修復 | [FIX-094: Budget Pool export API 遺留程式碼清理](claudedocs/4-changes/bug-fixes/FIX-094-budget-pool-export-legacy-cleanup.md) |
+| 2025-11-11 | 🔧 API/驗證 | ✅ 已修復 | [FIX-093: Project Delete API 驗證邏輯完善](claudedocs/4-changes/bug-fixes/FIX-093-project-delete-api-validation.md) |
+| 2025-11-11 | 🔧 API/清理 | ✅ 已修復 | [FIX-089~092: Deprecated Fields Cleanup (Project & Expense APIs)](claudedocs/4-changes/bug-fixes/FIX-089-092-deprecated-fields-cleanup.md)（≠ 本檔 in-file FIX-089 之問題） |
 | **2025-11-07** | **🌐 i18n/國際化** | ✅ **已解決** | **[FIX-080: OM Expenses 和 ChargeOut 翻譯鍵缺失](#fix-080-om-expenses-和-chargeout-翻譯鍵缺失)** |
 | **2025-11-07** | **🌐 i18n/路由** | ✅ **已解決** | **[FIX-079: Breadcrumb 修復導致 Link Import 衝突](#fix-079-breadcrumb-修復導致-link-import-衝突)** ⭐ **自動化工具** |
 | **2025-11-07** | **🌐 i18n/路由** | ✅ **已解決** | **[FIX-078: 34 頁面 Breadcrumb 使用非國際化 Link](#fix-078-34-頁面-breadcrumb-使用非國際化-link)** ⭐ **重大修復** |
@@ -42,7 +65,8 @@
 
 ## 🔍 快速搜索
 
-- **API/後端問題**: FIX-089 (Project Detail budgetPool.totalAmount undefined - Surgical Agent 過度清理) ⭐ **最新修復**
+- **死碼/技術債**: FIX-140 (移除 FEAT-007 遺留死碼 OMExpenseMonthlyGrid + HKD 硬編碼) ⭐ **最新修復**, FIX-094 (Budget Pool export 遺留清理), FIX-089~092 (Deprecated Fields Cleanup)
+- **API/後端問題**: FIX-089 (Project Detail budgetPool.totalAmount undefined - Surgical Agent 過度清理)
 - **i18n 國際化問題**: FIX-088 (Budget Pool 5個缺失翻譯鍵 - 手動測試發現), FIX-080 (OM Expenses + ChargeOut 翻譯), FIX-077 (4個缺失翻譯鍵), FIX-060 (英文版顯示中文 - getMessages 參數缺失)
 - **i18n 路由問題**: FIX-078 (34頁面 Breadcrumb 路由), FIX-079 (Link Import 衝突) ⭐ **最新重大修復**
 - **i18n React 警告**: FIX-059 (Nested Links 警告)
@@ -73,10 +97,40 @@
 - **編號規則**: 按時間順序遞增 (FIX-001, FIX-002, FIX-003...)
 - **狀態標記**: ✅已解決 / 🔄進行中 / ❌未解決 / 📋待修復
 - **問題級別**: 🔴Critical / 🟡High / 🟢Medium / 🔵Low
+- **連結慣例**: FIX-001~092 的詳細內容收錄於本檔（索引以 `#anchor` 連結）；**FIX-093 起改以 `claudedocs/4-changes/bug-fixes/FIX-*.md` 獨立文件維護**，索引列直接連結該文件（非斷鏈）。分組文件（如 `FIX-101-103-*.md`）一份涵蓋多個編號，索引以一列代表。
 
 ---
 
 # 詳細修復記錄 (最新在上)
+
+## FIX-140: 移除 FEAT-007 遺留死碼 OMExpenseMonthlyGrid.tsx
+
+**問題類型**: 🧹 死碼/技術債
+**發現日期**: 2026-06-02
+**解決日期**: 2026-06-02
+**嚴重程度**: 🟢 Medium（無執行期影響，屬技術債務清理）
+**狀態**: ✅ 已解決
+**詳細文件**: `claudedocs/4-changes/bug-fixes/FIX-140-remove-dead-om-expense-monthly-grid.md`
+**相關檔案**:
+- `apps/web/src/components/om-expense/OMExpenseMonthlyGrid.tsx`（🗑️ 整檔刪除，487 行）
+- `apps/web/src/components/om-expense/OMExpenseItemMonthlyGrid.tsx`（Line 7 移除懸空註解）
+- `apps/web/src/components/CLAUDE.md`、`apps/web/src/components/om-expense/CLAUDE.md`（同步目錄與計數）
+
+**問題描述**:
+FEAT-007 將 OMExpense 重構為「Header → Item → Monthly」三層架構後，月度編輯改在明細層級（`OMExpenseItemMonthlyGrid`）進行，原作用於整張 OMExpense 彙總的 `OMExpenseMonthlyGrid` 失去用途但未移除。經 grep 確認整個 `apps/web/src` 無任何 import，僅文件與一句註解提及。該檔另含硬編碼 `currency: 'HKD'`，與 CHANGE-042「金額一律 USD」策略不符。
+
+**根本原因**:
+FEAT-007 重構時未一併清理被取代的舊架構組件，形成遺留死碼。
+
+**解決方案**:
+確認無人引用後（已先向使用者確認）直接刪除整檔；未採「遷移 DualCurrency」方案，因替死碼維護違反 Simplicity First。同步更新兩個 `CLAUDE.md` 的目錄結構與計數，並移除 `OMExpenseItemMonthlyGrid.tsx` 中指向已刪除組件的懸空註解。
+
+**驗證**:
+- grep 確認 `apps/web` 內無殘留 import
+- `pnpm validate:i18n` 通過（未動翻譯檔）
+- `apps/web` typecheck 對照 baseline 未新增錯誤
+
+---
 
 ## FIX-089: Project Detail 頁面 budgetPool.totalAmount undefined 錯誤
 

@@ -1,7 +1,7 @@
 # React Components - UI 組件層
 
 > **Last Updated**: 2026-04-21
-> **Total Components**: **94 個 .tsx**（**51 業務 + 43 UI**，共 ~24,987 行）
+> **Total Components**: **93 個 .tsx**（**50 業務 + 43 UI**，共 ~24,500 行）
 > **Subdirectories**: 21 個業務領域目錄（`ui/` + 20 業務）
 > **深度分析參考**:
 > - `docs/codebase-analyze/04-components/component-index.md` — 組件目錄總覽
@@ -87,12 +87,11 @@ components/                       # 共 89+ 個 .tsx 檔案
 │   ├── NotificationBell.tsx      # 通知鈴鐺
 │   └── NotificationDropdown.tsx  # 通知下拉選單
 │
-├── om-expense/                   # OM 費用（5 個）- FEAT-007 重構
+├── om-expense/                   # OM 費用（4 個）- FEAT-007 重構
 │   ├── OMExpenseForm.tsx         # 表頭表單
 │   ├── OMExpenseItemForm.tsx     # 明細項目表單
 │   ├── OMExpenseItemList.tsx     # 明細項目列表（支援拖曳排序）
-│   ├── OMExpenseItemMonthlyGrid.tsx  # 明細月度網格
-│   └── OMExpenseMonthlyGrid.tsx  # 月度數據網格
+│   └── OMExpenseItemMonthlyGrid.tsx  # 明細月度網格
 │
 ├── om-expense-category/          # OM 費用類別（2 個）
 │   ├── OMExpenseCategoryActions.tsx  # 操作按鈕

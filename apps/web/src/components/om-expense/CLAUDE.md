@@ -28,8 +28,7 @@ om-expense/
 ├── OMExpenseForm.tsx            # 969 行 — 表頭建立/編輯表單
 ├── OMExpenseItemForm.tsx        # 599 行 — 單一明細項目 Modal 表單
 ├── OMExpenseItemList.tsx        # 615 行 — 明細清單（拖曳排序 + 月度展開）
-├── OMExpenseItemMonthlyGrid.tsx # 362 行 — 單一明細的 12 月度網格
-└── OMExpenseMonthlyGrid.tsx     # 487 行 — 整張 OM Expense 的月度彙總網格
+└── OMExpenseItemMonthlyGrid.tsx # 362 行 — 單一明細的 12 月度網格
 ```
 
 ## 🎯 核心業務邏輯
@@ -55,12 +54,13 @@ om-expense/
 - 欄位：OpCo、費用類別、預算金額、日期、描述
 - 建立時會自動觸發 API 產生 12 個 `OMExpenseMonthly` 記錄（每月金額預設為 0）
 
-### 4. Monthly Grid 組件差異
+### 4. Monthly Grid 組件
 
 | 組件 | 用途 | API |
 |------|------|-----|
 | `OMExpenseItemMonthlyGrid` | 單一 Item 的 12 月編輯網格 | `updateItemMonthlyRecords` |
-| `OMExpenseMonthlyGrid` | 整個 OMExpense 所有 Items × 12 月的彙總顯示 | 只讀 |
+
+> **歷史**：原另有 `OMExpenseMonthlyGrid`（整張 OMExpense 所有 Items × 12 月彙總顯示，唯讀），為 FEAT-007 重構前的扁平架構遺留組件，FEAT-007 後已無任何頁面引用，並於 FIX-140（2026-06-02）刪除。
 
 ## 🔗 依賴關係
 
