@@ -102,3 +102,12 @@
 - 規則引擎（R14–R15）：依 `proposalType`（CHANGE-043）/ 金額門檻套不同流程；schema 已預留 `proposalTypeFilter`/`minAmount`/`maxAmount`/`matchPriority`。
 - 多角色（FEAT-016）：使用者一人多角後，「待我審批」查詢自然涵蓋多角色。
 - 並行審批（湊齊 N 人）— 目前明確排除，僅做序列。
+
+---
+
+## 8. 延伸變更
+
+- **CHANGE-047（2026-06-04）**：解除 Q-C「一步一角色」限制——步驟審批者改為「角色 / 指定用戶 二選一」（每步一位）。
+  Schema 為 `ApprovalStep`/`ProposalApprovalProgress` 的 `approverRoleId` 改可選 + 新增 `approverUserId`（XOR 由 API 強制）；
+  閘門 `loadCurrentStep`、通知 `notifyStepApprovers`、`getPendingForMe` 全面支援用戶分支；向後相容純角色流程。
+  詳見 `claudedocs/4-changes/feature-changes/CHANGE-047-approval-step-specific-user-approver.md`。

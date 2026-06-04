@@ -80,14 +80,19 @@ const proposalApprovalInclude = {
   vendor: true,
   workflow: {
     include: {
-      steps: { include: { role: true }, orderBy: { sequence: 'asc' } },
+      // CHANGE-047: 步驟審批者可為角色或指定用戶
+      steps: {
+        include: { role: true, approverUser: { select: safeUserSelect } },
+        orderBy: { sequence: 'asc' },
+      },
     },
   },
   approvalProgress: {
     orderBy: { sequence: 'asc' },
     include: {
-      step: { include: { role: true } },
-      approver: { select: safeUserSelect },
+      step: { include: { role: true, approverUser: { select: safeUserSelect } } },
+      approver: { select: safeUserSelect }, // 實際決策者
+      designatedApprover: { select: safeUserSelect }, // CHANGE-047: 指定審批者
     },
   },
 } satisfies Prisma.BudgetProposalInclude;
@@ -113,7 +118,9 @@ async function resolveWorkflow(prisma: Prisma.TransactionClient) {
 }
 
 /**
- * FEAT-014: 通知某審批角色的所有使用者「提案已進入需你審批的步驟」
+ * FEAT-014 / CHANGE-047: 通知某步驟的審批者「提案已進入需你審批的步驟」
+ * - 指定用戶步驟（approverUserId 有值）→ 僅通知該用戶
+ * - 角色步驟（approverRoleId 有值）→ 通知該角色全體
  * 重用已註冊的 PROPOSAL_SUBMITTED 類型（避免發送未註冊類型）。
  */
 async function notifyStepApprovers(
@@ -121,14 +128,20 @@ async function notifyStepApprovers(
   opts: {
     proposalId: string;
     proposalTitle: string;
-    approverRoleId: number;
+    approverRoleId: number | null;
+    approverUserId: string | null;
     submitterName?: string | null;
   }
 ): Promise<void> {
-  const approvers = await tx.user.findMany({
-    where: { roleId: opts.approverRoleId },
-    select: { id: true },
-  });
+  const approvers =
+    opts.approverUserId != null
+      ? [{ id: opts.approverUserId }]
+      : opts.approverRoleId != null
+      ? await tx.user.findMany({
+          where: { roleId: opts.approverRoleId },
+          select: { id: true },
+        })
+      : [];
   if (approvers.length === 0) return;
 
   await tx.notification.createMany({
@@ -151,12 +164,12 @@ async function notifyStepApprovers(
  * - NOT_WORKFLOW_PROPOSAL：提案未綁定流程（應走舊單階段 approve）
  * - NOT_PENDING：提案非待審批狀態
  * - STEP_NOT_FOUND：找不到當前步驟進度（資料異常）
- * - NOT_YOUR_STEP：登入者角色非當前步驟審批角色
+ * - NOT_YOUR_STEP：登入者非當前步驟審批者（角色不符，或指定用戶非本人）
  */
 async function loadCurrentStep(
   prisma: Prisma.TransactionClient,
   proposalId: string,
-  actingRoleId: number
+  acting: { userId: string; roleId: number }
 ) {
   const proposal = await prisma.budgetProposal.findUnique({
     where: { id: proposalId },
@@ -193,10 +206,15 @@ async function loadCurrentStep(
       cause: { reason: 'STEP_NOT_FOUND' },
     });
   }
-  if (actingRoleId !== currentProgress.approverRoleId) {
+  // CHANGE-047: 指定用戶步驟 → 比對本人；角色步驟 → 比對角色
+  const allowed =
+    currentProgress.approverUserId != null
+      ? acting.userId === currentProgress.approverUserId
+      : acting.roleId === currentProgress.approverRoleId;
+  if (!allowed) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: '您不是當前審批步驟的指定審批角色',
+      message: '您不是當前審批步驟的指定審批者',
       cause: { reason: 'NOT_YOUR_STEP' },
     });
   }
@@ -373,17 +391,21 @@ export const budgetProposalRouter = createTRPCRouter({
             },
           },
           vendor: true, // CHANGE-043: Pay to
-          // FEAT-014: 審批流程 + 各步驟進度（提案詳情頁時間線）
+          // FEAT-014 / CHANGE-047: 審批流程 + 各步驟進度（提案詳情頁時間線；步驟審批者可為角色或指定用戶）
           workflow: {
             include: {
-              steps: { include: { role: true }, orderBy: { sequence: 'asc' } },
+              steps: {
+                include: { role: true, approverUser: { select: safeUserSelect } },
+                orderBy: { sequence: 'asc' },
+              },
             },
           },
           approvalProgress: {
             orderBy: { sequence: 'asc' },
             include: {
-              step: { include: { role: true } },
-              approver: { select: safeUserSelect },
+              step: { include: { role: true, approverUser: { select: safeUserSelect } } },
+              approver: { select: safeUserSelect }, // 實際決策者
+              designatedApprover: { select: safeUserSelect }, // CHANGE-047: 指定審批者
             },
           },
           comments: {
@@ -571,6 +593,7 @@ export const budgetProposalRouter = createTRPCRouter({
               proposalId: proposal.id,
               proposalTitle: proposal.title,
               approverRoleId: currentProgress.approverRoleId,
+              approverUserId: currentProgress.approverUserId,
               submitterName: submitter?.name,
             });
           }
@@ -600,6 +623,7 @@ export const budgetProposalRouter = createTRPCRouter({
               stepId: s.id,
               sequence: s.sequence,
               approverRoleId: s.approverRoleId,
+              approverUserId: s.approverUserId, // CHANGE-047: 快照指定用戶
               status: 'Pending',
             })),
           });
@@ -615,6 +639,7 @@ export const budgetProposalRouter = createTRPCRouter({
             proposalId: proposal.id,
             proposalTitle: proposal.title,
             approverRoleId: firstStep.approverRoleId,
+            approverUserId: firstStep.approverUserId,
             submitterName: submitter?.name,
           });
           return tx.budgetProposal.findUnique({
@@ -805,7 +830,7 @@ export const budgetProposalRouter = createTRPCRouter({
       const { proposal, currentProgress } = await loadCurrentStep(
         ctx.prisma,
         input.id,
-        ctx.session.user.role.id
+        { userId: ctx.session.user.id, roleId: ctx.session.user.role.id }
       );
       const userId = ctx.session.user.id;
       const reviewer = await ctx.prisma.user.findUnique({
@@ -848,6 +873,7 @@ export const budgetProposalRouter = createTRPCRouter({
             proposalId: proposal.id,
             proposalTitle: proposal.title,
             approverRoleId: nextProgress.approverRoleId,
+            approverUserId: nextProgress.approverUserId,
             submitterName: reviewer?.name,
           });
         } else {
@@ -904,7 +930,7 @@ export const budgetProposalRouter = createTRPCRouter({
       const { proposal, currentProgress } = await loadCurrentStep(
         ctx.prisma,
         input.id,
-        ctx.session.user.role.id
+        { userId: ctx.session.user.id, roleId: ctx.session.user.role.id }
       );
       const userId = ctx.session.user.id;
 
@@ -962,7 +988,7 @@ export const budgetProposalRouter = createTRPCRouter({
       const { proposal, currentProgress } = await loadCurrentStep(
         ctx.prisma,
         input.id,
-        ctx.session.user.role.id
+        { userId: ctx.session.user.id, roleId: ctx.session.user.role.id }
       );
       const userId = ctx.session.user.id;
 
@@ -999,29 +1025,38 @@ export const budgetProposalRouter = createTRPCRouter({
     }),
 
   /**
-   * 待我審批（R11）：當前步驟之審批角色 == 登入者角色 且狀態 Pending 的提案
+   * 待我審批（R11 / CHANGE-047）：當前步驟之審批者 == 登入者 且狀態 Pending 的提案。
+   * 涵蓋兩種步驟：指定用戶（approverUserId == 本人）與角色（approverUserId 為 null 且 approverRoleId == 本人角色）。
    */
   getPendingForMe: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
     const roleId = ctx.session.user.role.id;
     const candidates = await ctx.prisma.budgetProposal.findMany({
       where: {
         status: 'PendingApproval',
         workflowId: { not: null },
-        approvalProgress: { some: { approverRoleId: roleId, status: 'Pending' } },
+        approvalProgress: {
+          some: {
+            status: 'Pending',
+            OR: [
+              { approverUserId: userId },
+              { approverUserId: null, approverRoleId: roleId },
+            ],
+          },
+        },
       },
       include: proposalApprovalInclude,
       orderBy: { updatedAt: 'desc' },
     });
-    // 僅保留「當前步驟」即為登入者角色者
+    // 僅保留「當前步驟」即指向登入者（指定用戶本人，或其角色）者
     return candidates.filter((p) => {
       const current = p.approvalProgress.find(
         (pr) => pr.sequence === p.currentStepSequence
       );
-      return (
-        current != null &&
-        current.status === 'Pending' &&
-        current.approverRoleId === roleId
-      );
+      if (current == null || current.status !== 'Pending') return false;
+      return current.approverUserId != null
+        ? current.approverUserId === userId
+        : current.approverRoleId === roleId;
     });
   }),
 

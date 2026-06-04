@@ -1172,8 +1172,8 @@
         "reject": "駁回",
         "requestInfo": "要求更多資訊"
       },
-      "currentStep": "目前在第 {step} 步，等待 {role} 審批",
-      "notYourStep": "目前步驟非由您的角色審批，請等待。",
+      "currentStep": "目前在第 {step} 步，等待 {approver} 審批",
+      "notYourStep": "目前步驟非由您審批，請等待。",
       "progressTitle": "審批進度",
       "stepLabel": "第 {step} 步",
       "currentBadge": "進行中",
@@ -1270,7 +1270,7 @@
     },
     "pending": {
       "title": "待我審批",
-      "description": "當前審批步驟由您的角色負責、且尚未處理的預算提案。",
+      "description": "當前審批步驟指派給您（依角色或指定您本人）、且尚未處理的預算提案。",
       "listTitle": "待審提案",
       "empty": "目前沒有待您審批的提案。",
       "currentStep": "目前步驟",
@@ -4123,7 +4123,7 @@
   },
   "approvalWorkflows": {
     "title": "審批流程配置",
-    "description": "配置預算提案的序列審批流程；每個步驟指定一個審批角色，提案依序流經各步驟。",
+    "description": "配置預算提案的序列審批流程；每個步驟指定一個審批者（角色或指定用戶），提案依序流經各步驟。",
     "actions": {
       "createWorkflow": "新增流程",
       "editWorkflow": "編輯流程"
@@ -4156,9 +4156,15 @@
     "steps": {
       "addStep": "新增步驟",
       "editStep": "編輯步驟",
-      "dialogSubtitle": "指定此步驟的審批角色與顯示名稱。",
+      "dialogSubtitle": "指定此步驟的審批者（角色或指定用戶）與顯示名稱。",
+      "approverTypeLabel": "審批者類型",
+      "approverTypeRole": "角色（該角色任一人可審）",
+      "approverTypeUser": "指定用戶",
       "roleLabel": "審批角色",
       "rolePlaceholder": "選擇角色",
+      "userLabel": "審批用戶",
+      "userPlaceholder": "搜尋並選擇用戶",
+      "userBadgePrefix": "用戶：",
       "nameLabel": "步驟名稱（選填）",
       "namePlaceholder": "例如：主管初審、財務複核",
       "noSteps": "尚未新增步驟，點擊下方按鈕新增。",

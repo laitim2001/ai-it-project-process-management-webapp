@@ -155,7 +155,14 @@ export default function PendingApprovalsPage() {
                                 {t('approval.stepLabel', { step: current.sequence })}
                               </Badge>
                               <span className="text-sm text-muted-foreground">
-                                {current.step?.role?.name ?? ''}
+                                {/* CHANGE-047: 指定用戶步驟顯示用戶名，否則顯示角色名 */}
+                                {current.approverUserId
+                                  ? current.designatedApprover?.name ??
+                                    current.step?.approverUser?.name ??
+                                    current.designatedApprover?.email ??
+                                    current.step?.approverUser?.email ??
+                                    ''
+                                  : current.step?.role?.name ?? ''}
                               </span>
                             </span>
                           ) : (
