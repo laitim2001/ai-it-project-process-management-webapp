@@ -66,6 +66,7 @@ import { TRPCProvider } from '@/lib/trpc-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { GlobalProgress } from '@/components/ui/loading';
 import { SessionProvider } from '@/components/providers/SessionProvider';
+import { SessionExpiryWatcher } from '@/components/providers/SessionExpiryWatcher';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -111,6 +112,8 @@ export default async function LocaleLayout({
 
       <SessionProvider>
         <NextIntlClientProvider locale={locale} messages={messages}>
+          {/* FIX-142: 監聽 session 過期並導向登入頁（須在 NextIntlClientProvider 內以使用 i18n） */}
+          <SessionExpiryWatcher />
           <TRPCProvider>
             {children}
             <Toaster />

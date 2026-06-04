@@ -65,11 +65,18 @@
 
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryCache,
+  MutationCache,
+} from '@tanstack/react-query';
+import { httpBatchLink, TRPCClientError } from '@trpc/client';
+import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import superjson from 'superjson';
 
+import { beginExpiryHandling } from './session-expiry';
 import { api } from './trpc';
 
 /**
@@ -102,6 +109,23 @@ function getBaseUrl() {
 }
 
 /**
+ * FIX-142: 全域 UNAUTHORIZED 攔截
+ *
+ * JWT session 過期後，受保護的 tRPC 查詢會回傳 UNAUTHORIZED。
+ * 偵測到後僅清除 client session（signOut redirect:false），
+ * 「提示 + 導向登入頁」統一交由 SessionExpiryWatcher 處理（單一出口）。
+ * beginExpiryHandling() 確保一個 batch 多查詢同時 401 時只觸發一次。
+ */
+function handleTrpcError(error: unknown) {
+  if (!(error instanceof TRPCClientError)) return;
+  // error.data 為 any，透過顯式型別斷言安全讀取 code，避免 no-unsafe-member-access
+  const data = error.data as { code?: unknown } | null | undefined;
+  if (data?.code === 'UNAUTHORIZED' && beginExpiryHandling()) {
+    void signOut({ redirect: false });
+  }
+}
+
+/**
  * TRPCProvider 組件
  *
  * @param {Object} props - 組件屬性
@@ -113,7 +137,13 @@ function getBaseUrl() {
  * 使用 useState 確保客戶端實例穩定（避免每次渲染重新建立）。
  */
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        queryCache: new QueryCache({ onError: handleTrpcError }),
+        mutationCache: new MutationCache({ onError: handleTrpcError }),
+      })
+  );
   const [trpcClient] = useState(() =>
     api.createClient({
       transformer: superjson,

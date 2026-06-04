@@ -57,6 +57,7 @@
 import { useState } from "react"
 import { Search, Menu, LogOut, User, Settings, ChevronDown, Bell } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
+import { markManualSignOut } from "@/lib/session-expiry"
 import { useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -121,6 +122,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   // 處理登出
   const handleSignOut = async () => {
+    // FIX-142: 標記為主動登出，避免 SessionExpiryWatcher 誤判為 session 過期
+    markManualSignOut();
     // 獲取當前語言並重定向到對應的登入頁面
     const currentLocale = window.location.pathname.split('/')[1] || 'zh-TW';
     const loginUrl = `${window.location.origin}/${currentLocale}/login`;

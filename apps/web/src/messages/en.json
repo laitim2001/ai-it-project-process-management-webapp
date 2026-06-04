@@ -111,6 +111,10 @@
     }
   },
   "common": {
+    "sessionExpired": {
+      "title": "Session expired",
+      "description": "Please sign in again to continue"
+    },
     "actions": {
       "actions": "Actions",
       "title": "Actions",
