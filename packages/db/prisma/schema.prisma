@@ -47,7 +47,11 @@ model User {
   permissions UserPermission[]
 
   // FEAT-014: 序列審批流程中此用戶做出的審批決策
-  approvalDecisions ProposalApprovalProgress[]
+  approvalDecisions ProposalApprovalProgress[] @relation("ProgressActualDecider")
+
+  // CHANGE-047: 被指定為審批者（步驟定義 + 提案進度快照）
+  approvalDesignations     ProposalApprovalProgress[] @relation("ProgressDesignatedApprover")
+  approvalStepDesignations ApprovalStep[]             @relation("StepDesignatedApprover")
 
   @@index([email])
   @@index([roleId])
@@ -345,21 +349,24 @@ model ApprovalWorkflow {
   @@index([isActive])
 }
 
-// 審批步驟（序列；一步一角色，Q-C）
+// 審批步驟（序列；CHANGE-047：每步審批者為「角色」或「指定用戶」二選一，XOR 由 API 強制）
 model ApprovalStep {
   id             String  @id @default(uuid())
   workflowId     String
   sequence       Int // 1,2,3… 序列順序
-  approverRoleId Int // 該步驟的審批「角色」（D7）
+  approverRoleId Int? // 角色模式：該步驟的審批「角色」（D7）
+  approverUserId String? // CHANGE-047：指定用戶模式（與 approverRoleId 互斥）
   name           String? // 顯示名稱，如「主管初審」「財務複核」
 
-  workflow ApprovalWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  role     Role                       @relation(fields: [approverRoleId], references: [id])
-  progress ProposalApprovalProgress[]
+  workflow     ApprovalWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  role         Role?                      @relation(fields: [approverRoleId], references: [id])
+  approverUser User?                      @relation("StepDesignatedApprover", fields: [approverUserId], references: [id])
+  progress     ProposalApprovalProgress[]
 
   @@unique([workflowId, sequence]) // 同流程序號唯一
   @@index([workflowId])
   @@index([approverRoleId])
+  @@index([approverUserId]) // CHANGE-047
 }
 
 // 單一提案的審批進度（提交時依流程快照生成各步驟一列）
@@ -368,7 +375,8 @@ model ProposalApprovalProgress {
   budgetProposalId String
   stepId           String? // 對應 ApprovalStep（SetNull 以防步驟被刪）
   sequence         Int // 快照當下的序號（不依賴 step 存活）
-  approverRoleId   Int // 快照當下的審批角色（同上）
+  approverRoleId   Int? // 角色模式：快照當下的審批角色（CHANGE-047 改可選）
+  approverUserId   String? // CHANGE-047：指定用戶模式快照（與 approverRoleId 互斥）
   status           String    @default("Pending") // 'Pending' | 'Approved' | 'Rejected' | 'Skipped'
   approvedByUserId String? // 實際核准/駁回者
   decidedAt        DateTime?
@@ -377,12 +385,14 @@ model ProposalApprovalProgress {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  budgetProposal BudgetProposal @relation(fields: [budgetProposalId], references: [id], onDelete: Cascade)
-  step           ApprovalStep?  @relation(fields: [stepId], references: [id], onDelete: SetNull)
-  approver       User?          @relation(fields: [approvedByUserId], references: [id])
+  budgetProposal     BudgetProposal @relation(fields: [budgetProposalId], references: [id], onDelete: Cascade)
+  step               ApprovalStep?  @relation(fields: [stepId], references: [id], onDelete: SetNull)
+  approver           User?          @relation("ProgressActualDecider", fields: [approvedByUserId], references: [id]) // 實際決策者
+  designatedApprover User?          @relation("ProgressDesignatedApprover", fields: [approverUserId], references: [id]) // CHANGE-047：指定審批者
 
   @@index([budgetProposalId])
-  @@index([approverRoleId, status]) // 支援「待我審批」查詢
+  @@index([approverRoleId, status]) // 支援「待我審批」查詢（角色）
+  @@index([approverUserId, status]) // CHANGE-047：支援「指定給我本人」查詢
   @@index([stepId])
 }
 

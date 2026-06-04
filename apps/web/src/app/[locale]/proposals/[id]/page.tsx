@@ -536,8 +536,15 @@ export default function ProposalDetailPage() {
                               <span className="text-sm font-medium text-foreground">
                                 {t('approval.stepLabel', { step: prog.sequence })}
                               </span>
-                              <Badge variant="secondary">
-                                {prog.step?.role?.name ?? '-'}
+                              {/* CHANGE-047: 指定用戶步驟顯示用戶名，否則顯示角色名 */}
+                              <Badge variant={prog.approverUserId ? 'outline' : 'secondary'}>
+                                {prog.approverUserId
+                                  ? prog.designatedApprover?.name ??
+                                    prog.step?.approverUser?.name ??
+                                    prog.designatedApprover?.email ??
+                                    prog.step?.approverUser?.email ??
+                                    '-'
+                                  : prog.step?.role?.name ?? '-'}
                               </Badge>
                               {isCurrent && (
                                 <Badge>{t('approval.currentBadge')}</Badge>

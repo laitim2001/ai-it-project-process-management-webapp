@@ -20,6 +20,30 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-04 | ✨ CHANGE-047: 審批步驟支援指定「具體用戶」為審批者 | 完成 ✅
+
+**類型**: 功能增強（延伸 FEAT-014）| **負責人**: AI 助手 | **狀態**: ✅ 完成（靜態驗證 + 瀏覽器冒煙測試全綠）
+
+**背景**:
+- FEAT-014 Phase 1 刻意採「一步一角色」（決策 Q-C），不支援指定具體使用者。
+- 需求：每個審批步驟可指定「某個具體用戶」當審批者，而非只能設定角色。
+
+**決策**（與使用者對齊）：審批者「角色 / 指定用戶 二選一」、每步一位；XOR 不變式由 API 強制；向後相容純角色流程。
+
+**變更**:
+- **Schema**：`ApprovalStep` / `ProposalApprovalProgress` 的 `approverRoleId` 改可選 + 新增 `approverUserId`；`User` 加 3 條具名反向關聯。migration `20260604082438_change047_step_specific_user_approver`（非破壞性）。
+- **API**：`approvalWorkflow`（step schema XOR、`resolveApproverData`、include）；`budgetProposal`（include、`notifyStepApprovers`、`loadCurrentStep` 閘門、submit 快照、`getPendingForMe`、`getById` include）。
+- **前端**：配置頁步驟 Dialog 加「審批者類型」切換 + 可搜尋用戶 Combobox；`ApprovalStepList` / `ProposalActions` / 提案詳情時間線 / 待我審批視圖顯示角色名或用戶名。
+- **i18n**：`approvalWorkflows.steps` 新增 approverType/user keys；`proposals.approval.currentStep` 參數 `role`→`approver`（雙語同步）。
+
+**驗證**: `db:migrate` + `generate` 無錯；`pnpm typecheck` 全綠（api/auth/web）；變更前端 5 檔 lint 零警告；`validate:i18n` 通過（2857 keys）。**瀏覽器冒煙測試**（Playwright）：admin 建「指定用戶」步驟 → 提交 → admin（非指定者）被擋、supervisor（指定者）可審 → 批准完成整案 Approved → 待我審批列出，全數通過。
+
+**冒煙測試發現並修復 1 bug**: Combobox `emptyText` 誤用 `tCommon('messages.noResults')`（key 不存在，IntlError），改為 `tCommon('noResults')`。此類「引用不存在 i18n key」`validate:i18n` 無法捕捉，靠運行期驗證發現。附帶修正配置頁/待我審批頁說明文字「角色」→「角色或指定用戶」。
+
+**相關文件**: `claudedocs/4-changes/feature-changes/CHANGE-047-approval-step-specific-user-approver.md`
+
+---
+
 ### 2026-06-02 | ✨ FEAT-014: 可配置序列審批流程（Phase 1）| 完成 ✅
 
 **類型**: 功能開發（核心審批流程重構 + migration）| **負責人**: AI 助手 | **狀態**: ✅ Phase 1 完成（實作 + 正規 migration + Playwright E2E 全流程驗證）

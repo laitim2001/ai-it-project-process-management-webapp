@@ -31,7 +31,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Pencil, Trash2, ArrowRight } from 'lucide-react';
+import { GripVertical, Plus, Pencil, Trash2, ArrowRight, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Badge } from '@/components/ui/badge';
@@ -91,9 +91,17 @@ function SortableStep({ step, index, isLast, onEdit, onRemove }: SortableStepPro
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <Badge variant={step.role ? 'secondary' : 'destructive'}>
-            {step.role?.name ?? t('steps.unknownRole')}
-          </Badge>
+          {/* CHANGE-047: 指定用戶步驟顯示用戶名；否則顯示角色名（FIX-143: 角色缺失時防護 + destructive） */}
+          {step.approverUserId ? (
+            <Badge variant="outline" className="gap-1">
+              <User className="h-3 w-3" />
+              {step.approverUser?.name || step.approverUser?.email || '—'}
+            </Badge>
+          ) : (
+            <Badge variant={step.role ? 'secondary' : 'destructive'}>
+              {step.role?.name ?? t('steps.unknownRole')}
+            </Badge>
+          )}
           {step.name && (
             <span className="truncate text-sm text-muted-foreground">{step.name}</span>
           )}
