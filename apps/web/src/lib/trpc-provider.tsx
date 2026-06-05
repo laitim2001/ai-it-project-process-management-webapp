@@ -76,7 +76,7 @@ import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import superjson from 'superjson';
 
-import { beginExpiryHandling } from './session-expiry';
+import { beginExpiryHandling, resetSessionState } from './session-expiry';
 import { api } from './trpc';
 
 /**
@@ -112,8 +112,6 @@ function getBaseUrl() {
  * FIX-142: 全域 UNAUTHORIZED 攔截
  *
  * JWT session 過期後，受保護的 tRPC 查詢會回傳 UNAUTHORIZED。
- * 偵測到後僅清除 client session（signOut redirect:false），
- * 「提示 + 導向登入頁」統一交由 SessionExpiryWatcher 處理（單一出口）。
  * beginExpiryHandling() 確保一個 batch 多查詢同時 401 時只觸發一次。
  */
 function handleTrpcError(error: unknown) {
@@ -121,8 +119,35 @@ function handleTrpcError(error: unknown) {
   // error.data 為 any，透過顯式型別斷言安全讀取 code，避免 no-unsafe-member-access
   const data = error.data as { code?: unknown } | null | undefined;
   if (data?.code === 'UNAUTHORIZED' && beginExpiryHandling()) {
-    void signOut({ redirect: false });
+    void confirmExpiredThenSignOut();
   }
+}
+
+/**
+ * FIX-142 (regression fix): 二次確認 session 是否「真的」失效。
+ *
+ * 單一 tRPC 查詢的 401 可能是「暫時性」的，並非 session 過期，例如：
+ * - NextAuth 預設 refetchOnWindowFocus 在切回視窗時 rotate JWT cookie，
+ *   與背景並發請求（如 NotificationBell 每 30 秒輪詢的 getUnreadCount）race
+ * - dev 模式 Fast Refresh / 重新編譯期間的請求
+ *
+ * 若直接 signOut，會把 session 其實仍有效的使用者誤踢出（登入後約 1 分鐘被導回 login）。
+ * 因此先向 /api/auth/session 確認：只有 session 確實失效才清除（交由 SessionExpiryWatcher
+ * 統一提示與導向）；若仍有效則視為暫時性 401，重置旗標、不動作。
+ */
+async function confirmExpiredThenSignOut() {
+  try {
+    const res = await fetch('/api/auth/session', { credentials: 'include' });
+    const session = (await res.json()) as { user?: unknown } | null;
+    if (session && session.user) {
+      // session 仍有效 → 暫時性 401，重置旗標以便後續可再次判斷，不踢人
+      resetSessionState();
+      return;
+    }
+  } catch {
+    // 確認過程出錯，保守起見當作已失效，往下走 signOut
+  }
+  void signOut({ redirect: false });
 }
 
 /**

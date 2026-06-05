@@ -1,6 +1,6 @@
 # FIX-142: Session 過期後頁面停在原地、不自動導向登入頁
 
-> **狀態**: ✅ 已完成（靜態驗證 + 瀏覽器 E2E 測試 1~4 全部通過）
+> **狀態**: ✅ 已完成（含 regression 修復；靜態驗證 + E2E 測試 1~4 + regression 驗證全部通過）
 > **類型**: FIX（認證 / UX）
 > **建立日期**: 2026-06-04
 > **影響層級**: 前端認證體驗（無資料庫 / API 變更）
@@ -211,6 +211,27 @@ const [queryClient] = useState(() => new QueryClient({
 | 4 | 防迴圈：在 login 頁（曾登入）停留 6 秒 | ✅ 無 Toast、`urlChanges: 0`，不誤觸發 |
 
 > 同時驗證了**防重複**（一個 batch 4 個並發 401 僅導向一次）與後端 `protectedProcedure` 對無 session 請求正確回 401 `UNAUTHORIZED`。
+
+## Regression 修復（2026-06-04，二次確認）
+
+**回報**：登入後**約 1 分鐘**就被導回 login 頁，但 session 其實仍有效。
+
+**根因**：
+- `NotificationBell`（在所有頁面的 TopBar 內）以 `api.notification.getUnreadCount` + `refetchInterval: 30000` **每 30 秒輪詢**（「1 分鐘」≈ 第 2 次）。
+- 該 query 會**偶發**單次 401（暫時性，非 session 過期）：NextAuth 預設 `refetchOnWindowFocus` 在切回視窗時 rotate JWT cookie，與背景並發請求 race；或 dev Fast Refresh 期間。
+- 改動前這種偶發 401 是**無害的**（query 靜默失敗，UI 不變）；但 FIX-142 的 `onError` 把**任何單次 401** 升級成 `signOut` + 導向 → **誤踢有效 session**。
+- 設計缺陷：把「單一 query 的 401」當成「session 過期」的充分條件。（session 配置本身正常：JWT `maxAge` 24h，1 分鐘內必有效。）
+
+**修復**（`apps/web/src/lib/trpc-provider.tsx`）：`onError` 偵測 401 後**不再直接 signOut**，改為先向 `/api/auth/session` **二次確認**——只有 session 確實失效（回 `null`／無 `user`）才 `signOut`（交由 Watcher 提示 + 導向）；若仍有效則視為暫時性 401，重置旗標、不動作。
+
+**驗證（Playwright，確定性）**：
+
+| 情境 | 方法 | 結果 |
+|------|------|------|
+| 暫時性 401（session 有效） | 攔截注入一次 `project.getAll` 的 401 | ✅ `bouncedBackToLogin: false`，停在原頁（二次確認發現 session 有效） |
+| 真正過期 | 清除 cookie 後觸發 query | ✅ `redirected: true` + Toast「登入已過期」+ `?callbackUrl=%2Fprojects`（原功能保留） |
+
+> 教訓：「session 是否過期」的權威來源是 NextAuth session 狀態，**不能**用單一 tRPC query 的 401 直接斷定。先前 E2E 全部用「清 cookie」情境，漏測了「正常登入、session 有效、背景輪詢偶發 401」這條路徑。
 
 ## 相關文件
 
