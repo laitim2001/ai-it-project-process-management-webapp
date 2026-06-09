@@ -125,13 +125,13 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     id: params.id,
   });
 
-  // CHANGE-044: 取得 HKD 匯率（供月度 USD→HKD 自動換算使用，「固定 HKD」）
+  // CHANGE-048: 取得 HKD 匯率（供月度 USD→HKD 自動換算使用，「固定 HKD」）
   const { data: activeCurrencies } = api.currency.getActive.useQuery();
   const hkdRate = useMemo(() => {
     const hkd = activeCurrencies?.find((c) => c.code === 'HKD');
     return hkd?.exchangeRate ?? null;
   }, [activeCurrencies]);
-  // CHANGE-045: 固定 HKD 顯示用幣別（取代原本「跟隨各 item 幣別」的 sharedCurrency）
+  // CHANGE-049: 固定 HKD 顯示用幣別（取代原本「跟隨各 item 幣別」的 sharedCurrency）
   const hkdCurrency = hkdCurrencyInfo(hkdRate);
 
   // Calculate growth rate mutation
@@ -343,7 +343,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       monthlyRecords: item.monthlyRecords?.map((record) => ({
         month: record.month,
         actualAmount: record.actualAmount,
-        // CHANGE-044: 帶出持久化的 HKD 金額（null = 由 grid 以換算值帶入）
+        // CHANGE-048: 帶出持久化的 HKD 金額（null = 由 grid 以換算值帶入）
         actualAmountHKD: record.actualAmountHKD,
       })),
     }));

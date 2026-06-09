@@ -53,7 +53,7 @@ import { cn } from '@/lib/utils';
 import { DualCurrency } from '@/components/shared/DualCurrency';
 import { formatUSD, formatSecondary, hkdCurrencyInfo } from '@/lib/currency';
 
-// CHANGE-044: 「固定 HKD」顯示用幣別資訊（金額已是 HKD，不再二次換算）
+// CHANGE-048: 「固定 HKD」顯示用幣別資訊（金額已是 HKD，不再二次換算）
 const HKD_DISPLAY = { code: 'HKD', symbol: 'HK$' } as const;
 const formatHKD = (amount: number): string => formatSecondary(amount, HKD_DISPLAY);
 
@@ -64,7 +64,7 @@ const formatHKD = (amount: number): string => formatSecondary(amount, HKD_DISPLA
 interface MonthlyRecord {
   month: number;
   actualAmount: number; // USD（系統主帳幣別）
-  actualAmountHKD: number; // CHANGE-044: HKD 實際支出（編輯用，存檔時持久化）
+  actualAmountHKD: number; // CHANGE-048: HKD 實際支出（編輯用，存檔時持久化）
 }
 
 export interface OMExpenseItemData {
@@ -97,7 +97,7 @@ export interface OMExpenseItemData {
 
 interface OMExpenseItemMonthlyGridProps {
   item: OMExpenseItemData;
-  /** CHANGE-044: HKD 匯率（1 USD = hkdRate HKD），供 USD→HKD 自動換算；null 時停用自動帶入 */
+  /** CHANGE-048: HKD 匯率（1 USD = hkdRate HKD），供 USD→HKD 自動換算；null 時停用自動帶入 */
   hkdRate?: number | null;
   onSave?: () => void;
   onClose?: () => void;
@@ -117,23 +117,23 @@ export default function OMExpenseItemMonthlyGrid({
   const tCommon = useTranslations('common');
   const { toast } = useToast();
 
-  // CHANGE-044: 有效 HKD 匯率——優先用傳入的 hkdRate，抓不到時退回 item 幣別（若為 HKD）的匯率
+  // CHANGE-048: 有效 HKD 匯率——優先用傳入的 hkdRate，抓不到時退回 item 幣別（若為 HKD）的匯率
   const effectiveHkdRate =
     hkdRate ??
     (item.currency?.code === 'HKD' ? item.currency.exchangeRate ?? null : null);
 
-  // CHANGE-044: USD→HKD 換算（四捨五入至 2 位小數）；無匯率時回傳 null
+  // CHANGE-048: USD→HKD 換算（四捨五入至 2 位小數）；無匯率時回傳 null
   const usdToHkd = (usd: number): number | null =>
     effectiveHkdRate ? Math.round(usd * effectiveHkdRate * 100) / 100 : null;
 
-  // CHANGE-046: HKD→USD 換算（與 usdToHkd 對稱，雙向換算用）；無匯率時回傳 null
+  // CHANGE-050: HKD→USD 換算（與 usdToHkd 對稱，雙向換算用）；無匯率時回傳 null
   const hkdToUsd = (hkd: number): number | null =>
     effectiveHkdRate ? Math.round((hkd / effectiveHkdRate) * 100) / 100 : null;
 
-  // CHANGE-045: 上方概覽卡片改用「固定 HKD」次值（取代原本的 item.currency）
+  // CHANGE-049: 上方概覽卡片改用「固定 HKD」次值（取代原本的 item.currency）
   const hkdCurrency = hkdCurrencyInfo(effectiveHkdRate);
 
-  // CHANGE-044: 由來源月度記錄建立 12 個月的編輯狀態；HKD 為 null 時以換算值帶入（無匯率則 0）
+  // CHANGE-048: 由來源月度記錄建立 12 個月的編輯狀態；HKD 為 null 時以換算值帶入（無匯率則 0）
   const buildMonthlyData = (): MonthlyRecord[] => {
     const data: MonthlyRecord[] = [];
     for (let month = 1; month <= 12; month++) {
@@ -183,7 +183,7 @@ export default function OMExpenseItemMonthlyGrid({
     [monthlyData]
   );
 
-  // CHANGE-044: HKD 總計
+  // CHANGE-048: HKD 總計
   const totalActualHKD = useMemo(
     () => monthlyData.reduce((sum, record) => sum + record.actualAmountHKD, 0),
     [monthlyData]
@@ -199,7 +199,7 @@ export default function OMExpenseItemMonthlyGrid({
     return 'text-green-600 dark:text-green-400';
   };
 
-  // CHANGE-044: 更新某月 USD 金額，並自動帶入換算後的 HKD（有匯率時覆寫 HKD 欄）
+  // CHANGE-048: 更新某月 USD 金額，並自動帶入換算後的 HKD（有匯率時覆寫 HKD 欄）
   const updateMonthUSD = (month: number, amount: number) => {
     setMonthlyData((prev) =>
       prev.map((record) => {
@@ -214,7 +214,7 @@ export default function OMExpenseItemMonthlyGrid({
     );
   };
 
-  // CHANGE-046: 更新某月 HKD 金額，並自動換算回 USD（雙向；有匯率時覆寫 USD 欄）
+  // CHANGE-050: 更新某月 HKD 金額，並自動換算回 USD（雙向；有匯率時覆寫 USD 欄）
   const updateMonthHKD = (month: number, amount: number) => {
     setMonthlyData((prev) =>
       prev.map((record) => {

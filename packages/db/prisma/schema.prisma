@@ -927,7 +927,7 @@ model OMExpenseMonthly {
   // 實際支出
   actualAmount Float // 該月實際支出金額（系統主帳幣別 USD）
 
-  // CHANGE-044: 該月實際支出（HKD，獨立持久化的真實收據金額）
+  // CHANGE-048: 該月實際支出（HKD，獨立持久化的真實收據金額）
   // 可為 null：既有資料無此值，前端載入時以 actualAmount × 匯率 即時帶入顯示，存檔後寫死
   actualAmountHKD Float?
 

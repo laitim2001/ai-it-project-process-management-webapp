@@ -137,7 +137,7 @@ export interface OMExpenseItemData {
   monthlyRecords?: Array<{
     month: number;
     actualAmount: number;
-    // CHANGE-044: 該月 HKD 實際支出（持久化；null = 沿用 USD×匯率 換算顯示）
+    // CHANGE-048: 該月 HKD 實際支出（持久化；null = 沿用 USD×匯率 換算顯示）
     actualAmountHKD?: number | null;
   }>;
 }
@@ -145,7 +145,7 @@ export interface OMExpenseItemData {
 interface OMExpenseItemListProps {
   omExpenseId: string;
   items: OMExpenseItemData[];
-  /** CHANGE-045: HKD 匯率（1 USD = hkdRate HKD），用於固定 HKD 次值顯示 */
+  /** CHANGE-049: HKD 匯率（1 USD = hkdRate HKD），用於固定 HKD 次值顯示 */
   hkdRate?: number | null;
   onAddItem: () => void;
   onEditItem: (item: OMExpenseItemData) => void;
@@ -196,7 +196,7 @@ function getUtilizationColor(utilization: number): string {
 interface SortableRowProps {
   item: OMExpenseItemData;
   index: number;
-  // CHANGE-045: 固定 HKD 顯示用幣別（取代各 item 自身幣別）
+  // CHANGE-049: 固定 HKD 顯示用幣別（取代各 item 自身幣別）
   hkdCurrency: CurrencyInfo | null;
   onEdit: () => void;
   onDelete: () => void;
@@ -413,7 +413,7 @@ export default function OMExpenseItemList({
 
   const totalUtilization = calculateUtilization(totals.actualSpent, totals.budgetAmount);
 
-  // CHANGE-045: 固定 HKD 顯示用幣別（取代原本「跟隨各 item 幣別」的 sharedCurrency）
+  // CHANGE-049: 固定 HKD 顯示用幣別（取代原本「跟隨各 item 幣別」的 sharedCurrency）
   const hkdCurrency = hkdCurrencyInfo(hkdRate);
 
   // Handle drag end

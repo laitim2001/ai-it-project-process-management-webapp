@@ -37,7 +37,7 @@ export interface DualCurrencyProps {
   /** 次值樣式（預設 muted） */
   secondaryClassName?: string;
   /**
-   * CHANGE-044: 直式堆疊——USD 主值一行、次幣別換算另起一行。
+   * CHANGE-048: 直式堆疊——USD 主值一行、次幣別換算另起一行。
    * 用於窄欄位（如月度卡片）避免單行 `whitespace-nowrap` 撐爆容器造成重疊。
    */
   stacked?: boolean;

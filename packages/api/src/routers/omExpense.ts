@@ -65,7 +65,7 @@ import { createTRPCRouter, protectedProcedure } from '../trpc';
 const monthlyRecordSchema = z.object({
   month: z.number().int().min(1).max(12),
   actualAmount: z.number().nonnegative(), // USD（系統主帳幣別，驅動所有彙總）
-  // CHANGE-044: HKD 實際支出（可選持久化；null 表示沿用換算顯示，不影響 USD 彙總）
+  // CHANGE-048: HKD 實際支出（可選持久化；null 表示沿用換算顯示，不影響 USD 彙總）
   actualAmountHKD: z.number().nonnegative().nullable().optional(),
 });
 
@@ -1550,7 +1550,7 @@ export const omExpenseRouter = createTRPCRouter({
             },
             update: {
               actualAmount: monthData.actualAmount,
-              // CHANGE-044: 持久化 HKD 實際支出（undefined 時 Prisma 略過，不覆寫既有值）
+              // CHANGE-048: 持久化 HKD 實際支出（undefined 時 Prisma 略過，不覆寫既有值）
               actualAmountHKD: monthData.actualAmountHKD ?? null,
             },
             create: {
