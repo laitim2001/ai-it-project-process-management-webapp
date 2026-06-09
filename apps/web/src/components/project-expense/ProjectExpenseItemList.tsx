@@ -76,7 +76,10 @@ interface ProjectExpenseItemListProps {
   onEditItem: (item: ProjectExpenseItemData) => void;
   onDeleteItem: (itemId: string) => void;
   onReorder: (newOrder: string[]) => void;
-  onEditMonthly: (item: ProjectExpenseItemData) => void;
+  /** CHANGE-044: 選取明細以於右欄檢視/編輯月度（取代原月度 Dialog） */
+  onSelectItem: (item: ProjectExpenseItemData) => void;
+  /** CHANGE-044: 目前選中的明細 id（用於高亮列） */
+  selectedItemId: string | null;
 }
 
 function calcUtilization(actual: number, budget: number): number {
@@ -97,17 +100,19 @@ function getUtilizationColor(utilization: number): string {
 interface SortableRowProps {
   item: ProjectExpenseItemData;
   index: number;
+  isSelected: boolean;
   onEdit: () => void;
   onDelete: () => void;
-  onEditMonthly: () => void;
+  onSelect: () => void;
 }
 
 function SortableRow({
   item,
   index,
+  isSelected,
   onEdit,
   onDelete,
-  onEditMonthly,
+  onSelect,
 }: SortableRowProps) {
   const t = useTranslations('projectExpenses');
 
@@ -125,7 +130,11 @@ function SortableRow({
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={cn('group', isDragging && 'bg-muted/50 opacity-50')}
+      className={cn(
+        'group',
+        isDragging && 'bg-muted/50 opacity-50',
+        isSelected && 'bg-primary/10 hover:bg-primary/10'
+      )}
     >
       {/* Drag Handle */}
       <TableCell className="w-10">
@@ -147,9 +156,12 @@ function SortableRow({
       {/* Name */}
       <TableCell className="font-medium">
         <button
-          onClick={onEdit}
-          className="cursor-pointer text-left transition-colors hover:text-primary hover:underline"
-          title={t('items.clickToEdit')}
+          onClick={onSelect}
+          className={cn(
+            'cursor-pointer text-left transition-colors hover:text-primary hover:underline',
+            isSelected && 'text-primary'
+          )}
+          title={t('items.editMonthly')}
         >
           {item.name}
         </button>
@@ -203,7 +215,7 @@ function SortableRow({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onEditMonthly} className="h-8 w-8">
+                <Button variant="ghost" size="icon" onClick={onSelect} className="h-8 w-8">
                   <Calendar className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -249,7 +261,8 @@ export default function ProjectExpenseItemList({
   onEditItem,
   onDeleteItem,
   onReorder,
-  onEditMonthly,
+  onSelectItem,
+  selectedItemId,
 }: ProjectExpenseItemListProps) {
   const t = useTranslations('projectExpenses');
   const tCommon = useTranslations('common');
@@ -357,9 +370,10 @@ export default function ProjectExpenseItemList({
                       key={item.id}
                       item={item}
                       index={index}
+                      isSelected={item.id === selectedItemId}
                       onEdit={() => onEditItem(item)}
                       onDelete={() => handleDeleteClick(item.id)}
-                      onEditMonthly={() => onEditMonthly(item)}
+                      onSelect={() => onSelectItem(item)}
                     />
                   ))}
                 </TableBody>
