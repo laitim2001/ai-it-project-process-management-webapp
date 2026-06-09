@@ -58,7 +58,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useTranslations } from 'next-intl';
@@ -71,6 +71,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,6 +87,8 @@ import { ArrowLeft, Edit, Trash2, Plus, FileText, ShoppingCart, User, Calendar, 
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { BudgetCategoryDetails } from '@/components/project/BudgetCategoryDetails';
 import ProjectExpensePanel from '@/components/project-expense/ProjectExpensePanel'; // FEAT-015: 專案費用月度模組
+import ProjectExpenseItemMonthlyGrid from '@/components/project-expense/ProjectExpenseItemMonthlyGrid'; // CHANGE-044: 右欄月度網格
+import type { ProjectExpenseData, ProjectExpenseItemData } from '@/components/project-expense/types';
 
 export default function ProjectDetailPage() {
   const t = useTranslations('projects.detail');
@@ -94,6 +97,7 @@ export default function ProjectDetailPage() {
   const tNav = useTranslations('navigation.menu');
   const tStatus = useTranslations('common.status');
   const tToast = useTranslations('toast');
+  const tProjectExpenses = useTranslations('projectExpenses'); // CHANGE-044: 右欄月度提示
 
   // ============================================================
   // Hooks 和 Router
@@ -111,6 +115,9 @@ export default function ProjectDetailPage() {
   // FIX-008: 退回草稿對話框狀態
   const [isRevertDialogOpen, setIsRevertDialogOpen] = useState(false);
   const [revertReason, setRevertReason] = useState('');
+  // CHANGE-044: 詳情頁 Tab 與「專案費用」master-detail 選取狀態
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedExpenseItemId, setSelectedExpenseItemId] = useState<string | null>(null);
   // 專案狀態映射
   const getProjectStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -207,6 +214,24 @@ export default function ProjectDetailPage() {
    * 用於在專案詳情頁顯示報價記錄和已選擇報價摘要
    */
   const { data: quotes } = api.quote.getByProject.useQuery({ projectId: id });
+
+  /**
+   * CHANGE-044: 專案費用月度資料
+   * 與「專案費用」tab 的 ProjectExpensePanel 共用同一 React Query cache key，
+   * 自動去重（不產生額外請求）；用於右欄 master-detail 取得 fresh 的選中明細，
+   * 確保月度存檔 invalidate 後右欄網格與左側清單一致刷新。
+   */
+  const { data: projectExpenses } = api.projectExpense.getByProject.useQuery({ projectId: id });
+
+  /** CHANGE-044: 由 fresh 資料 + 選取 id 推導目前選中的費用明細（被刪除時自動回 null） */
+  const selectedExpenseItem = useMemo<ProjectExpenseItemData | null>(() => {
+    if (!selectedExpenseItemId || !projectExpenses) return null;
+    for (const header of projectExpenses as ProjectExpenseData[]) {
+      const found = header.items.find((i) => i.id === selectedExpenseItemId);
+      if (found) return found;
+    }
+    return null;
+  }, [selectedExpenseItemId, projectExpenses]);
 
   /**
    * 刪除專案 Mutation
@@ -497,7 +522,19 @@ export default function ProjectDetailPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* 左側：主要資訊區域（2/3 寬度） */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2">
+            {/* CHANGE-044: 詳情頁 Tab 化（5 個 tab） */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="classification">{t('tabs.classification')}</TabsTrigger>
+                <TabsTrigger value="budget">{t('tabs.budget')}</TabsTrigger>
+                <TabsTrigger value="procurement">{t('tabs.procurement')}</TabsTrigger>
+                <TabsTrigger value="expense">{t('tabs.expense')}</TabsTrigger>
+              </TabsList>
+
+              {/* Tab: 概覽 */}
+              <TabsContent value="overview" className="mt-6 space-y-6">
             {/* 專案基本資訊 */}
             <Card>
               <CardHeader>
@@ -565,6 +602,66 @@ export default function ProjectDetailPage() {
               </CardContent>
             </Card>
 
+            {/* CHANGE-036: 團隊資訊 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {t('projectTeam')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.team.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.team || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.personInCharge.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.personInCharge || '-'}</dd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CHANGE-036: 審核與財務 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  {t('reviewAndFinance')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.isCdoReviewRequired.label')}</dt>
+                    <dd className="mt-1">
+                      <Badge variant={project.isCdoReviewRequired ? 'default' : 'outline'}>
+                        {project.isCdoReviewRequired ? tCommon('yes') : tCommon('no')}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.isManagerConfirmed.label')}</dt>
+                    <dd className="mt-1">
+                      <Badge variant={project.isManagerConfirmed ? 'default' : 'outline'}>
+                        {project.isManagerConfirmed ? tCommon('yes') : tCommon('no')}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.fiscalYear.label')}</dt>
+                    <dd className="text-foreground font-medium mt-1">{project.fiscalYear || '-'}</dd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+              </TabsContent>
+
+              {/* Tab: 分類與分攤 */}
+              <TabsContent value="classification" className="mt-6 space-y-6">
             {/* CHANGE-036: 專案分類 */}
             <Card>
               <CardHeader>
@@ -646,62 +743,6 @@ export default function ProjectDetailPage() {
               </CardContent>
             </Card>
 
-            {/* CHANGE-036: 團隊資訊 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  {t('projectTeam')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.team.label')}</dt>
-                    <dd className="text-foreground font-medium mt-1">{project.team || '-'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.personInCharge.label')}</dt>
-                    <dd className="text-foreground font-medium mt-1">{project.personInCharge || '-'}</dd>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* CHANGE-036: 審核與財務 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  {t('reviewAndFinance')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.isCdoReviewRequired.label')}</dt>
-                    <dd className="mt-1">
-                      <Badge variant={project.isCdoReviewRequired ? 'default' : 'outline'}>
-                        {project.isCdoReviewRequired ? tCommon('yes') : tCommon('no')}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.isManagerConfirmed.label')}</dt>
-                    <dd className="mt-1">
-                      <Badge variant={project.isManagerConfirmed ? 'default' : 'outline'}>
-                        {project.isManagerConfirmed ? tCommon('yes') : tCommon('no')}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">{tForm('fields.fiscalYear.label')}</dt>
-                    <dd className="text-foreground font-medium mt-1">{project.fiscalYear || '-'}</dd>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* CHANGE-036: 付款資訊 */}
             <Card>
               <CardHeader>
@@ -724,6 +765,10 @@ export default function ProjectDetailPage() {
               </CardContent>
             </Card>
 
+              </TabsContent>
+
+              {/* Tab: 預算統計 */}
+              <TabsContent value="budget" className="mt-6 space-y-6">
             {/* CHANGE-038: 預算類別明細 */}
             {project.budgetPoolId && (
               <BudgetCategoryDetails
@@ -810,6 +855,10 @@ export default function ProjectDetailPage() {
               </Card>
             )}
 
+              </TabsContent>
+
+              {/* Tab: 提案採購 */}
+              <TabsContent value="procurement" className="mt-6 space-y-6">
             {/* 提案列表 */}
             <Card>
               <CardHeader>
@@ -1009,10 +1058,43 @@ export default function ProjectDetailPage() {
                 )}
               </CardContent>
             </Card>
+              </TabsContent>
+
+              {/* Tab: 專案費用（FEAT-015 + CHANGE-044 master-detail） */}
+              <TabsContent value="expense" className="mt-6">
+                <ProjectExpensePanel
+                  projectId={id}
+                  selectedItemId={selectedExpenseItemId}
+                  onSelectItem={(item) => setSelectedExpenseItemId(item.id)}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
-          {/* 右側：快速資訊欄（1/3 寬度） */}
+          {/* 右側：快速資訊欄（1/3 寬度）— CHANGE-044 依 active tab 切換 */}
           <div className="lg:col-span-1 space-y-6">
+            {activeTab === 'expense' ? (
+              /* 專案費用 tab：master-detail 月度網格（sticky） */
+              <div className="lg:sticky lg:top-6 space-y-6">
+                {selectedExpenseItem ? (
+                  <ProjectExpenseItemMonthlyGrid
+                    item={selectedExpenseItem}
+                    onSaved={() => utils.projectExpense.getByProject.invalidate({ projectId: id })}
+                    onClose={() => setSelectedExpenseItemId(null)}
+                  />
+                ) : (
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                      <Calendar className="mb-3 h-10 w-10 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        {tProjectExpenses('panel.selectItemHint')}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            ) : (
+              <>
             {/* 預算池資訊 */}
             <Card>
               <CardHeader>
@@ -1216,11 +1298,10 @@ export default function ProjectDetailPage() {
                 </Link>
               </CardContent>
             </Card>
+              </>
+            )}
           </div>
         </div>
-
-        {/* FEAT-015: 專案費用月度模組（與上方 PO→Expense 預算使用情況卡片獨立呈現、不相加） */}
-        <ProjectExpensePanel projectId={id} />
       </div>
     </DashboardLayout>
   );

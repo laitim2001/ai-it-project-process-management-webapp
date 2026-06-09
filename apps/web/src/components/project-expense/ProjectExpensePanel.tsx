@@ -3,19 +3,22 @@
  * @component ProjectExpensePanel
  *
  * @description
- * 掛載於 Project 詳情頁的容器組件，編排專案費用月度模組的完整互動：
+ * 掛載於 Project 詳情頁「專案費用」tab 左側的容器組件，編排費用表互動：
  * - 查詢某專案的所有費用表（getByProject）
- * - 表頭 CRUD（ProjectExpenseForm）、明細 CRUD/排序（ProjectExpenseItemList +
- *   ProjectExpenseItemForm）、月度編輯（ProjectExpenseItemMonthlyGrid）
+ * - 表頭 CRUD（ProjectExpenseForm）、明細 CRUD/排序（ProjectExpenseItemList + ProjectExpenseItemForm）
  * - 所有 mutation 成功後 invalidate getByProject 重新整理
+ *
+ * 🟢 CHANGE-044：月度編輯改為 master-detail——本組件僅負責費用表與明細清單，點選明細
+ *   經 onSelectItem 通知頁面，月度網格（ProjectExpenseItemMonthlyGrid）由頁面右欄渲染，
+ *   不再使用本組件內的彈窗。
  *
  * 🔴 D11/R8：此模組與既有「PO→Expense 實際支出」為兩種記法，畫面明確區隔、永不相加。
  *
  * @related
- * - apps/web/src/app/[locale]/projects/[id]/page.tsx（掛載點）
+ * - apps/web/src/app/[locale]/projects/[id]/page.tsx（掛載點 + 右欄月度網格）
  * - packages/api/src/routers/projectExpense.ts
  *
- * @since FEAT-015 - Project Expense 月度模組
+ * @since FEAT-015 - Project Expense 月度模組（CHANGE-044 改為 master-detail 版面）
  */
 
 'use client';
@@ -57,7 +60,6 @@ import { api } from '@/lib/trpc';
 import ProjectExpenseForm from './ProjectExpenseForm';
 import ProjectExpenseItemForm from './ProjectExpenseItemForm';
 import ProjectExpenseItemList from './ProjectExpenseItemList';
-import ProjectExpenseItemMonthlyGrid from './ProjectExpenseItemMonthlyGrid';
 
 import type {
   ProjectExpenseCurrency,
@@ -67,6 +69,10 @@ import type {
 
 interface ProjectExpensePanelProps {
   projectId: string;
+  /** CHANGE-044: 目前選中的明細 id（master-detail，月度網格顯示於頁面右欄） */
+  selectedItemId: string | null;
+  /** CHANGE-044: 點選明細時通知頁面，由頁面右欄渲染月度網格 */
+  onSelectItem: (item: ProjectExpenseItemData) => void;
 }
 
 /** 全部明細同幣別時才回傳該幣別（供總計顯示換算次值），否則 null（只顯示 USD） */
@@ -83,6 +89,8 @@ function getSharedCurrency(
 
 export default function ProjectExpensePanel({
   projectId,
+  selectedItemId,
+  onSelectItem,
 }: ProjectExpensePanelProps) {
   const t = useTranslations('projectExpenses');
   const tCommon = useTranslations('common');
@@ -105,11 +113,6 @@ export default function ProjectExpensePanel({
     projectExpenseId?: string;
     data?: ProjectExpenseItemData;
   }>({ open: false, mode: 'create' });
-
-  const [monthlyDialog, setMonthlyDialog] = useState<{
-    open: boolean;
-    item?: ProjectExpenseItemData;
-  }>({ open: false });
 
   const [deleteHeaderId, setDeleteHeaderId] = useState<string | null>(null);
 
@@ -152,10 +155,6 @@ export default function ProjectExpensePanel({
   };
   const handleItemSuccess = () => {
     setItemDialog({ open: false, mode: 'create' });
-    invalidate();
-  };
-  const handleMonthlySaved = () => {
-    setMonthlyDialog({ open: false });
     invalidate();
   };
 
@@ -288,9 +287,8 @@ export default function ProjectExpensePanel({
                   onReorder={(itemIds) =>
                     reorderMutation.mutate({ projectExpenseId: header.id, itemIds })
                   }
-                  onEditMonthly={(item) =>
-                    setMonthlyDialog({ open: true, item })
-                  }
+                  selectedItemId={selectedItemId}
+                  onSelectItem={onSelectItem}
                 />
               </CardContent>
             </Card>
@@ -346,25 +344,6 @@ export default function ProjectExpensePanel({
             onSuccess={handleItemSuccess}
             onCancel={() => setItemDialog({ open: false, mode: 'create' })}
           />
-        </DialogContent>
-      </Dialog>
-
-      {/* 月度網格 Dialog */}
-      <Dialog
-        open={monthlyDialog.open}
-        onOpenChange={(open) => setMonthlyDialog((prev) => ({ ...prev, open }))}
-      >
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{t('monthlyGrid.title')}</DialogTitle>
-          </DialogHeader>
-          {monthlyDialog.item && (
-            <ProjectExpenseItemMonthlyGrid
-              item={monthlyDialog.item}
-              onSaved={handleMonthlySaved}
-              onClose={() => setMonthlyDialog({ open: false })}
-            />
-          )}
         </DialogContent>
       </Dialog>
 

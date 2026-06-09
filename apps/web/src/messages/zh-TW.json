@@ -7,7 +7,8 @@
       "addExpense": "新增費用表",
       "noExpenses": "尚無費用表",
       "addFirstExpense": "點擊上方按鈕新增第一張費用表",
-      "noDescription": "（無描述）"
+      "noDescription": "（無描述）",
+      "selectItemHint": "請於左側點選費用明細以檢視 / 編輯月度記錄"
     },
     "form": {
       "createTitle": "新增費用表",
@@ -750,10 +751,10 @@
       },
       "tabs": {
         "overview": "概覽",
-        "proposals": "提案",
-        "quotes": "報價",
-        "purchaseOrders": "採購單",
-        "expenses": "費用"
+        "classification": "分類與分攤",
+        "budget": "預算統計",
+        "procurement": "提案採購",
+        "expense": "專案費用"
       },
       "deleteDialog": {
         "title": "確認刪除專案",
