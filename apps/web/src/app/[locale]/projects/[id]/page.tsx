@@ -525,12 +525,13 @@ export default function ProjectDetailPage() {
           <div className="lg:col-span-2">
             {/* CHANGE-044: 詳情頁 Tab 化（5 個 tab） */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
-                <TabsTrigger value="classification">{t('tabs.classification')}</TabsTrigger>
-                <TabsTrigger value="budget">{t('tabs.budget')}</TabsTrigger>
-                <TabsTrigger value="procurement">{t('tabs.procurement')}</TabsTrigger>
-                <TabsTrigger value="expense">{t('tabs.expense')}</TabsTrigger>
+              {/* CHANGE-044 / FIX-144: responsive grid + 允許換行，避免長標籤在窄寬度溢出重疊 */}
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-5">
+                <TabsTrigger value="overview" className="h-full whitespace-normal py-1.5 text-center text-xs leading-tight sm:text-sm">{t('tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="classification" className="h-full whitespace-normal py-1.5 text-center text-xs leading-tight sm:text-sm">{t('tabs.classification')}</TabsTrigger>
+                <TabsTrigger value="budget" className="h-full whitespace-normal py-1.5 text-center text-xs leading-tight sm:text-sm">{t('tabs.budget')}</TabsTrigger>
+                <TabsTrigger value="procurement" className="h-full whitespace-normal py-1.5 text-center text-xs leading-tight sm:text-sm">{t('tabs.procurement')}</TabsTrigger>
+                <TabsTrigger value="expense" className="h-full whitespace-normal py-1.5 text-center text-xs leading-tight sm:text-sm">{t('tabs.expense')}</TabsTrigger>
               </TabsList>
 
               {/* Tab: 概覽 */}
