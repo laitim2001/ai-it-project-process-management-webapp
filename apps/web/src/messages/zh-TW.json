@@ -4160,7 +4160,8 @@
       "noSteps": "尚未新增步驟，點擊下方按鈕新增。",
       "dragToReorder": "拖曳以調整順序",
       "confirmRemoveTitle": "移除步驟",
-      "confirmRemove": "確定要移除此審批步驟嗎？移除後其餘步驟序號會自動重新排列。"
+      "confirmRemove": "確定要移除此審批步驟嗎？移除後其餘步驟序號會自動重新排列。",
+      "unknownRole": "未知角色（資料異常）"
     }
   }
 }
