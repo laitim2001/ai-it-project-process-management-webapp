@@ -10,6 +10,9 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2026-06-09 | 🎨 UI/響應式 | ✅ 已完成 | [FIX-144: 專案詳情頁 Tab 標籤窄寬度溢出重疊](claudedocs/4-changes/bug-fixes/FIX-144-project-detail-tab-responsive-overflow.md) |
+| 2026-06-09 | 🛡️ 前端/防禦 | ✅ 已完成 | [FIX-143: 審批步驟缺角色時前端防護（null role guard）](claudedocs/4-changes/bug-fixes/FIX-143-approval-step-missing-role-guard.md) |
+| 2026-06-05 | 🔐 認證/Session | ✅ 已完成 | [FIX-142: Session 過期自動偵測導向 + 二次確認](claudedocs/4-changes/bug-fixes/FIX-142-session-expiry-auto-redirect.md) |
 | **2026-06-02** | **🧹 死碼/技術債** | ✅ **已解決** | **[FIX-140: 移除 FEAT-007 遺留死碼 OMExpenseMonthlyGrid.tsx（含 HKD 硬編碼）](#fix-140-移除-feat-007-遺留死碼-omexpensemonthlygridtsx)** |
 | 2026-05-04 | 🔌 前端/API | ✅ 已完成 | [FIX-139: BudgetProposalForm 專案下拉選單只顯示 20 個](claudedocs/4-changes/bug-fixes/FIX-139-proposal-form-project-dropdown-limit.md) |
 | 2026-05-04 | 🔧 API/後端 | ✅ 已完成 | [FIX-138: Project Update 切換 Budget Pool 時回 HTTP 400](claudedocs/4-changes/bug-fixes/FIX-138-project-update-cross-pool-400.md) |

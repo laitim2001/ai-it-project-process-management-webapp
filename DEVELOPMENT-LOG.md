@@ -20,6 +20,29 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-09 | 🔀 孤兒變更/修復批次收編 main（FIX-142/143/144 + CHANGE-048/049/050）| 完成 ✅
+
+**類型**: 整合/收編（git 分支與 stash 救援 + cherry-pick）| **負責人**: AI 助手 | **狀態**: ✅ 完成（各項 typecheck/i18n/lint 驗證；CHANGE-047 與 FIX-144 另經瀏覽器實測）
+
+**背景**: 數批已完成但從未合併進 main 的工作散落於分支與 git stash，且發生編號撞號（兩個不同的 CHANGE-044）。本次全數救援、理清編號、逐一收編 main，**零內容遺失**。
+
+**收編項目**:
+- **FIX-144**（2026-06-09）：專案詳情頁（CHANGE-044）5-Tab 列在窄寬度因 `grid-cols-5` + `whitespace-nowrap` 溢出重疊 → 改響應式網格（2/3/5 欄）+ 允許換行。瀏覽器 1120/560px 實測無重疊。doc：`FIX-144-project-detail-tab-responsive-overflow.md`
+- **FIX-143**（2026-06-09）：審批步驟 `role` 可能為 null 時前端崩潰 → 型別放寬 + Badge null 防護（`unknownRole` + destructive variant）。doc：`FIX-143-approval-step-missing-role-guard.md`
+- **FIX-142**（2026-06-04~05）：session 過期未即時偵測 → 新增 `SessionExpiryWatcher` + `lib/session-expiry.ts`，401 二次確認避免暫時性誤踢；純前端無 schema。doc：`FIX-142-session-expiry-auto-redirect.md`
+- **CHANGE-048/049/050**（規劃 2026-06-03，收編 06-09）：OM 月度雙幣（USD↔HKD 雙向換算、明細以選定幣別輸入存檔轉 USD、持久化 HKD 欄 `actualAmountHKD`）。**原號 044/045/046，因與 main CHANGE-044（專案 Tab）撞號重配為 048/049/050**。migration `20260603032209_change048_om_monthly_hkd`（additive nullable）。docs：`CHANGE-048/049/050-*.md`
+- **CHANGE-047**：另有 2026-06-04 專屬條目（見下）；本批一併 cherry-pick 進 main，解 FIX-143 衝突（`ApprovalStepList`/`types` 合併 null 防護 + 角色/用戶顯示）。
+
+**編號修復**: 掃描所有 ref + stash 後確認全域最大號為 CHANGE-047 / FIX-144；OM 批次重配 048/049/050（保留依賴順序連續，045/046 成留空號）。**下一個 CHANGE 從 051、FIX 從 145**。教訓：配號須掃「所有分支 + git stash」（上次漏掃 stash 導致 044 撞號）。
+
+**救援機制**: 未提交的 OM 工作（含 migration + 3 規劃文件）原僅存於單一 git stash → 落成 `wip/om-dual-currency-044-046` 分支並 push origin（本地分支 + stash + 遠端三重備份，永不遺失）。
+
+**驗證**: 各項 `pnpm typecheck`（api/auth/web）全綠；`validate:i18n` 通過（最終 2857 keys）；變更檔 lint 無新增 error（既有為 main baseline）；OM migration `migrate status` 一致（本地 DB `_prisma_migrations` 名稱同步為 change048）。已合併的 6 個整合/來源分支經逐檔內容驗證後清理，僅保留 `main` + `wip` 備份。
+
+**相關文件**: 上列各 FIX/CHANGE doc；`docs/10-ai-assistant/DEV-GUIDELINES-COMPLETE.md`（本批一併納入版控）
+
+---
+
 ### 2026-06-04 | ✨ CHANGE-047: 審批步驟支援指定「具體用戶」為審批者 | 完成 ✅
 
 **類型**: 功能增強（延伸 FEAT-014）| **負責人**: AI 助手 | **狀態**: ✅ 完成（靜態驗證 + 瀏覽器冒煙測試全綠）
