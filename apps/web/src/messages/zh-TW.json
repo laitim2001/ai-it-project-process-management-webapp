@@ -112,6 +112,10 @@
     }
   },
   "common": {
+    "sessionExpired": {
+      "title": "登入已過期",
+      "description": "請重新登入以繼續操作"
+    },
     "actions": {
       "actions": "操作",
       "title": "操作",

@@ -52,5 +52,11 @@ interface SessionProviderProps {
 }
 
 export function SessionProvider({ children }: SessionProviderProps) {
-  return <NextAuthSessionProvider>{children}</NextAuthSessionProvider>;
+  // FIX-142: refetchInterval 讓 client 定期（每 15 分鐘）重新驗證 session，
+  // 使用者不互動時也能及時發現 JWT 過期；refetchOnWindowFocus 在切回分頁時再驗證一次
+  return (
+    <NextAuthSessionProvider refetchInterval={15 * 60} refetchOnWindowFocus={true}>
+      {children}
+    </NextAuthSessionProvider>
+  );
 }
