@@ -77,12 +77,21 @@ import { useRouter } from "@/i18n/routing";
 import { api } from '@/lib/trpc';
 
 
-/** FEAT-014: 當前步驟進度（用於判斷登入者是否為當前審批角色） */
+/** FEAT-014 / CHANGE-047: 當前步驟進度（用於判斷登入者是否為當前審批者：角色或指定用戶） */
+interface StepApproverUser {
+  name: string | null;
+  email: string;
+}
 interface StepProgress {
   sequence: number;
-  approverRoleId: number;
+  approverRoleId: number | null;
+  approverUserId: string | null;
   status: string;
-  step?: { role?: { name: string } | null } | null;
+  step?: {
+    role?: { name: string } | null;
+    approverUser?: StepApproverUser | null;
+  } | null;
+  designatedApprover?: StepApproverUser | null;
 }
 
 interface ProposalActionsProps {
@@ -125,15 +134,25 @@ export function ProposalActions({
   // CHANGE-018: 檢查是否可以回退（Admin 或 Supervisor，且非 Draft 狀態）
   const canRevert = (userRole === 'Admin' || userRole === 'Supervisor') && status !== 'Draft';
 
-  // FEAT-014: 序列審批流程判斷（用 role.id；session 未填充頂層 roleId）
+  // FEAT-014 / CHANGE-047: 序列審批流程判斷（指定用戶比對本人；角色比對 role.id）
   const userRoleId = session?.user?.role?.id;
   const isWorkflow = !!workflowId;
   const currentStep = approvalProgress?.find((p) => p.sequence === currentStepSequence);
   const isMyStep =
     isWorkflow &&
     currentStep?.status === 'Pending' &&
-    currentStep?.approverRoleId === userRoleId;
-  const currentStepRoleName = currentStep?.step?.role?.name;
+    (currentStep?.approverUserId != null
+      ? currentStep.approverUserId === userId
+      : currentStep?.approverRoleId === userRoleId);
+  // 當前步驟審批者顯示名稱（指定用戶名/Email 或角色名）
+  const currentStepApproverLabel =
+    currentStep?.approverUserId != null
+      ? currentStep?.designatedApprover?.name ??
+        currentStep?.step?.approverUser?.name ??
+        currentStep?.designatedApprover?.email ??
+        currentStep?.step?.approverUser?.email ??
+        ''
+      : currentStep?.step?.role?.name ?? '';
 
   const submitMutation = api.budgetProposal.submit.useMutation({
     onSuccess: async () => {
@@ -354,7 +373,7 @@ export function ProposalActions({
           <div className="rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-800">
             {t('approval.currentStep', {
               step: currentStepSequence ?? 0,
-              role: currentStepRoleName ?? '',
+              approver: currentStepApproverLabel,
             })}
           </div>
 

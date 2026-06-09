@@ -55,6 +55,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingButton } from '@/components/ui/loading';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -104,7 +106,13 @@ export default function ApprovalWorkflowsPage() {
     workflowId: string;
     stepId?: string;
   }>({ open: false, mode: 'add', workflowId: '' });
-  const [stepForm, setStepForm] = useState({ roleId: '', name: '' });
+  // CHANGE-047: 步驟審批者「角色 / 指定用戶 二選一」
+  const [stepForm, setStepForm] = useState<{
+    approverType: 'role' | 'user';
+    roleId: string;
+    userId: string;
+    name: string;
+  }>({ approverType: 'role', roleId: '', userId: '', name: '' });
 
   // 步驟刪除確認
   const [stepToDelete, setStepToDelete] = useState<string | null>(null);
@@ -114,6 +122,12 @@ export default function ApprovalWorkflowsPage() {
     { enabled: isAdmin }
   );
   const { data: roles } = api.user.getRoles.useQuery(undefined, { enabled: isAdmin });
+  // CHANGE-047: 指定用戶模式的用戶清單
+  const { data: users } = api.user.getAll.useQuery(undefined, { enabled: isAdmin });
+  const userOptions = (users ?? []).map((u) => ({
+    value: u.id,
+    label: u.name ? `${u.name} (${u.email})` : u.email,
+  }));
 
   const invalidate = () => utils.approvalWorkflow.list.invalidate();
 
@@ -201,24 +215,40 @@ export default function ApprovalWorkflowsPage() {
   };
 
   const openAddStep = (workflowId: string) => {
-    setStepForm({ roleId: '', name: '' });
+    setStepForm({ approverType: 'role', roleId: '', userId: '', name: '' });
     setStepDialog({ open: true, mode: 'add', workflowId });
   };
 
   const openEditStep = (workflowId: string, step: ApprovalStepData) => {
-    setStepForm({ roleId: String(step.approverRoleId), name: step.name ?? '' });
+    setStepForm(
+      step.approverUserId
+        ? { approverType: 'user', roleId: '', userId: step.approverUserId, name: step.name ?? '' }
+        : {
+            approverType: 'role',
+            roleId: step.approverRoleId != null ? String(step.approverRoleId) : '',
+            userId: '',
+            name: step.name ?? '',
+          }
+    );
     setStepDialog({ open: true, mode: 'edit', workflowId, stepId: step.id });
   };
 
+  // CHANGE-047: 依審批者類型決定必填欄位是否已選
+  const stepApproverReady =
+    stepForm.approverType === 'role' ? !!stepForm.roleId : !!stepForm.userId;
+
   const submitStep = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stepForm.roleId) return;
-    const roleId = Number(stepForm.roleId);
+    if (!stepApproverReady) return;
     const name = stepForm.name.trim() || undefined;
+    const approver =
+      stepForm.approverType === 'role'
+        ? { approverType: 'role' as const, approverRoleId: Number(stepForm.roleId) }
+        : { approverType: 'user' as const, approverUserId: stepForm.userId };
     if (stepDialog.mode === 'add') {
-      addStepMutation.mutate({ workflowId: stepDialog.workflowId, approverRoleId: roleId, name });
+      addStepMutation.mutate({ workflowId: stepDialog.workflowId, ...approver, name });
     } else if (stepDialog.stepId) {
-      updateStepMutation.mutate({ id: stepDialog.stepId, approverRoleId: roleId, name: name ?? null });
+      updateStepMutation.mutate({ id: stepDialog.stepId, ...approver, name: name ?? null });
     }
   };
 
@@ -420,24 +450,63 @@ export default function ApprovalWorkflowsPage() {
             <DialogDescription>{t('steps.dialogSubtitle')}</DialogDescription>
           </DialogHeader>
           <form onSubmit={submitStep} className="space-y-4">
+            {/* CHANGE-047: 審批者類型（角色 / 指定用戶 二選一） */}
             <div>
-              <Label htmlFor="step-role">{t('steps.roleLabel')}</Label>
-              <Select
-                value={stepForm.roleId}
-                onValueChange={(v) => setStepForm({ ...stepForm, roleId: v })}
+              <Label>{t('steps.approverTypeLabel')}</Label>
+              <RadioGroup
+                value={stepForm.approverType}
+                onValueChange={(v) =>
+                  setStepForm({ ...stepForm, approverType: v as 'role' | 'user' })
+                }
+                className="mt-2 flex gap-6"
               >
-                <SelectTrigger id="step-role">
-                  <SelectValue placeholder={t('steps.rolePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles?.map((r) => (
-                    <SelectItem key={r.id} value={String(r.id)}>
-                      {r.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="role" id="approver-type-role" />
+                  <Label htmlFor="approver-type-role" className="cursor-pointer font-normal">
+                    {t('steps.approverTypeRole')}
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="user" id="approver-type-user" />
+                  <Label htmlFor="approver-type-user" className="cursor-pointer font-normal">
+                    {t('steps.approverTypeUser')}
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
+
+            {stepForm.approverType === 'role' ? (
+              <div>
+                <Label htmlFor="step-role">{t('steps.roleLabel')}</Label>
+                <Select
+                  value={stepForm.roleId}
+                  onValueChange={(v) => setStepForm({ ...stepForm, roleId: v })}
+                >
+                  <SelectTrigger id="step-role">
+                    <SelectValue placeholder={t('steps.rolePlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles?.map((r) => (
+                      <SelectItem key={r.id} value={String(r.id)}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div>
+                <Label>{t('steps.userLabel')}</Label>
+                <Combobox
+                  options={userOptions}
+                  value={stepForm.userId}
+                  onChange={(v) => setStepForm({ ...stepForm, userId: v })}
+                  placeholder={t('steps.userPlaceholder')}
+                  searchPlaceholder={t('steps.userPlaceholder')}
+                  emptyText={tCommon('noResults')}
+                />
+              </div>
+            )}
             <div>
               <Label htmlFor="step-name">{t('steps.nameLabel')}</Label>
               <Input
@@ -458,7 +527,7 @@ export default function ApprovalWorkflowsPage() {
               <LoadingButton
                 type="submit"
                 isLoading={addStepMutation.isPending || updateStepMutation.isPending}
-                disabled={!stepForm.roleId}
+                disabled={!stepApproverReady}
               >
                 {tCommon('actions.save')}
               </LoadingButton>

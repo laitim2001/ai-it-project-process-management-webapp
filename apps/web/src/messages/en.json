@@ -1169,8 +1169,8 @@
         "reject": "Reject",
         "requestInfo": "Request More Info"
       },
-      "currentStep": "Currently at step {step}, awaiting {role} approval",
-      "notYourStep": "The current step is not assigned to your role. Please wait.",
+      "currentStep": "Currently at step {step}, awaiting {approver} approval",
+      "notYourStep": "The current step is not assigned to you. Please wait.",
       "progressTitle": "Approval Progress",
       "stepLabel": "Step {step}",
       "currentBadge": "In Progress",
@@ -1267,7 +1267,7 @@
     },
     "pending": {
       "title": "Pending My Approval",
-      "description": "Budget proposals whose current approval step is assigned to your role and not yet acted on.",
+      "description": "Budget proposals whose current approval step is assigned to you (by role or as a specific user) and not yet acted on.",
       "listTitle": "Proposals Awaiting Approval",
       "empty": "No proposals are awaiting your approval.",
       "currentStep": "Current Step",
@@ -4120,7 +4120,7 @@
   },
   "approvalWorkflows": {
     "title": "Approval Workflow Configuration",
-    "description": "Configure sequential approval workflows for budget proposals. Each step is assigned an approver role; proposals flow through the steps in order.",
+    "description": "Configure sequential approval workflows for budget proposals. Each step is assigned an approver (a role or a specific user); proposals flow through the steps in order.",
     "actions": {
       "createWorkflow": "New Workflow",
       "editWorkflow": "Edit Workflow"
@@ -4153,9 +4153,15 @@
     "steps": {
       "addStep": "Add Step",
       "editStep": "Edit Step",
-      "dialogSubtitle": "Assign the approver role and an optional display name for this step.",
+      "dialogSubtitle": "Assign this step's approver (a role or a specific user) and an optional display name.",
+      "approverTypeLabel": "Approver Type",
+      "approverTypeRole": "Role (any user with this role)",
+      "approverTypeUser": "Specific User",
       "roleLabel": "Approver Role",
       "rolePlaceholder": "Select a role",
+      "userLabel": "Approver User",
+      "userPlaceholder": "Search and select a user",
+      "userBadgePrefix": "User: ",
       "nameLabel": "Step Name (optional)",
       "namePlaceholder": "e.g. Supervisor Review, Finance Review",
       "noSteps": "No steps yet. Click the button below to add one.",

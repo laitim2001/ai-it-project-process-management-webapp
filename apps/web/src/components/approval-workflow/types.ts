@@ -12,14 +12,24 @@ export interface ApprovalRole {
   name: string;
 }
 
+/** CHANGE-047: 指定用戶顯示資料 */
+export interface ApprovalUser {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 export interface ApprovalStepData {
   id: string;
   workflowId: string;
   sequence: number;
-  approverRoleId: number;
+  // CHANGE-047: 審批者為角色或指定用戶二選一（一有一無）
+  approverRoleId: number | null;
+  approverUserId: string | null;
   name: string | null;
   // role 理論上必填，但實務上可能因資料漂移 / 角色缺失而為 null（前端需防護，不可直接 .name）
   role: ApprovalRole | null;
+  approverUser: ApprovalUser | null;
 }
 
 export interface ApprovalWorkflowData {

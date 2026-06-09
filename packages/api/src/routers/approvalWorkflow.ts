@@ -3,8 +3,9 @@
  *
  * @description
  * FEAT-014: 提供 Admin 對「審批流程（ApprovalWorkflow）」與其「有序步驟（ApprovalStep）」
- * 的完整配置能力。每個流程含有序多步驟，每步指定一個審批「角色」（Role），提案提交後
- * 依序流經各步驟（推進邏輯在 budgetProposal router）。
+ * 的完整配置能力。每個流程含有序多步驟，每步指定一個審批者——CHANGE-047 起可為「角色」
+ * （Role，該角色任一人可審）或「指定用戶」（單一使用者）二選一，提案提交後依序流經各步驟
+ * （推進邏輯在 budgetProposal router）。
  *
  * 本 router 僅負責「流程配置」（全 adminProcedure）；「審批執行」與「待我審批」視圖
  * 由 budgetProposal router 提供。
@@ -71,17 +72,43 @@ const updateWorkflowSchema = z.object({
   isDefault: z.boolean().optional(),
 });
 
-const addStepSchema = z.object({
-  workflowId: z.string().uuid(),
-  approverRoleId: z.number().int('角色 ID 必須為整數'),
-  name: z.string().max(255).optional(),
-});
+// CHANGE-047: 步驟審批者「角色 / 指定用戶 二選一」（XOR）
+const approverTypeEnum = z.enum(['role', 'user']);
 
-const updateStepSchema = z.object({
-  id: z.string().uuid(),
-  approverRoleId: z.number().int('角色 ID 必須為整數').optional(),
-  name: z.string().max(255).nullable().optional(),
-});
+const addStepSchema = z
+  .object({
+    workflowId: z.string().uuid(),
+    approverType: approverTypeEnum,
+    approverRoleId: z.number().int('角色 ID 必須為整數').optional(),
+    approverUserId: z.string().uuid('無效的用戶 ID').optional(),
+    name: z.string().max(255).optional(),
+  })
+  .refine(
+    (v) =>
+      v.approverType === 'role'
+        ? v.approverRoleId != null && v.approverUserId == null
+        : v.approverUserId != null && v.approverRoleId == null,
+    { message: '審批者類型與所選對象不一致（須角色或用戶二選一）' }
+  );
+
+const updateStepSchema = z
+  .object({
+    id: z.string().uuid(),
+    // approverType 未提供時視為「不變更審批者」（僅改名稱）
+    approverType: approverTypeEnum.optional(),
+    approverRoleId: z.number().int('角色 ID 必須為整數').optional(),
+    approverUserId: z.string().uuid('無效的用戶 ID').optional(),
+    name: z.string().max(255).nullable().optional(),
+  })
+  .refine(
+    (v) =>
+      v.approverType === 'role'
+        ? v.approverRoleId != null
+        : v.approverType === 'user'
+        ? v.approverUserId != null
+        : true,
+    { message: '審批者類型與所選對象不一致（須角色或用戶二選一）' }
+  );
 
 const reorderStepsSchema = z.object({
   workflowId: z.string().uuid(),
@@ -93,16 +120,23 @@ const reorderStepsSchema = z.object({
 // 共用 include（流程含步驟與角色、已綁定提案數）
 // ============================================================
 
+// CHANGE-047: 指定用戶顯示用安全欄位
+const approverUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+} satisfies Prisma.UserSelect;
+
 const workflowInclude = {
   steps: {
     orderBy: { sequence: 'asc' },
-    include: { role: true },
+    include: { role: true, approverUser: { select: approverUserSelect } },
   },
   _count: { select: { proposals: true } },
 } satisfies Prisma.ApprovalWorkflowInclude;
 
 // ============================================================
-// 輔助：驗證角色存在
+// 輔助：驗證審批者（角色 / 用戶）存在
 // ============================================================
 
 async function assertRoleExists(
@@ -116,6 +150,38 @@ async function assertRoleExists(
       message: `找不到角色（ID: ${roleId}）`,
     });
   }
+}
+
+async function assertUserExists(
+  prisma: Prisma.TransactionClient,
+  userId: string
+): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `找不到用戶（ID: ${userId}）`,
+    });
+  }
+}
+
+/**
+ * CHANGE-047: 依審批者類型驗證存在性並回傳要寫入的欄位（另一欄位清為 null，維持 XOR）
+ */
+async function resolveApproverData(
+  prisma: Prisma.TransactionClient,
+  input: {
+    approverType: 'role' | 'user';
+    approverRoleId?: number;
+    approverUserId?: string;
+  }
+): Promise<{ approverRoleId: number | null; approverUserId: string | null }> {
+  if (input.approverType === 'role') {
+    await assertRoleExists(prisma, input.approverRoleId!);
+    return { approverRoleId: input.approverRoleId!, approverUserId: null };
+  }
+  await assertUserExists(prisma, input.approverUserId!);
+  return { approverRoleId: null, approverUserId: input.approverUserId! };
 }
 
 // ============================================================
@@ -217,7 +283,7 @@ export const approvalWorkflowRouter = createTRPCRouter({
       if (!workflow) {
         throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該審批流程' });
       }
-      await assertRoleExists(ctx.prisma, input.approverRoleId);
+      const approver = await resolveApproverData(ctx.prisma, input);
 
       const nextSequence = (workflow.steps[0]?.sequence ?? 0) + 1;
 
@@ -225,7 +291,8 @@ export const approvalWorkflowRouter = createTRPCRouter({
         data: {
           workflowId: input.workflowId,
           sequence: nextSequence,
-          approverRoleId: input.approverRoleId,
+          approverRoleId: approver.approverRoleId,
+          approverUserId: approver.approverUserId,
           name: input.name,
         },
       });
@@ -248,15 +315,22 @@ export const approvalWorkflowRouter = createTRPCRouter({
       if (!step) {
         throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該審批步驟' });
       }
-      if (input.approverRoleId !== undefined) {
-        await assertRoleExists(ctx.prisma, input.approverRoleId);
-      }
+      // CHANGE-047: 有提供 approverType 才變更審批者（二選一，另一欄位清 null）
+      const approver =
+        input.approverType !== undefined
+          ? await resolveApproverData(ctx.prisma, {
+              approverType: input.approverType,
+              approverRoleId: input.approverRoleId,
+              approverUserId: input.approverUserId,
+            })
+          : undefined;
 
       await ctx.prisma.approvalStep.update({
         where: { id: input.id },
         data: {
-          ...(input.approverRoleId !== undefined && {
-            approverRoleId: input.approverRoleId,
+          ...(approver && {
+            approverRoleId: approver.approverRoleId,
+            approverUserId: approver.approverUserId,
           }),
           ...(input.name !== undefined && { name: input.name }),
         },
