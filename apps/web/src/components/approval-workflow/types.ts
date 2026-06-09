@@ -18,7 +18,8 @@ export interface ApprovalStepData {
   sequence: number;
   approverRoleId: number;
   name: string | null;
-  role: ApprovalRole;
+  // role 理論上必填，但實務上可能因資料漂移 / 角色缺失而為 null（前端需防護，不可直接 .name）
+  role: ApprovalRole | null;
 }
 
 export interface ApprovalWorkflowData {

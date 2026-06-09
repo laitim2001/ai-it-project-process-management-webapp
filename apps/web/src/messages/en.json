@@ -4161,7 +4161,8 @@
       "noSteps": "No steps yet. Click the button below to add one.",
       "dragToReorder": "Drag to reorder",
       "confirmRemoveTitle": "Remove Step",
-      "confirmRemove": "Remove this approval step? Remaining step numbers will be re-sequenced automatically."
+      "confirmRemove": "Remove this approval step? Remaining step numbers will be re-sequenced automatically.",
+      "unknownRole": "Unknown role (data error)"
     }
   }
 }

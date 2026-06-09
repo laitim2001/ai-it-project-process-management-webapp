@@ -91,7 +91,9 @@ function SortableStep({ step, index, isLast, onEdit, onRemove }: SortableStepPro
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{step.role.name}</Badge>
+          <Badge variant={step.role ? 'secondary' : 'destructive'}>
+            {step.role?.name ?? t('steps.unknownRole')}
+          </Badge>
           {step.name && (
             <span className="truncate text-sm text-muted-foreground">{step.name}</span>
           )}
