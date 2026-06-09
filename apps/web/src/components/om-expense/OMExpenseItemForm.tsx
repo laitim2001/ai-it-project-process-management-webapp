@@ -90,6 +90,8 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
+// CHANGE-049: 輸入幣別 ↔ USD 換算（以選定幣別輸入、存檔換算為 USD）
+import { toUSD, fromUSD, formatUSD, type CurrencyInfo } from '@/lib/currency';
 
 // ============================================================
 // Helper Functions
@@ -268,37 +270,60 @@ export default function OMExpenseItemForm({
     },
   });
 
+  // CHANGE-049: 目前選定的幣別（用於輸入金額 ↔ USD 換算）
+  const watchedCurrencyId = form.watch('currencyId');
+  const selectedCurrency: CurrencyInfo | null =
+    currencies?.find((c) => c.id === watchedCurrencyId) ?? null;
+  // 是否實際會發生換算（選了非 USD 且有有效匯率的幣別）
+  const conversionActive =
+    !!selectedCurrency &&
+    selectedCurrency.code !== 'USD' &&
+    (selectedCurrency.exchangeRate ?? 0) > 0;
+
   // Reset form when initialData updates
+  // CHANGE-049: 編輯載入時，把儲存的 USD 金額換算回該明細幣別顯示（待 currencies 載入後重算）
   useEffect(() => {
     if (initialData && mode === 'edit') {
+      const loadCurrency = currencies?.find((c) => c.id === initialData.currencyId) ?? null;
       form.reset({
         name: initialData.name || '',
         description: initialData.description || '',
-        budgetAmount: initialData.budgetAmount || 0,
+        budgetAmount: fromUSD(initialData.budgetAmount || 0, loadCurrency),
         opCoId: initialData.opCoId || '',
         currencyId: initialData.currencyId || '',
         startDate: initialData.startDate || '',
         endDate: initialData.endDate || '',
         isOngoing: initialData.isOngoing ?? false, // CHANGE-011: 持續進行中標記
-        // CHANGE-006: 上年度實際支出
-        lastFYActualExpense: initialData.lastFYActualExpense ?? null,
+        // CHANGE-006/045: 上年度實際支出（同樣以該明細幣別顯示）
+        lastFYActualExpense:
+          initialData.lastFYActualExpense != null
+            ? fromUSD(initialData.lastFYActualExpense, loadCurrency)
+            : null,
       });
     }
-  }, [initialData, mode, form]);
+  }, [initialData, mode, form, currencies]);
 
   // Form submit
   const onSubmit = (data: ItemFormData) => {
+    // CHANGE-049: 以選定幣別輸入的金額，存檔前換算為 USD（系統主帳幣別）
+    const submitCurrency = currencies?.find((c) => c.id === data.currencyId) ?? null;
+
     // Clean up optional fields
     // CHANGE-011: 當 isOngoing=true 時，endDate 可為空
     const cleanedData = {
       ...data,
+      // CHANGE-049: budgetAmount 由「該幣別金額」換算為 USD 後儲存
+      budgetAmount: toUSD(data.budgetAmount, submitCurrency),
       description: data.description || undefined,
       currencyId: data.currencyId || undefined,
       startDate: data.startDate || undefined,
       endDate: data.isOngoing ? undefined : (data.endDate || undefined), // CHANGE-011: isOngoing 時不傳 endDate
       isOngoing: data.isOngoing, // CHANGE-011: 持續進行中標記
-      // CHANGE-006: 上年度實際支出
-      lastFYActualExpense: data.lastFYActualExpense ?? undefined,
+      // CHANGE-006/045: 上年度實際支出（同樣換算為 USD）
+      lastFYActualExpense:
+        data.lastFYActualExpense != null
+          ? toUSD(data.lastFYActualExpense, submitCurrency)
+          : undefined,
     };
 
     if (mode === 'create' && omExpenseId) {
@@ -415,6 +440,15 @@ export default function OMExpenseItemForm({
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </FormControl>
+                {/* CHANGE-049: 顯示換算後將儲存的 USD 值 */}
+                {conversionActive && (
+                  <FormDescription>
+                    {t('itemFields.amountUsdPreview', {
+                      defaultValue: '≈ {amount}（將以 USD 儲存）',
+                      amount: formatUSD(toUSD(field.value, selectedCurrency)),
+                    })}
+                  </FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -449,6 +483,15 @@ export default function OMExpenseItemForm({
                   defaultValue: '可選：輸入上年度實際維護費用，用於年度比較分析',
                 })}
               </FormDescription>
+              {/* CHANGE-049: 顯示換算後將儲存的 USD 值 */}
+              {conversionActive && field.value != null && (
+                <FormDescription>
+                  {t('itemFields.amountUsdPreview', {
+                    defaultValue: '≈ {amount}（將以 USD 儲存）',
+                    amount: formatUSD(toUSD(field.value, selectedCurrency)),
+                  })}
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -485,7 +528,7 @@ export default function OMExpenseItemForm({
               </Select>
               <FormDescription>
                 {t('itemFields.currency.description', {
-                  defaultValue: '可選：指定此項目使用的幣別',
+                  defaultValue: '輸入金額所使用的幣別；存檔時會依匯率換算為 USD 儲存（顯示一律 USD + HKD）',
                 })}
               </FormDescription>
               <FormMessage />

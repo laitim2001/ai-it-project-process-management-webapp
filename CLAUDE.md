@@ -164,6 +164,19 @@ function 計算預算使用率(預算池: BudgetPool): number {
 
 > 補充 Karpathy §1「不清楚就停下」：劃出明確邊界，避免兩種摩擦——瑣事過度確認、破壞性操作卻不確認。
 
+### 🚩 規劃文件先行（Doc-First — 開發流程紅線）
+
+非 trivial 的 **FEAT / CHANGE / FIX**：**必須先建立規劃文件（實體 `.md` 檔）→ 交付使用者 review → 取得核准，才開始實作**。
+依 `docs/10-ai-assistant/03-dev-workflow.md` §1：① 分類提案 → **② 寫規劃文件** → ③ 實作 → ④ 驗證 → ⑤ 推送。**② 在 ③ 之前。**
+
+- ❌ **不可**用「聊天室內的計畫 + 口頭 OK」**取代**「規劃文件 + review」——聊天計畫不是可留存、可審閱的 review artifact。
+- ❌ **不可**先實作、事後補規劃文件。
+- ✅ **Trivial**（typo / rename / 改註解，< 30 min）豁免文件，直接改。
+- ✅ 文件位置/模板依 §2 與 `.claude/rules/documentation.md`：CHANGE → `claudedocs/4-changes/feature-changes/`、FIX → `bug-fixes/`、FEAT → `1-planning/features/`。
+- ✅ 流程順序：先寫文件 → 請使用者 review → 待核准 → 才 `Edit`/`Write` 程式碼。實作中的後續步驟（已核准 scope 內）不需逐步再問。
+
+> **自檢**：動任何 FEAT/CHANGE/FIX 的程式碼前，先問自己「規劃文件建立了嗎？使用者 review 過了嗎？」否則停下，先補文件。
+
 ### 破壞性操作才需確認（Confirmation on Destructive Only）
 
 **必須先問**：

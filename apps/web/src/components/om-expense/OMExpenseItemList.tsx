@@ -105,6 +105,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { DualCurrency } from '@/components/shared/DualCurrency';
+import { hkdCurrencyInfo, type CurrencyInfo } from '@/lib/currency';
 
 // ============================================================
 // Types
@@ -136,12 +137,16 @@ export interface OMExpenseItemData {
   monthlyRecords?: Array<{
     month: number;
     actualAmount: number;
+    // CHANGE-048: 該月 HKD 實際支出（持久化；null = 沿用 USD×匯率 換算顯示）
+    actualAmountHKD?: number | null;
   }>;
 }
 
 interface OMExpenseItemListProps {
   omExpenseId: string;
   items: OMExpenseItemData[];
+  /** CHANGE-049: HKD 匯率（1 USD = hkdRate HKD），用於固定 HKD 次值顯示 */
+  hkdRate?: number | null;
   onAddItem: () => void;
   onEditItem: (item: OMExpenseItemData) => void;
   onDeleteItem: (itemId: string) => void;
@@ -191,6 +196,8 @@ function getUtilizationColor(utilization: number): string {
 interface SortableRowProps {
   item: OMExpenseItemData;
   index: number;
+  // CHANGE-049: 固定 HKD 顯示用幣別（取代各 item 自身幣別）
+  hkdCurrency: CurrencyInfo | null;
   onEdit: () => void;
   onDelete: () => void;
   onEditMonthly: () => void;
@@ -200,6 +207,7 @@ interface SortableRowProps {
 function SortableRow({
   item,
   index,
+  hkdCurrency,
   onEdit,
   onDelete,
   onEditMonthly,
@@ -278,12 +286,12 @@ function SortableRow({
 
       {/* Budget Amount */}
       <TableCell className="text-right font-mono">
-        <DualCurrency amountUSD={item.budgetAmount} currency={item.currency} />
+        <DualCurrency amountUSD={item.budgetAmount} currency={hkdCurrency} />
       </TableCell>
 
       {/* Actual Spent */}
       <TableCell className={cn('text-right font-mono', getUtilizationColor(utilization))}>
-        <DualCurrency amountUSD={item.actualSpent} currency={item.currency} />
+        <DualCurrency amountUSD={item.actualSpent} currency={hkdCurrency} />
       </TableCell>
 
       {/* Utilization */}
@@ -368,6 +376,7 @@ function SortableRow({
 export default function OMExpenseItemList({
   omExpenseId,
   items,
+  hkdRate,
   onAddItem,
   onEditItem,
   onDeleteItem,
@@ -404,13 +413,8 @@ export default function OMExpenseItemList({
 
   const totalUtilization = calculateUtilization(totals.actualSpent, totals.budgetAmount);
 
-  // CHANGE-042: 全部明細同一幣別時，總計才顯示換算次值（否則只顯示 USD，避免混幣別錯加）
-  const sharedCurrency = useMemo(() => {
-    const firstItem = items[0];
-    if (!firstItem?.currency) return null;
-    const firstCurrency = firstItem.currency;
-    return items.every((item) => item.currency?.id === firstCurrency.id) ? firstCurrency : null;
-  }, [items]);
+  // CHANGE-049: 固定 HKD 顯示用幣別（取代原本「跟隨各 item 幣別」的 sharedCurrency）
+  const hkdCurrency = hkdCurrencyInfo(hkdRate);
 
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
@@ -540,6 +544,7 @@ export default function OMExpenseItemList({
                           key={item.id}
                           item={item}
                           index={index}
+                          hkdCurrency={hkdCurrency}
                           onEdit={() => onEditItem(item)}
                           onDelete={() => handleDeleteClick(item.id)}
                           onEditMonthly={() => onEditMonthly(item)}
@@ -554,7 +559,7 @@ export default function OMExpenseItemList({
                           {t('items.itemCount', { defaultValue: '項' })})
                         </TableCell>
                         <TableCell className="text-right font-semibold font-mono">
-                          <DualCurrency amountUSD={totals.budgetAmount} currency={sharedCurrency} />
+                          <DualCurrency amountUSD={totals.budgetAmount} currency={hkdCurrency} />
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -562,7 +567,7 @@ export default function OMExpenseItemList({
                             getUtilizationColor(totalUtilization)
                           )}
                         >
-                          <DualCurrency amountUSD={totals.actualSpent} currency={sharedCurrency} />
+                          <DualCurrency amountUSD={totals.actualSpent} currency={hkdCurrency} />
                         </TableCell>
                         <TableCell
                           className={cn(

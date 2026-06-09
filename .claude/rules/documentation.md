@@ -10,6 +10,18 @@ applies_to:
 ## 概述
 此規則適用於所有專案文檔，包括 AI 助手生成的文檔（claudedocs/）和技術文檔（docs/）。
 
+## 🚩 規劃文件先於實作（Doc-First — 硬性流程）
+
+> 與 root `CLAUDE.md`「協作行為邊界 → 規劃文件先行」一致；權威流程見 `docs/10-ai-assistant/03-dev-workflow.md` §1。
+
+**非 trivial 的 FEAT / CHANGE / FIX，其規劃文件必須在「動任何程式碼之前」建立並經使用者 review / 核准。**
+
+- ✅ 正確順序：① 分類提案 → **② 建立規劃文件（實體 `.md`）→ 使用者 review → 核准** → ③ 實作 → ④ 驗證 → ⑤ 推送。
+- ❌ **禁止**：先實作、事後補規劃文件（文件是動工前的 review 依據，不是事後紀錄）。
+- ❌ **禁止**：用「聊天室內的計畫 + 口頭同意」取代「實體規劃文件 + review」。
+- ✅ 豁免：Trivial（typo / rename / 改註解，< 30 min）無需文件。
+- 文件位置依下方目錄結構：CHANGE → `4-changes/feature-changes/`、FIX → `4-changes/bug-fixes/`、FEAT → `1-planning/features/`。
+
 ## ClaudeDocs 目錄結構
 
 ```
@@ -283,6 +295,7 @@ function 計算預算使用率(預算池: BudgetPool): number { ... }
 3. ❌ **禁止遺漏必要的文檔章節**
 4. ❌ **禁止硬編碼日期**（使用 YYYY-MM-DD 格式）
 5. ❌ **禁止留下過時的文檔**（及時更新或標記為過時）
+6. ❌ **禁止先實作、後補規劃文件**（FEAT/CHANGE/FIX 的規劃文件必須先於程式碼、經 review 核准；見上方「規劃文件先於實作」）
 
 ## 相關規則
 - `i18n.md` - 國際化語言規範

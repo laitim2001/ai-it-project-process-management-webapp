@@ -36,6 +36,11 @@ export interface DualCurrencyProps {
   className?: string;
   /** 次值樣式（預設 muted） */
   secondaryClassName?: string;
+  /**
+   * CHANGE-048: 直式堆疊——USD 主值一行、次幣別換算另起一行。
+   * 用於窄欄位（如月度卡片）避免單行 `whitespace-nowrap` 撐爆容器造成重疊。
+   */
+  stacked?: boolean;
 }
 
 export function DualCurrency({
@@ -43,13 +48,28 @@ export function DualCurrency({
   currency,
   className,
   secondaryClassName,
+  stacked = false,
 }: DualCurrencyProps) {
   const converted = convertFromUSD(amountUSD, currency);
+  const hasSecondary = converted !== null && currency;
+
+  if (stacked) {
+    return (
+      <span className={cn('flex flex-col leading-tight', className)}>
+        <span>{formatUSD(amountUSD)}</span>
+        {hasSecondary && (
+          <span className={cn('text-xs font-normal text-muted-foreground', secondaryClassName)}>
+            ≈ {formatSecondary(converted, currency)}
+          </span>
+        )}
+      </span>
+    );
+  }
 
   return (
     <span className={cn('whitespace-nowrap', className)}>
       {formatUSD(amountUSD)}
-      {converted !== null && currency && (
+      {hasSecondary && (
         <span className={cn('ml-1 text-muted-foreground', secondaryClassName)}>
           (≈ {formatSecondary(converted, currency)})
         </span>
