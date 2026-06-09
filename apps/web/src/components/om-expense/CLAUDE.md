@@ -51,14 +51,17 @@ om-expense/
 ### 3. OMExpenseItemForm — 單項明細
 
 - 在 Modal 中開啟
-- 欄位：OpCo、費用類別、預算金額、日期、描述
+- 欄位：OpCo、費用類別、預算金額、幣別、日期、描述
 - 建立時會自動觸發 API 產生 12 個 `OMExpenseMonthly` 記錄（每月金額預設為 0）
+- **CHANGE-049 金額幣別語意**：`budgetAmount`/`lastFYActualExpense` 以**所選幣別輸入**，存檔時用 `lib/currency.ts` 的 `toUSD()` **換算為 USD 儲存**（系統主帳幣別）；編輯載入時用 `fromUSD()` 換回該幣別顯示。`currencyId` = 「輸入金額所用幣別」，**非**儲存幣別。顯示一律 USD（主）+ HKD（次）。
 
 ### 4. Monthly Grid 組件
 
 | 組件 | 用途 | API |
 |------|------|-----|
-| `OMExpenseItemMonthlyGrid` | 單一 Item 的 12 月編輯網格 | `updateItemMonthlyRecords` |
+| `OMExpenseItemMonthlyGrid` | 單一 Item 的 12 月編輯網格（**USD / HKD 雙欄輸入**） | `updateItemMonthlyRecords` |
+
+> **CHANGE-048 / 046**：月度每月有 **USD 與 HKD 兩個可輸入欄**，**雙向自動換算**（編輯任一欄依匯率帶入另一欄；CHANGE-050 補上 HKD→USD 方向）。HKD 持久化於 `OMExpenseMonthly.actualAmountHKD`。**USD 仍為主帳幣別**，item/表頭 `actualSpent` 與使用率一律以 USD 計算；雙向後編輯 HKD 會經換算連動 USD 彙總。
 
 > **歷史**：原另有 `OMExpenseMonthlyGrid`（整張 OMExpense 所有 Items × 12 月彙總顯示，唯讀），為 FEAT-007 重構前的扁平架構遺留組件，FEAT-007 後已無任何頁面引用，並於 FIX-140（2026-06-02）刪除。
 
@@ -76,6 +79,7 @@ om-expense/
 4. **新增 Item 不會自動產生 Monthly**：`addItem` API 內部已在 transaction 中同步建立 12 個 Monthly，前端不需額外呼叫
 5. **表頭的 `totalAmount` 是計算值**：由所有 Items 的 `budgetAmount` 加總，由 API 層維護，前端**不要**嘗試寫入
 6. **FEAT-008 數據匯入相關**：Excel 匯入使用 `createWithItems` + 批次化策略，邏輯在 `app/[locale]/data-import/`
+7. **金額一律以 USD 儲存（CHANGE-042/044/045）**：DB 的 `budgetAmount`、`actualSpent`、`OMExpenseMonthly.actualAmount` 皆為 **USD**；`OMExpenseItem.currencyId` 是「**輸入金額所用幣別**」而非儲存幣別。表單以 `toUSD()`/`fromUSD()` 在 USD ↔ 選定幣別間換算；顯示一律 **USD（主）+ 固定 HKD（次）**（用 `hkdCurrencyInfo()`）。**改 OM 金額相關功能前務必理解此模型**，勿把 DB 數值當成 item 幣別原值。`OMExpenseMonthly.actualAmountHKD`（CHANGE-048）是**額外**持久化的真實 HKD，不參與 USD 彙總。
 
 ## 🐛 已知陷阱
 
@@ -90,3 +94,7 @@ om-expense/
 - **CHANGE-001**: OM Expense 來源追蹤欄位
 - **CHANGE-002**: 費用類別統一
 - **CHANGE-013**: 月度記錄 UI 優化
+- **CHANGE-042**: OM Expense 雙幣別顯示（USD 主值 + 依匯率換算次值）
+- **CHANGE-048**: 月度記錄新增**可輸入並持久化的 HKD 金額欄**（USD→HKD 自動換算、HKD 可獨立覆寫；新增 `OMExpenseMonthly.actualAmountHKD`），並修復月度 tab 上方卡片雙幣別重疊（`DualCurrency` 新增 `stacked` 變體）
+- **CHANGE-049**: Edit Item **以選定幣別輸入金額、存檔依匯率換算為 USD**（修正 CHANGE-042 遺留的金額語意矛盾）；所有顯示（item list / monthly / detail）改為**固定 USD + HKD**（取代「次值跟隨各 item 幣別」）。純前端，新增 `lib/currency.ts` 的 `toUSD`/`fromUSD`/`hkdCurrencyInfo`
+- **CHANGE-050**: 月度 USD/HKD 由**單向**（CHANGE-048）改為**雙向自動換算**（編輯 HKD 也回算 USD）；`OMExpenseItemMonthlyGrid` 新增 `hkdToUsd`、`updateMonthHKD` 同時更新 USD。純前端
