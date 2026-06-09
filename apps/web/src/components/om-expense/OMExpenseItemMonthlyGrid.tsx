@@ -51,7 +51,11 @@ import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import { DualCurrency } from '@/components/shared/DualCurrency';
-import { formatUSD } from '@/lib/currency';
+import { formatUSD, formatSecondary, hkdCurrencyInfo } from '@/lib/currency';
+
+// CHANGE-044: 「固定 HKD」顯示用幣別資訊（金額已是 HKD，不再二次換算）
+const HKD_DISPLAY = { code: 'HKD', symbol: 'HK$' } as const;
+const formatHKD = (amount: number): string => formatSecondary(amount, HKD_DISPLAY);
 
 // ============================================================
 // Types
@@ -59,7 +63,8 @@ import { formatUSD } from '@/lib/currency';
 
 interface MonthlyRecord {
   month: number;
-  actualAmount: number;
+  actualAmount: number; // USD（系統主帳幣別）
+  actualAmountHKD: number; // CHANGE-044: HKD 實際支出（編輯用，存檔時持久化）
 }
 
 export interface OMExpenseItemData {
@@ -82,11 +87,18 @@ export interface OMExpenseItemData {
     symbol?: string | null;
     exchangeRate?: number | null;
   } | null;
-  monthlyRecords?: MonthlyRecord[];
+  // 來源資料：HKD 可能為 null（既有資料未持久化）
+  monthlyRecords?: Array<{
+    month: number;
+    actualAmount: number;
+    actualAmountHKD?: number | null;
+  }>;
 }
 
 interface OMExpenseItemMonthlyGridProps {
   item: OMExpenseItemData;
+  /** CHANGE-044: HKD 匯率（1 USD = hkdRate HKD），供 USD→HKD 自動換算；null 時停用自動帶入 */
+  hkdRate?: number | null;
   onSave?: () => void;
   onClose?: () => void;
 }
@@ -97,12 +109,44 @@ interface OMExpenseItemMonthlyGridProps {
 
 export default function OMExpenseItemMonthlyGrid({
   item,
+  hkdRate,
   onSave,
   onClose,
 }: OMExpenseItemMonthlyGridProps) {
   const t = useTranslations('omExpenses');
   const tCommon = useTranslations('common');
   const { toast } = useToast();
+
+  // CHANGE-044: 有效 HKD 匯率——優先用傳入的 hkdRate，抓不到時退回 item 幣別（若為 HKD）的匯率
+  const effectiveHkdRate =
+    hkdRate ??
+    (item.currency?.code === 'HKD' ? item.currency.exchangeRate ?? null : null);
+
+  // CHANGE-044: USD→HKD 換算（四捨五入至 2 位小數）；無匯率時回傳 null
+  const usdToHkd = (usd: number): number | null =>
+    effectiveHkdRate ? Math.round(usd * effectiveHkdRate * 100) / 100 : null;
+
+  // CHANGE-046: HKD→USD 換算（與 usdToHkd 對稱，雙向換算用）；無匯率時回傳 null
+  const hkdToUsd = (hkd: number): number | null =>
+    effectiveHkdRate ? Math.round((hkd / effectiveHkdRate) * 100) / 100 : null;
+
+  // CHANGE-045: 上方概覽卡片改用「固定 HKD」次值（取代原本的 item.currency）
+  const hkdCurrency = hkdCurrencyInfo(effectiveHkdRate);
+
+  // CHANGE-044: 由來源月度記錄建立 12 個月的編輯狀態；HKD 為 null 時以換算值帶入（無匯率則 0）
+  const buildMonthlyData = (): MonthlyRecord[] => {
+    const data: MonthlyRecord[] = [];
+    for (let month = 1; month <= 12; month++) {
+      const existing = item.monthlyRecords?.find((r) => r.month === month);
+      const actualAmount = existing?.actualAmount ?? 0;
+      const actualAmountHKD =
+        existing?.actualAmountHKD != null
+          ? existing.actualAmountHKD
+          : usdToHkd(actualAmount) ?? 0;
+      data.push({ month, actualAmount, actualAmountHKD });
+    }
+    return data;
+  };
 
   // Month names from translation keys
   const MONTH_NAMES = useMemo(
@@ -124,34 +168,24 @@ export default function OMExpenseItemMonthlyGrid({
   );
 
   // Initialize 12 months of data
-  const [monthlyData, setMonthlyData] = useState<MonthlyRecord[]>(() => {
-    const data: MonthlyRecord[] = [];
-    for (let month = 1; month <= 12; month++) {
-      const existing = item.monthlyRecords?.find((r) => r.month === month);
-      data.push({
-        month,
-        actualAmount: existing?.actualAmount ?? 0,
-      });
-    }
-    return data;
-  });
+  const [monthlyData, setMonthlyData] = useState<MonthlyRecord[]>(buildMonthlyData);
 
-  // Reset monthlyData when item changes
+  // Reset monthlyData when item or 匯率 changes（匯率較晚載入時補帶換算的 HKD）
   useEffect(() => {
-    const data: MonthlyRecord[] = [];
-    for (let month = 1; month <= 12; month++) {
-      const existing = item.monthlyRecords?.find((r) => r.month === month);
-      data.push({
-        month,
-        actualAmount: existing?.actualAmount ?? 0,
-      });
-    }
-    setMonthlyData(data);
-  }, [item.monthlyRecords]);
+    setMonthlyData(buildMonthlyData());
+    // buildMonthlyData 僅依賴 item.monthlyRecords 與 effectiveHkdRate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.monthlyRecords, effectiveHkdRate]);
 
-  // Calculate total amount
+  // Calculate total amount (USD)
   const totalActual = useMemo(
     () => monthlyData.reduce((sum, record) => sum + record.actualAmount, 0),
+    [monthlyData]
+  );
+
+  // CHANGE-044: HKD 總計
+  const totalActualHKD = useMemo(
+    () => monthlyData.reduce((sum, record) => sum + record.actualAmountHKD, 0),
     [monthlyData]
   );
 
@@ -165,12 +199,33 @@ export default function OMExpenseItemMonthlyGrid({
     return 'text-green-600 dark:text-green-400';
   };
 
-  // Update single month data
-  const updateMonth = (month: number, amount: number) => {
+  // CHANGE-044: 更新某月 USD 金額，並自動帶入換算後的 HKD（有匯率時覆寫 HKD 欄）
+  const updateMonthUSD = (month: number, amount: number) => {
     setMonthlyData((prev) =>
-      prev.map((record) =>
-        record.month === month ? { ...record, actualAmount: amount } : record
-      )
+      prev.map((record) => {
+        if (record.month !== month) return record;
+        const converted = usdToHkd(amount);
+        return {
+          ...record,
+          actualAmount: amount,
+          actualAmountHKD: converted ?? record.actualAmountHKD,
+        };
+      })
+    );
+  };
+
+  // CHANGE-046: 更新某月 HKD 金額，並自動換算回 USD（雙向；有匯率時覆寫 USD 欄）
+  const updateMonthHKD = (month: number, amount: number) => {
+    setMonthlyData((prev) =>
+      prev.map((record) => {
+        if (record.month !== month) return record;
+        const convertedUSD = hkdToUsd(amount);
+        return {
+          ...record,
+          actualAmountHKD: amount,
+          actualAmount: convertedUSD ?? record.actualAmount,
+        };
+      })
     );
   };
 
@@ -249,7 +304,7 @@ export default function OMExpenseItemMonthlyGrid({
               {t('items.itemBudget', { defaultValue: '項目預算' })}
             </div>
             <div className="text-lg font-semibold">
-              <DualCurrency amountUSD={item.budgetAmount} currency={item.currency} />
+              <DualCurrency amountUSD={item.budgetAmount} currency={hkdCurrency} stacked />
             </div>
           </div>
           <div>
@@ -257,7 +312,7 @@ export default function OMExpenseItemMonthlyGrid({
               {t('detail.actualSpent')}
             </div>
             <div className={cn('text-lg font-semibold', getUtilizationColor(utilizationRate))}>
-              <DualCurrency amountUSD={totalActual} currency={item.currency} />
+              <DualCurrency amountUSD={totalActual} currency={hkdCurrency} stacked />
             </div>
           </div>
           <div>
@@ -265,7 +320,7 @@ export default function OMExpenseItemMonthlyGrid({
               {t('detail.remainingBudget')}
             </div>
             <div className="text-lg font-semibold">
-              <DualCurrency amountUSD={item.budgetAmount - totalActual} currency={item.currency} />
+              <DualCurrency amountUSD={item.budgetAmount - totalActual} currency={hkdCurrency} stacked />
             </div>
           </div>
           <div>
@@ -287,7 +342,10 @@ export default function OMExpenseItemMonthlyGrid({
                   {t('monthlyGrid.monthColumn', { defaultValue: '月份' })}
                 </th>
                 <th className="p-2 text-right font-medium">
-                  {t('monthlyGrid.amountColumn', { defaultValue: '實際支出 (HKD)' })}
+                  {t('monthlyGrid.amountColumnUSD', { defaultValue: '實際支出 (USD)' })}
+                </th>
+                <th className="p-2 text-right font-medium">
+                  {t('monthlyGrid.amountColumnHKD', { defaultValue: '實際支出 (HKD)' })}
                 </th>
               </tr>
             </thead>
@@ -310,7 +368,21 @@ export default function OMExpenseItemMonthlyGrid({
                       value={record.actualAmount}
                       onChange={(e) => {
                         const value = parseFloat(e.target.value);
-                        updateMonth(record.month, isNaN(value) ? 0 : value);
+                        updateMonthUSD(record.month, isNaN(value) ? 0 : value);
+                      }}
+                      className="text-right"
+                      placeholder="0.00"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={record.actualAmountHKD}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        updateMonthHKD(record.month, isNaN(value) ? 0 : value);
                       }}
                       className="text-right"
                       placeholder="0.00"
@@ -323,7 +395,10 @@ export default function OMExpenseItemMonthlyGrid({
               <tr className="border-t-2 font-semibold">
                 <td className="p-2">{t('monthlyGrid.total')}</td>
                 <td className={cn('p-2 text-right', getUtilizationColor(utilizationRate))}>
-                  <DualCurrency amountUSD={totalActual} currency={item.currency} />
+                  {formatUSD(totalActual)}
+                </td>
+                <td className="p-2 text-right text-muted-foreground">
+                  {formatHKD(totalActualHKD)}
                 </td>
               </tr>
             </tfoot>

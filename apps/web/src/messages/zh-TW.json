@@ -2570,6 +2570,8 @@
       "saveSuccess": "月度記錄已更新，項目實際支出：{amount}",
       "monthColumn": "月份",
       "amountColumn": "實際支出 (USD)",
+      "amountColumnUSD": "實際支出 (USD)",
+      "amountColumnHKD": "實際支出 (HKD)",
       "total": "總計",
       "tips": {
         "title": "使用提示",
@@ -2647,8 +2649,9 @@
         "label": "幣別",
         "placeholder": "選擇幣別（可選）",
         "noSelection": "不指定",
-        "description": "可選：指定此項目使用的幣別"
+        "description": "輸入金額所使用的幣別；存檔時會依匯率換算為 USD 儲存（顯示一律 USD + HKD）"
       },
+      "amountUsdPreview": "≈ {amount}（將以 USD 儲存）",
       "startDate": {
         "label": "開始日期"
       },

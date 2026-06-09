@@ -2570,6 +2570,8 @@
       "saveSuccess": "Monthly records updated, item actual spending: {amount}",
       "monthColumn": "Month",
       "amountColumn": "Actual Spending (USD)",
+      "amountColumnUSD": "Actual Spending (USD)",
+      "amountColumnHKD": "Actual Spending (HKD)",
       "total": "Total",
       "tips": {
         "title": "Usage Tips",
@@ -2647,8 +2649,9 @@
         "label": "Currency",
         "placeholder": "Select currency (optional)",
         "noSelection": "Not specified",
-        "description": "Optional: Specify currency for this item"
+        "description": "Currency used for entry; amounts are converted to USD on save (display is always USD + HKD)"
       },
+      "amountUsdPreview": "≈ {amount} (stored as USD)",
       "startDate": {
         "label": "Start Date"
       },

@@ -94,7 +94,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useToast } from '@/components/ui';
 import { api } from '@/lib/trpc';
 import { DualCurrency } from '@/components/shared/DualCurrency';
-import { formatUSD } from '@/lib/currency';
+import { formatUSD, hkdCurrencyInfo } from '@/lib/currency';
 
 // FEAT-007 Components
 import OMExpenseItemList, { type OMExpenseItemData } from '@/components/om-expense/OMExpenseItemList';
@@ -124,6 +124,15 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
   const { data: omExpense, isLoading, refetch } = api.omExpense.getById.useQuery({
     id: params.id,
   });
+
+  // CHANGE-044: 取得 HKD 匯率（供月度 USD→HKD 自動換算使用，「固定 HKD」）
+  const { data: activeCurrencies } = api.currency.getActive.useQuery();
+  const hkdRate = useMemo(() => {
+    const hkd = activeCurrencies?.find((c) => c.code === 'HKD');
+    return hkd?.exchangeRate ?? null;
+  }, [activeCurrencies]);
+  // CHANGE-045: 固定 HKD 顯示用幣別（取代原本「跟隨各 item 幣別」的 sharedCurrency）
+  const hkdCurrency = hkdCurrencyInfo(hkdRate);
 
   // Calculate growth rate mutation
   const calculateGrowthMutation = api.omExpense.calculateYoYGrowth.useMutation({
@@ -334,6 +343,8 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
       monthlyRecords: item.monthlyRecords?.map((record) => ({
         month: record.month,
         actualAmount: record.actualAmount,
+        // CHANGE-044: 帶出持久化的 HKD 金額（null = 由 grid 以換算值帶入）
+        actualAmountHKD: record.actualAmountHKD,
       })),
     }));
   }, [omExpense?.items]);
@@ -343,15 +354,6 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
     if (!selectedItemId) return null;
     return transformedItems.find((item) => item.id === selectedItemId) || null;
   }, [selectedItemId, transformedItems]);
-
-  // CHANGE-042: 跨明細彙總的次要幣別——僅當所有明細同一幣別時才顯示次值（否則只顯示 USD，避免不同幣別錯加）
-  const sharedCurrency = useMemo(() => {
-    const firstItem = transformedItems[0];
-    if (!firstItem?.currency) return null;
-    const firstCurrency = firstItem.currency;
-    const allSame = transformedItems.every((item) => item.currency?.id === firstCurrency.id);
-    return allSame ? firstCurrency : null;
-  }, [transformedItems]);
 
   if (isLoading) {
     return (
@@ -569,7 +571,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('detail.budgetAmount')}</span>
                 <span className="font-semibold">
-                  <DualCurrency amountUSD={totalBudget} currency={sharedCurrency} />
+                  <DualCurrency amountUSD={totalBudget} currency={hkdCurrency} />
                 </span>
               </div>
 
@@ -584,14 +586,14 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                       : 'text-green-600'
                   }`}
                 >
-                  <DualCurrency amountUSD={totalActual} currency={sharedCurrency} />
+                  <DualCurrency amountUSD={totalActual} currency={hkdCurrency} />
                 </span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{t('detail.remainingBudget')}</span>
                 <span className="font-semibold">
-                  <DualCurrency amountUSD={totalBudget - totalActual} currency={sharedCurrency} />
+                  <DualCurrency amountUSD={totalBudget - totalActual} currency={hkdCurrency} />
                 </span>
               </div>
 
@@ -700,6 +702,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                     <OMExpenseItemList
                       omExpenseId={params.id}
                       items={transformedItems}
+                      hkdRate={hkdRate}
                       onAddItem={handleAddItem}
                       onEditItem={handleEditItem}
                       onDeleteItem={handleDeleteItem}
@@ -740,6 +743,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                     {selectedItem ? (
                       <OMExpenseItemMonthlyGrid
                         item={selectedItem}
+                        hkdRate={hkdRate}
                         onSave={() => refetch()}
                         onClose={() => setSelectedItemId(null)}
                       />
