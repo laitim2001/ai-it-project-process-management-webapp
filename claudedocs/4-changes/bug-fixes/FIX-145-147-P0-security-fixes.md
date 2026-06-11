@@ -54,6 +54,15 @@ az keyvault secret set --vault-name <vault> --name NEXTAUTH-SECRET --value "<new
 ```
 > ⚠️ **無論該外洩值是否真的用於線上環境，都應一律輪換**（以「已洩漏」處理）。輪換後 git 歷史中的舊值即失去效力，故不需清理歷史。
 
+#### 🔴 補記（2026-06-11，後續發現）— FIX-145 漏網的第二個外洩點
+
+補 `.gitignore` 時發現:**`packages/db/.env.local.backup` 是「已追蹤」檔案**（commit `fa5e5d2`，已在 `origin/main`），洩漏**另一個** 62 字元真實 `NEXTAUTH_SECRET`（與上述 6 處的 `GN29F…` 為不同值，故當時 `git grep` 未捕捉），另含 `DATABASE_URL`/`TEST_DATABASE_URL`/`SMTP_PASSWORD`/`REDIS_URL`——但連線目標皆為 localhost（本機 Docker dev），實質風險低。
+
+**處置**（沿用本檔既定決策：輪換、不清理歷史）：
+- ✅ `.gitignore`（root，env 區塊）新增 `.env*.backup` / `.env*.bak`。
+- ✅ `git rm --cached packages/db/.env.local.backup`（移出版控，保留本機檔案）。
+- ⏳ 併入既有 `NEXTAUTH_SECRET` 輪換待辦（同一輪換即作廢此歷史值）；localhost 的 DB/Redis/SMTP 值不需輪換。
+
 ### 驗證標準
 - [ ] `git grep` 搜尋舊密鑰明文回傳 0 筆（明文已從當前版本完全移除）
 - [ ] `pnpm --filter web test:e2e` 仍能啟動 dev server 並通過登入相關測試（假值前後一致，功能不受影響）
