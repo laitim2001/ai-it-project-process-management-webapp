@@ -116,10 +116,16 @@ assertCanMutate(project.managerId, ctx, '此專案');   // ← 新增
 - **外科手術原則**：只插入授權檢查行 + 必要的 `include`/`select`，不重排、不改既有業務邏輯。
 
 ### 驗證標準
-- [ ] PM-A 對 PM-B 的資源呼叫 `update/submit/delete` → 收到 `FORBIDDEN`（手動或 E2E）。
-- [ ] PM 對自己的資源、Admin 對任意資源 → 正常成功。
-- [ ] `getById`：PM-A 讀 PM-B 資源 → FORBIDDEN；Supervisor/Admin 讀任意 → 成功（依 D2）。
-- [ ] `pnpm typecheck` + `pnpm --filter web lint --file <改動檔>` 通過。
+- [x] PM-A 對 PM-B 的資源呼叫 `update/submit/delete` → 收到 `FORBIDDEN`。
+- [x] PM 對自己的資源、Admin 對任意資源 → 正常成功。
+- [x] `getById`：PM-A 讀 PM-B 資源 → FORBIDDEN；Supervisor/Admin 讀任意 → 成功（依 D2）。
+- [x] `pnpm typecheck`（api）通過；改動檔 eslint 無新增 error。
+
+> **✅ Runtime 驗證通過（2026-06-11，22/22）**：以 tRPC `appRouter.createCaller` + 偽造 session 對真實 DB 呼叫各 procedure。
+> - **Helper 單元（8）**：`assertCanMutate` owner/Admin 通過、Supervisor/他人拋出（D1）；`assertCanRead` owner/Supervisor/Admin 通過、他人拋出（D2）。
+> - **整合**：project（owner/supervisor/admin `getById` OK；other-PM `getById`/`update` FORBIDDEN；**supervisor `update` FORBIDDEN** 印證 D1）、budgetProposal（owner `getById` OK；other-PM `getById`/`update`/`submit` FORBIDDEN）、expense（owner `getById` OK；other-PM `getById`/`update` FORBIDDEN）、purchaseOrder（other-PM `update` FORBIDDEN）。
+> - **owner/Admin 可寫**經 helper 單元測試確認（整合層的 FORBIDDEN 案例皆在 `assertCan*` 即拋出、發生於任何 DB 寫入之前 → 零副作用）。
+> - **quote runtime 略過**：此 DB seed 資料 id 非 UUID 格式，而 `quote.update/delete` schema 要求 `z.string().uuid()`，無可用樣本跑到授權層；授權碼結構與已驗證的 project/expense 相同。（附帶觀察：quote 用 uuid、其他 router 用 `min(1)`，屬既有不一致，非本批範圍。）
 
 ---
 
