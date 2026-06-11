@@ -101,7 +101,8 @@ export const userRouter = createTRPCRouter({
       },
     });
 
-    return users;
+    // FIX-147 (SR-10): 移除 password hash，避免任一登入者撈到全體密碼雜湊
+    return users.map(({ password: _password, ...user }) => user);
   }),
 
   /**
@@ -137,7 +138,9 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該使用者' });
       }
 
-      return user;
+      // FIX-147 (SR-10): 移除 password hash，避免敏感資料隨查詢回傳
+      const { password: _password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
     }),
 
   /**
