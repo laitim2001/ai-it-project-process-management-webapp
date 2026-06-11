@@ -1,7 +1,7 @@
 # FIX-150~153: P1 越權 / 物件級授權修復批次（源自 2026-06-11 安全審計）
 
 > **建立日期**: 2026-06-11
-> **狀態**: ✅ 設計已核准（D1~D4 決議完成 2026-06-11）→ 🚧 實作中，順序 FIX-150 → 152 → 151；SR-07/FIX-153 拆獨立批次後排
+> **狀態**: 🚧 實作中 → **FIX-150 ✅（runtime 22/22）、FIX-152 ✅（runtime 29/29）**，皆於 PR #2；**FIX-151 待做**；SR-07/FIX-153 拆獨立批次後排
 > **優先級**: High（P1）
 > **來源**: `claudedocs/5-analysis/security-review/SECURITY-AUDIT-2026-06-11.md` §1–§2，修復路線圖第 4–7 項
 > **前置**: P0（FIX-145~147）已於 PR #1 處理；本批為下一階段，與 P0 無程式碼相依
@@ -169,9 +169,15 @@ assertCanMutate(project.managerId, ctx, '此專案');   // ← 新增
   - `hasPassword` → **改 `adminProcedure` 但保留 `userId` 入參**（報告建議的「移除 userId、只查自己」會打壞 admin `UserForm`）。實作前置：確認沒有「當前使用者自助查自己」的呼叫點；若有，另加 self-only 變體。
 
 ### 驗證標準
-- [ ] 非 admin 直接呼叫 `user.getAll`/`health.debugUserPermissions` → FORBIDDEN。
-- [ ] admin 使用者管理頁、approval-workflows、UserForm 功能照常。
-- [ ] health catch 不再回傳原始 `error.message`。
+- [x] 非 admin 直接呼叫 `user.getAll`/`health.debugUserPermissions` → FORBIDDEN。
+- [x] admin 使用者管理頁、approval-workflows、UserForm 功能照常（相容性已查 + admin runtime 可存取）。
+- [x] `dbCheck`（保留 public）catch 不再回傳原始 `error.message`；已鎖診斷端點之 catch 因僅 admin 可見列為低風險殘留。
+
+> **✅ Runtime 驗證通過（2026-06-11，29/29）**：以 tRPC `appRouter.createCaller` + 偽造 session 對真實 DB 呼叫各端點。
+> - **12 個已鎖端點**（user.getAll/getById/getByRole/hasPassword + health.echo/schemaCheck/diagOmExpense/diagOpCo/schemaCompare/diagProjectSummary/fullSchemaCompare/debugUserPermissions）：PM → **FORBIDDEN**；admin → **可存取**（health 診斷實際執行 schema introspection）。
+> - Supervisor → `user.getAll` **FORBIDDEN**（adminProcedure 排除 Supervisor）；未登入 → 已鎖端點 **UNAUTHORIZED**。
+> - 保留 public 的 `ping`/`dbCheck`：未登入仍 **可存取**。
+> - **相容性實證**：PM 的 ProjectForm 用專屬 `getManagers`/`getSupervisors`（未動）,鎖定 4 個 user 讀取端點不影響 PM 流程。
 
 ---
 
