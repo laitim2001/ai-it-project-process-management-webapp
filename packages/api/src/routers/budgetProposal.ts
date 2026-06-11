@@ -56,6 +56,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+import { assertCanMutate, assertCanRead } from '../lib/authorization';
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 
 import type { Prisma } from '@itpm/db';
@@ -434,6 +435,9 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
+      // FIX-150 (SR-04): 資源所有權檢查 — 擁有者 / Supervisor / Admin 可檢視
+      assertCanRead(proposal.project.managerId, ctx, '此提案');
+
       return proposal;
     }),
 
@@ -491,6 +495,7 @@ export const budgetProposalRouter = createTRPCRouter({
         where: {
           id: id,
         },
+        include: { project: { select: { managerId: true } } },
       });
 
       if (!existingProposal) {
@@ -499,6 +504,9 @@ export const budgetProposalRouter = createTRPCRouter({
           message: '找不到該預算提案',
         });
       }
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可更新
+      assertCanMutate(existingProposal.project.managerId, ctx, '此提案');
 
       if (
         existingProposal.status !== 'Draft' &&
@@ -549,6 +557,9 @@ export const budgetProposalRouter = createTRPCRouter({
       if (!existingProposal) {
         throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該預算提案' });
       }
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可提交
+      assertCanMutate(existingProposal.project.managerId, ctx, '此提案');
 
       if (
         existingProposal.status !== 'Draft' &&

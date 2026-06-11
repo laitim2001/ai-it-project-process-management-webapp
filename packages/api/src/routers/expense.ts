@@ -57,6 +57,7 @@
  */
 
 import { z } from 'zod';
+import { assertCanMutate, assertCanRead } from '../lib/authorization';
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
@@ -288,6 +289,9 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
+      // FIX-150 (SR-04): 資源所有權檢查 — 擁有者 / Supervisor / Admin 可檢視
+      assertCanRead(expense.purchaseOrder.project.managerId, ctx, '此費用記錄');
+
       return expense;
     }),
 
@@ -460,6 +464,7 @@ export const expenseRouter = createTRPCRouter({
       // 檢查費用是否存在
       const existingExpense = await ctx.prisma.expense.findUnique({
         where: { id },
+        include: { purchaseOrder: { select: { project: { select: { managerId: true } } } } },
       });
 
       if (!existingExpense) {
@@ -468,6 +473,9 @@ export const expenseRouter = createTRPCRouter({
           message: '找不到該費用記錄',
         });
       }
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可更新
+      assertCanMutate(existingExpense.purchaseOrder.project.managerId, ctx, '此費用記錄');
 
       // 如果狀態不是 Draft，不允許修改
       if (existingExpense.status !== 'Draft') {
