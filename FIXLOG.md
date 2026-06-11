@@ -10,6 +10,9 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2026-06-11 | 🔐 安全/依賴 | ✅ 已完成 | [FIX-146: 修補 fast-xml-parser(Critical)/jws/@trpc CVE（Next 剩餘 CVE 需 Next 15 → FIX-149）](claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md) |
+| 2026-06-11 | 🔐 安全/資料外洩 | ✅ 已完成 | [FIX-147: user.getAll/getById 移除 password hash（SR-10）](claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md) |
+| 2026-06-11 | 🔐 安全/機密 | ⏳ 改碼完成 | [FIX-145: 移除版控中外洩的 NEXTAUTH_SECRET 明文（待 Azure 輪換，SR-01）](claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md) |
 | 2026-06-09 | 🎨 UI/響應式 | ✅ 已完成 | [FIX-144: 專案詳情頁 Tab 標籤窄寬度溢出重疊](claudedocs/4-changes/bug-fixes/FIX-144-project-detail-tab-responsive-overflow.md) |
 | 2026-06-09 | 🛡️ 前端/防禦 | ✅ 已完成 | [FIX-143: 審批步驟缺角色時前端防護（null role guard）](claudedocs/4-changes/bug-fixes/FIX-143-approval-step-missing-role-guard.md) |
 | 2026-06-05 | 🔐 認證/Session | ✅ 已完成 | [FIX-142: Session 過期自動偵測導向 + 二次確認](claudedocs/4-changes/bug-fixes/FIX-142-session-expiry-auto-redirect.md) |
