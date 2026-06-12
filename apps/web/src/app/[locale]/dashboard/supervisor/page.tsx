@@ -86,15 +86,6 @@ export default function SupervisorDashboard() {
   const router = useRouter();
   const { data: session } = useSession();
 
-  // FIX-134: Supervisor/Admin role check
-  const isSupervisorOrAdmin =
-    session?.user?.role?.name === 'Supervisor' ||
-    session?.user?.role?.name === 'Admin';
-  if (session && !isSupervisorOrAdmin) {
-    router.push('/dashboard');
-    return null;
-  }
-
   // 狀態管理
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
@@ -174,6 +165,15 @@ export default function SupervisorDashboard() {
       alert(t('error.exportFailed'));
     }
   };
+
+  // FIX-134 / CHANGE-051: Supervisor/Admin 權限檢查 —— 置於所有 Hooks 之後，避免條件式早退違反 Rules of Hooks
+  const isSupervisorOrAdmin =
+    session?.user?.role?.name === 'Supervisor' ||
+    session?.user?.role?.name === 'Admin';
+  if (session && !isSupervisorOrAdmin) {
+    router.push('/dashboard');
+    return null;
+  }
 
   // 載入狀態
   if (isLoading) {
