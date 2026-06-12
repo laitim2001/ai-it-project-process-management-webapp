@@ -79,12 +79,13 @@
  * }
  */
 
-import { auth } from '@/auth';
 import { canMutate } from '@itpm/api';
-import { BLOB_CONTAINERS, uploadToBlob } from '@/lib/azure-storage';
 import { prisma } from '@itpm/db';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+import { auth } from '@/auth';
+import { BLOB_CONTAINERS, uploadToBlob } from '@/lib/azure-storage';
 
 // Force dynamic rendering to avoid build-time Prisma initialization
 export const dynamic = 'force-dynamic';

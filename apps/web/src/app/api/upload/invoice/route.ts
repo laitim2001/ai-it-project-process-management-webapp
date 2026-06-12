@@ -64,10 +64,11 @@
  * }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import { canMutate } from '@itpm/api';
 import { prisma } from '@itpm/db';
+import { type NextRequest, NextResponse } from 'next/server';
+
+import { auth } from '@/auth';
 import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
