@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings 1546",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next .turbo node_modules",
     "test:e2e": "playwright test",

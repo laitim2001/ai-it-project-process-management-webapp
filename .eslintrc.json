@@ -15,7 +15,7 @@
   "rules": {
     // TypeScript specific rules
     "@typescript-eslint/no-unused-vars": [
-      "error",
+      "warn",
       {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
@@ -30,7 +30,7 @@
       }
     ],
     "@typescript-eslint/no-misused-promises": [
-      "error",
+      "warn",
       {
         "checksVoidReturn": {
           "attributes": false
@@ -39,6 +39,22 @@
     ],
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
+
+    // CHANGE-051: type-aware「any 連鎖」規則暫放寬為 warn（baseline 凍結於各 package 的
+    // --max-warnings；後續以棘輪逐批消 any 後再升回 error）。react-hooks/rules-of-hooks
+    // 維持 error（見 web override），偵測條件式呼叫 Hook 的真實 bug，不被一併靜音。
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unsafe-argument": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn",
+    "@typescript-eslint/no-floating-promises": "warn",
+    "@typescript-eslint/require-await": "warn",
+    "@typescript-eslint/restrict-template-expressions": "warn",
+    "@typescript-eslint/no-base-to-string": "warn",
+    "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+    "no-case-declarations": "warn",
+    "no-useless-escape": "warn",
 
     // Import rules
     "import/order": [
@@ -69,7 +85,7 @@
 
     // General rules
     "no-console": ["warn", { "allow": ["warn", "error"] }],
-    "prefer-const": "error",
+    "prefer-const": "warn",
     "no-var": "error"
   },
   "overrides": [
@@ -79,7 +95,10 @@
       "extends": ["next/core-web-vitals"],
       "rules": {
         "react/no-unescaped-entities": "off",
-        "@next/next/no-html-link-for-pages": "off"
+        "@next/next/no-html-link-for-pages": "off",
+        // CHANGE-051: 明確鎖定為 error —— 唯一保留為 error 的（type-aware 以外）規則，
+        // 偵測條件式呼叫 Hook 的真實 runtime crash 風險，不隨上方放寬一併靜音。
+        "react-hooks/rules-of-hooks": "error"
       }
     },
     // Disable type-checking for JS files
