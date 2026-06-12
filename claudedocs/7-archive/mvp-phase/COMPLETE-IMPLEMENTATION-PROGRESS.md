@@ -937,7 +937,7 @@ export const authOptions: NextAuthOptions = {
 ```bash
 PORT=3006
 NEXTAUTH_URL=http://localhost:3006
-NEXTAUTH_SECRET=GN29FTOogkrnhekm/744zMLQ2ulykQey98eXUMnltnA=
+NEXTAUTH_SECRET=<ROTATED-2026-06-11-SEE-KEYVAULT>
 NEXT_PUBLIC_APP_URL=http://localhost:3006
 ```
 

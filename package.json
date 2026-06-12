@@ -61,7 +61,9 @@
   },
   "pnpm": {
     "overrides": {
-      "@auth/core": "0.41.0"
+      "@auth/core": "0.41.0",
+      "fast-xml-parser": "^5.3.5",
+      "jws": "^3.2.3"
     }
   },
   "devDependencies": {
