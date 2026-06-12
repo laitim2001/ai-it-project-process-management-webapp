@@ -49,6 +49,7 @@
  */
 
 import { z } from 'zod';
+import { assertCanMutate } from '../lib/authorization';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
@@ -380,6 +381,7 @@ export const quoteRouter = createTRPCRouter({
         where: { id },
         include: {
           purchaseOrders: true,
+          project: { select: { managerId: true } },
         },
       });
 
@@ -389,6 +391,9 @@ export const quoteRouter = createTRPCRouter({
           message: '找不到該報價單',
         });
       }
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可更新
+      assertCanMutate(existingQuote.project.managerId, ctx, '此報價單');
 
       // 如果報價單已被選為採購單，不允許修改
       if (existingQuote.purchaseOrders && existingQuote.purchaseOrders.length > 0) {
@@ -441,6 +446,7 @@ export const quoteRouter = createTRPCRouter({
               poNumber: true,
             },
           },
+          project: { select: { managerId: true } },
         },
       });
 
@@ -450,6 +456,9 @@ export const quoteRouter = createTRPCRouter({
           message: '找不到該報價單',
         });
       }
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可刪除
+      assertCanMutate(quote.project.managerId, ctx, '此報價單');
 
       // 有 PO 關聯時的處理
       if (quote.purchaseOrders && quote.purchaseOrders.length > 0) {

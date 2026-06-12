@@ -51,6 +51,7 @@
 
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { assertCanMutate, assertCanRead } from '../lib/authorization';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 /**
@@ -486,6 +487,9 @@ export const projectRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
       }
 
+      // FIX-150 (SR-04): 資源所有權檢查 — 擁有者 / Supervisor / Admin 可檢視
+      assertCanRead(project.managerId, ctx, '此專案');
+
       return project;
     }),
 
@@ -809,6 +813,16 @@ export const projectRouter = createTRPCRouter({
     .input(updateProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, chargeOutOpCoIds, ...updateData } = input;
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可更新
+      const existingForAuthz = await ctx.prisma.project.findUnique({
+        where: { id },
+        select: { managerId: true },
+      });
+      if (!existingForAuthz) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: '找不到指定的專案' });
+      }
+      assertCanMutate(existingForAuthz.managerId, ctx, '此專案');
 
       // Module 2: 驗證 budgetCategoryId 與 budgetPoolId 的關聯
       if (input.budgetCategoryId) {

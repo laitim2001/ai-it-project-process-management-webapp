@@ -57,10 +57,12 @@ export const healthRouter = createTRPCRouter({
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
+      // FIX-152 (SR-05): dbCheck 維持 public，但不向匿名 caller 洩漏內部錯誤細節，僅記入 server log
+      console.error('[health.dbCheck] database check failed:', error);
       return {
         status: 'unhealthy',
         database: 'disconnected',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Database connection failed',
         timestamp: new Date().toISOString(),
       };
     }
@@ -69,7 +71,7 @@ export const healthRouter = createTRPCRouter({
   /**
    * Echo endpoint for testing
    */
-  echo: publicProcedure
+  echo: adminProcedure
     .input(z.object({ message: z.string() }))
     .query(({ input }) => {
       return { echo: input.message, timestamp: new Date().toISOString() };
@@ -226,7 +228,7 @@ export const healthRouter = createTRPCRouter({
    * Schema check - verify Post-MVP tables exist
    * 驗證 Post-MVP 表格是否存在（用於調試 migration 問題）
    */
-  schemaCheck: publicProcedure.query(async ({ ctx }) => {
+  schemaCheck: adminProcedure.query(async ({ ctx }) => {
     const tables = [
       'ExpenseCategory',
       'OperatingCompany',
@@ -285,7 +287,7 @@ export const healthRouter = createTRPCRouter({
    * Diagnose omExpense.getAll - 測試 OMExpense 查詢
    * 用於診斷為什麼 omExpense.getAll 返回 500 錯誤
    */
-  diagOmExpense: publicProcedure.query(async ({ ctx }) => {
+  diagOmExpense: adminProcedure.query(async ({ ctx }) => {
     const diagnostics: string[] = [];
 
     try {
@@ -377,7 +379,7 @@ export const healthRouter = createTRPCRouter({
    * Diagnose OperatingCompany - 測試 OperatingCompany 查詢
    * 確認 OperatingCompany 表和數據是否正確
    */
-  diagOpCo: publicProcedure.query(async ({ ctx }) => {
+  diagOpCo: adminProcedure.query(async ({ ctx }) => {
     const diagnostics: string[] = [];
 
     try {
@@ -709,7 +711,7 @@ export const healthRouter = createTRPCRouter({
    * FIX-007: 完整的 Schema 欄位比較診斷
    * 比較 schema.prisma 期望的欄位 vs Azure 資料庫實際的欄位
    */
-  schemaCompare: publicProcedure.query(async ({ ctx }) => {
+  schemaCompare: adminProcedure.query(async ({ ctx }) => {
     // 定義 schema.prisma 中所有表格的期望欄位
     const expectedSchema: Record<string, string[]> = {
       ExpenseItem: [
@@ -1303,7 +1305,7 @@ export const healthRouter = createTRPCRouter({
   /**
    * 診斷 project.getProjectSummary 問題
    */
-  diagProjectSummary: publicProcedure.query(async ({ ctx }) => {
+  diagProjectSummary: adminProcedure.query(async ({ ctx }) => {
     const diagnostics: string[] = [];
 
     try {
@@ -1862,7 +1864,7 @@ export const healthRouter = createTRPCRouter({
    * @usage
    * curl https://your-app.azurewebsites.net/api/trpc/health.fullSchemaCompare
    */
-  fullSchemaCompare: publicProcedure.query(async ({ ctx }) => {
+  fullSchemaCompare: adminProcedure.query(async ({ ctx }) => {
     const comparison: Record<string, {
       exists: boolean;
       expected: string[];
@@ -2312,7 +2314,7 @@ export const healthRouter = createTRPCRouter({
    * @usage
    * curl "https://your-app.azurewebsites.net/api/trpc/health.debugUserPermissions?input=%7B%22email%22%3A%22admin1%40example.com%22%7D"
    */
-  debugUserPermissions: publicProcedure
+  debugUserPermissions: adminProcedure
     .input(z.object({
       email: z.string().email(),
     }))

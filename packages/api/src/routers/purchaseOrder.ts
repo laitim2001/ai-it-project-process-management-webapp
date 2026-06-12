@@ -51,6 +51,7 @@
  */
 
 import { z } from 'zod';
+import { assertCanMutate } from '../lib/authorization';
 import { createTRPCRouter, protectedProcedure, supervisorProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
@@ -366,6 +367,7 @@ export const purchaseOrderRouter = createTRPCRouter({
         where: { id },
         include: {
           expenses: true,
+          project: { select: { managerId: true } },
         },
       });
 
@@ -375,6 +377,9 @@ export const purchaseOrderRouter = createTRPCRouter({
           message: '找不到該採購單',
         });
       }
+
+      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可更新
+      assertCanMutate(existingPO.project.managerId, ctx, '此採購單');
 
       // 如果狀態不是 Draft，不允許修改
       if (existingPO.status !== 'Draft') {

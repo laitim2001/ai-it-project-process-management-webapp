@@ -58,3 +58,6 @@
 
 export { appRouter, type AppRouter } from './root';
 export { createInnerTRPCContext } from './trpc';
+// 物件級授權判斷（FIX-150 / FIX-151）：非拋出版預測詞，供 Next.js API route
+// （檔案上傳/下載）以 HTTP 狀態碼複用同一套所有權規則。
+export { canRead, canMutate } from './lib/authorization';

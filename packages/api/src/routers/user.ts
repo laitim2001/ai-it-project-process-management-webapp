@@ -91,7 +91,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 取得所有使用者
    */
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  getAll: adminProcedure.query(async ({ ctx }) => {
     const users = await ctx.prisma.user.findMany({
       include: {
         role: true,
@@ -108,7 +108,7 @@ export const userRouter = createTRPCRouter({
   /**
    * 根據 ID 取得使用者
    */
-  getById: protectedProcedure
+  getById: adminProcedure
     .input(
       z.object({
         id: z.string().uuid('無效的使用者ID'),
@@ -147,7 +147,7 @@ export const userRouter = createTRPCRouter({
    * 根據角色名稱取得使用者
    * 用於下拉選單（例如：選擇專案管理者或監督者）
    */
-  getByRole: protectedProcedure
+  getByRole: adminProcedure
     .input(
       z.object({
         roleName: z.enum(['ProjectManager', 'Supervisor', 'Admin']),
@@ -412,7 +412,7 @@ export const userRouter = createTRPCRouter({
    * 檢查使用者是否已設定密碼 (CHANGE-032)
    * 用於前端顯示「設定密碼」或「更改密碼」
    */
-  hasPassword: protectedProcedure
+  hasPassword: adminProcedure
     .input(
       z.object({
         userId: z.string().uuid('無效的使用者ID'),
