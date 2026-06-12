@@ -66,6 +66,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { canMutate } from '@itpm/api';
+import { prisma } from '@itpm/db';
 import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
@@ -115,6 +117,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '缺少提案 ID' },
         { status: 400 }
+      );
+    }
+
+    // SR-09：業務授權 —— 查提案所屬專案的擁有者，僅 manager 或 Admin 可上傳
+    const proposal = await prisma.budgetProposal.findUnique({
+      where: { id: proposalId },
+      select: { project: { select: { managerId: true } } },
+    });
+
+    if (!proposal) {
+      return NextResponse.json({ error: '提案不存在' }, { status: 404 });
+    }
+
+    if (!canMutate(proposal.project.managerId, session.user)) {
+      return NextResponse.json(
+        { error: '您沒有權限為此提案上傳文件' },
+        { status: 403 }
       );
     }
 

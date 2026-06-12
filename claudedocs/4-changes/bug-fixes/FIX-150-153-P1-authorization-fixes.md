@@ -1,7 +1,7 @@
 # FIX-150~153: P1 越權 / 物件級授權修復批次（源自 2026-06-11 安全審計）
 
 > **建立日期**: 2026-06-11
-> **狀態**: 🚧 實作中 → **FIX-150 ✅（runtime 22/22）、FIX-152 ✅（runtime 29/29）**，皆於 PR #2；**FIX-151 待做**；SR-07/FIX-153 拆獨立批次後排
+> **狀態**: 🚧 實作中 → **FIX-150 ✅（runtime 22/22）、FIX-152 ✅（runtime 29/29）、FIX-151 ✅（runtime 17/17）**，皆於 PR #2；SR-07/FIX-153 拆獨立批次後排
 > **優先級**: High（P1）
 > **來源**: `claudedocs/5-analysis/security-review/SECURITY-AUDIT-2026-06-11.md` §1–§2，修復路線圖第 4–7 項
 > **前置**: P0（FIX-145~147）已於 PR #1 處理；本批為下一階段，與 P0 無程式碼相依
@@ -144,10 +144,31 @@ assertCanMutate(project.managerId, ctx, '此專案');   // ← 新增
   2. `amount` 改 `z.coerce.number().positive()`。
   3. （建議）拆分「上傳檔案」與「建立 DB 記錄」，記錄走有 RBAC 的 tRPC `quote.create`。
 
+### 實作決策（2026-06-12，使用者拍板）
+- **SR-08 授權位置 = route 內聯 + 複用 helper**（非 createCaller）：`generateSasUrl` 鎖在 `apps/web`、`packages/api` 無法 import → download route 必須留在 `apps/web`。於 `authorization.ts` 新增**非拋出版**預測詞 `canRead`/`canMutate`（既有 `assertCan*` 改委派之，行為不變），自 `@itpm/api` barrel 導出供 route 複用 —— 授權「規則」仍集中在 `packages/api`，route 僅以 HTTP 狀態碼回應。
+- **SR-08 範圍 = 只做 quote**：前端僅 2 處下載連結、皆 quote 檔（invoice/proposal 無下載 UI；ProposalFileUpload 是直接 `<a href={blobUrl}>` 未走 `/api/download`）。download route 由 `?url=`（client 可控）改為 `?quoteId=`，連帶移除未使用且不安全的 invoice/proposal `?url=` 下載路徑（符合安全收斂）。
+- **SR-09 invoice 端點目前無前端呼叫者**（ExpenseForm 僅文字欄、不上傳檔），仍一併加 PO→owner 授權（防禦性硬化，不破壞任何流程）。
+
+### 修改的檔案
+- `packages/api/src/lib/authorization.ts` — 新增 `canRead`/`canMutate` 預測詞，`assertCan*` 委派之。
+- `packages/api/src/index.ts` — barrel 導出 `canRead`/`canMutate`。
+- `apps/web/src/app/api/download/route.ts` — 改收 `?quoteId=`，查 DB 取 `filePath`+`project.managerId`，`canRead` 授權後自 DB filePath 發 SAS。
+- `apps/web/src/app/api/upload/quote/route.ts` — 加 `canMutate` 授權；`amount` 改 `z.coerce.number().positive()`。
+- `apps/web/src/app/api/upload/proposal/route.ts`、`.../invoice/route.ts` — 查資源→`project.managerId`，`canMutate` 授權。
+- `apps/web/src/app/[locale]/projects/[id]/quotes/page.tsx`、`.../purchase-orders/[id]/page.tsx` — 2 個下載 `<a href>` 改傳 `?quoteId={quote.id}`。
+
 ### 驗證標準
-- [ ] 低權使用者構造他人資源的下載請求 → FORBIDDEN（非 302 到 SAS）。
-- [ ] 低權 PM 對他人專案上傳 quote → FORBIDDEN；`amount` 為負/NaN → 驗證錯誤。
-- [ ] 既有「正常擁有者下載/上傳」流程不被打壞（E2E 採購流程）。
+- [x] 低權使用者構造他人資源的下載請求 → FORBIDDEN（`canRead` 回 false，回 403 而非 302 到 SAS）。
+- [x] 低權 PM 對他人專案上傳 quote → FORBIDDEN（`canMutate` 回 false）；`amount` 為負/NaN/空 → 400 驗證錯誤。
+- [x] 既有「正常擁有者/主管下載、擁有者上傳」流程不被打壞（owner `canRead`/`canMutate`、Supervisor `canRead` 皆 true）。
+- [x] `pnpm typecheck`（api + web）通過；6 個改動 route/page eslint **0 error**（僅既有 baseline warnings）。
+
+> **✅ Runtime 驗證通過（2026-06-12，17/17）**：SR-08/09 為 Next.js API route（非 tRPC，無法用 `createCaller`），其安全決策核心 = 自 `@itpm/api` 複用的 `canRead`/`canMutate` + `amount` zod 驗證；DB 關聯解析（`quote`/`proposal`/`purchaseOrder` 的 `project.managerId` 非空）由 `pnpm typecheck` 證實。以 `tsx` 對決策函式直接驗證：
+> - **canRead 矩陣（download）**：owner/Supervisor/Admin → true；other-PM → **false**。
+> - **canMutate 矩陣（upload）**：owner/Admin → true；**Supervisor → false**（對齊 D1 寫入不放寬）；other-PM → false。
+> - **amount 驗證**：`"50000"`/`"0.01"` valid；`"0"`/`"-5"`/`"abc"`/`""` invalid。
+> - **讀寫一致性**：Supervisor 可讀不可寫、owner 可讀可寫、other-PM 皆不可。臨時腳本已刪。
+> - **待補（E2E）**：HTTP 層 + 真實 session 的端到端採購/下載流程，列入 Playwright E2E（plan §6 第 3 項）。
 
 ---
 

@@ -66,6 +66,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { canMutate } from '@itpm/api';
+import { prisma } from '@itpm/db';
 import { uploadToBlob, BLOB_CONTAINERS } from '@/lib/azure-storage';
 
 // 允許的文件類型
@@ -109,6 +111,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '缺少採購單 ID' },
         { status: 400 }
+      );
+    }
+
+    // SR-09：業務授權 —— 查採購單所屬專案的擁有者，僅 manager 或 Admin 可上傳發票
+    const purchaseOrder = await prisma.purchaseOrder.findUnique({
+      where: { id: purchaseOrderId },
+      select: { project: { select: { managerId: true } } },
+    });
+
+    if (!purchaseOrder) {
+      return NextResponse.json({ error: '採購單不存在' }, { status: 404 });
+    }
+
+    if (!canMutate(purchaseOrder.project.managerId, session.user)) {
+      return NextResponse.json(
+        { error: '您沒有權限為此採購單上傳發票' },
+        { status: 403 }
       );
     }
 

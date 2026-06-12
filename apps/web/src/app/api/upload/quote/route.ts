@@ -80,9 +80,11 @@
  */
 
 import { auth } from '@/auth';
+import { canMutate } from '@itpm/api';
 import { BLOB_CONTAINERS, uploadToBlob } from '@/lib/azure-storage';
 import { prisma } from '@itpm/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 // Force dynamic rendering to avoid build-time Prisma initialization
 export const dynamic = 'force-dynamic';
@@ -130,6 +132,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SR-09：amount 改用 zod 嚴格驗證為正數（client 可控，避免 NaN / 負數污染報價比較）
+    const amountResult = z.coerce.number().positive().safeParse(amount);
+    if (!amountResult.success) {
+      return NextResponse.json(
+        { error: '報價金額必須為大於 0 的數字' },
+        { status: 400 }
+      );
+    }
+    const parsedAmount = amountResult.data;
+
     // 驗證文件類型
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
@@ -158,6 +170,14 @@ export async function POST(request: NextRequest) {
 
     if (!project) {
       return NextResponse.json({ error: '專案不存在' }, { status: 404 });
+    }
+
+    // SR-09：業務授權 —— 僅該專案的擁有者（manager）或 Admin 可上傳報價
+    if (!canMutate(project.managerId, session.user)) {
+      return NextResponse.json(
+        { error: '您沒有權限為此專案上傳報價' },
+        { status: 403 }
+      );
     }
 
     if (project.proposals.length === 0) {
@@ -213,7 +233,7 @@ export async function POST(request: NextRequest) {
       data: {
         projectId,
         vendorId,
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         filePath: blobUrl, // ✅ 使用 Azure Blob Storage URL
         uploadDate: new Date(),
       },

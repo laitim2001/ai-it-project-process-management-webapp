@@ -34,6 +34,33 @@ interface AuthzContext {
 }
 
 /**
+ * 授權判斷所需的最小 actor 形狀（session.user 的結構子集）。
+ * 同時相容 tRPC context 與 NextAuth route handler 的 session.user，
+ * 讓 Next.js API route（檔案上傳/下載）可複用同一套授權規則。
+ */
+interface AuthzActor {
+  id: string;
+  role: { name: string };
+}
+
+/**
+ * 寫入授權判斷（非拋出版）：僅資源擁有者或 Admin 回 true。
+ * 供 Next.js API route 以 HTTP 狀態碼回應時複用，避免在 route 內 try/catch TRPCError。
+ * tRPC 層請改用會拋 FORBIDDEN 的 {@link assertCanMutate}。
+ */
+export function canMutate(ownerId: string, actor: AuthzActor): boolean {
+  return ownerId === actor.id || actor.role.name === 'Admin';
+}
+
+/**
+ * 讀取授權判斷（非拋出版）：資源擁有者、Supervisor 或 Admin 回 true。
+ * 供 Next.js API route 複用；tRPC 層請改用 {@link assertCanRead}。
+ */
+export function canRead(ownerId: string, actor: AuthzActor): boolean {
+  return ownerId === actor.id || actor.role.name === 'Supervisor' || actor.role.name === 'Admin';
+}
+
+/**
  * 寫入授權：僅資源擁有者或 Admin 可變更。
  *
  * @param ownerId - 該資源擁有者的 user id（如 `project.managerId`）
@@ -46,8 +73,7 @@ export function assertCanMutate(
   ctx: AuthzContext,
   label = '此資源'
 ): void {
-  const { id, role } = ctx.session.user;
-  if (ownerId === id || role.name === 'Admin') return;
+  if (canMutate(ownerId, ctx.session.user)) return;
   throw new TRPCError({
     code: 'FORBIDDEN',
     message: `您沒有權限修改${label}（僅擁有者或管理員可操作）`,
@@ -67,8 +93,7 @@ export function assertCanRead(
   ctx: AuthzContext,
   label = '此資源'
 ): void {
-  const { id, role } = ctx.session.user;
-  if (ownerId === id || role.name === 'Supervisor' || role.name === 'Admin') return;
+  if (canRead(ownerId, ctx.session.user)) return;
   throw new TRPCError({
     code: 'FORBIDDEN',
     message: `您沒有權限檢視${label}（僅擁有者、主管或管理員可檢視）`,
