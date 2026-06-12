@@ -10,6 +10,9 @@
 
 | 日期 | 問題類型 | 狀態 | 描述 |
 |------|----------|------|------|
+| 2026-06-12 | 🔐 安全/越權 | ✅ 已完成 | [FIX-152: health 診斷端點 + user 讀取端點收斂為 adminProcedure（SR-05/06，runtime 29/29）](claudedocs/4-changes/bug-fixes/FIX-150-153-P1-authorization-fixes.md) |
+| 2026-06-12 | 🔐 安全/越權 | ✅ 已完成 | [FIX-151: /api/download 資源 ID 化 + 後端授權；3 上傳端點業務授權 + amount 驗證（SR-08/09，runtime 17/17）](claudedocs/4-changes/bug-fixes/FIX-150-153-P1-authorization-fixes.md) |
+| 2026-06-12 | 🔐 安全/越權 | ✅ 已完成 | [FIX-150: 核心 router update/submit/getById 物件級授權（SR-04，runtime 22/22）](claudedocs/4-changes/bug-fixes/FIX-150-153-P1-authorization-fixes.md) |
 | 2026-06-11 | 🔐 安全/依賴 | ✅ 已完成 | [FIX-146: 修補 fast-xml-parser(Critical)/jws/@trpc CVE（Next 剩餘 CVE 需 Next 15 → FIX-149）](claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md) |
 | 2026-06-11 | 🔐 安全/資料外洩 | ✅ 已完成 | [FIX-147: user.getAll/getById 移除 password hash（SR-10）](claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md) |
 | 2026-06-11 | 🔐 安全/機密 | ⏳ 改碼完成 | [FIX-145: 移除版控中外洩的 NEXTAUTH_SECRET 明文（待 Azure 輪換，SR-01）](claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md) |
@@ -71,6 +74,8 @@
 
 ## 🔍 快速搜索
 
+- **安全/越權 (P1 IDOR/RBAC，2026-06-12)**: FIX-150 (資源所有權 assertCanMutate/assertCanRead), FIX-151 (download/upload 物件級授權 + amount 驗證), FIX-152 (health/user 端點收斂 adminProcedure) ⭐ **最新安全批次**
+- **安全/機密與依賴 (P0，2026-06-11)**: FIX-145 (移除 NEXTAUTH_SECRET 明文，待 Azure 輪換), FIX-146 (CVE 修補 fast-xml-parser/jws/@trpc), FIX-147 (user 端點移除 password hash)
 - **死碼/技術債**: FIX-140 (移除 FEAT-007 遺留死碼 OMExpenseMonthlyGrid + HKD 硬編碼) ⭐ **最新修復**, FIX-094 (Budget Pool export 遺留清理), FIX-089~092 (Deprecated Fields Cleanup)
 - **API/後端問題**: FIX-089 (Project Detail budgetPool.totalAmount undefined - Surgical Agent 過度清理)
 - **i18n 國際化問題**: FIX-088 (Budget Pool 5個缺失翻譯鍵 - 手動測試發現), FIX-080 (OM Expenses + ChargeOut 翻譯), FIX-077 (4個缺失翻譯鍵), FIX-060 (英文版顯示中文 - getMessages 參數缺失)
