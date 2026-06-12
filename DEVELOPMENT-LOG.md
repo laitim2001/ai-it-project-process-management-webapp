@@ -20,6 +20,34 @@
 
 ## 🚀 開發記錄
 
+### 2026-06-11~12 | 🔐 安全批次：P0 機密/CVE + P1 物件級授權 + CHANGE-051 CI 閘門 | 完成 ✅
+
+**類型**: 安全修復 + CI 基礎設施 | **負責人**: AI 助手 | **狀態**: ✅ 全數 merged 進 main（PR #1 `20ff814` / #2 `1d2aa6b` / #3 `0093912`）；唯 NEXTAUTH_SECRET Azure 輪換待手動
+
+**背景**: 2026-06-11 完成全面安全審計（報告 `claudedocs/5-analysis/security-review/SECURITY-AUDIT-2026-06-11.md`，38 項發現）。核心結論：FIX-101~103 只修了寫入端點權限，**讀取/診斷端點、password 過濾、資源所有權（物件級授權）全面缺漏**。依嚴重度分 P0/P1 兩批。
+
+**P0（FIX-145~147，PR #1）**:
+- **FIX-145**：從版控移除外洩的 NEXTAUTH_SECRET 明文（含後續發現的 `packages/db/.env.local.backup` 第二個值）。⚠️ **Azure Key Vault 輪換兩環境仍待手動**——外洩舊值未輪換前仍有效。
+- **FIX-146**：修補 fast-xml-parser(Critical)/jws/@trpc CVE、next 14.2.35；pnpm audit 降至 0 critical。
+- **FIX-147**：`user.getAll/getById` 回傳前解構移除 password hash（SR-10）。
+
+**P1（FIX-150~152，PR #2，全 runtime-verified）**:
+- **FIX-150**（SR-04，22/22）：新增 `packages/api/src/lib/authorization.ts`（`assertCanMutate`/`assertCanRead`），套到 project/budgetProposal/expense/purchaseOrder/quote 的 update/submit/getById/delete。**D1 寫入 = owner + Admin（對齊既有 delete，不放寬 Supervisor）；D2 讀取 = owner + Supervisor + Admin**。omExpense 無擁有者欄位 → 列 SR-04b 另設計。
+- **FIX-151**（SR-08/09，17/17）：`/api/download` 由信任 client `?url=` 改 `?quoteId=` + 後端 `canRead` 授權後才發 SAS；quote/proposal/invoice 三上傳端點加 `canMutate` 業務授權；quote `amount` 改 `z.coerce.number().positive()`。新增**非拋出版** `canRead`/`canMutate` 預測詞自 `@itpm/api` 導出供 Next.js route 複用（授權規則仍集中 packages/api）。
+- **FIX-152**（SR-05/06，29/29）：health 8 個診斷端點 + `user.getAll/getById/getByRole/hasPassword` 收斂為 `adminProcedure`；`dbCheck` catch 不再回傳 `error.message`。
+
+**CHANGE-051（PR #3）**: 處理 P0/P1 PR 的 CI 紅燈——查證為 repo **既有 lint baseline**（436 errors / 15 規則，~90% 為 `any` 連鎖的 `no-unsafe-*`），非各 PR 造成。放寬 type-aware 規則為 `warn` + `--max-warnings` 凍結基線（web=1546/api=181/auth=1）使 CI 成為**有效閘門**；**唯保留 `react-hooks/rules-of-hooks` 為 error 並實修 2 頁 8 個「條件式呼叫 Hook」真 bug**（dashboard/supervisor、settings/currencies 的 FIX-134 角色檢查早退誤置於 Hooks 之前，session 載入翻轉時可能 runtime crash）。
+
+**決策**: SR-09 併入 FIX-151；SR-07（rate limit）拆 FIX-153 後排（需 Redis 基礎設施）。CHANGE-051 採 Option C（混合 + 棘輪），rules-of-hooks 實修不靜音。SR-08 授權位置採「route 內聯 + 複用 helper」（`generateSasUrl` 鎖 apps/web，packages/api 無法 import）。
+
+**驗證**: 三項 P1 以 tRPC `createCaller` / 決策矩陣對真實 DB runtime 驗證（22/17/29）；`pnpm typecheck`（api+web）全綠；`pnpm lint` 3/3 exit 0。合併採「CHANGE-051 → main → 回灌 p0/p1 分支 → 依序 merge PR #1/#2」，三方合併已驗證無衝突（FIX-147 改 user.ts return 行、FIX-152 改宣告行，不重疊）。合併後三分支已清理（本地 + 遠端）。
+
+**待辦**: 🔴 NEXTAUTH_SECRET Azure 輪換（個人 + 公司兩環境，手動）；後排 FIX-148(xlsx 升級)/149(Next 15 major)/153(rate limit)。完整清單見 `claudedocs/4-changes/bug-fixes/SECURITY-2026-06-PENDING-ACTIONS.md`。
+
+**相關文件**: `claudedocs/4-changes/bug-fixes/FIX-145-147-P0-security-fixes.md`、`FIX-150-153-P1-authorization-fixes.md`、`SECURITY-2026-06-PENDING-ACTIONS.md`、`claudedocs/4-changes/feature-changes/CHANGE-051-ci-effective-gate.md`、`claudedocs/5-analysis/security-review/SECURITY-AUDIT-2026-06-11.md`
+
+---
+
 ### 2026-06-09 | 🔀 孤兒變更/修復批次收編 main（FIX-142/143/144 + CHANGE-048/049/050）| 完成 ✅
 
 **類型**: 整合/收編（git 分支與 stash 救援 + cherry-pick）| **負責人**: AI 助手 | **狀態**: ✅ 完成（各項 typecheck/i18n/lint 驗證；CHANGE-047 與 FIX-144 另經瀏覽器實測）
