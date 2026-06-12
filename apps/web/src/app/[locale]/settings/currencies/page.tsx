@@ -66,13 +66,6 @@ export default function CurrenciesPage() {
   const { data: session } = useSession();
   const { toast } = useToast();
 
-  // FIX-134: Admin role check
-  const isAdmin = session?.user?.role?.name === 'Admin';
-  if (session && !isAdmin) {
-    router.push('/dashboard');
-    return null;
-  }
-
   // 狀態管理
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -202,6 +195,13 @@ export default function CurrenciesPage() {
   const handleToggleActive = (id: string) => {
     toggleActiveMutation.mutate({ id });
   };
+
+  // FIX-134 / CHANGE-051: Admin 權限檢查 —— 置於所有 Hooks 之後，避免條件式早退違反 Rules of Hooks
+  const isAdmin = session?.user?.role?.name === 'Admin';
+  if (session && !isAdmin) {
+    router.push('/dashboard');
+    return null;
+  }
 
   return (
     <DashboardLayout>

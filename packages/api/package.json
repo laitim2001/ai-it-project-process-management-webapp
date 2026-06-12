@@ -6,7 +6,7 @@
   "types": "./src/index.ts",
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "lint": "eslint src/",
+    "lint": "eslint src/ --max-warnings 181",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
