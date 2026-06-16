@@ -148,10 +148,11 @@ export default function ProposalDetailPage() {
     if (!proposalData || !session?.user) return false;
     if (proposalData.status !== 'Draft') return false;
 
-    const isProjectManager = proposalData.project.managerId === session.user.id;
+    // CHANGE-052: 改用 ownerId（脫離 project，OM 提案亦適用）
+    const isOwner = proposalData.ownerId === session.user.id;
     const isAdmin = session.user.role?.name === 'Admin';
 
-    return isProjectManager || isAdmin;
+    return isOwner || isAdmin;
   };
 
   // CHANGE-017: 刪除處理函數
@@ -272,12 +273,24 @@ export default function ProposalDetailPage() {
             </div>
             <p className="text-muted-foreground">
               {t('fields.project')}：
-              <Link
-                href={`/projects/${proposal.project.id}`}
-                className="ml-1 text-primary hover:text-primary font-medium"
-              >
-                {proposal.project.name}
-              </Link>
+              {/* CHANGE-052: 目標為 Project 或 OM 費用 */}
+              {proposal.project ? (
+                <Link
+                  href={`/projects/${proposal.project.id}`}
+                  className="ml-1 text-primary hover:text-primary font-medium"
+                >
+                  {proposal.project.name}
+                </Link>
+              ) : proposal.omExpense ? (
+                <Link
+                  href={`/om-expenses/${proposal.omExpense.id}`}
+                  className="ml-1 text-primary hover:text-primary font-medium"
+                >
+                  {proposal.omExpense.name}
+                </Link>
+              ) : (
+                <span className="ml-1">—</span>
+              )}
             </p>
           </div>
           <div className="flex gap-2">
@@ -328,7 +341,9 @@ export default function ProposalDetailPage() {
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="basic">{t('detail.tabs.basic')}</TabsTrigger>
-                <TabsTrigger value="project">{t('detail.tabs.project')}</TabsTrigger>
+                <TabsTrigger value="project">
+                  {proposal.omExpense ? t('detail.tabs.omExpense') : t('detail.tabs.project')}
+                </TabsTrigger>
                 <TabsTrigger value="file">{t('detail.tabs.file')}</TabsTrigger>
                 <TabsTrigger value="meeting">{t('detail.tabs.meeting')}</TabsTrigger>
               </TabsList>
@@ -402,52 +417,81 @@ export default function ProposalDetailPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Building2 className="h-5 w-5" />
-                      {t('detail.project.title')}
+                      {proposal.omExpense ? t('detail.omExpense.title') : t('detail.project.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">{t('fields.projectName')}：</span>
-                      <Link
-                        href={`/projects/${proposal.project.id}`}
-                        className="ml-2 text-primary hover:text-primary font-medium"
-                      >
-                        {proposal.project.name}
-                      </Link>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground block mb-2">{t('fields.manager')}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm text-foreground">
-                            {proposal.project.manager.name || proposal.project.manager.email}
-                          </span>
+                    {/* CHANGE-052: 綁 Project 顯示專案資訊；綁 OM 費用顯示 OM 資訊 */}
+                    {proposal.project ? (
+                      <>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">{t('fields.projectName')}：</span>
+                          <Link
+                            href={`/projects/${proposal.project.id}`}
+                            className="ml-2 text-primary hover:text-primary font-medium"
+                          >
+                            {proposal.project.name}
+                          </Link>
                         </div>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground block mb-2">{t('fields.supervisor')}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <User className="h-4 w-4 text-green-600" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground block mb-2">{t('fields.manager')}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <User className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="text-sm text-foreground">
+                                {proposal.project.manager.name || proposal.project.manager.email}
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-sm text-foreground">
-                            {proposal.project.supervisor.name || proposal.project.supervisor.email}
-                          </span>
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground block mb-2">{t('fields.supervisor')}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <User className="h-4 w-4 text-green-600" />
+                              </div>
+                              <span className="text-sm text-foreground">
+                                {proposal.project.supervisor.name || proposal.project.supervisor.email}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">{t('fields.budgetPool')}：</span>
-                      <Link
-                        href={`/budget-pools/${proposal.project.budgetPool.id}`}
-                        className="ml-2 text-primary hover:text-primary font-medium"
-                      >
-                        {proposal.project.budgetPool.name}
-                      </Link>
-                    </div>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">{t('fields.budgetPool')}：</span>
+                          <Link
+                            href={`/budget-pools/${proposal.project.budgetPool.id}`}
+                            className="ml-2 text-primary hover:text-primary font-medium"
+                          >
+                            {proposal.project.budgetPool.name}
+                          </Link>
+                        </div>
+                      </>
+                    ) : proposal.omExpense ? (
+                      <>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">{t('detail.omExpense.name')}：</span>
+                          <Link
+                            href={`/om-expenses/${proposal.omExpense.id}`}
+                            className="ml-2 text-primary hover:text-primary font-medium"
+                          >
+                            {proposal.omExpense.name}
+                          </Link>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground block mb-2">{t('detail.omExpense.financialYear')}</span>
+                            <span className="text-sm text-foreground">FY{proposal.omExpense.financialYear}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground block mb-2">{t('detail.omExpense.category')}</span>
+                            <span className="text-sm text-foreground">{proposal.omExpense.category}</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">—</p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

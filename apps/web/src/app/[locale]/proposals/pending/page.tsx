@@ -140,12 +140,24 @@ export default function PendingApprovalsPage() {
                           ${p.amount.toLocaleString()}
                         </TableCell>
                         <TableCell>
-                          <Link
-                            href={`/projects/${p.project.id}`}
-                            className="text-primary hover:underline"
-                          >
-                            {p.project.name}
-                          </Link>
+                          {/* CHANGE-052: 目標為 Project 或 OM 費用 */}
+                          {p.project ? (
+                            <Link
+                              href={`/projects/${p.project.id}`}
+                              className="text-primary hover:underline"
+                            >
+                              {p.project.name}
+                            </Link>
+                          ) : p.omExpense ? (
+                            <Link
+                              href={`/om-expenses/${p.omExpense.id}`}
+                              className="text-primary hover:underline"
+                            >
+                              {p.omExpense.name}
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>{p.vendor?.name ?? '-'}</TableCell>
                         <TableCell>

@@ -167,9 +167,9 @@ export default function ProposalsPage() {
 
     return proposals.filter((p) => {
       if (p.status !== 'Draft') return false;
-      // Admin 可刪除任何 Draft，其他用戶只能刪除自己專案的
+      // Admin 可刪除任何 Draft，其他用戶只能刪除自己擁有的（CHANGE-052: 改用 ownerId）
       if (isAdmin) return true;
-      return p.project.managerId === userId;
+      return p.ownerId === userId;
     });
   }, [proposals, session]);
 
@@ -196,14 +196,14 @@ export default function ProposalsPage() {
     setSelectedIds(newSet);
   };
 
-  // CHANGE-017: 檢查是否可以刪除
-  const canDelete = (proposal: { status: string; project: { managerId: string } }) => {
+  // CHANGE-017 / CHANGE-052: 檢查是否可以刪除（改用 ownerId）
+  const canDelete = (proposal: { status: string; ownerId: string }) => {
     if (proposal.status !== 'Draft') return false;
     if (!session?.user) return false;
     const userId = session.user.id;
     const userRole = session.user.role?.name;
     const isAdmin = userRole === 'Admin';
-    return isAdmin || proposal.project.managerId === userId;
+    return isAdmin || proposal.ownerId === userId;
   };
 
   // CHANGE-017: 刪除處理
@@ -430,10 +430,12 @@ export default function ProposalsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm text-muted-foreground">
-                      {/* 專案 */}
+                      {/* 目標（CHANGE-052: Project 或 OM 費用） */}
                       <div className="flex justify-between">
                         <span>{t('fields.project')}：</span>
-                        <span className="font-medium text-right">{proposal.project.name}</span>
+                        <span className="font-medium text-right">
+                          {proposal.project?.name ?? proposal.omExpense?.name ?? '—'}
+                        </span>
                       </div>
 
                       {/* 金額 */}
@@ -442,7 +444,7 @@ export default function ProposalsPage() {
                         <span className="font-medium text-primary text-lg">
                           <CurrencyDisplay
                             amount={proposal.amount}
-                            currency={proposal.project.currency}
+                            currency={proposal.project?.currency}
                           />
                         </span>
                       </div>
@@ -533,17 +535,29 @@ export default function ProposalsPage() {
                           </Link>
                         </TableCell>
                         <TableCell>
-                          <Link
-                            href={`/projects/${proposal.project.id}`}
-                            className="text-primary hover:underline"
-                          >
-                            {proposal.project.name}
-                          </Link>
+                          {/* CHANGE-052: 目標為 Project 或 OM 費用 */}
+                          {proposal.project ? (
+                            <Link
+                              href={`/projects/${proposal.project.id}`}
+                              className="text-primary hover:underline"
+                            >
+                              {proposal.project.name}
+                            </Link>
+                          ) : proposal.omExpense ? (
+                            <Link
+                              href={`/om-expenses/${proposal.omExpense.id}`}
+                              className="text-primary hover:underline"
+                            >
+                              {proposal.omExpense.name}
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell className="font-medium">
                           <CurrencyDisplay
                             amount={proposal.amount}
-                            currency={proposal.project.currency}
+                            currency={proposal.project?.currency}
                           />
                         </TableCell>
                         <TableCell>{getStatusBadge(proposal.status)}</TableCell>

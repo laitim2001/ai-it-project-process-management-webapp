@@ -1088,9 +1088,16 @@
       "project": {
         "title": "專案資訊"
       },
+      "omExpense": {
+        "title": "OM 費用資訊",
+        "name": "OM 費用名稱",
+        "financialYear": "財務年度",
+        "category": "類別"
+      },
       "tabs": {
         "basic": "基本資訊",
         "project": "專案資訊",
+        "omExpense": "OM 費用資訊",
         "file": "附件",
         "meeting": "會議記錄"
       },
@@ -1118,6 +1125,15 @@
       "project": {
         "label": "所屬專案",
         "placeholder": "選擇專案"
+      },
+      "targetType": {
+        "label": "提案目標",
+        "project": "專案",
+        "omExpense": "OM 費用"
+      },
+      "omExpense": {
+        "label": "所屬 OM 費用",
+        "placeholder": "選擇 OM 費用"
       },
       "fields": {
         "project": {

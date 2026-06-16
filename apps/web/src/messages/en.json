@@ -1050,9 +1050,16 @@
       "project": {
         "title": "Project Information"
       },
+      "omExpense": {
+        "title": "OM Expense Information",
+        "name": "OM Expense Name",
+        "financialYear": "Financial Year",
+        "category": "Category"
+      },
       "tabs": {
         "basic": "Basic Info",
         "project": "Project Info",
+        "omExpense": "OM Expense Info",
         "file": "Attachments",
         "meeting": "Meeting Notes"
       },
@@ -1080,6 +1087,15 @@
       "project": {
         "label": "Project",
         "placeholder": "Select project"
+      },
+      "targetType": {
+        "label": "Proposal Target",
+        "project": "Project",
+        "omExpense": "OM Expense"
+      },
+      "omExpense": {
+        "label": "OM Expense",
+        "placeholder": "Select OM expense"
       },
       "fields": {
         "project": {
