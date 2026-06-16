@@ -17,6 +17,10 @@ COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 
+# Copy Prisma schema so the root `postinstall` hook (pnpm db:generate → prisma generate)
+# can find the schema during dependency install in this deps stage.
+COPY packages/db/prisma ./packages/db/prisma
+
 # Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile --prod=false
 
