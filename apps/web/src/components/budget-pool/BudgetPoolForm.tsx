@@ -103,8 +103,9 @@ export function BudgetPoolForm({ initialData, mode }: BudgetPoolFormProps) {
   });
 
   // Find TWD currency ID (default currency)
+  // FIX: 若無 TWD（如僅 HKD 的部署）則退而用第一個可用幣別，避免必填幣別卡住建立流程
   const twdCurrency = currencies?.find((c) => c.code === 'TWD');
-  const defaultCurrencyId = twdCurrency?.id ?? '';
+  const defaultCurrencyId = (twdCurrency ?? currencies?.[0])?.id ?? '';
 
   // 基本表單數據
   const [formData, setFormData] = useState({
