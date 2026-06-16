@@ -210,7 +210,8 @@ export default function EditProposalPage() {
                 id: proposal.id,
                 title: proposal.title,
                 amount: proposal.amount,
-                projectId: proposal.projectId,
+                // CHANGE-052: projectId 可為 null（OM 提案）；編輯模式不使用此值
+                projectId: proposal.projectId ?? '',
               }}
             />
           </CardContent>

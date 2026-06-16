@@ -194,7 +194,7 @@ async function main() {
   console.log('👤 創建測試用戶...');
 
   const adminPassword = await bcrypt.hash('admin123', 10);
-  const pmPassword = await bcrypt.hash('pm123', 10);
+  const pmPassword = await bcrypt.hash('pm123456', 10);
   const supervisorPassword = await bcrypt.hash('supervisor123', 10);
 
   const adminUser = await prisma.user.upsert({
@@ -210,7 +210,7 @@ async function main() {
 
   const pmUser = await prisma.user.upsert({
     where: { email: 'pm@itpm.local' },
-    update: {},
+    update: { password: pmPassword }, // 確保 re-seed 會同步更新既有用戶密碼（否則 update:{} 不更新）
     create: {
       email: 'pm@itpm.local',
       name: '專案經理 - 張三',
@@ -341,6 +341,7 @@ async function main() {
       amount: 1200000,
       status: 'Draft',
       projectId: project1.id,
+      ownerId: pmUser.id, // CHANGE-052: 提案擁有者（= 專案 manager）
     },
   });
 
@@ -354,6 +355,7 @@ async function main() {
       amount: 800000,
       status: 'PendingApproval',
       projectId: project1.id,
+      ownerId: pmUser.id, // CHANGE-052: 提案擁有者（= 專案 manager）
     },
   });
 
@@ -367,6 +369,7 @@ async function main() {
       amount: 500000,
       status: 'Approved',
       projectId: project1.id,
+      ownerId: pmUser.id, // CHANGE-052: 提案擁有者（= 專案 manager）
     },
   });
 
@@ -380,6 +383,7 @@ async function main() {
       amount: 300000,
       status: 'Rejected',
       projectId: project1.id,
+      ownerId: pmUser.id, // CHANGE-052: 提案擁有者（= 專案 manager）
     },
   });
 
@@ -393,6 +397,7 @@ async function main() {
       amount: 400000,
       status: 'MoreInfoRequired',
       projectId: project1.id,
+      ownerId: pmUser.id, // CHANGE-052: 提案擁有者（= 專案 manager）
     },
   });
 
@@ -406,6 +411,7 @@ async function main() {
       amount: 2500000,
       status: 'Draft',
       projectId: project2.id,
+      ownerId: pmUser.id, // CHANGE-052: 提案擁有者（= 專案 manager）
     },
   });
 
@@ -871,7 +877,7 @@ async function main() {
   console.log('');
   console.log('📋 測試帳號:');
   console.log('  管理員: admin@itpm.local / admin123');
-  console.log('  專案經理: pm@itpm.local / pm123');
+  console.log('  專案經理: pm@itpm.local / pm123456');
   console.log('  主管: supervisor@itpm.local / supervisor123');
   console.log('');
   console.log('📊 預算提案測試數據:');

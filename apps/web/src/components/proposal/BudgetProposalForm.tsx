@@ -88,13 +88,18 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
   const [formData, setFormData] = useState({
     title: initialData?.title ?? '',
     amount: initialData?.amount ?? 0,
+    // CHANGE-052: 多態目標 — 提案綁定 Project 或 OMExpense（二擇一）
+    targetType: 'Project' as 'Project' | 'OMExpense',
     projectId: initialData?.projectId ?? '',
+    omExpenseId: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 取得所有專案（必須帶 limit；getAll 預設 limit=20，否則下拉選單顯示不全）
   const { data: projects } = api.project.getAll.useQuery({ limit: 100 });
+  // CHANGE-052: 取得所有 OM 費用（供 OM 提案選擇）
+  const { data: omExpenses } = api.omExpense.getAll.useQuery({ limit: 100 });
 
   const createMutation = api.budgetProposal.create.useMutation({
     onSuccess: (proposal) => {
@@ -146,8 +151,12 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
       newErrors.amount = tCommon('validation.amountPositive');
     }
 
-    if (!formData.projectId) {
+    // CHANGE-052: 依目標類型驗證對應欄位
+    if (formData.targetType === 'Project' && !formData.projectId) {
       newErrors.projectId = tCommon('validation.required', { field: t('form.project.label') });
+    }
+    if (formData.targetType === 'OMExpense' && !formData.omExpenseId) {
+      newErrors.omExpenseId = tCommon('validation.required', { field: t('form.omExpense.label') });
     }
 
     setErrors(newErrors);
@@ -162,7 +171,22 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
     }
 
     if (mode === 'create') {
-      createMutation.mutate(formData);
+      // CHANGE-052: 依目標類型送出 discriminated union payload
+      createMutation.mutate(
+        formData.targetType === 'Project'
+          ? {
+              targetType: 'Project',
+              title: formData.title,
+              amount: formData.amount,
+              projectId: formData.projectId,
+            }
+          : {
+              targetType: 'OMExpense',
+              title: formData.title,
+              amount: formData.amount,
+              omExpenseId: formData.omExpenseId,
+            }
+      );
     } else if (initialData) {
       updateMutation.mutate({
         id: initialData.id,
@@ -216,28 +240,79 @@ export function BudgetProposalForm({ initialData, mode }: BudgetProposalFormProp
       </div>
 
       {mode === 'create' && (
-        <div>
-          <label htmlFor="projectId" className="block text-sm font-medium text-gray-700">
-            {t('form.project.label')} *
-          </label>
-          <select
-            id="projectId"
-            name="projectId"
-            value={formData.projectId}
-            onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          >
-            <option value="">{t('form.project.placeholder')}</option>
-            {projects?.items?.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-          {errors.projectId && (
-            <p className="mt-1 text-sm text-red-600">{errors.projectId}</p>
+        <>
+          {/* CHANGE-052: 目標類型選擇 — Project 或 OM 費用 */}
+          <div>
+            <label htmlFor="targetType" className="block text-sm font-medium text-gray-700">
+              {t('form.targetType.label')} *
+            </label>
+            <select
+              id="targetType"
+              name="targetType"
+              value={formData.targetType}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  targetType: e.target.value as 'Project' | 'OMExpense',
+                })
+              }
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="Project">{t('form.targetType.project')}</option>
+              <option value="OMExpense">{t('form.targetType.omExpense')}</option>
+            </select>
+          </div>
+
+          {formData.targetType === 'Project' && (
+            <div>
+              <label htmlFor="projectId" className="block text-sm font-medium text-gray-700">
+                {t('form.project.label')} *
+              </label>
+              <select
+                id="projectId"
+                name="projectId"
+                value={formData.projectId}
+                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              >
+                <option value="">{t('form.project.placeholder')}</option>
+                {projects?.items?.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+              {errors.projectId && (
+                <p className="mt-1 text-sm text-red-600">{errors.projectId}</p>
+              )}
+            </div>
           )}
-        </div>
+
+          {formData.targetType === 'OMExpense' && (
+            <div>
+              <label htmlFor="omExpenseId" className="block text-sm font-medium text-gray-700">
+                {t('form.omExpense.label')} *
+              </label>
+              <select
+                id="omExpenseId"
+                name="omExpenseId"
+                value={formData.omExpenseId}
+                onChange={(e) => setFormData({ ...formData, omExpenseId: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              >
+                <option value="">{t('form.omExpense.placeholder')}</option>
+                {omExpenses?.items?.map((om) => (
+                  <option key={om.id} value={om.id}>
+                    {om.name}（FY{om.financialYear}）
+                  </option>
+                ))}
+              </select>
+              {errors.omExpenseId && (
+                <p className="mt-1 text-sm text-red-600">{errors.omExpenseId}</p>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       <div className="flex gap-4">

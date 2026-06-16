@@ -78,6 +78,7 @@ const proposalApprovalInclude = {
       currency: true,
     },
   },
+  omExpense: true, // CHANGE-052: 多態目標 — OM 提案
   vendor: true,
   workflow: {
     include: {
@@ -159,6 +160,30 @@ async function notifyStepApprovers(
 }
 
 /**
+ * CHANGE-052: 核准回寫 — 依提案綁定的目標（Project 或 OMExpense）寫入核准金額。
+ * - Project：approvedBudget + status='InProgress'（沿用既有行為）
+ * - OMExpense：approvedBudget + approvalStatus='Approved'
+ * 二者皆為 null（理論上不會發生）時不做任何事。
+ */
+async function applyApprovalWriteback(
+  tx: Prisma.TransactionClient,
+  target: { projectId: string | null; omExpenseId: string | null },
+  approvedAmount: number
+): Promise<void> {
+  if (target.projectId) {
+    await tx.project.update({
+      where: { id: target.projectId },
+      data: { approvedBudget: approvedAmount, status: 'InProgress' },
+    });
+  } else if (target.omExpenseId) {
+    await tx.oMExpense.update({
+      where: { id: target.omExpenseId },
+      data: { approvedBudget: approvedAmount, approvalStatus: 'Approved' },
+    });
+  }
+}
+
+/**
  * FEAT-014: 載入提案的「當前審批步驟」並做角色檢查（approveStep/rejectStep/requestMoreInfoStep 共用）
  *
  * 錯誤以 cause.reason 帶穩定識別碼（backend-api.md 規則：前端依 reason 分支，非比對 message）：
@@ -175,7 +200,7 @@ async function loadCurrentStep(
   const proposal = await prisma.budgetProposal.findUnique({
     where: { id: proposalId },
     include: {
-      project: true,
+      // CHANGE-052: 不再需要 project（通知改用 ownerId，回寫改用 projectId/omExpenseId 標量）
       approvalProgress: { orderBy: { sequence: 'asc' } },
     },
   });
@@ -239,11 +264,21 @@ const ProposalStatus = z.enum([
 // CHANGE-043: 提案類型（Budget Proposal / 付款），暫為純選擇欄位（未連 Expense）
 const proposalTypeEnum = z.enum(['BudgetProposal', 'Payment']);
 
-const budgetProposalCreateInputSchema = z.object({
-  title: z.string().min(1, '標題為必填欄位'),
-  amount: z.number().positive('金額必須大於0'),
-  projectId: z.string().min(1, '專案ID為必填'),
-});
+// CHANGE-052: 多態目標 — 提案綁定 Project 或 OMExpense（二擇一 XOR）
+const budgetProposalCreateInputSchema = z.discriminatedUnion('targetType', [
+  z.object({
+    targetType: z.literal('Project'),
+    title: z.string().min(1, '標題為必填欄位'),
+    amount: z.number().positive('金額必須大於0'),
+    projectId: z.string().min(1, '專案ID為必填'),
+  }),
+  z.object({
+    targetType: z.literal('OMExpense'),
+    title: z.string().min(1, '標題為必填欄位'),
+    amount: z.number().positive('金額必須大於0'),
+    omExpenseId: z.string().min(1, 'OM 費用 ID 為必填'),
+  }),
+]);
 
 const budgetProposalUpdateInputSchema = z.object({
   id: z.string().min(1, '無效的提案ID'),
@@ -317,6 +352,8 @@ export const budgetProposalRouter = createTRPCRouter({
           OR: [
             { title: { contains: input.search, mode: 'insensitive' as const } },
             { project: { name: { contains: input.search, mode: 'insensitive' as const } } },
+            // CHANGE-052: 也可依 OM 費用名稱搜尋
+            { omExpense: { name: { contains: input.search, mode: 'insensitive' as const } } },
           ],
         }),
       };
@@ -335,6 +372,7 @@ export const budgetProposalRouter = createTRPCRouter({
                 currency: true, // FEAT-002: Include project currency
               },
             },
+            omExpense: true, // CHANGE-052: 多態目標
             comments: {
               include: {
                 user: { select: safeUserSelect },
@@ -391,6 +429,7 @@ export const budgetProposalRouter = createTRPCRouter({
               currency: true, // FEAT-002: Include project currency
             },
           },
+          omExpense: true, // CHANGE-052: 多態目標
           vendor: true, // CHANGE-043: Pay to
           // FEAT-014 / CHANGE-047: 審批流程 + 各步驟進度（提案詳情頁時間線；步驟審批者可為角色或指定用戶）
           workflow: {
@@ -435,8 +474,8 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
-      // FIX-150 (SR-04): 資源所有權檢查 — 擁有者 / Supervisor / Admin 可檢視
-      assertCanRead(proposal.project.managerId, ctx, '此提案');
+      // FIX-150 (SR-04) / CHANGE-052: 資源所有權檢查改用 proposal.ownerId（脫離 project）
+      assertCanRead(proposal.ownerId, ctx, '此提案');
 
       return proposal;
     }),
@@ -447,25 +486,32 @@ export const budgetProposalRouter = createTRPCRouter({
   create: protectedProcedure
     .input(budgetProposalCreateInputSchema)
     .mutation(async ({ ctx, input }) => {
-      // 驗證專案是否存在
-      const project = await ctx.prisma.project.findUnique({
-        where: {
-          id: input.projectId,
-        },
-      });
-
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: '找不到該專案',
+      // CHANGE-052: 依目標類型驗證對應對象存在
+      if (input.targetType === 'Project') {
+        const project = await ctx.prisma.project.findUnique({
+          where: { id: input.projectId },
         });
+        if (!project) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該專案' });
+        }
+      } else {
+        const omExpense = await ctx.prisma.oMExpense.findUnique({
+          where: { id: input.omExpenseId },
+        });
+        if (!omExpense) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該 OM 費用' });
+        }
       }
 
       const proposal = await ctx.prisma.budgetProposal.create({
         data: {
           title: input.title,
           amount: input.amount,
-          projectId: input.projectId,
+          // CHANGE-052: 二擇一綁定 + 擁有者（授權錨點）
+          ...(input.targetType === 'Project'
+            ? { projectId: input.projectId }
+            : { omExpenseId: input.omExpenseId }),
+          ownerId: ctx.session.user.id,
           status: 'Draft',
         },
         include: {
@@ -476,6 +522,7 @@ export const budgetProposalRouter = createTRPCRouter({
               budgetPool: true,
             },
           },
+          omExpense: true, // CHANGE-052
         },
       });
 
@@ -495,7 +542,6 @@ export const budgetProposalRouter = createTRPCRouter({
         where: {
           id: id,
         },
-        include: { project: { select: { managerId: true } } },
       });
 
       if (!existingProposal) {
@@ -505,8 +551,8 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
-      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可更新
-      assertCanMutate(existingProposal.project.managerId, ctx, '此提案');
+      // FIX-150 (SR-04) / CHANGE-052: 資源所有權檢查改用 proposal.ownerId
+      assertCanMutate(existingProposal.ownerId, ctx, '此提案');
 
       if (
         existingProposal.status !== 'Draft' &&
@@ -531,6 +577,7 @@ export const budgetProposalRouter = createTRPCRouter({
               budgetPool: true,
             },
           },
+          omExpense: true, // CHANGE-052
         },
       });
 
@@ -558,8 +605,8 @@ export const budgetProposalRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: '找不到該預算提案' });
       }
 
-      // FIX-150 (SR-04): 資源所有權檢查 — 僅擁有者或 Admin 可提交
-      assertCanMutate(existingProposal.project.managerId, ctx, '此提案');
+      // FIX-150 (SR-04) / CHANGE-052: 資源所有權檢查改用 proposal.ownerId
+      assertCanMutate(existingProposal.ownerId, ctx, '此提案');
 
       if (
         existingProposal.status !== 'Draft' &&
@@ -617,6 +664,15 @@ export const budgetProposalRouter = createTRPCRouter({
 
       const firstStep = workflow?.steps[0];
 
+      // CHANGE-052 (D2): OM 提案必須走審批流程；無 active workflow 時直接擋下（不進 legacy fallback）
+      if ((!workflow || !firstStep) && existingProposal.omExpenseId != null) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '此 OM 費用提案需要啟用的審批流程才能提交，請先設定審批流程',
+          cause: { reason: 'OM_PROPOSAL_REQUIRES_WORKFLOW' },
+        });
+      }
+
       return ctx.prisma.$transaction(async (tx) => {
         if (workflow && firstStep) {
           const proposal = await tx.budgetProposal.update({
@@ -673,17 +729,20 @@ export const budgetProposalRouter = createTRPCRouter({
             budgetProposalId: input.id,
           },
         });
-        await tx.notification.create({
-          data: {
-            userId: proposal.project.supervisorId,
-            type: 'PROPOSAL_SUBMITTED',
-            title: '新的預算提案待審批',
-            message: `${submitter?.name || '專案經理'} 提交了預算提案「${proposal.title}」，請審核。`,
-            link: `/proposals/${proposal.id}`,
-            entityType: 'PROPOSAL',
-            entityId: proposal.id,
-          },
-        });
+        // CHANGE-052: 僅「綁 Project」提案會走到 legacy fallback（OM 提案已於上方擋下）
+        if (proposal.project) {
+          await tx.notification.create({
+            data: {
+              userId: proposal.project.supervisorId,
+              type: 'PROPOSAL_SUBMITTED',
+              title: '新的預算提案待審批',
+              message: `${submitter?.name || '專案經理'} 提交了預算提案「${proposal.title}」，請審核。`,
+              link: `/proposals/${proposal.id}`,
+              entityType: 'PROPOSAL',
+              entityId: proposal.id,
+            },
+          });
+        }
         return proposal;
       });
     }),
@@ -743,6 +802,7 @@ export const budgetProposalRouter = createTRPCRouter({
                 budgetPool: true,
               },
             },
+            omExpense: true, // CHANGE-052
           },
         });
 
@@ -774,16 +834,10 @@ export const budgetProposalRouter = createTRPCRouter({
           });
         }
 
-        // Module 2/3: 批准時同步更新 Project 的 approvedBudget 和狀態
+        // CHANGE-052: 批准時依目標回寫（Project.approvedBudget 或 OMExpense.approvedBudget）
         if (input.action === 'Approved') {
           const approvedAmount = input.approvedAmount || existingProposal.amount;
-          await prisma.project.update({
-            where: { id: proposal.projectId },
-            data: {
-              approvedBudget: approvedAmount,
-              status: 'InProgress', // 批准後項目變為進行中
-            },
-          });
+          await applyApprovalWriteback(prisma, proposal, approvedAmount);
         }
 
         // Epic 8: 發送通知給 Project Manager
@@ -809,9 +863,10 @@ export const budgetProposalRouter = createTRPCRouter({
           MoreInfoRequired: `您的預算提案「${proposal.title}」需要補充更多資訊。${input.comment ? `說明：${input.comment}` : ''}`,
         };
 
+        // CHANGE-052: 通知提案擁有者（取代 project.managerId，對既有提案等價）
         await prisma.notification.create({
           data: {
-            userId: proposal.project.managerId,
+            userId: proposal.ownerId,
             type: notificationTypeMap[input.action],
             title: notificationTitleMap[input.action],
             message: notificationMessageMap[input.action],
@@ -900,10 +955,8 @@ export const budgetProposalRouter = createTRPCRouter({
               currentStepSequence: null,
             },
           });
-          await tx.project.update({
-            where: { id: proposal.projectId },
-            data: { approvedBudget: approvedAmount, status: 'InProgress' },
-          });
+          // CHANGE-052: 依目標回寫（Project 或 OMExpense）
+          await applyApprovalWriteback(tx, proposal, approvedAmount);
           await tx.history.create({
             data: {
               action: 'APPROVED',
@@ -914,7 +967,7 @@ export const budgetProposalRouter = createTRPCRouter({
           });
           await tx.notification.create({
             data: {
-              userId: proposal.project.managerId,
+              userId: proposal.ownerId, // CHANGE-052: 通知提案擁有者
               type: 'PROPOSAL_APPROVED',
               title: '預算提案已批准',
               message: `您的預算提案「${proposal.title}」已完成所有審批步驟並批准，批准金額：$${approvedAmount.toLocaleString()}。`,
@@ -973,7 +1026,7 @@ export const budgetProposalRouter = createTRPCRouter({
         });
         await tx.notification.create({
           data: {
-            userId: proposal.project.managerId,
+            userId: proposal.ownerId, // CHANGE-052: 通知提案擁有者
             type: 'PROPOSAL_REJECTED',
             title: '預算提案已駁回',
             message: `您的預算提案「${proposal.title}」已被駁回。原因：${input.reason}`,
@@ -1019,7 +1072,7 @@ export const budgetProposalRouter = createTRPCRouter({
         });
         await tx.notification.create({
           data: {
-            userId: proposal.project.managerId,
+            userId: proposal.ownerId, // CHANGE-052: 通知提案擁有者
             type: 'PROPOSAL_MORE_INFO',
             title: '預算提案需要補充資訊',
             message: `您的預算提案「${proposal.title}」需要補充資訊。說明：${input.comment}`,
@@ -1148,6 +1201,7 @@ export const budgetProposalRouter = createTRPCRouter({
               budgetPool: true,
             },
           },
+          omExpense: true, // CHANGE-052
         },
       });
 
@@ -1214,6 +1268,7 @@ export const budgetProposalRouter = createTRPCRouter({
               budgetPool: true,
             },
           },
+          omExpense: true, // CHANGE-052
           vendor: true, // CHANGE-043
         },
       });
@@ -1232,13 +1287,10 @@ export const budgetProposalRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // 檢查提案和關聯專案
+      // 檢查提案（CHANGE-052: 權限改用 ownerId，無需 include project）
       const existingProposal = await ctx.prisma.budgetProposal.findUnique({
         where: {
           id: input.id,
-        },
-        include: {
-          project: true,
         },
       });
 
@@ -1256,13 +1308,13 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
-      // CHANGE-017: 檢查權限 - 僅建立者（專案經理）或 Admin 可刪除
+      // CHANGE-017 / CHANGE-052: 檢查權限 - 僅擁有者或 Admin 可刪除
       const userId = ctx.session.user.id;
       const userRole = ctx.session.user.role.name;
-      const isProjectManager = existingProposal.project.managerId === userId;
+      const isOwner = existingProposal.ownerId === userId;
       const isAdmin = userRole === 'Admin';
 
-      if (!isProjectManager && !isAdmin) {
+      if (!isOwner && !isAdmin) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: '您沒有權限刪除此提案（僅建立者或管理員可刪除）',
@@ -1305,13 +1357,10 @@ export const budgetProposalRouter = createTRPCRouter({
       const userRole = ctx.session.user.role.name;
       const isAdmin = userRole === 'Admin';
 
-      // 查詢所有要刪除的提案
+      // 查詢所有要刪除的提案（CHANGE-052: 權限改用 ownerId，無需 include project）
       const proposals = await ctx.prisma.budgetProposal.findMany({
         where: {
           id: { in: input.ids },
-        },
-        include: {
-          project: true,
         },
       });
 
@@ -1334,7 +1383,7 @@ export const budgetProposalRouter = createTRPCRouter({
 
       // 檢查權限 - 僅建立者或 Admin 可刪除
       if (!isAdmin) {
-        const unauthorizedProposals = proposals.filter(p => p.project.managerId !== userId);
+        const unauthorizedProposals = proposals.filter(p => p.ownerId !== userId);
         if (unauthorizedProposals.length > 0) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -1393,12 +1442,9 @@ export const budgetProposalRouter = createTRPCRouter({
         });
       }
 
-      // 2. 檢查提案存在
+      // 2. 檢查提案存在（CHANGE-052: 回退僅用標量 projectId/omExpenseId，無需 include project）
       const existingProposal = await ctx.prisma.budgetProposal.findUnique({
         where: { id: input.id },
-        include: {
-          project: true,
-        },
       });
 
       if (!existingProposal) {
@@ -1440,6 +1486,7 @@ export const budgetProposalRouter = createTRPCRouter({
                 budgetPool: true,
               },
             },
+            omExpense: true, // CHANGE-052
             comments: {
               include: { user: { select: safeUserSelect } },
               orderBy: { createdAt: 'desc' },
@@ -1465,36 +1512,54 @@ export const budgetProposalRouter = createTRPCRouter({
           },
         });
 
-        // 5c. 如果原狀態是 Approved，需要回退 Project 的 approvedBudget
+        // 5c. CHANGE-052: 原狀態 Approved → 依目標（Project 或 OMExpense）扣回已核准金額
         if (originalStatus === 'Approved' && existingProposal.approvedAmount) {
-          await tx.project.update({
-            where: { id: existingProposal.projectId },
-            data: {
-              approvedBudget: {
-                decrement: existingProposal.approvedAmount,
-              },
-            },
-          });
-        }
-
-        // FIX-008: 檢查專案是否還有其他已批准的提案，若無則回退專案狀態
-        if (originalStatus === 'Approved') {
-          const otherApprovedProposals = await tx.budgetProposal.count({
-            where: {
-              projectId: existingProposal.projectId,
-              status: 'Approved',
-              id: { not: input.id }, // 排除當前正在回退的提案
-            },
-          });
-
-          // 如果沒有其他已批准的提案，將專案狀態回退到 Draft
-          if (otherApprovedProposals === 0) {
+          const revertAmount = existingProposal.approvedAmount;
+          if (existingProposal.projectId) {
             await tx.project.update({
               where: { id: existingProposal.projectId },
-              data: {
-                status: 'Draft',
+              data: { approvedBudget: { decrement: revertAmount } },
+            });
+          } else if (existingProposal.omExpenseId) {
+            await tx.oMExpense.update({
+              where: { id: existingProposal.omExpenseId },
+              data: { approvedBudget: { decrement: revertAmount } },
+            });
+          }
+        }
+
+        // FIX-008 / CHANGE-052: 若目標已無其他已批准提案，回退目標狀態
+        if (originalStatus === 'Approved') {
+          if (existingProposal.projectId) {
+            const otherApprovedProposals = await tx.budgetProposal.count({
+              where: {
+                projectId: existingProposal.projectId,
+                status: 'Approved',
+                id: { not: input.id }, // 排除當前正在回退的提案
               },
             });
+            // 如果沒有其他已批准的提案，將專案狀態回退到 Draft
+            if (otherApprovedProposals === 0) {
+              await tx.project.update({
+                where: { id: existingProposal.projectId },
+                data: { status: 'Draft' },
+              });
+            }
+          } else if (existingProposal.omExpenseId) {
+            const otherApprovedProposals = await tx.budgetProposal.count({
+              where: {
+                omExpenseId: existingProposal.omExpenseId,
+                status: 'Approved',
+                id: { not: input.id },
+              },
+            });
+            // 沒有其他已批准提案 → 清除 OM 費用的核准狀態
+            if (otherApprovedProposals === 0) {
+              await tx.oMExpense.update({
+                where: { id: existingProposal.omExpenseId },
+                data: { approvalStatus: null },
+              });
+            }
           }
         }
 

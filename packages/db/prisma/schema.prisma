@@ -38,6 +38,7 @@ model User {
   accounts            Account[] // NextAuth: OAuth 帳號關聯
   sessions            Session[] // NextAuth: 活躍 Session
   approvedProposals   BudgetProposal[] @relation("ProposalApprover") // 新增：批准的提案
+  ownedProposals      BudgetProposal[] @relation("ProposalOwner") // CHANGE-052: 擁有（建立）的提案
   confirmedChargeOuts ChargeOut[]      @relation("ChargeOutConfirmer") // 新增：確認的費用轉嫁
 
   // FEAT-009: OpCo 數據權限
@@ -275,7 +276,11 @@ model BudgetProposal {
   title     String
   amount    Float
   status    String @default("Draft") // "Draft", "PendingApproval", "Approved", "Rejected", "MoreInfoRequired"
-  projectId String
+
+  // CHANGE-052: 多態目標 — 綁定 Project 或 OMExpense（二擇一 XOR）
+  projectId   String? // 改：必填 → 可選（OM 提案無專案）
+  omExpenseId String? // 新增：綁定 OM expense
+  ownerId     String  // 新增：提案擁有者（建立者），授權錨點（取代 project.managerId）
 
   // 新增：項目計劃書相關
   proposalFilePath String? // 計劃書文件路徑
@@ -306,7 +311,9 @@ model BudgetProposal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project          Project                    @relation(fields: [projectId], references: [id])
+  project          Project?                   @relation(fields: [projectId], references: [id]) // CHANGE-052: 改可選
+  omExpense        OMExpense?                 @relation(fields: [omExpenseId], references: [id]) // CHANGE-052
+  owner            User                       @relation("ProposalOwner", fields: [ownerId], references: [id]) // CHANGE-052
   approver         User?                      @relation("ProposalApprover", fields: [approvedBy], references: [id]) // 新增
   vendor           Vendor?                    @relation(fields: [vendorId], references: [id]) // CHANGE-043: Pay to
   workflow         ApprovalWorkflow?          @relation(fields: [workflowId], references: [id]) // FEAT-014
@@ -315,6 +322,8 @@ model BudgetProposal {
   historyItems     History[]
 
   @@index([projectId])
+  @@index([omExpenseId]) // CHANGE-052
+  @@index([ownerId]) // CHANGE-052
   @@index([status])
   @@index([approvedBy]) // 新增索引
   @@index([vendorId]) // CHANGE-043
@@ -811,6 +820,10 @@ model OMExpense {
   totalBudgetAmount Float @default(0) // = SUM(items.budgetAmount)
   totalActualSpent  Float @default(0) // = SUM(items.actualSpent)
 
+  // CHANGE-052: Budget Proposal 核准回寫
+  approvedBudget Float?  // 核准的預算金額（由 BudgetProposal 核准回寫）
+  approvalStatus String? // 核准狀態，如 'Approved'
+
   // 預設 OpCo（用於建立 item 時的預設值）
   defaultOpCoId String?
 
@@ -842,6 +855,9 @@ model OMExpense {
   // ========== 關聯 ==========
   // FEAT-007: 新增明細項目關聯
   items OMExpenseItem[] // 明細項目
+
+  // CHANGE-052: 綁定此 OM 費用的預算提案
+  proposals BudgetProposal[]
 
   // FEAT-007: 新增預設 OpCo 關聯
   defaultOpCo OperatingCompany? @relation("OMExpenseDefaultOpCo", fields: [defaultOpCoId], references: [id])

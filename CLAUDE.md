@@ -560,7 +560,7 @@ This project is designed for AI-assisted development with production-quality cod
 | 角色 | Email | 密碼 | 權限 |
 |------|-------|------|------|
 | Admin | `admin@itpm.local` | `admin123` | 全部 18 項功能 |
-| ProjectManager | `pm@itpm.local` | `pm123` | 11 項核心業務 |
+| ProjectManager | `pm@itpm.local` | `pm123456` | 11 項核心業務 |
 | Supervisor | `supervisor@itpm.local` | `supervisor123` | 17 項（除用戶管理） |
 
 ### AI Development Guidelines

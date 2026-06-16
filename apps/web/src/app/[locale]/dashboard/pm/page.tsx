@@ -379,7 +379,8 @@ export default function ProjectManagerDashboard() {
                             <div className="flex items-center gap-2 mb-2">
                               <FileText className="h-5 w-5 text-orange-600" />
                               <h4 className="font-semibold text-foreground">
-                                {proposal.project.name}
+                                {/* CHANGE-052: OM 提案無 project，退回提案標題 */}
+                                {proposal.project?.name ?? proposal.title}
                               </h4>
                               <Badge variant="warning">{t('tasks.proposals.badge')}</Badge>
                             </div>

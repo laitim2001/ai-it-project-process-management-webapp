@@ -400,7 +400,7 @@ npx prisma db seed
 | 角色 | Email | 密碼 |
 |------|-------|------|
 | 管理員 | `admin@itpm.local` | `admin123` |
-| 專案經理 | `pm@itpm.local` | `pm123` |
+| 專案經理 | `pm@itpm.local` | `pm123456` |
 | 主管 | `supervisor@itpm.local` | `supervisor123` |
 
 ### 步驟 8: 驗證環境配置
@@ -510,7 +510,7 @@ pnpm dev
 
 **快速驗證**:
 1. 訪問 http://localhost:3000 確認應用啟動
-2. 使用測試帳號登入: `pm@itpm.local` / `pm123`
+2. 使用測試帳號登入: `pm@itpm.local` / `pm123456`
 3. 訪問 http://localhost:8025 查看 Mailhog 郵件介面
 
 ---

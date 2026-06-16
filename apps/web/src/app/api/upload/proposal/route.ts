@@ -121,17 +121,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SR-09：業務授權 —— 查提案所屬專案的擁有者，僅 manager 或 Admin 可上傳
+    // SR-09 / CHANGE-052：業務授權 —— 僅提案擁有者或 Admin 可上傳（改用 ownerId，脫離 project）
     const proposal = await prisma.budgetProposal.findUnique({
       where: { id: proposalId },
-      select: { project: { select: { managerId: true } } },
+      select: { ownerId: true },
     });
 
     if (!proposal) {
       return NextResponse.json({ error: '提案不存在' }, { status: 404 });
     }
 
-    if (!canMutate(proposal.project.managerId, session.user)) {
+    if (!canMutate(proposal.ownerId, session.user)) {
       return NextResponse.json(
         { error: '您沒有權限為此提案上傳文件' },
         { status: 403 }

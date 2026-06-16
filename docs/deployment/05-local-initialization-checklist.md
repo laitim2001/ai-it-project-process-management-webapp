@@ -267,7 +267,7 @@ pnpm --filter db db:seed
 | 角色 | Email | 密碼 | 權限數量 |
 |------|-------|------|---------|
 | **Admin** | `admin@itpm.local` | `admin123` | 18（全部功能） |
-| **ProjectManager** | `pm@itpm.local` | `pm123` | 11（核心業務） |
+| **ProjectManager** | `pm@itpm.local` | `pm123456` | 11（核心業務） |
 | **Supervisor** | `supervisor@itpm.local` | `supervisor123` | 17（除用戶管理） |
 
 ---

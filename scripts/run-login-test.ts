@@ -32,8 +32,8 @@ async function testLogin() {
     console.log('✅ Email 已填入: pm@itpm.local');
 
     const passwordInput = await page.locator('input[name="password"], input[type="password"]').first();
-    await passwordInput.fill('pm123');
-    console.log('✅ Password 已填入: pm123');
+    await passwordInput.fill('pm123456');
+    console.log('✅ Password 已填入: pm123456');
 
     console.log('\n步驟 3: 提交表單');
     const submitButton = await page.locator('button[type="submit"]').first();
