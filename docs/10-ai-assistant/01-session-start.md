@@ -232,7 +232,7 @@ git status --short
 | 角色 | Email | 密碼 |
 |---|---|---|
 | Admin | `admin@itpm.local` | `admin123` |
-| ProjectManager | `pm@itpm.local` | `pm123` |
+| ProjectManager | `pm@itpm.local` | `pm123456` |
 | Supervisor | `supervisor@itpm.local` | `supervisor123` |
 
 ---

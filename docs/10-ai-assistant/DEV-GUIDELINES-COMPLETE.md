@@ -532,7 +532,7 @@ throw new TRPCError({ code: 'BAD_REQUEST', message: 'errors.invalidCurrentPasswo
 | 角色 | Email | 密碼 | 權限 |
 |------|-------|------|------|
 | Admin | `admin@itpm.local` | `admin123` | 全部 18 項 |
-| ProjectManager | `pm@itpm.local` | `pm123` | 11 項核心 |
+| ProjectManager | `pm@itpm.local` | `pm123456` | 11 項核心 |
 | Supervisor | `supervisor@itpm.local` | `supervisor123` | 17 項（除用戶管理） |
 
 **常見 gotchas**：Turborepo 快取異常 `pnpm turbo clean`；改 schema 後 `db:generate`；改 API 後重啟 TS server；查 port 衝突 `netstat -ano | findstr :300`；dev 信件看 Mailhog UI（http://localhost:8025）。

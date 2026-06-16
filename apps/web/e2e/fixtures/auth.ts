@@ -15,6 +15,7 @@ export type AuthFixtures = {
   authenticatedPage: Page;
   managerPage: Page;
   supervisorPage: Page;
+  adminPage: Page;
 };
 
 /**
@@ -26,7 +27,9 @@ export async function login(page: Page, email: string, password: string): Promis
   await page.goto('/api/auth/csrf');
   await page.waitForTimeout(500); // 等待 CSRF token cookie 設置完成
 
-  await page.goto('/login');
+  // FIX: localePrefix='always'（defaultLocale=zh-TW）下無前綴的 /login 會 404；須帶 locale 前綴。
+  // 用 zh-TW（預設語言）以對齊本 spec 的中文 UI 文字 selector（如「新增預算池」）。
+  await page.goto('/zh-TW/login');
 
   // 等待登入表單載入
   await page.waitForSelector('input[name="email"]', { timeout: 10000 });
@@ -78,8 +81,9 @@ export async function login(page: Page, email: string, password: string): Promis
   }
 
   // 等待重定向到 dashboard（延長超時時間）
+  // FIX: 登入成功後經 i18n router 導到帶 locale 前綴的 /en/dashboard，故用 glob 匹配
   try {
-    await page.waitForURL('/dashboard', { timeout: 15000 });
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
   } catch (e) {
     // 如果沒有重定向，檢查當前 URL 和頁面狀態
     console.log('當前 URL:', page.url());
@@ -101,7 +105,7 @@ export const test = base.extend<AuthFixtures>({
    * 通用認證 Page（使用 ProjectManager）
    */
   authenticatedPage: async ({ page }, use) => {
-    await login(page, 'pm@itpm.local', 'pm123');
+    await login(page, 'pm@itpm.local', 'pm123456');
     await use(page);
   },
 
@@ -111,7 +115,7 @@ export const test = base.extend<AuthFixtures>({
   managerPage: async ({ browser }, use) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    await login(page, 'pm@itpm.local', 'pm123');
+    await login(page, 'pm@itpm.local', 'pm123456');
     await use(page);
     await context.close();
   },
@@ -123,6 +127,17 @@ export const test = base.extend<AuthFixtures>({
     const context = await browser.newContext();
     const page = await context.newPage();
     await login(page, 'supervisor@itpm.local', 'supervisor123');
+    await use(page);
+    await context.close();
+  },
+
+  /**
+   * Admin 角色的 Page（FEAT-014 多步審批：第二步審批者為 Admin）
+   */
+  adminPage: async ({ browser }, use) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await login(page, 'admin@itpm.local', 'admin123');
     await use(page);
     await context.close();
   },

@@ -10,10 +10,10 @@ import { type Page, expect } from '@playwright/test';
  *
  * 預設使用 seed.ts 中的測試帳號：
  * - Email: pm@itpm.local
- * - Password: pm123
+ * - Password: pm123456
  */
-export async function loginAsProjectManager(page: Page, email = 'pm@itpm.local', password = 'pm123') {
-  await page.goto('/login');
+export async function loginAsProjectManager(page: Page, email = 'pm@itpm.local', password = 'pm123456') {
+  await page.goto('/zh-TW/login');
 
   // 使用 ID 選擇器（更可靠）
   await page.fill('input#email', email);
@@ -37,7 +37,7 @@ export async function loginAsProjectManager(page: Page, email = 'pm@itpm.local',
  * - Password: supervisor123
  */
 export async function loginAsSupervisor(page: Page, email = 'supervisor@itpm.local', password = 'supervisor123') {
-  await page.goto('/login');
+  await page.goto('/zh-TW/login');
 
   // 使用 ID 選擇器（更可靠）
   await page.fill('input#email', email);
@@ -61,7 +61,7 @@ export async function loginAsSupervisor(page: Page, email = 'supervisor@itpm.loc
  * - Password: admin123
  */
 export async function loginAsAdmin(page: Page, email = 'admin@itpm.local', password = 'admin123') {
-  await page.goto('/login');
+  await page.goto('/zh-TW/login');
 
   // 使用 ID 選擇器（更可靠）
   await page.fill('input#email', email);

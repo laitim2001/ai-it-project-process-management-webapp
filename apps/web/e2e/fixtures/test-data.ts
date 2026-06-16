@@ -26,6 +26,7 @@ export const generateBudgetPoolData = () => ({
  */
 export const generateProjectData = () => ({
   name: `E2E_Project_${timestamp()}`,
+  projectCode: `E2E-${Date.now().toString().slice(-9)}`, // FIX: FEAT-001 必填唯一專案編號（格式 [a-zA-Z0-9-_]）
   description: 'E2E 測試項目',
   startDate: (new Date().toISOString().split('T')[0] ?? ''),
   endDate: (new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] ?? ''),
@@ -87,7 +88,7 @@ export const generateChargeOutData = () => ({
 export const testUsers = {
   manager: {
     email: 'pm@itpm.local',
-    password: 'pm123',
+    password: 'pm123456',
   },
   supervisor: {
     email: 'supervisor@itpm.local',
