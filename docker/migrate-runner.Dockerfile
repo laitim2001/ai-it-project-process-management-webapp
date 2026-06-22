@@ -20,11 +20,17 @@ RUN apt-get update \
 # 全新安裝 prisma 5.22.0 —— postinstall 會依平台下載正確的 debian-openssl-3.0.x engine
 RUN npm install -g prisma@5.22.0
 
-# 帶入 schema 與全部 migrations(含 00000000000000_init + 5 個新 migration)
+# 帶入 schema 與全部 migrations(含 00000000000000_init + 6 個新 migration，含 change052)
 COPY packages/db/prisma /work/prisma
 # 帶入破壞性遷移腳本(非預設執行)
 COPY docker/migrate-baseline.sh /work/migrate-baseline.sh
 RUN chmod +x /work/migrate-baseline.sh
+# 帶入唯讀 pre-flight 檢查與補權限 SQL(非預設執行，由 ACI --command-line 明確觸發)
+COPY docker/preflight-readonly.sql /work/preflight-readonly.sql
+COPY docker/seed-permissions.sql /work/seed-permissions.sql
+# 帶入 schema 漂移硬閘門驗證腳本(純 ASCII 輸出，避免 az logs cp1252 crash)
+COPY docker/verify-schema.sh /work/verify-schema.sh
+RUN chmod +x /work/verify-schema.sh
 
 WORKDIR /work
 
