@@ -293,6 +293,8 @@ reports/
 !packages/db/prisma/migrations/**/*.sql
 # Allow archived pre-baseline migrations for reference (squash baseline, FIX-141)
 !packages/db/prisma/_archived-migrations-pre-baseline/**/migration.sql
+# Allow deployment SQL scripts run by migrate-runner ACI (company/dev upgrade, doc 12)
+!docker/*.sql
 
 # ------------------------------------------------------------------------------
 # AI & LLM Tools
