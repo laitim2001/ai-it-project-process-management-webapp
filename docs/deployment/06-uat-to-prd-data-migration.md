@@ -78,6 +78,8 @@ pnpm --filter db exec prisma migrate diff \
 > 若上面 diff 非空 → UAT 有 db-push drift，須先 `prisma migrate deploy` 或處理後再繼續。
 > baseline reset（`DELETE _prisma_migrations` + `migrate resolve --applied`）建議在 §3 dump 之前完成，使 dump 帶出乾淨歷史。
 
+> ⚠️ **同時確認 UAT 的 seed 資料（權限）已對齊 HEAD**：整庫遷移會讓 PRD **完整繼承 UAT 現況**（含 `Permission`/`RolePermission`）。若 UAT 本身的權限未對齊 `seed.ts`（如 2026-06-22 發現的 `menu:approval-workflows` 缺失、PM/Supervisor 授權殘缺），**PRD 會一併繼承缺陷**。dump 前先依 **doc 11 §1.2 + §2「Seed 同步護欄」** 確認 UAT 權限正確（用 Admin/Supervisor/ProjectManager 各登入驗 Sidebar，或比對 `seed.ts` 的 `menuPermissions`/`rolePermissionMapping`）。
+
 ### 2.3 Provision PRD 環境（空殼，無資料）
 
 用既有 6 階段腳本的 **prod 檔位**（DB / Storage / ACR / App Service / Key Vault）：
