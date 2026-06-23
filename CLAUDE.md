@@ -2,11 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Last Updated**: 2026-04-22
-> **Project Status**: Post-MVP Enhancement Phase (FEAT-012 + FIX-101~137 Complete)
+> **Last Updated**: 2026-06-22
+> **Project Status**: Post-MVP Enhancement Phase (FEAT-014/015 + CHANGE-001~052 + FIX-101~156 Complete；含 2026-06 P0/P1 安全修復批次)
 > **Code Statistics**: → 見 `docs/codebase-analyze/SUMMARY.md`（由 `scripts/refresh-stats.js` 自動同步）
 > **Epic Status**: Epic 1-8 ✅ Complete | Epic 9-10 📋 Planned
-> **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境 已部署
+> **Azure Deployment**: ✅ 個人環境 + ✅ 公司環境（company/dev=UAT，2026-06-22 已升級至 main HEAD，含 FEAT-014/015 與 P0/P1 安全修復；部署護欄見 `docs/deployment/11`）
 > **Language Preference**: 繁體中文 (Traditional Chinese) - AI assistants should communicate in Traditional Chinese by default
 
 ---
@@ -250,9 +250,10 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - Design system migration (shadcn/ui + Radix UI)
 - 4 new pages (Quotes, Settings, Register, Forgot Password)
 - Environment deployment optimization
-- **Quality fixes (FIX-009 ~ FIX-137, 共 70+ bug fixes)**
+- **Quality fixes (FIX-009 ~ FIX-156, 共 80+ bug fixes)**
   - FIX-009 ~ FIX-099: MVP 階段品質修復
   - **FIX-101 ~ FIX-137**: Codebase 分析驗證修復（34 項安全、品質、UX 修正，commit `5017bd0`）
+  - **FIX-138 ~ FIX-156**（2026-05~06）: FIX-141 migration baseline 重立、FIX-142 session 過期偵測、**FIX-145~152 P0/P1 安全修復**（NEXTAUTH_SECRET 外洩移除、依賴 CVE patch、password hash 洩漏、物件級授權 IDOR）、FIX-154~156 schema 漂移防範規劃
     - FIX-101: User Router 權限修復（改 protectedProcedure / adminProcedure）
     - FIX-102: Health Router Schema 修改端點改 adminProcedure
     - FIX-103: 檔案上傳 API 加認證中間件
@@ -262,7 +263,9 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - **FEAT-010**: Project Data Import（前端模組 `project-data-import/`）
 - **FEAT-011**: Permission Management（Sidebar 權限過濾）
 - **FEAT-012**: 統一載入特效系統（Spinner, LoadingButton, LoadingOverlay, GlobalProgress）
-- **CHANGE-001~041**: 41 項功能改進 (OM Summary、Dashboard、Delete Enhancement、User Password 等)
+- **FEAT-014**: 可配置序列審批流程（ApprovalWorkflow/ApprovalStep；budgetProposal 序列審批執行）
+- **FEAT-015**: Project Expense 月度模組（三層架構 ProjectExpense/Item/Monthly）
+- **CHANGE-001~052**: 52 項功能改進 (OM Summary、Dashboard、Delete Enhancement、User Password、OM 雙幣輸入 CHANGE-048~050、CI 有效閘門 CHANGE-051、提案多態目標 CHANGE-052 等)
 
 **📋 Next Phase: Epic 9-10** (AI Assistant + External Integration)
 
@@ -275,7 +278,8 @@ This is an **IT Project Process Management Platform** - a **production-ready** f
 - **兩套 Toast 系統共存**（MVP Context 版 + Post-MVP Pub/Sub 版，待統一）
 - **表單處理不一致**：部分用 react-hook-form + Zod，部分用 useState（待統一）
 - **代碼 Bug**（僅列仍存在的；其他已於 FIX-101~137 修復）：
-  - `expense.reject` 發送未註冊的通知類型 `'EXPENSE_REJECTED'`（`expense.ts:1260`）
+  - `expense.reject` 發送未註冊的通知類型 `'EXPENSE_REJECTED'`（`expense.ts:1268`）
+- **安全現況**：2026-06 已完成 P0/P1 安全修復批次（FIX-145~152，詳見 FIXLOG）——`codebase-analyze/10-issues-and-debt/security-review.md` 列的多數安全問題已解決；**唯一手動殘留：Azure Key Vault 輪換 `NEXTAUTH_SECRET`**（個人＋公司環境，外洩密鑰未輪換前風險未完全解除）
 
 ---
 
@@ -461,7 +465,7 @@ Mailhog UI:   localhost:8025
 
 詳細歷史 → 見：
 - `DEVELOPMENT-LOG.md`（每個 Epic / Sprint 的決策與變更）
-- `FIXLOG.md`（FIX-009 ~ FIX-137 完整修復記錄）
+- `FIXLOG.md`（FIX-009 ~ FIX-156 完整修復記錄）
 - `docs/stories/`（每個 Epic 下的 user stories 原始規格）
 - `claudedocs/4-changes/`（FEAT / CHANGE / FIX 規劃文件）
 
@@ -488,7 +492,7 @@ Comprehensive documentation exists in multiple locations:
 - `PROJECT-INDEX.md` - Complete file index
 - `INDEX-MAINTENANCE-GUIDE.md` - Index maintenance strategy
 - `DEVELOPMENT-LOG.md` - Development history and decisions
-- `FIXLOG.md` - Bug fix records (FIX-009 ~ FIX-137, 70+ fixes)
+- `FIXLOG.md` - Bug fix records (FIX-009 ~ FIX-156, 80+ fixes)
 
 ### Analysis & Planning (claudedocs/)
 - `DESIGN-SYSTEM-MIGRATION-PROGRESS.md` - Design system migration tracking
@@ -656,6 +660,6 @@ pnpm start    # Runs Next.js production server
 
 ---
 
-**Last Updated**: 2026-04-22
+**Last Updated**: 2026-06-22
 **Maintained By**: Development Team + AI Assistant
 **Next Review**: After Epic 9-10 completion
