@@ -744,6 +744,7 @@ export default function OMExpenseDetailPage({ params }: { params: { id: string }
                       <OMExpenseItemMonthlyGrid
                         item={selectedItem}
                         hkdRate={hkdRate}
+                        financialYear={omExpense.financialYear}
                         onSave={() => refetch()}
                         onClose={() => setSelectedItemId(null)}
                       />

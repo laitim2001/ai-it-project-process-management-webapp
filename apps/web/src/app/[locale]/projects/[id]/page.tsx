@@ -223,12 +223,17 @@ export default function ProjectDetailPage() {
    */
   const { data: projectExpenses } = api.projectExpense.getByProject.useQuery({ projectId: id });
 
-  /** CHANGE-044: 由 fresh 資料 + 選取 id 推導目前選中的費用明細（被刪除時自動回 null） */
-  const selectedExpenseItem = useMemo<ProjectExpenseItemData | null>(() => {
+  /**
+   * CHANGE-044: 由 fresh 資料 + 選取 id 推導目前選中的費用明細（被刪除時自動回 null）
+   * CHANGE-053: 一併帶出所屬費用表的 financialYear，供月度網格依財年排序 / 標示隔年
+   */
+  const selectedExpenseItem = useMemo<
+    { item: ProjectExpenseItemData; financialYear: number } | null
+  >(() => {
     if (!selectedExpenseItemId || !projectExpenses) return null;
     for (const header of projectExpenses as ProjectExpenseData[]) {
       const found = header.items.find((i) => i.id === selectedExpenseItemId);
-      if (found) return found;
+      if (found) return { item: found, financialYear: header.financialYear };
     }
     return null;
   }, [selectedExpenseItemId, projectExpenses]);
@@ -1079,7 +1084,8 @@ export default function ProjectDetailPage() {
               <div className="lg:sticky lg:top-6 space-y-6">
                 {selectedExpenseItem ? (
                   <ProjectExpenseItemMonthlyGrid
-                    item={selectedExpenseItem}
+                    item={selectedExpenseItem.item}
+                    financialYear={selectedExpenseItem.financialYear}
                     onSaved={() => utils.projectExpense.getByProject.invalidate({ projectId: id })}
                     onClose={() => setSelectedExpenseItemId(null)}
                   />
