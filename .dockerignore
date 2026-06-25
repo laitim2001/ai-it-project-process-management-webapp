@@ -16,6 +16,14 @@ coverage
 **/__mocks__
 .jest
 
+# Playwright / verification artifacts — must NOT enter the build context.
+# (CHANGE-053 deploy 2026-06-25: these polluted the context and the builder stage
+#  `COPY . .` failed with "Error processing tar file: operation not permitted".)
+# Note: `*.png` only matches root-level files; nested assets like apps/web/public/*.png are unaffected.
+.playwright-mcp
+**/.playwright-mcp
+*.png
+
 # Next.js
 .next
 out
