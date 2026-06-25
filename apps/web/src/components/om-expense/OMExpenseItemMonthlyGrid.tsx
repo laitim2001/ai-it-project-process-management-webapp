@@ -48,6 +48,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui';
+import { FISCAL_MONTH_ORDER, FISCAL_START_MONTH, calendarYearOfFiscalMonth } from '@/lib/fiscal';
 import { api } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import { DualCurrency } from '@/components/shared/DualCurrency';
@@ -99,6 +100,8 @@ interface OMExpenseItemMonthlyGridProps {
   item: OMExpenseItemData;
   /** CHANGE-048: HKD 匯率（1 USD = hkdRate HKD），供 USD→HKD 自動換算；null 時停用自動帶入 */
   hkdRate?: number | null;
+  /** CHANGE-053: 財年起始曆年（FY{financialYear} = {financialYear}-04 ~ {financialYear+1}-03），用於月度依財年排序與跨年標示 */
+  financialYear: number;
   onSave?: () => void;
   onClose?: () => void;
 }
@@ -110,6 +113,7 @@ interface OMExpenseItemMonthlyGridProps {
 export default function OMExpenseItemMonthlyGrid({
   item,
   hkdRate,
+  financialYear,
   onSave,
   onClose,
 }: OMExpenseItemMonthlyGridProps) {
@@ -186,6 +190,16 @@ export default function OMExpenseItemMonthlyGrid({
   // CHANGE-048: HKD 總計
   const totalActualHKD = useMemo(
     () => monthlyData.reduce((sum, record) => sum + record.actualAmountHKD, 0),
+    [monthlyData]
+  );
+
+  // CHANGE-053: 依財年順序（4 月 → 隔年 3 月）排序顯示；不影響 state 與加總
+  const orderedMonthlyData = useMemo(
+    () =>
+      [...monthlyData].sort(
+        (a, b) =>
+          FISCAL_MONTH_ORDER.indexOf(a.month) - FISCAL_MONTH_ORDER.indexOf(b.month)
+      ),
     [monthlyData]
   );
 
@@ -350,15 +364,18 @@ export default function OMExpenseItemMonthlyGrid({
               </tr>
             </thead>
             <tbody>
-              {monthlyData.map((record) => (
+              {orderedMonthlyData.map((record) => (
                 <tr key={record.month} className="border-b hover:bg-muted/50">
                   <td className="p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                        {record.month}
-                      </span>
-                      <span className="text-sm font-medium">{MONTH_NAMES[record.month - 1]}</span>
-                    </div>
+                    <span className="text-sm font-medium">
+                      {MONTH_NAMES[record.month - 1]}
+                      {/* CHANGE-053: 跨年的後三個月（1/2/3 月）標註隔年 */}
+                      {record.month < FISCAL_START_MONTH && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          {calendarYearOfFiscalMonth(record.month, financialYear)}
+                        </span>
+                      )}
+                    </span>
                   </td>
                   <td className="p-2">
                     <Input
